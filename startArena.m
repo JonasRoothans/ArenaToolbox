@@ -1,0 +1,2 @@
+global arena 
+arena = ArenaManager();
