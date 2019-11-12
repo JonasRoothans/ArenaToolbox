@@ -373,6 +373,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         switch class(obj.Data)
             case 'Mesh'
                 vertface2obj(thisActor.Data.Vertices,thisActor.Data.Faces,name)
+            otherwise 
+                keyboard
         end
         end
         
