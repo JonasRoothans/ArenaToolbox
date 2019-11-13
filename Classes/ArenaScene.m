@@ -6,10 +6,12 @@ classdef ArenaScene < handle
         Title
         Actors = ArenaActor.empty;
         handles
+        SceneLocation = '';
     end
     
     properties (Hidden=true)
         configcontrolpos % stores the bounding box of the uicontrols
+        gitref
     end
     
     methods
@@ -100,7 +102,16 @@ classdef ArenaScene < handle
         
 
 
+        
         %menubar
+        obj.handles.menu.file.main = uimenu(obj.handles.figure,'Text','File');
+        obj.handles.menu.file.savesceneas.main = uimenu(obj.handles.menu.file.main,'Text','Save scene as','callback',{@menu_savesceneas});
+        obj.handles.menu.file.savescene.main = uimenu(obj.handles.menu.file.main,'Text','Save scene','callback',{@menu_savescene});
+        obj.handles.menu.file.importscene.main = uimenu(obj.handles.menu.file.main,'Text','Import scene','callback',{@menu_importscene});
+        
+       
+        
+        
          obj.handles.menu.import.main = uimenu(obj.handles.figure,'Text','Import');
         obj.handles.menu.import.image.main = uimenu(obj.handles.menu.import.main,'Text','Image as');
          obj.handles.menu.import.image.imageasmesh = uimenu(obj.handles.menu.import.image.main,'Text','Mesh','callback',{@menu_importimageasmesh});
@@ -122,11 +133,11 @@ classdef ArenaScene < handle
          obj.handles.menu.show.widgets.main = uimenu(obj.handles.menu.show.main,'Text','Widgets');
          obj.handles.menu.show.widgets.coordinatesystem = uimenu(obj.handles.menu.show.widgets.main,'Text','Coordinate system','callback',{@menu_coordinatesystem});
          obj.handles.menu.show.backgroundcolor.main = uimenu(obj.handles.menu.show.main,'Text','background');
-         obj.handles.menuj.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','White','callback',{@menu_setbackgroundcolor});
-         obj.handles.menuj.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Light','callback',{@menu_setbackgroundcolor});
-         obj.handles.menuj.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Dark','callback',{@menu_setbackgroundcolor});
-         obj.handles.menuj.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Black','callback',{@menu_setbackgroundcolor});
-         obj.handles.menuj.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Custom','callback',{@menu_setbackgroundcolor});
+         obj.handles.menu.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','White','callback',{@menu_setbackgroundcolor});
+         obj.handles.menu.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Light','callback',{@menu_setbackgroundcolor});
+         obj.handles.menu.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Dark','callback',{@menu_setbackgroundcolor});
+         obj.handles.menu.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Black','callback',{@menu_setbackgroundcolor});
+         obj.handles.menu.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Custom','callback',{@menu_setbackgroundcolor});
          
          obj.handles.menu.transform.main = uimenu(obj.handles.figure,'Text','Transform');
          obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
@@ -165,6 +176,44 @@ classdef ArenaScene < handle
                 end
                 handles.btn_layeroptions.Visible = handles.panelright.Visible;
                 
+            end
+            
+            function menu_importscene(hObject,eventdata)
+               [filename,pathname] = uigetfile('*.scn');
+               loadedScene = load(fullfile(pathname,filename),'-mat');
+               delete(gcf,'visible','off')
+               keyboard
+            end
+            
+            function menu_savesceneas(hObject,eventdata)
+                Scene = ArenaScene.getscenedata(hObject);
+                try
+                Scene.gitref = getGitInfo;
+                catch
+                    Scene.gitref = '';
+                end
+                [filename,pathname] = uiputfile('*.scn');
+                save(fullfile(pathname,filename),'Scene');
+                Scene.SceneLocation = fullfile(pathname,filename);
+                disp('Scene saved')
+                
+            end
+            
+            function menu_savescene(hObject,eventdata)
+                Scene = ArenaScene.getscenedata(hObject);
+                try
+                Scene.gitref = getGitInfo;
+                catch
+                    Scene.gitref = '';
+                end
+                if isempty(Scene.SceneLocation)
+                    [filename,pathname] = uiputfile('*.scn');
+                    save(fullfile(pathname,filename),'Scene');
+                    Scene.SceneLocation = fullfile(pathname,filename);
+                else
+                    save(Scene.SceneLocation,'Scene')
+                end
+                disp('Scene saved')
             end
             
             function menu_exporttoblender(hObject,eventdata)

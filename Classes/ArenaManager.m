@@ -15,6 +15,9 @@ classdef ArenaManager < handle
                 answer = questdlg('How do you want to start?','Arena','Open scene','New scene','New scene');
                 switch answer
                     case 'Open scene'
+                        [filename,pathname] = uigetfile('*.scn');
+                        loaded = load(fullfile(pathname,filename),'-mat');
+                        thisScene = loaded.Scene;
                         keyboard
                     case 'New scene'
                         [thisScene] = obj.new();
