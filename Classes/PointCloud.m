@@ -11,6 +11,9 @@ classdef PointCloud
         function obj = PointCloud(vectors,weights)
             %POINTCLOUD Construct an instance of this class
             %   Detailed explanation goes here
+            if nargin==0
+                    return
+            end
             
             nVectors = numel(obj.Vectors); %initial condition
             switch class(vectors)

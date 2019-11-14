@@ -13,7 +13,9 @@ classdef VectorCloud
         function obj = VectorCloud(base,direction, tertiary, weights)
             %POINTCLOUD Construct an instance of this class
             %   Detailed explanation goes here
-            
+            if nargin==0
+                    return
+            end
             switch class(base)
                 case 'VectorCloud' %unintended use
                     obj.Base = base.Base;

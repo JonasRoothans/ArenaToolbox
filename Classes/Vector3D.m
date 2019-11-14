@@ -63,6 +63,10 @@ classdef Vector3D
             length = vecnorm(v');
         end
         
+        %--Arena
+        function varargout = see(obj)
+            varargout = PointCloud(obj).see;
+        end
         
         %--Booleans
         function bool = isempty(obj)
@@ -84,8 +88,7 @@ classdef Vector3D
         end
         
         
-        
-    
+      
         
         
         %---basic operations
