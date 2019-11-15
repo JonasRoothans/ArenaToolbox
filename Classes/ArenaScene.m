@@ -180,8 +180,9 @@ classdef ArenaScene < handle
             
             function menu_importscene(hObject,eventdata)
                [filename,pathname] = uigetfile('*.scn');
-               loadedScene = load(fullfile(pathname,filename),'-mat');
-               delete(gcf,'visible','off')
+               loaded = load(fullfile(pathname,filename),'-mat');
+               delete(gcf);
+               isSameVersion(loaded.Scene,'show')
                keyboard
             end
             

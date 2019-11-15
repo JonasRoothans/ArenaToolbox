@@ -3,5 +3,8 @@ function [Scene] = openscn(inputArg1)
 %   Detailed explanation goes here
 loaded = load(inputArg1,'-mat');
 Scene = loaded.Scene;
+
+isSameVersion(Scene,'show');
+            
 end
 
