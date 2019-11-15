@@ -11,7 +11,7 @@ try
             answer = 0;
         switch showOrHide
             case'show'
-                msgbox('The loaded scene may not be compatible with the current version. Use newScene, Import scene, to upgrade data' ,'Arena version','warning')
+                msgbox('The loaded scene may not be compatible with the current version. Use newScene, Import scene, to upgrade data' ,'Arena version','warn')
             case 'hide'
                 disp('The loaded scene may not be compatible with the current version. Use newScene, Import scene, to upgrade data')
         end

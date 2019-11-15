@@ -18,26 +18,31 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             obj.Scene = ArenaScene.empty;
         end
         
-        function obj = create(obj,data,scene)
+        function obj = create(obj,data,scene,OPTIONALvisualisation)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             obj.Data = data;
             obj.Scene(end+1) = scene;
+            if nargin==4
+                settings = OPTIONALvisualisation;
+            else
+                settings = NaN;
+            end
             switch class(data)
                 case 'PointCloud'
-                    obj.visualizePointCloud(NaN,data,scene); %settings, data, scene
+                    obj.visualizePointCloud(settings,data,scene); %settings, data, scene
                     obj.Tag = 'PointCloud';
                 case 'Mesh'
-                    obj.visualizeMesh(NaN,data,scene); %settings, data, scene
+                    obj.visualizeMesh(settings,data,scene); %settings, data, scene
                     obj.Tag = 'Mesh';
                 case 'Slice'
-                    obj.visualizeSlice(NaN,data,scene);
+                    obj.visualizeSlice(settings,data,scene);
                     obj.Tag = 'Slice';
                 case 'ObjFile'
-                    obj.visualizeObjFile(NaN,data,scene);
+                    obj.visualizeObjFile(settings,data,scene);
                     obj.Tag = 'ObjFile';
                 case 'VectorCloud'
-                    obj.visualizeVectorCloud(NaN,data,scene);
+                    obj.visualizeVectorCloud(settings,data,scene);
                     obj.Tag = 'VectorCloud';
                 otherwise
                     keyboard
@@ -474,6 +479,12 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             scene.Actors(currentIndex) = [];
             delete(obj.Visualisation.handle)
             scene.refreshLayers();
+        end
+        
+        function newActor = reviveInScene(obj,scene)
+            newActor = scene.newActor(obj.Data,obj.Visualisation.settings);
+            newActor.changeName(['* ',obj.Tag]);
+           
         end
     end
 end

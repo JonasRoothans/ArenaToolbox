@@ -105,12 +105,11 @@ classdef ArenaScene < handle
         
         %menubar
         obj.handles.menu.file.main = uimenu(obj.handles.figure,'Text','File');
+        
+        obj.handles.menu.file.newscene.main = uimenu(obj.handles.menu.file.main,'Text','New empty scene','callback',{@menu_newscene});
         obj.handles.menu.file.savesceneas.main = uimenu(obj.handles.menu.file.main,'Text','Save scene as','callback',{@menu_savesceneas});
         obj.handles.menu.file.savescene.main = uimenu(obj.handles.menu.file.main,'Text','Save scene','callback',{@menu_savescene});
         obj.handles.menu.file.importscene.main = uimenu(obj.handles.menu.file.main,'Text','Import scene','callback',{@menu_importscene});
-        
-       
-        
         
          obj.handles.menu.import.main = uimenu(obj.handles.figure,'Text','Import');
         obj.handles.menu.import.image.main = uimenu(obj.handles.menu.import.main,'Text','Image as');
@@ -138,6 +137,7 @@ classdef ArenaScene < handle
          obj.handles.menu.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Dark','callback',{@menu_setbackgroundcolor});
          obj.handles.menu.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Black','callback',{@menu_setbackgroundcolor});
          obj.handles.menu.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Custom','callback',{@menu_setbackgroundcolor});
+         obj.handles.menu.show.cameratoolbar.main = uimenu(obj.handles.menu.show.main,'Text','camera toolbar','callback',{@menu_cameratoolbar},'Checked','on');
          
          obj.handles.menu.transform.main = uimenu(obj.handles.figure,'Text','Transform');
          obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
@@ -178,12 +178,36 @@ classdef ArenaScene < handle
                 
             end
             
+            function menu_newscene(hObject,eventdata)
+                newScene;
+            end
+            
+            function menu_cameratoolbar(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                switch scene.handles.cameratoolbar.Visible
+                    case 'on'
+                        scene.handles.cameratoolbar.Visible = 'off';
+                        hObject.Checked = 'off';
+                    case 'off'
+                        scene.handles.cameratoolbar.Visible = 'on';
+                        hObject.Checked = 'on';
+                end
+            end
+            
             function menu_importscene(hObject,eventdata)
+               scene = ArenaScene.getscenedata(hObject);
                [filename,pathname] = uigetfile('*.scn');
                loaded = load(fullfile(pathname,filename),'-mat');
                delete(gcf);
-               isSameVersion(loaded.Scene,'show')
-               keyboard
+               %isSameVersion(loaded.Scene,'show')
+
+               Actors = loaded.Scene.Actors;
+               
+               [indx] = listdlg('ListString',{Actors.Tag});
+                for thisindex = indx
+                    thisActor = Actors(thisindex);
+                   thisActor.reviveInScene(scene);
+                end
             end
             
             function menu_savesceneas(hObject,eventdata)
@@ -561,10 +585,14 @@ classdef ArenaScene < handle
        
         
         end
-        function thisActor = newActor(obj,data)
-            
+        function thisActor = newActor(obj,data,OPTIONALvisualisation)
             thisActor = ArenaActor;
-            thisActor.create(data,obj)
+            
+            if nargin==3 %when reviving an actor in a new scene.
+                thisActor.create(data,obj,OPTIONALvisualisation)
+            else
+                thisActor.create(data,obj)
+            end
             obj.Actors(end+1) = thisActor;
             refreshLayers(obj);
             selectlayer(obj,'last')
