@@ -36,9 +36,9 @@ classdef ArenaManager < handle
         
         %--- functions
         
-        function newScene = new(obj)
+        function newScene = new(obj,OPTIONALname)
             newScene = ArenaScene();
-            newScene.create();
+            newScene.create(OPTIONALname);
             obj.Scenes(end+1) = newScene;
         end
         

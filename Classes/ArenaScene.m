@@ -20,7 +20,7 @@ classdef ArenaScene < handle
             %   Detailed explanation goes here
         end
         
-        function obj = create(obj)
+        function obj = create(obj,OPTIONALname)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             
@@ -29,7 +29,11 @@ classdef ArenaScene < handle
             if debugmode
                 userinput = {'debug mode'};
             else
+                if nargin==1
                 userinput = inputdlg('new scene name: ','Arena');
+                elseif nargin==2
+                    userinput = {OPTIONALname};
+                end
             end
         obj.Title = userinput{1};
 
@@ -767,7 +771,24 @@ classdef ArenaScene < handle
             
         end
         
+        function saveas(obj,filename)
+            savefig(obj.handles.figure,filename)
+        end
+        
+        function hardclose(obj)
+            global arena
+                        try
+                        deleteIndex = find(arena.Scenes==obj.handles.figure.UserData);
+                        arena.Scenes(deleteIndex) = [];
+                        delete(gcf)
+                        catch
+                            delete(gcf)
+                            warning('Scene was an orphan..')
+                        end
+        end
+        
     end
+    
     methods(Static)
         
         function thisScene = getscenedata(h)
@@ -791,6 +812,8 @@ classdef ArenaScene < handle
             
    
         end
+        
+
 
         
 
