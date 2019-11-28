@@ -11,6 +11,14 @@ classdef ArenaManager < handle
             %ARENAMANAGER Construct an instance of this class
             %   Detailed explanation goes here
             
+            %check if a setupfile exists.
+            ArenaFolder = ArenaManager.getrootdir();
+            if not(exist('config.mat','file'))
+                ArenaManager.setup(ArenaFolder);
+            end
+                
+            
+            
             if not(obj.hasscene)
                 answer = questdlg('How do you want to start?','Arena','Open scene','New scene','New scene');
                 switch answer
@@ -38,7 +46,11 @@ classdef ArenaManager < handle
         
         function newScene = new(obj,OPTIONALname)
             newScene = ArenaScene();
-            newScene.create(OPTIONALname);
+            if nargin==1
+            newScene.create();
+            elseif nargin==2
+                newScene.create(OPTIONALname);
+            end
             obj.Scenes(end+1) = newScene;
         end
         
@@ -64,6 +76,24 @@ classdef ArenaManager < handle
             
         end
         
+    end
+    
+    methods (Static)
+        function setup(rootdir)
+            waitfor(msgbox('Arena uses atlases that are available in leadDBS. Please select the lead DBS folder'))
+            leadDBSdir = uigetdir('Find leadDBS dir');
+            
+            if isempty(leadDBSdir)
+                error('aborted by user')
+            end
+            
+            config.leadDBS = leadDBSdir;
+            save(fullfile(rootdir,'config.mat'),'config')
+        end
+        
+        function rootdir = getrootdir()
+            rootdir = fileparts(fileparts(mfilename('fullpath')));
+        end
     end
 end
 
