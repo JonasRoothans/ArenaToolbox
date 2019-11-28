@@ -138,27 +138,41 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         
         function settings = visualizeMesh(obj,settings,data,scene)
             %---- default settings
-            if not(isstruct(settings))
-                settings = struct;
-                settings.colorFace = [0.2 0.2 0.8];
-                settings.colorEdge = [0.2 0.2 0.8];
-                settings.complexity = 100;
-                settings.threshold = data.Settings.T;
-                settings.faceOpacity = 50;
-                settings.edgeOpacity = 0;
-                settings.smooth = 1;
+            if and(isempty(data.Source),not(isstruct(settings))) % mesh has no voxel image as source
+                    settings = struct;
+                    settings.colorFace = [0.2 0.2 0.8];
+                    settings.colorEdge = [0.2 0.2 0.8];
+                    settings.complexity = 100;
+                    settings.threshold = NaN;
+                    settings.faceOpacity = 50;
+                    settings.edgeOpacity = 0;
+                    settings.smooth = 1;
+            else
+                if not(isstruct(settings)) %mesh has been generated from voxels
+                    settings = struct;
+                    settings.colorFace = [0.2 0.2 0.8];
+                    settings.colorEdge = [0.2 0.2 0.8];
+                    settings.complexity = 100;
+                    settings.threshold = data.Settings.T;
+                    settings.faceOpacity = 50;
+                    settings.edgeOpacity = 0;
+                    settings.smooth = 1;
+                end
             end
             
             axes(scene.handles.axes)
             
+            isBasedOnVoxelData = not(isempty(data.Source));
             
             % changing threshold triggers new triangulation from voxeldata
-            if not(round(settings.threshold,2)==round(data.Settings.T,2))
-                if isnan(settings.threshold)
-                    data.getmeshfromvoxeldata({data.Source});
-                    settings.threshold = data.Settings.T;
-                else
-                    data.getmeshfromvoxeldata({data.Source,settings.threshold});
+            if isBasedOnVoxelData
+                if not(round(settings.threshold,2)==round(data.Settings.T,2))
+                    if isnan(settings.threshold)
+                        data.getmeshfromvoxeldata({data.Source});
+                        settings.threshold = data.Settings.T;
+                    else
+                        data.getmeshfromvoxeldata({data.Source,settings.threshold});
+                    end
                 end
             end
             
