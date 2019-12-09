@@ -1,6 +1,5 @@
 classdef ArenaManager < handle
-    %ARENAMANAGER Summary of this class goes here
-    %   Detailed explanation goes here
+    %ARENAMANAGER Manages instances of Scenes.
     
     properties
         Scenes = ArenaScene.empty;

@@ -1,5 +1,5 @@
 classdef ArenaScene < handle
-    %ARENAWINDOW Summary of this class goes here
+    %ARENASCENE Generates UIobjects, and stores Actors.
     %   Detailed explanation goes here
     
     properties

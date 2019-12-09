@@ -1,5 +1,5 @@
 classdef VoxelData <handle
-    %VOXELDATA Summary of this class goes here
+    %VOXELDATA contains Voxels [3D array], R [imref], can load nii.
     %   Detailed explanation goes here
     
     properties

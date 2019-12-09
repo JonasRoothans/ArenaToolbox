@@ -1,6 +1,5 @@
 classdef ObjFile 
-    %VECTOR Summary of this class goes here
-    %   Detailed explanation goes here
+    %ObjFile contains Faces and Vertices. Can be initialised with *.obj
     
     properties
         raw

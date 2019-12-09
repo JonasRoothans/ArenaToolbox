@@ -1,6 +1,5 @@
 classdef Vector3D
-    %VECTOR Summary of this class goes here
-    %   Detailed explanation goes here
+    %Vector3D contains x y and z, supports most vector functions
     
     properties
         x

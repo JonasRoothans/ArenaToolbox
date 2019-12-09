@@ -1,6 +1,5 @@
 classdef Slice < handle
-    %MESH Summary of this class goes here
-    %   Detailed explanation goes here
+    %Slice Level 1: Is obtained from voxeldata.
     
     properties
         Plane

@@ -1,7 +1,5 @@
 function [T] = A_transformationmatriforleadmesh(location,zdirection)
-%A_TRANSFORMATIONMATRIFORLEADMESH Summary of this function goes here
-%   Detailed explanation goes here
-
+%A_TRANSFORMATIONMATRIFORLEADMESH Trasformation from leadspace to world.
 zdirection = zdirection.unit.getArray()';
 xdirection = cross([0 1 0],zdirection);
 ydirection = cross(zdirection,xdirection);

@@ -1,6 +1,5 @@
 classdef PointCloud
-    %POINTCLOUD Summary of this class goes here
-    %   Detailed explanation goes here
+    %POINTCLOUD Contains Vectors [Vector3D list] and Weights [scaler]  
     
     properties
         Vectors = Vector3D.empty;

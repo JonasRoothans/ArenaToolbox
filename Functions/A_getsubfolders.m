@@ -1,6 +1,6 @@
 function [dirinfo] = A_getsubfolders(mainfolder)
 
-%GETSUBFOLDERS Summary of this function goes here
+%A_GETSUBFOLDERS Same as "dir", but without hidden . and ..
 %   Detailed explanation goes here
 dirinfo = dir(mainfolder);
 

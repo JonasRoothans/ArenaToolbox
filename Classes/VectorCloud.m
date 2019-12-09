@@ -1,5 +1,6 @@
 classdef VectorCloud
-    %POINTCLOUD Summary of this class goes here
+    %VECTORCLOUD contains Vector3Dlist: Base, Direction, Tertiary + Weights
+    %list],..
     %   Detailed explanation goes here
     
     properties

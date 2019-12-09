@@ -1,6 +1,5 @@
 function [out] = A_lps2ras(in)
-%LPS2RAS Summary of this function goes here
-%   Detailed explanation goes here
+%A_LPS2RAS inverts X and Y
 if isvector(in)
     out = in;
     out(1:2) = -1*out(1:2);

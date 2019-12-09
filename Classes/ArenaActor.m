@@ -1,6 +1,5 @@
 classdef ArenaActor < handle & matlab.mixin.Copyable
-    %ACTOR Summary of this class goes here
-    %   Detailed explanation goes here
+    %ARENAACTOR Connects visualisation settings to Data. Links to Scene.
     
     properties
         Data

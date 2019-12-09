@@ -1,5 +1,5 @@
 function [grad,im]=A_colorgradient(c1,c2,depth)
-% COLORGRADIENT allows you to generate a gradient between 2 given colors,
+%A_COLORGRADIENT allows you to generate a gradient between 2 given colors,
 % that can be used as colormap in your figures.
 %
 % USAGE:

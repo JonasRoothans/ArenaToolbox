@@ -1,6 +1,5 @@
 classdef Mesh < handle & matlab.mixin.Copyable
-    %MESH Summary of this class goes here
-    %   Detailed explanation goes here
+    %MESH Contains Faces and Vertices. Can be initialised with VoxelData
     
     properties
         Faces

@@ -1,6 +1,5 @@
 function [ xq,yq,zq ] = A_imref2meshgrid( imref )
-%IMREF2MESHGRID Summary of this function goes here
-%   Detailed explanation goes here
+%A_IMREF2MESHGRID Extracts meshgrid for imref
 
 %Meshgrid for full range
 x = imref.XWorldLimits(1):imref.PixelExtentInWorldX:imref.XWorldLimits(2);

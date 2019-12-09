@@ -1,6 +1,5 @@
 function [tf] = isvector3d(o1)
-%ISVECTOR Summary of this function goes here
-%   Detailed explanation goes here
-tf = isa(o1,'Vector');
+%ISVECTOR3D returns boolean if type is 'Vector3D'
+tf = isa(o1,'Vector3D');
 end
 

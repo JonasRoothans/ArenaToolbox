@@ -1,5 +1,5 @@
 function answer = isSameVersion(Scene,showOrHide)
-%ISSAMEVERSION Summary of this function goes here
+%ISSAMEVERSION compares Git reference of toolbox and data.
 %   Detailed explanation goes here
 
 answer = 1;
