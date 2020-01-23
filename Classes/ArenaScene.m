@@ -133,6 +133,7 @@ classdef ArenaScene < handle
             obj.handles.menu.show.legacyatlas.main = uimenu(obj.handles.menu.show.main,'Text','Legacy atlas');
             obj.handles.menu.show.legacyatlas.stn = uimenu(obj.handles.menu.show.legacyatlas.main,'Text','STN (LPS)','callback',{@menu_legacyatlas});
             obj.handles.menu.show.legacyatlas.gpi = uimenu(obj.handles.menu.show.legacyatlas.main,'Text','GPi (LPS)','callback',{@menu_legacyatlas});
+            obj.handles.menu.show.legacyatlas.other = uimenu(obj.handles.menu.show.legacyatlas.main,'Text','Other (LPS)','callback',{@menu_legacyatlas});
             obj.handles.menu.show.widgets.main = uimenu(obj.handles.menu.show.main,'Text','Widgets');
             obj.handles.menu.show.widgets.coordinatesystem = uimenu(obj.handles.menu.show.widgets.main,'Text','Coordinate system','callback',{@menu_coordinatesystem});
             obj.handles.menu.show.backgroundcolor.main = uimenu(obj.handles.menu.show.main,'Text','background');
@@ -370,7 +371,7 @@ classdef ArenaScene < handle
                 end
                 
                 
-                keyboard
+                %keyboard
             end
             
             function menu_legacyatlas(hObject,eventdata)
@@ -441,6 +442,27 @@ classdef ArenaScene < handle
                                 thisScene.handles.atlas.legacy.Actor_gpeleft.changeSetting('colorFace',[0 1 1],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
                                 thisScene.handles.atlas.legacy.Actor_gpiright.changeSetting('colorFace',[0 0 1],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
                                 thisScene.handles.atlas.legacy.Actor_gperight.changeSetting('colorFace',[0 1 1],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
+                                
+                            case 'Other (LPS)'
+                                %keyboard
+                                atlases = uigetfile(fullfile(legacypath,'*.obj'),'MultiSelect','On');
+                                if not(iscell(atlases))
+                                    atlases = {atlases};
+                                end
+                                for iAtlas = 1:numel(atlases)
+                                    obj_custom = ObjFile(fullfile(legacypath,atlases{iAtlas}));
+                                    obj_custom_left = obj_custom.transform(T.leftstn2mni);
+                                    obj_custom_right = obj_custom.transform(T.rightstn2mni);
+                                    [scene,thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left'])] = obj_custom_left.see(thisScene);
+                                    [scene,thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right'])] = obj_custom_right.see(thisScene);
+                                    
+                                    thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left']).changeName(['[legacy] atlases{iAtlas} left'])
+                                    thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right']).changeName(['[legacy] atlases{iAtlas} right'])
+                                    
+                                    thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left']).changeSetting('colorFace',[0.5 0.5 0.5],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
+                                    thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right']).changeSetting('colorFace',[0.5 0.5 0.5],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
+                                end
+                                
                                 
                                 
                         end

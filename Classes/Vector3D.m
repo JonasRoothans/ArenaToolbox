@@ -133,6 +133,40 @@ classdef Vector3D
             out = Vector3D(cross(o1.getArray,o2.getArray));
         end
         
+        function out = transform(o1,T)
+            if nargin==1
+                error('Transformation matrix required')
+            end
+            if ~(round(T(1:3,4),5)==[0;0;0])
+               if (round(T(4,1:3),5)==[0,0,0]) 
+                   warning('T was probably transposed. This is automatically repaired.')
+                   T = T';
+               else
+                   disp(T)
+                   error ('Invalid transformation matrix.')
+               end
+            end
+
+                % Add 1 to v3d
+                if numel(o1)==1
+                    v3d = [o1.getArray',1];
+                else
+                    v3d = [o1.getArray,ones(numel(o1),1)];
+                end
+
+                % Perform tranformation
+                transformed = v3d*T;
+
+                % create new Vector3D
+                if numel(o1)==1
+                    out = Vector3D(transformed(1:3));
+                else
+                    temp = PointCloud(transformed(:,1:3));
+                    out = temp.Vectors;
+                end
+                
+        end
+        
         
             
         

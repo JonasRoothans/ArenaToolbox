@@ -40,6 +40,22 @@ classdef PointCloud
             
         end
         
+        function obj = addVectors(obj,newVectors)
+            
+            if isa(newVectors,'PointCloud')
+                obj.Vectors = [obj.Vectors;newVectors.Vectors];
+                obj.Weights = [obj.Weights;newVectors.Weights];
+            else
+                if not(isa(newVectors,'Vector3D'))
+                    temp = Vector3D(newVectors);
+                    newVectors = temp.Vectors;
+                end
+                    obj.Vectors = [obj.Vectors;newVectors];
+                    obj.Weights = [obj.Weights;nan(1,numel(newVectors))];
+            end
+        
+        end
+        
         function obj = set.Vectors(obj,vectors)
             switch class(vectors)
                 case 'Vector3D'
@@ -77,15 +93,19 @@ classdef PointCloud
             if isempty(thisScene);return;end %user cancels
             thisActor = thisScene.newActor(obj);
             
-            varargout{1} = thisScene;
-            varargout{2} = thisActor;
+            varargout{1} = thisActor;
+            varargout{2} = thisScene;
+
             
         end
         
         function newPC = select(obj,idcs)
             if length(idcs)==length(obj.Weights)
                 if not(islogical(idcs))
-                    error('indexing requires logicals')
+                    try idcs = logical(idcs);
+                    catch
+                        error('indexing requires logicals')
+                    end
                 end
             else
                 if not(and(max(idcs)<=length(obj.Weights),min(idcs>0)))
@@ -105,8 +125,11 @@ classdef PointCloud
             end
             
             vectorOut = Vector3D(sum(multiplied.getArray)/sum(obj.Weights));
-            
-            
+
+        end
+        
+        function obj = transform(obj,T)
+            obj.Vectors = obj.Vectors.transform(T);
         end
     end
 end
