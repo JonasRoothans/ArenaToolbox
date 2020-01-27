@@ -198,7 +198,7 @@ classdef VoxelData <handle
         end
         
         
-        function cellarray = seperateROI(obj)
+        function [cellarray, scalaroutput] = seperateROI(obj)
             cellarray = {};
             v = obj.Voxels;
             
@@ -210,16 +210,17 @@ classdef VoxelData <handle
             
             [L,n] = bwlabeln(v_bw);
             
-            for i = 0:n
+           
+           for i = 0:n
                 region = (L==i);
                 region = int16(region);
                 region_voxeldata = VoxelData(region,obj.R);
-                cellarray{i+1} = region_voxeldata
-            end
+                cellarray{i+1} = region_voxeldata;
+           end
+           
+           scalaroutput = VoxelData(L,obj.R);
             
             
-            
-            %cellarray= ...
         end
         
     end
