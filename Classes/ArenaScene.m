@@ -835,7 +835,7 @@ classdef ArenaScene < handle
             end
             
             function cc_selectcolor(hObject,eventdata)
-                color = uisetcolor;
+                color = A_colorpicker;%uisetcolor;
                 if length(color)==3
                     hObject.BackgroundColor = color;
                     
