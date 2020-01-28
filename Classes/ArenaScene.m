@@ -30,7 +30,7 @@ classdef ArenaScene < handle
                 userinput = {'debug mode'};
             else
                 if nargin==1
-                    userinput = inputdlg('new scene name: ','Arena');
+                    userinput = newid({'new scene name: '},'Arena',1,{'test'});
                 elseif nargin==2
                     userinput = {OPTIONALname};
                 end
