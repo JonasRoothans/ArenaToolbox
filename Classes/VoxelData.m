@@ -166,6 +166,63 @@ classdef VoxelData <handle
             newObj = VoxelData(imOut,rOut);
             
         end
+        
+        function binaryObj = makeBinary(obj,T)
+            if nargin==1
+                histf = figure;histogram(obj.Voxels(:),50);  
+                set(gca, 'YScale', 'log')
+                try
+                    [T,~] = ginput(1);
+                catch
+                    error('user canceled')
+                end
+                close(histf)
+            end
+            binaryObj = VoxelData(obj.Voxels>T,obj.R);
+        end
+        
+        function CubicMM = getCubicMM(obj,T)
+            if not(all(islogical(obj.Voxels)))
+                if nargin==1
+                    obj = makeBinary(obj);
+                elseif nargin==2
+                    obj = makeBinary(obj,T);
+                end
+            end
+            
+            voxelsBW = obj.Voxels;
+            voxelcount = sum(double(voxelsBW(:)));
+            voxelsize = obj.R.PixelExtentInWorldX * obj.R.PixelExtentInWorldY * obj.R.PixelExtentInWorldZ;
+            CubicMM = voxelcount * voxelsize;
+
+        end
+        
+        
+        function [cellarray, scalaroutput] = seperateROI(obj)
+            cellarray = {};
+            v = obj.Voxels;
+            
+            if not(islogical(v))
+                v_bw = v > 0;
+            else
+                v_bw = v;
+            end
+            
+            [L,n] = bwlabeln(v_bw);
+            
+           
+           for i = 0:n
+                region = (L==i);
+                region = int16(region);
+                region_voxeldata = VoxelData(region,obj.R);
+                cellarray{i+1} = region_voxeldata;
+           end
+           
+           scalaroutput = VoxelData(L,obj.R);
+            
+            
+        end
+        
     end
 end
 
