@@ -387,10 +387,10 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             obj.Scene.refreshLayers();
         end
         
-        function export3d(name)
+        function export3d(obj,name)
         switch class(obj.Data)
             case 'Mesh'
-                vertface2obj(thisActor.Data.Vertices,thisActor.Data.Faces,name)
+                vertface2obj(obj.Data.Vertices,obj.Data.Faces,name)
             otherwise 
                 keyboard
         end
