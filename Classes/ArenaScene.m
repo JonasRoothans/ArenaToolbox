@@ -559,10 +559,17 @@ classdef ArenaScene < handle
             
             
             function menu_importimageasmesh(hObject,eventdata)
-                v = VoxelData;
-                [~, name] = v.loadnii;
-                actor = v.getmesh.see(ArenaScene.getscenedata(hObject));
-                actor.changeName(name)
+                
+                [filename,pathname] = uigetfile('*.nii','Find nii image(s)','MultiSelect','on');
+                if not(iscell(filename));filename = {filename};end
+                
+                for iFile = 1:numel(filename)
+                    niifile = fullfile(pathname,filename{iFile});
+                    v = VoxelData;
+                    [~, name] = v.loadnii(niifile);
+                    actor = v.getmesh.see(ArenaScene.getscenedata(hObject));
+                    actor.changeName(name)
+                end
                 
             end
             

@@ -38,6 +38,8 @@ classdef VoxelData <handle
             if nargin==1
                 [filename,pathname] = uigetfile('*.nii','Find nii image');
                 niifile = fullfile(pathname,filename);
+            else
+                [~,filename] = fileparts(niifile);
             end
             if not(contains(niifile,'.nii'));error('input has to be a nifti file');end
             
