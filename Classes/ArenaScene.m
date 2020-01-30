@@ -128,6 +128,7 @@ classdef ArenaScene < handle
             
             obj.handles.menu.export.main = uimenu(obj.handles.figure,'Text','Export');
             obj.handles.menu.export.blender = uimenu(obj.handles.menu.export.main,'Text','Blender (obj)','callback',{@menu_exporttoblender});
+            obj.handles.menu.export.handlestoworkspace = uimenu(obj.handles.menu.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
             
             obj.handles.menu.show.main = uimenu(obj.handles.figure,'Text','Show');
             obj.handles.menu.show.legacyatlas.main = uimenu(obj.handles.menu.show.main,'Text','Legacy atlas');
@@ -255,6 +256,13 @@ classdef ArenaScene < handle
                 thisActor.export3d(name);
                 
                 disp('File saved to current directory')
+            end
+            
+            function menu_exporthandlestoworkspace(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                assignin('base','scene',scene);
+                assignin('base','actors',scene.Actors);
+                disp('handles saved to workspace: scene, actors')
             end
             
             function menu_lps2ras(hObject,eventdata)
