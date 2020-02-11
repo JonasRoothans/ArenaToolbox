@@ -46,6 +46,8 @@ classdef ArenaScene < handle
                 'resize','off',...
                 'UserData',obj,...
                 'CloseRequestFcn',@closeScene,...
+                'WindowKeyPressFcn',@keyShortCut,...
+                'WindowButtonDownFcn',@keyShortCut,...
                 'Color',[1 1 1]);
             
             obj.handles.axes = axes('units','normalized',...
@@ -123,8 +125,10 @@ classdef ArenaScene < handle
             obj.handles.menu.import.scatter.main = uimenu(obj.handles.menu.import.main,'Text','Scatter from');
             obj.handles.menu.import.scatter.scatterfromworkspace = uimenu(obj.handles.menu.import.scatter.main,'Text','workspace','callback',{@menu_importscatterfromworkspace});
             obj.handles.menu.import.scatter.scatterfromfile = uimenu(obj.handles.menu.import.scatter.main,'Text','file','callback',{@menu_importscatterfromfile});
-            obj.handles.menu.imoprt.objfile.main = uimenu(obj.handles.menu.import.main,'Text','OBJ file','callback',{@menu_importObjfile});
+            obj.handles.menu.import.objfile.main = uimenu(obj.handles.menu.import.main,'Text','OBJ file','callback',{@menu_importObjfile});
             
+            obj.handles.menu.import.lead.main = uimenu(obj.handles.menu.import.main,'Text','Lead from');
+            obj.handles.menu.import.lead.fromnii = uimenu(obj.handles.menu.import.lead.main,'Text','from nii (2 dots)','callback',{@menu_importleadfromnii});
             
             obj.handles.menu.export.main = uimenu(obj.handles.figure,'Text','Export');
             obj.handles.menu.export.blender = uimenu(obj.handles.menu.export.main,'Text','Blender (obj)','callback',{@menu_exporttoblender});
@@ -150,9 +154,17 @@ classdef ArenaScene < handle
             obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
             obj.handles.menu.transform.selectedlayer.lps2ras = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','LPS <> RAS','callback',{@menu_lps2ras});
             obj.handles.menu.transforn.selectedlayer.mirror = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','mirror (makes copy)','callback',{@menu_mirror});
+            obj.handles.menu.transforn.selectedlayer.yeb2mni = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','Legacy --> MNI','callback',{@menu_Fake2MNI});
             
+            obj.handles.menu.edit.main = uimenu(obj.handles.figure,'Text','Edit');
+            obj.handles.menu.edit.count.main = uimenu(obj.handles.menu.edit.main,'Text','count overlap');
+            obj.handles.menu.edit.count.toMesh = uimenu(obj.handles.menu.edit.count.main,'Text','as mesh','callback',{@menu_edit_count2mesh});
+            obj.handles.menu.edit.count.toPlane = uimenu(obj.handles.menu.edit.count.main,'Text','as plane','callback',{@menu_edit_count2plane});
+            obj.handles.menu.edit.add.main = uimenu(obj.handles.menu.edit.main,'Text','sum voxelvalues');
+            obj.handles.menu.edit.add.toMesh = uimenu(obj.handles.menu.edit.add.main,'Text','as mesh','callback',{@menu_edit_add2mesh});
+            obj.handles.menu.edit.add.toPlane = uimenu(obj.handles.menu.edit.add.main,'Text','as plane','callback',{@menu_edit_add2plane});
             
-            obj.handles.cameratoolbar = cameratoolbar('Show');
+            obj.handles.cameratoolbar = cameratoolbar(obj.handles.figure,'Show');
             
             obj = createcoordinatesystem(obj);
             
@@ -292,6 +304,22 @@ classdef ArenaScene < handle
                 
             end
             
+            function menu_Fake2MNI(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                actorList = scene.Actors;
+                thisActor = actorList(scene.handles.panelright.Value);
+                thisActor.transform(scene,'Fake2MNI');
+                currentName = thisActor.Tag;
+                label = '[MNI]  ';
+                if contains(currentName,label)
+                    newname = erase(currentName,label);
+                else
+                    newname = [label,currentName];
+                end
+                thisActor.changeName(newname)
+            end
+                
+            
             function menu_coordinatesystem(hObject,eventdata)
                 thisScene = ArenaScene.getscenedata(hObject);
                 cs_handle = thisScene.handles.widgets.coordinatesystem;
@@ -357,10 +385,10 @@ classdef ArenaScene < handle
                     actorR = meshR.see(thisScene);
                     actorR.changeName([name,' right'])
                     actorR.changeSetting('complexity',5,...
-                                    'colorFace',color,...
-                                    'colorEdge',color,...
-                                    'edgeOpacity',80);
-            
+                        'colorFace',color,...
+                        'colorEdge',color,...
+                        'edgeOpacity',80);
+                    
                     
                     try
                         L = in.atlases.fv{iAtlas,2};
@@ -368,13 +396,13 @@ classdef ArenaScene < handle
                         actorL = meshL.see(thisScene);
                         actorL.changeName([name,' left'])
                         actorL.changeSetting('complexity',5,...
-                                                'colorFace',color,...
-                                                'colorEdge',color,...
-                                                'edgeOpacity',80)
+                            'colorFace',color,...
+                            'colorEdge',color,...
+                            'edgeOpacity',80)
                     catch
                         disp('unilateral?')
-                                                
-       
+                        
+                        
                     end
                 end
                 
@@ -585,8 +613,51 @@ classdef ArenaScene < handle
                 v = VoxelData;
                 v.loadnii;
                 v.getslice.see(ArenaScene.getscenedata(hObject));
+            end
+            
+            
+            function menu_importleadfromnii(hObject,eventdata)
+                [filename,pathname] = uigetfile('*.nii','Find nii image(s)','MultiSelect','on');
+                if not(iscell(filename));filename = {filename};end
+                for iFile = 1:numel(filename)
+                    niifile = fullfile(pathname,filename{iFile});
+                    v = VoxelData;
+                    [~, name] = v.loadnii(niifile);
+                    Points = v.detectPoints();
+                    
+                    [~,order] = sort([Points.z]);% From lowest to highest
+                    direction = (Points(order(2))-Points(order(1)));
+                    vc = VectorCloud(Points(order(1)),direction.unit);
+                    actor = vc.see(ArenaScene.getscenedata(hObject))
+                    actor.changeName(name)
+                end
                 
             end
+            
+            function menu_edit_count2mesh(hObject,eventdata)
+                
+                vd = ArenaScene.countMesh(hObject);
+                vd.getmesh.see(ArenaScene.getscenedata(hObject))
+                
+                
+                
+                
+                
+                
+            end
+            
+            function menu_edit_count2plane(hObject,eventdata)
+                vd = ArenaScene.countMesh(hObject);
+                vd.getslice.see(ArenaScene.getscenedata(hObject))
+            end
+            
+            function menu_edit_add2mesh(hObject,eventdata)
+            end
+            
+            function menu_edit_add2plane(hObject,eventdata)
+            end
+            
+            
             
             
             function btn_updateActor(hObject,eventdata)
@@ -656,6 +727,52 @@ classdef ArenaScene < handle
             end
             
             
+            function keyShortCut(src,eventdata)
+                scene = ArenaScene.getscenedata(src);
+                switch eventdata.EventName
+                    case 'WindowMousePress'
+                        disp('click')
+                    otherwise
+                disp(eventdata.Key)
+                f = scene.handles.figure;
+
+                switch eventdata.Key
+                    case 'o'
+                        pause(0.1)
+                        cameratoolbar('SetMode','orbit')
+                        flash('o: orbit',f)
+                    case 'r'
+                        pause(0.1)
+                        cameratoolbar('SetMode','roll')
+                        flash('r: roll',f)
+                    case 'z'
+                        pause(0.1)
+                        cameratoolbar('SetMode','zoom')
+                        flash('z: zoom',f)
+                    case 'p'
+                        pause(0.1)
+                        cameratoolbar('SetMode','pan')
+                        flash('p: pan',f)
+                    case {'return','space','escape'}
+                        cameratoolbar('SetMode','none')
+                        figure(f)
+                end
+                end
+                
+                function flash(text,f)
+                    t = uicontrol(f,'Style','text',...
+                        'String','Select a data set.',...
+                        'Position',[30 50 130 30]);
+                    t.String = text;
+                    t.BackgroundColor = f.Color;
+                    t.ForegroundColor = 1-t.BackgroundColor;
+                    t.FontSize = 20;
+                    t.Units = 'normalized';
+                    t.Position = [0.4,0.8,0.2,0.05];
+                    pause(2)
+                    delete(t)
+                end
+            end
             
             function closeScene(src, callbackdata)
                 %Close request function
@@ -905,8 +1022,55 @@ classdef ArenaScene < handle
             
         end
         
+        function currentActor = getSelectedActors(scene)
+            ind = scene.handles.panelright.Value;
+            currentActor = scene.Actors(ind);
+        end
         
+        function classes = getClasses(actorlist)
+            classes = {};
+            for i = 1:numel(actorlist)
+                classes{i} = class(actorlist(i).Data);
+            end
+        end
         
+        function vd = countMesh(hObject)
+            scene = ArenaScene.getscenedata(hObject);
+            currentActors = ArenaScene.getSelectedActors(scene);
+            currentClasses = ArenaScene.getClasses(currentActors);
+            
+            corner_1 = [inf inf inf];
+            corner_2 = [-inf -inf -inf];
+            voxelsize = inf;
+            if all(or(contains(currentClasses,'Mesh'),contains(currentClasses,'Slice')))
+                %find world limits
+                for i = 1:numel(currentActors)
+                    R = currentActors(i).Data.Source.R;
+                    corner_1 = min([corner_1;R.XWorldLimits(1),R.YWorldLimits(1),R.ZWorldLimits(1)]);
+                    corner_2 = max([corner_2;R.XWorldLimits(2),R.YWorldLimits(2),R.ZWorldLimits(2)]);
+                    voxelsize = min([voxelsize,R.PixelExtentInWorldX,R.PixelExtentInWorldY,R.PixelExtentInWorldZ]);
+                end
+                imsize = (corner_2-corner_1)/voxelsize;
+                targetR = imref3d(imsize([2 1 3]),voxelsize,voxelsize,voxelsize);
+                targetR.XWorldLimits = targetR.XWorldLimits - voxelsize/2 + corner_1(1);
+                targetR.YWorldLimits = targetR.YWorldLimits - voxelsize/2 + corner_1(2);
+                targetR.ZWorldLimits = targetR.ZWorldLimits - voxelsize/2 + corner_1(3);
+                
+                
+                %initialize output
+                outputVoxels = double(currentActors(1).Data.Source.warpto(targetR).Voxels > currentActors(1).Data.Settings.T);
+                
+                %loop over remaining
+                for i = 2:numel(currentActors)
+                    outputVoxels = outputVoxels+double(currentActors(i).Data.Source.warpto(targetR).Voxels > currentActors(i).Data.Settings.T);
+                end
+                
+                vd = VoxelData(outputVoxels,targetR);
+            else
+                disp('only supports meshes and slices as input')
+                vd = VoxelData;
+            end
+        end
         
         
     end

@@ -97,7 +97,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 settings.normalVector = [0, 0, 1];
                 settings.faceOpacity = 90;
                 settings.edgeOpacity = 0;
-                settings.clipDark = 1;
+                settings.clipDark = 0;
             end
             
             axes(scene.handles.axes)
@@ -110,6 +110,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             handle = slice(gridx,gridy,gridz,data.Source.Voxels,data.Plane.X,data.Plane.Y,data.Plane.Z);
             handle.FaceAlpha = settings.faceOpacity/100;
             handle.EdgeAlpha = settings.edgeOpacity/100;
+            handle.FaceColor = 'interp';
+            
             
             cmap = A_colorgradient(settings.colorDark,settings.colorLight,255);
             sliceVoxelValues = handle.CData;
@@ -118,12 +120,14 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             handle.CData = RGB;
             
             if settings.clipDark
+                handle.FaceColor = 'interp';
                 handle.FaceAlpha = 'interp';
-                handle.AlphaData = double(sliceVoxelValues > settings.valueDark) * settings.faceOpacity;
+                handle.AlphaDataMapping = 'none';
+                handle.AlphaData = double(sliceVoxelValues > settings.valueDark) * (settings.faceOpacity/100);
             end
             
-
-
+            
+            
             
             obj.Visualisation.handle = handle;
             obj.Visualisation.settings = settings;
@@ -138,14 +142,14 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         function settings = visualizeMesh(obj,settings,data,scene)
             %---- default settings
             if and(isempty(data.Source),not(isstruct(settings))) % mesh has no voxel image as source
-                    settings = struct;
-                    settings.colorFace = [0.2 0.2 0.8];
-                    settings.colorEdge = [0.2 0.2 0.8];
-                    settings.complexity = 100;
-                    settings.threshold = NaN;
-                    settings.faceOpacity = 50;
-                    settings.edgeOpacity = 0;
-                    settings.smooth = 1;
+                settings = struct;
+                settings.colorFace = [0.2 0.2 0.8];
+                settings.colorEdge = [0.2 0.2 0.8];
+                settings.complexity = 100;
+                settings.threshold = NaN;
+                settings.faceOpacity = 50;
+                settings.edgeOpacity = 0;
+                settings.smooth = 1;
             else
                 if not(isstruct(settings)) %mesh has been generated from voxels
                     settings = struct;
@@ -388,67 +392,60 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         end
         
         function export3d(obj,name)
-        switch class(obj.Data)
-            case 'Mesh'
-                vertface2obj(obj.Data.Vertices,obj.Data.Faces,name)
-            otherwise 
-                keyboard
-        end
+            switch class(obj.Data)
+                case 'Mesh'
+                    vertface2obj(obj.Data.Vertices,obj.Data.Faces,name)
+                otherwise
+                    keyboard
+            end
         end
         
         function transform(obj,scene,varargin)
-            if numel(varargin)==1
+            if numel(varargin)>0
                 switch varargin{1}
                     case 'lps2ras'
-                        switch class(obj.Data)
-                            case 'PointCloud'
-                                v = obj.Data.Vectors.getArray;
-                                v_transformed = A_lps2ras(v);
-                                obj.Data.Vectors = v_transformed;
-                                obj.updateActor(scene,obj.Visualisation.settings);
-                                
-                            case 'Mesh'
-                                keyboard
-                            case 'ObjFile'
-                                v = obj.Data.Vertices;
-                                v_transformed = A_lps2ras(v);
-                                obj.Data.Vertices = v_transformed;
-                                obj.updateActor(scene,obj.Visualisation.settings);
-                            otherwise
-                                keyboard
-                        end
+                        T = diag([-1 -1 1 1]);
+                        obj = applyT(obj,T)
                     case 'mirror'
-                        switch class(obj.Data)
-                            case 'PointCloud'
-                                v = obj.Data.Vectors.getArray;
-                                v_transformed = SDK_transform3d(v,diag([-1 1 1 1]));
-                                obj.Data.Vectors = v_transformed;
-                                obj.updateActor(scene,obj.Visualisation.settings);
-                                
-                            case 'Mesh'
-                                Source = obj.Data.Source;
-                                [imOut,rOut] = imwarp(Source.Voxels,Source.R,affine3d(diag([-1 1 1 1])));
-                                v = obj.Data.Vertices;
-                                v_transformed = SDK_transform3d(v,diag([-1 1 1 1]));
-                                obj.Data.Vertices = v_transformed;
-                                newSource = VoxelData(imOut,rOut);
-                                obj.Data.Source = newSource;
-                                obj.Visualisation.handle = []; %remove old handle
-                                obj.updateActor(scene,obj.Visualisation.settings);
-                                
-                                
-                            case 'ObjFile'
-                                v = obj.Data.Vertices;
-                                v_transformed = SDK_transform3d(v,diag([-1 1 1 1]));
-                                obj.Data.Vertices = v_transformed;
-                                obj.updateActor(scene,obj.Visualisation.settings);
-                            otherwise
-                                keyboard
-                        end
-                        
-                        
+                        T = diag([-1 1 1 1]);
+                        obj = applyT(obj,T)
+                    case 'Fake2MNI'
+                        T = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
+                        obj = applyT(obj,T);
+                    case 'T'
+                        T = varargin{2};
+                        obj = applyT(obj,T)
                 end
             end
+            function obj = applyT(obj,T)
+switch class(obj.Data)
+    case 'PointCloud'
+        v = obj.Data.Vectors.getArray;
+        v_transformed = SDK_transform3d(v,T);
+        obj.Data.Vectors = v_transformed;
+        obj.updateActor(scene,obj.Visualisation.settings);
+        
+    case 'Mesh'
+        Source = obj.Data.Source;
+        [imOut,rOut] = imwarp(Source.Voxels,Source.R,affine3d(diag([-1 1 1 1])));
+        v = obj.Data.Vertices;
+        v_transformed = SDK_transform3d(v,T);
+        obj.Data.Vertices = v_transformed;
+        newSource = VoxelData(imOut,rOut);
+        obj.Data.Source = newSource;
+        obj.Visualisation.handle = []; %remove old handle
+        obj.updateActor(scene,obj.Visualisation.settings);
+    case 'ObjFile'
+        v = obj.Data.Vertices;
+        v_transformed = SDK_transform3d(v,T);
+        obj.Data.Vertices = v_transformed;
+        obj.updateActor(scene,obj.Visualisation.settings);
+    otherwise
+        keyboard
+end
+
+end
+
         end
         
         function edit(obj,scene)
@@ -497,7 +494,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         function newActor = reviveInScene(obj,scene)
             newActor = scene.newActor(obj.Data,obj.Visualisation.settings);
             newActor.changeName(['* ',obj.Tag]);
-           
+            
         end
     end
 end

@@ -151,14 +151,36 @@ classdef VoxelData <handle
             disp('This funnction does not exist. Use [].getmesh.see instead')
         end
         
+        function Points = detectPoints(obj) 
+            bw = obj.Voxels>25;
+            [labels,n] = bwlabeln(bw);
+            Points = Vector3D.empty;
+            for iL = 1:n
+                [x,y,z] = ind2sub(size(obj.Voxels),find(labels==iL));
+                [xw,yw,zw] = obj.R.intrinsicToWorld(y,x,z);
+                Points(iL) = Vector3D(mean(xw),mean(yw),mean(zw));
+            end
+ 
+            
+        end
+        
         function obj = warpto(obj,target,T)
             if nargin==2
                 T = affine3d(eye(4));
             end
             
-            obj.Voxels = imwarp(obj.Voxels,obj.R,T,'OutputView',target.R);
-            obj.R = target.R;
+            if isa(target,'VoxelData') 
+                R = target.R;
+            elseif isa(target,'imref3d')
+                R = target;
+            else
+                error('input requirments: obj, target, T')
+            end
+            
+            obj.Voxels = imwarp(obj.Voxels,obj.R,T,'OutputView',R);
+            obj.R = R;
         end
+        
         function newObj = mirror(obj)
             if nargout==0
                 error('output is required. Mirror makes a copy')
