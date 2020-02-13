@@ -130,6 +130,9 @@ classdef ArenaScene < handle
             obj.handles.menu.import.lead.main = uimenu(obj.handles.menu.import.main,'Text','Lead from');
             obj.handles.menu.import.lead.fromnii = uimenu(obj.handles.menu.import.lead.main,'Text','from nii (2 dots)','callback',{@menu_importleadfromnii});
             
+            obj.handles.menu.import.suretune.main = uimenu(obj.handles.menu.import.main,'Text','Suretune Session','callback',{@menu_importsuretune});
+            
+            
             obj.handles.menu.export.main = uimenu(obj.handles.figure,'Text','Export');
             obj.handles.menu.export.blender = uimenu(obj.handles.menu.export.main,'Text','Blender (obj)','callback',{@menu_exporttoblender});
             obj.handles.menu.export.handlestoworkspace = uimenu(obj.handles.menu.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
@@ -593,6 +596,10 @@ classdef ArenaScene < handle
                 o.see(ArenaScene.getscenedata(hObject))
             end
             
+            function menu_importsuretune(hObject,eventdata)
+                newActors = A_loadsuretune(ArenaScene.getscenedata(hObject));
+                
+            end
             
             function menu_importimageasmesh(hObject,eventdata)
                 
@@ -627,8 +634,9 @@ classdef ArenaScene < handle
                     
                     [~,order] = sort([Points.z]);% From lowest to highest
                     direction = (Points(order(2))-Points(order(1)));
-                    vc = VectorCloud(Points(order(1)),direction.unit);
-                    actor = vc.see(ArenaScene.getscenedata(hObject))
+                    e = Electrode(Points(order(1)),direction.unit);
+                    %vc = VectorCloud(Points(order(1)),direction.unit);
+                    actor = e.see(ArenaScene.getscenedata(hObject));
                     actor.changeName(name)
                 end
                 
