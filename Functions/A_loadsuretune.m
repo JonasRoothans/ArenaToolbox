@@ -133,13 +133,28 @@ function cb_lead(hObject,b)
         end
     else
         for iStimplan = 1:numel(this.stimPlan)
+             %import VTA
+            vd = VoxelData();
+            vd.importSuretuneDataset(this.stimPlan{iStimplan}.vta.Medium);
+            vd.imwarp(T);
+            
             if not(isempty(scene))
                 actor = e.see(scene);
                 actor.changeName([this.label,' ',this.stimPlan{iStimplan}.label])
+                
+                actor_vta = vd.getmesh(0.5).see(scene);
+                actor_vta.changeName(['[VTA] ',this.label,' ',this.stimPlan{iStimplan}.label])
             end
             
             actor.changeSetting('cathode',str2num(this.stimPlan{iStimplan}.activeRings));
             actor.changeSetting('anode', str2num(this.stimPlan{iStimplan}.contactsGrounded))
+            
+            actor_vta.changeSetting('colorFace',[1 0.5 0])
+            
+        
+            
+            
+            
 
         end
     end

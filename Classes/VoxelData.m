@@ -34,11 +34,17 @@ classdef VoxelData <handle
         end
         
         function obj = importSuretuneDataset(obj,dataset)
+            if isa(dataset,'Dataset')
+                volume = dataset.volume;
+            elseif isa(dataset,'Volume')
+                volume = dataset;
+            end
+            
             a = 1;
             b = 2;
             c = 3;
-            info = dataset.volume.volumeInfo;
-            voxels = permute(dataset.volume.voxelArray,[2 1 3]);
+            info = volume.volumeInfo;
+            voxels = permute(volume.voxelArray,[2 1 3]);
             R = imref3d(info.dimensions([2 1 3]),info.spacing(a),info.spacing(b),info.spacing(c));
             R.XWorldLimits = R.XWorldLimits+info.origin(a)-info.spacing(a);%-Rfrom.ImageExtentInWorldX;
             R.YWorldLimits = R.YWorldLimits+info.origin(b)-info.spacing(b);%-Rfrom.ImageExtentInWorldY;

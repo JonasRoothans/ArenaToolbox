@@ -171,6 +171,8 @@ classdef ArenaScene < handle
             
             obj = createcoordinatesystem(obj);
             
+            lighting gouraud
+            
             function obj = createcoordinatesystem(obj)
                 %Coordinate system
                 h.XArrow = mArrow3([0 0 0],[3 0 0], 'facealpha', 0.5, 'color', 'red', 'stemWidth', 0.06,'Visible','off','Clipping','off');
