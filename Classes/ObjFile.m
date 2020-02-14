@@ -72,8 +72,9 @@ classdef ObjFile
             if isempty(thisScene);return;end %user cancels
             thisActor = thisScene.newActor(obj);
             
-            varargout{1} = thisScene;
-            varargout{2} = thisActor;
+            varargout{1} = thisActor;
+            varargout{2} = thisScene;
+            
             
         end
         

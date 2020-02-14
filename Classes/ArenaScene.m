@@ -437,12 +437,12 @@ classdef ArenaScene < handle
                                 obj_sn_left = obj_sn.transform(T.leftstn2mni);
                                 obj_sn_right = obj_sn.transform(T.rightstn2mni);
                                 
-                                [scene,thisScene.handles.atlas.legacy.Actor_stnleft] = obj_stn_left.see(thisScene);
-                                [scene,thisScene.handles.atlas.legacy.Actor_snleft] = obj_sn_left.see(thisScene);
-                                [scene,thisScene.handles.atlas.legacy.Actor_rnleft] = obj_rn_left.see(thisScene);
-                                [scene,thisScene.handles.atlas.legacy.Actor_stnright] = obj_stn_right.see(thisScene);
-                                [scene,thisScene.handles.atlas.legacy.Actor_snright] = obj_sn_right.see(thisScene);
-                                [scene,thisScene.handles.atlas.legacy.Actor_rnright] = obj_rn_right.see(thisScene);
+                                [thisScene.handles.atlas.legacy.Actor_stnleft,scene] = obj_stn_left.see(thisScene);
+                                [thisScene.handles.atlas.legacy.Actor_snleft,scene] = obj_sn_left.see(thisScene);
+                                [thisScene.handles.atlas.legacy.Actor_rnleft,scene] = obj_rn_left.see(thisScene);
+                                [thisScene.handles.atlas.legacy.Actor_stnright,scene] = obj_stn_right.see(thisScene);
+                                [thisScene.handles.atlas.legacy.Actor_snright,scene] = obj_sn_right.see(thisScene);
+                                [thisScene.handles.atlas.legacy.Actor_rnright,scene] = obj_rn_right.see(thisScene);
                                 
                                 thisScene.handles.atlas.legacy.Actor_stnleft.changeName('[legacy] STNleft')
                                 thisScene.handles.atlas.legacy.Actor_snleft.changeName('[legacy] SNleft')
@@ -469,10 +469,10 @@ classdef ArenaScene < handle
                                 obj_gpi_right = obj_gpi.transform(T.rightgpi2mni);
                                 obj_gpe_right = obj_gpe.transform(T.rightgpi2mni);
                                 
-                                [scene,thisScene.handles.atlas.legacy.Actor_gpileft] = obj_gpi_left.see(thisScene);
-                                [scene,thisScene.handles.atlas.legacy.Actor_gpeleft] = obj_gpe_left.see(thisScene);
-                                [scene,thisScene.handles.atlas.legacy.Actor_gpiright] = obj_gpi_right.see(thisScene);
-                                [scene,thisScene.handles.atlas.legacy.Actor_gperight] = obj_gpe_right.see(thisScene);
+                                [thisScene.handles.atlas.legacy.Actor_gpileft,scene] = obj_gpi_left.see(thisScene);
+                                [thisScene.handles.atlas.legacy.Actor_gpeleft,scene] = obj_gpe_left.see(thisScene);
+                                [thisScene.handles.atlas.legacy.Actor_gpiright,scene] = obj_gpi_right.see(thisScene);
+                                [thisScene.handles.atlas.legacy.Actor_gperight,scene] = obj_gpe_right.see(thisScene);
                                 
                                 thisScene.handles.atlas.legacy.Actor_gpileft.changeName('[legacy] GPIleft')
                                 thisScene.handles.atlas.legacy.Actor_gpeleft.changeName('[legacy] GPEeft')
@@ -1060,7 +1060,7 @@ classdef ArenaScene < handle
                     corner_2 = max([corner_2;R.XWorldLimits(2),R.YWorldLimits(2),R.ZWorldLimits(2)]);
                     voxelsize = min([voxelsize,R.PixelExtentInWorldX,R.PixelExtentInWorldY,R.PixelExtentInWorldZ]);
                 end
-                imsize = (corner_2-corner_1)/voxelsize;
+                imsize = round((corner_2-corner_1)/voxelsize);
                 targetR = imref3d(imsize([2 1 3]),voxelsize,voxelsize,voxelsize);
                 targetR.XWorldLimits = targetR.XWorldLimits - voxelsize/2 + corner_1(1);
                 targetR.YWorldLimits = targetR.YWorldLimits - voxelsize/2 + corner_1(2);
