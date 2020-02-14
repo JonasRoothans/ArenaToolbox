@@ -65,6 +65,11 @@ for iRegisterable = 1:n
                 'UserData',userdata,...
                 'callback',callback) ;
         otherwise
+            thisR = S.getregisterable(name{iRegisterable});
+            string = [class(thisR),': ',thisR.label];
+            buttons(iRegisterable) = uicontrol('style','togglebutton','Position',[ITEM_LEFTMARGIN,bottom,ITEM_WIDTH,ITEM_HEIGHT],...
+                'String',string,...
+                'Enable','off') ;
     end
 end %end-- loop to generate the GUI
 output = {};
@@ -149,6 +154,9 @@ output = {};
                 actor.changeSetting('cathode',str2num(this.stimPlan{iStimplan}.activeRings));
                 actor.changeSetting('anode', str2num(this.stimPlan{iStimplan}.contactsGrounded))
                 
+                if ~strcmp(this.leadType,'Medtronic3389')
+                    actor.changeSetting('colorBase', [255,182,193]/255)
+                end
                 actor_vta.changeSetting('colorFace',[1 0.5 0])
             end
         end
