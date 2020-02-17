@@ -113,8 +113,11 @@ classdef PointCloud
                 end
             end
             newPC = PointCloud(obj.Vectors(idcs),obj.Weights(idcs));
-            
-            
+
+        end
+        
+        function COG = getCOG(obj)
+            COG = Vector3D(mean(obj.Vectors.getArray));
         end
         
         %--- mathematical things
@@ -131,6 +134,7 @@ classdef PointCloud
         function obj = transform(obj,T)
             obj.Vectors = obj.Vectors.transform(T);
         end
+       
     end
 end
 

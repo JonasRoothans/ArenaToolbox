@@ -74,9 +74,12 @@ classdef ObjFile
             
             varargout{1} = thisActor;
             varargout{2} = thisScene;
-            
-            
-        end
+
+       end
+        
+       function cog = getCOG(obj)
+           cog = PointCloud(obj.Vertices).getCOG;
+       end
         
     end
 end

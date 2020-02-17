@@ -52,6 +52,10 @@ classdef Electrode < handle & matlab.mixin.Copyable
             end
             obj.Direction = Direction.unit;
         end
+        
+        function cog = getCOG(obj)
+            cog = obj.C0;
+        end
        
     end
 end

@@ -351,8 +351,12 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             
             
         end
-        function getsettings(obj)
+        function getSettings(obj)
             disp(obj.Visualisation.settings)
+        end
+        
+        function cog = getCOG(obj)
+            cog = obj.Data.getCOG;
         end
         
         function changeSetting(obj,varargin)

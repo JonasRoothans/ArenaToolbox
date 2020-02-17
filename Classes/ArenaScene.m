@@ -152,6 +152,9 @@ classdef ArenaScene < handle
             obj.handles.menu.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Custom','callback',{@menu_setbackgroundcolor});
             obj.handles.menu.show.cameratoolbar.main = uimenu(obj.handles.menu.show.main,'Text','camera toolbar','callback',{@menu_cameratoolbar},'Checked','on');
             obj.handles.menu.show.MNIatlas.main = uimenu(obj.handles.menu.show.main,'Text','MNI atlas (leadDBS)','callback',{@menu_atlasleaddbs});
+            obj.handles.menu.show.camTarget.main = uimenu(obj.handles.menu.show.main,'Text','point camera at');
+            obj.handles.menu.show.camTarget.actor = uimenu(obj.handles.menu.show.camTarget.main,'Text','selection','callback',{@menu_camTargetActor});
+            obj.handles.menu.show.camTarget.center = uimenu(obj.handles.menu.show.camTarget.main,'Text','center','callback',{@menu_camTargetOrigin});
             
             obj.handles.menu.transform.main = uimenu(obj.handles.figure,'Text','Transform');
             obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
@@ -647,14 +650,30 @@ classdef ArenaScene < handle
             function menu_edit_count2mesh(hObject,eventdata)
                 
                 vd = ArenaScene.countMesh(hObject);
-                vd.getmesh.see(ArenaScene.getscenedata(hObject))
-                
-                
-                
-                
-                
-                
+                vd.getmesh.see(ArenaScene.getscenedata(hObject)) 
             end
+            
+            function menu_camTargetActor(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActor = ArenaScene.getSelectedActors(scene);
+
+                        for iActor = 1:numel(currentActor)
+                            try
+                            cog = currentActor.getCOG;
+                            camtarget(cog.getArray)
+                            catch
+                                error(['getCOG (center of gravity) function does not exist yet for this type of data: ',class(currentActor.Data)])
+                            end
+                            hObject.Checked = 'on';
+                        end
+            
+            end
+            
+            function menu_camTargetOrigin(hObject,eventdata)
+                camtarget([0 0 0 ])
+            end
+                
+            
             
             function menu_edit_count2plane(hObject,eventdata)
                 vd = ArenaScene.countMesh(hObject);
@@ -691,7 +710,7 @@ classdef ArenaScene < handle
                 thisActor.edit(scene);
             end
             
-            function panelright_callback(hObject,eventdata)
+            function panelright_callback(hObject,~)
                 scene = hObject.Parent.UserData;
                 currentActor = scene.Actors(hObject.Value);
                 
