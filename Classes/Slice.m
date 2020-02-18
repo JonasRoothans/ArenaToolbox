@@ -65,7 +65,7 @@ classdef Slice < handle
         end
         
         
-        function see(obj, sceneobj)
+        function varargout = see(obj, sceneobj)
             global arena
             if nargin==1
                 if isempty(arena)
@@ -79,7 +79,11 @@ classdef Slice < handle
             end
             
             if isempty(thisScene);return;end %user cancels
-            thisScene.newActor(obj)
+            actor = thisScene.newActor(obj);
+            
+            varargout{1} = actor;
+            varargout{2} = thisScene;
+            
             
 %             figure;
 %             p= patch('Faces',obj.Faces,'Vertices',obj.Vertices);
@@ -94,6 +98,9 @@ classdef Slice < handle
         end
             
      
+        function cog = getCOG(obj)
+            cog = Vector3D(mean(obj.Plane.X(:)),mean(obj.Plane.Y(:)),mean(obj.Plane.Z(:)));
+        end
     end
 end
 

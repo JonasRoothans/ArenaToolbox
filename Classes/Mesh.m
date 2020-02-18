@@ -91,6 +91,10 @@ classdef Mesh < handle & matlab.mixin.Copyable
 %             camlight
 %             lighting gouraud
         end
+        
+        function cog = getCOG(obj)
+            cog = PointCloud(obj.Vertices).getCOG;
+        end
             
      
     end

@@ -664,7 +664,7 @@ classdef ArenaScene < handle
                             catch
                                 error(['getCOG (center of gravity) function does not exist yet for this type of data: ',class(currentActor.Data)])
                             end
-                            hObject.Checked = 'on';
+                  
                         end
             
             end
@@ -747,6 +747,8 @@ classdef ArenaScene < handle
                             end
                         case 'checkbox'
                             settings.(h.Tag) = h.Value;
+                        case 'popupmenu'
+                            settings.(h.Tag) = h.String{h.Value};
                         otherwise
                             keyboard
                     end
@@ -900,6 +902,8 @@ classdef ArenaScene < handle
             editheight = 0.1;
             textwidth = 0.2;
             editwidth = 0.1;
+            popupwidth = 0.5;
+            popupheight = 0.1;
             
             
             n = numel(obj.handles.configcontrols)+1;
@@ -989,6 +993,31 @@ classdef ArenaScene < handle
                     end
                     obj.configcontrolpos = top+ypadding+editheight;
                     
+                case 'list'
+                    for i = 1:numel(value)
+                        %label
+                        obj.handles.configcontrols(end+1) = uicontrol('style','text',...
+                            'Parent',obj.handles.panelleft,...
+                            'units','normalized',...
+                            'position',[left+xpadding,1-ypadding-editheight-top,textwidth,editheight],...
+                            'String',tag{i},...
+                            'HorizontalAlignment','right');
+                        
+                        left = left+xpadding+textwidth;
+                        
+                        %popupmenu
+                        obj.handles.configcontrols(end+1) = uicontrol('style','popupmenu',...
+                            'Parent',obj.handles.panelleft,...
+                            'units','normalized',...
+                            'position',[left+xpadding/2,1-ypadding-popupheight-top,popupwidth,popupheight],...
+                            'String',other,...
+                            'Value',find(contains(other,value{i})),...
+                            'Tag',tag{i});
+                        
+                        left = left+xpadding/2+popupwidth;
+                        
+                    end
+                    obj.configcontrolpos = top+ypadding+editheight;
                     
                 otherwise
                     keyboard
@@ -1043,8 +1072,14 @@ classdef ArenaScene < handle
             for iprop = 1:numel(props)
                 thisprop = props{iprop};
                 
-                if oldsettings.(thisprop)==newsettings.(thisprop)
-                    newsettings.(thisprop) = nan;
+                if not(ischar(oldsettings.(thisprop)))
+                    if oldsettings.(thisprop)==newsettings.(thisprop)
+                        newsettings.(thisprop) = nan;
+                    end
+                else
+                    if strcmp(oldsettings.(thisprop),newsettings.(thisprop))
+                        newsettings.(thisprop) = nan;
+                    end
                 end
             end
             

@@ -130,6 +130,7 @@ output = {};
         
         e.Direction = Vector3D(c3-c0).unit.getArray';
         e.C0 = c0;
+        e.Type = this.leadType;
         
         if numel(this.stimPlan)==0
             if not(isempty(scene))
@@ -154,9 +155,6 @@ output = {};
                 actor.changeSetting('cathode',str2num(this.stimPlan{iStimplan}.activeRings));
                 actor.changeSetting('anode', str2num(this.stimPlan{iStimplan}.contactsGrounded))
                 
-                if ~strcmp(this.leadType,'Medtronic3389')
-                    actor.changeSetting('colorBase', [255,182,193]/255)
-                end
                 actor_vta.changeSetting('colorFace',[1 0.5 0])
             end
         end

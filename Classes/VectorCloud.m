@@ -145,6 +145,10 @@ classdef VectorCloud
             
         end
         
+        function cog = getCOG(obj)
+            cog = PointCloud(obj.Base).getCOG;
+        end
+        
         %--- mathematical things
         function vectorOut = getWeightedAverage(obj)
             multiplied = Vector3D.empty;

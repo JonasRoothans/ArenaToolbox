@@ -276,27 +276,37 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 settings.cathode = [0 0 0 0];
                 settings.anode = [0 0 0 0];
                 settings.opacity = 100;
+                settings.type = data.Type;
             end
             
             axes(scene.handles.axes)
             
-            if strcmp(data.Type,'Medtronic3389')
-                load('Arena_mdt3389.mat');
+            if strcmp(settings.type,'Medtronic3389')
+                leadmodel = load('Arena_mdt3389.mat');
+                strucname = 'mdt3389';
+            elseif strcmp(settings.type,'Medtronic3387')
+                leadmodel = load('Arena_mdt3387.mat');
+                strucname = 'mdt3387';
+            elseif strcmp(settings.type,'Medtronic3391')
+                leadmodel = load('Arena_mdt3391.mat');
+                strucname = 'mdt3391';
+            elseif strcmp(settings.type,'BostonScientific')
+                 leadmodel = load('Arena_BostonScientific.mat');
+                 strucname = 'BostonScientific';
+              else
+                error('leadtype is currently not yet supported!')   
+              end
+                
                 handle = gobjects(0);
 
                     T = A_transformationmatriforleadmesh(data.C0,data.Direction);
-                    body = mdt3389.body.transform(T);
-                    c0 = mdt3389.c0.transform(T);
-                    c1 = mdt3389.c1.transform(T);
-                    c2 = mdt3389.c2.transform(T);
-                    c3 = mdt3389.c3.transform(T);
-                    
-                    
+                    body = leadmodel.(strucname).body.transform(T);
                     handle(end+1) = patch('Faces',body.Faces,'Vertices',body.Vertices,'FaceColor',settings.colorBase ,'EdgeColor','none','Clipping',0,'SpecularStrength',0,'FaceAlpha',settings.opacity/100);
-                    handle(end+1) = patch('Faces',c0.Faces,'Vertices',c0.Vertices,'FaceColor',settings.colorInactive,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
-                    handle(end+1) = patch('Faces',c1.Faces,'Vertices',c1.Vertices,'FaceColor',settings.colorInactive,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
-                    handle(end+1) = patch('Faces',c2.Faces,'Vertices',c2.Vertices,'FaceColor',settings.colorInactive,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
-                    handle(end+1) = patch('Faces',c3.Faces,'Vertices',c3.Vertices,'FaceColor',settings.colorInactive,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
+                    
+                    for i = 0:numel(fieldnames(leadmodel.(strucname)))-2
+                    ci = leadmodel.(strucname).(['c',num2str(i)]).transform(T);
+                    handle(end+1) = patch('Faces',ci.Faces,'Vertices',ci.Vertices,'FaceColor',settings.colorInactive,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
+                    end
                     
                     for i = 1:numel(settings.cathode)
                         if settings.cathode(i)
@@ -308,8 +318,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                             handle(1+i).FaceColor = settings.colorAnode;
                         end
                     end
-                    
-              end
+              
                 
             
             obj.Visualisation.handle = handle;
@@ -421,6 +430,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     scene.newconfigcontrol(obj,'color',{settings.colorCathode,settings.colorAnode},{'colorCathode','colorAnode'});
                     scene.newconfigcontrol(obj,'vector',{settings.cathode,settings.anode},{'cathode','anode'});
                     scene.newconfigcontrol(obj,'edit',{settings.opacity},{'opacity'});
+                    scene.newconfigcontrol(obj,'list',{settings.type},{'type'},{'Medtronic3389','Medtronic3387','Medtronic3391','BostonScientific'})
                     
                 otherwise
                     keyboard
