@@ -565,15 +565,9 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                         obj.Data.Vertices = v_transformed;
                         obj.updateActor(scene,obj.Visualisation.settings);
                     case 'Electrode'
-                        
+                        warning('Electrode can not be transformed like this')
                 
-                        for iPart = 1:numel(obj.Visualisation.handle)
-                            thisPart = obj.Visualisation.handle(iPart);
-                            v = thisPart.Vertices;
-                            v_transformed = SDK_transform3d(v,T);
-                            obj.Visualisation.handle(iPart).Vertices = v_transformed;
-                            drawnow
-                        end
+                        
                         %obj.updateActor(scene,obj.Visualisation.settings);
                         
                     otherwise
