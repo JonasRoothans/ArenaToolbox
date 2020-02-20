@@ -305,8 +305,22 @@ classdef ArenaScene < handle
                 scene = ArenaScene.getscenedata(hObject);
                 actorList = scene.Actors;
                 thisActor = actorList(scene.handles.panelright.Value);
+                if isa(thisActor.Data,'Electrode')
+                     eOriginal = thisActor.Data;
+                     T = diag([-1 1 1 1]);
+                     eNew = Electrode(SDK_transform3d(eOriginal.C0.getArray',T),...
+                     SDK_transform3d(eOriginal.Direction.getArray',T));
+                     eNew.Type = thisActor.Data.Type;
+                    %vc = VectorCloud(Points(order(1)),direction.unit);
+                    copyActor = eNew.see(ArenaScene.getscenedata(hObject));
+                    copyActor.changeSetting('cathode',thisActor.Visualisation.settings.cathode);
+                    copyActor.changeSetting('anode', thisActor.Visualisation.settings.anode);
+                    copyActor.changeName([thisActor.Tag])
+                    
+                else
                 copyActor = thisActor.duplicate(scene);
                 copyActor.transform(scene,'mirror')
+                end
                 copyActor.changeName(['[mirror]  ',copyActor.Tag])
                 
                 
@@ -759,11 +773,13 @@ classdef ArenaScene < handle
             
             
             function keyShortCut(src,eventdata)
-                scene = ArenaScene.getscenedata(src);
+                
+                
                 switch eventdata.EventName
                     case 'WindowMousePress'
                         disp('click')
                     otherwise
+                        scene = ArenaScene.getscenedata(src);
                 disp(eventdata.Key)
                 f = scene.handles.figure;
 

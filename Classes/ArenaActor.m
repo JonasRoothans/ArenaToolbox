@@ -88,6 +88,49 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             updateCC(obj,scene)
         end
         
+        function settings = visualizeSlice_WIP(obj,settings,data,scene)
+            %---- default settings
+            if not(isstruct(settings))
+                settings = struct;
+                settings.colorDark = [0 0 0];
+                settings.colorLight = [1 1 1];
+                settings.valueDark = 0;
+                settings.valueLight = 255;
+                settings.crossing = [0,0,0];
+                settings.faceOpacity = 90;
+                settings.edgeOpacity = 0;
+                settings.clipDark = 0;
+            end
+           
+        
+             axes(scene.handles.axes)
+             vd = data.Source;
+              T = [diag([vd.R.PixelExtentInWorldX,vd.R.PixelExtentInWorldY,vd.R.PixelExtentInWorldZ]),[vd.R.XWorldLimits(1);vd.R.YWorldLimits(1);vd.R.ZWorldLimits(1)]];
+              vol = vd.Voxels;
+            
+              
+%               h1 = slice3i(vol,T,1,round(size(vol,1)/2));
+%               h2 = slice3i(vol,T,2,round(size(vol,2)/2));
+               h3 = slice3i(vol,T,3,round(size(vol,3)/2),scene);
+
+                handle = [h3];%,h2,h3];
+                
+                for iH = 1:numel(handle)
+                    thisHandle = handle(iH);
+                    thisHandle.FaceAlpha = settings.faceOpacity/100;
+                    thisHandle.EdgeAlpha = settings.edgeOpacity/100;
+                    
+
+
+                    colormap gray
+                end
+                
+             
+              obj.Visualisation.handle = handle;
+            obj.Visualisation.settings = settings;
+            
+            
+        end
         function settings = visualizeSlice(obj,settings,data,scene)
             %---- default settings
             if not(isstruct(settings))
@@ -422,7 +465,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 case 'Slice'
                     scene.newconfigcontrol(obj,'color',{settings.colorDark,settings.colorLight},{'colorDark','colorLight'});
                     scene.newconfigcontrol(obj,'edit',{settings.valueDark,settings.valueLight},{'valueDark','valueLight'});
-                    scene.newconfigcontrol(obj,'vector',{settings.baseVector,settings.normalVector},{'baseVector','normalVector'});
+                    scene.newconfigcontrol(obj,'vector',settings.crossing,'crossing');
                     scene.newconfigcontrol(obj,'edit',{settings.faceOpacity,settings.edgeOpacity},{'faceOpacity','edgeOpacity'});
                     scene.newconfigcontrol(obj,'checkbox',settings.clipDark,'clipDark');
                 case 'Electrode'
@@ -521,6 +564,18 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                         v_transformed = SDK_transform3d(v,T);
                         obj.Data.Vertices = v_transformed;
                         obj.updateActor(scene,obj.Visualisation.settings);
+                    case 'Electrode'
+                        
+                
+                        for iPart = 1:numel(obj.Visualisation.handle)
+                            thisPart = obj.Visualisation.handle(iPart);
+                            v = thisPart.Vertices;
+                            v_transformed = SDK_transform3d(v,T);
+                            obj.Visualisation.handle(iPart).Vertices = v_transformed;
+                            drawnow
+                        end
+                        %obj.updateActor(scene,obj.Visualisation.settings);
+                        
                     otherwise
                         keyboard
                 end
@@ -560,6 +615,11 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             copyobj = copy(obj);
             if isa(copyobj.Data,'Mesh')
                 copyobj.Data = copyobj.Data.duplicate;
+            elseif isa(copyobj.Data,'Electrode')
+                for iSubPatch = 1:numel(copyobj.Visualisation.handle)
+                    copyobj.Visualisation.handle(iSubPatch) = copy(copyobj.Visualisation.handle(iSubPatch));
+                end
+               
             end
             scene.Actors(end+1) = copyobj;
             scene.refreshLayers();
