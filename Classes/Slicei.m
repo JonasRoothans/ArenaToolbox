@@ -203,6 +203,17 @@ classdef Slicei < handle
         
             
         end
+        
+        function cog = getCOG(obj)
+             vector = size(obj.vol)/2;
+             vector(obj.slicedim) = obj.sliceidx;
+             T = obj.I2X;
+                    T(4,4) = 1;
+                    cog = Vector3D(SDK_transform3d(vector,T'));
+                   
+
+        end
+            
     end
 end
 
