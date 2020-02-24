@@ -142,12 +142,15 @@ classdef VoxelData <handle
             end
         end
         
-        function sliceobj = getslice(obj,x,y,z)
-            if nargin>1
-                sliceobj = Slice(obj,x,y,z);
-            else
-                sliceobj = Slice(obj);
-            end
+        function sliceobj = getslice(obj)
+            sliceobj = Slicei;
+            sliceobj.getFromVoxelData(obj);
+
+%             if nargin>1
+%                 sliceobj = Slice(obj,x,y,z);
+%             else
+%                 sliceobj = Slice(obj);
+%             end
         end
         
         function center_of_gravity = getcog(obj)

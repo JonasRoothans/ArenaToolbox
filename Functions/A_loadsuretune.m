@@ -94,6 +94,10 @@ output = {};
                     actor = vd.getmesh.see(scene);
                 case 'slice'
                     actor = vd.getslice.see(scene);
+%                     s = Slicei;
+%                     s.getFromVoxelData(vd);
+%                     actor = s.see(scene);
+                    %actor = vd.getslice.see(scene);
             end
             actor.changeName([hObject.String,' via ',reglinkdescription])
         end

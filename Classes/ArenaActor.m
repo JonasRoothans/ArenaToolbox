@@ -37,6 +37,10 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 case 'Slice'
                     obj.visualizeSlice(settings,data,scene);
                     obj.Tag = 'Slice';
+                case 'Slicei'
+                    obj.visualizeSlice(settings,data,scene);
+                    obj.Tag = 'Slicei';
+  
                 case 'ObjFile'
                     obj.visualizeObjFile(settings,data,scene);
                     obj.Tag = 'ObjFile';
@@ -88,50 +92,61 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             updateCC(obj,scene)
         end
         
-        function settings = visualizeSlice_WIP(obj,settings,data,scene)
+        function settings = visualizeSlice(obj,settings,data,scene)
             %---- default settings
             if not(isstruct(settings))
+                creation = 1;
                 settings = struct;
                 settings.colorDark = [0 0 0];
                 settings.colorLight = [1 1 1];
-                settings.valueDark = 0;
-                settings.valueLight = 255;
-                settings.crossing = [0,0,0];
+                settings.valueDark = min(obj.Data.vol(:));
+                settings.valueLight = max(obj.Data.vol(:));
+                settings.slice = 0;
+                settings.plane = 'axial';
                 settings.faceOpacity = 90;
-                settings.edgeOpacity = 0;
-                settings.clipDark = 0;
+                %settings.clipDark = 0;
+            else
+                creation = 0;
             end
            
+        %Slicei already lives
+        cmap = A_colorgradient(settings.colorDark,settings.colorLight,255);
+        obj.Data.cmap = cmap;
+        obj.Data.dark = settings.valueDark;
+        obj.Data.light = settings.valueLight;
+        obj.Data.opacity = settings.faceOpacity/100;
         
-             axes(scene.handles.axes)
-             vd = data.Source;
-              T = [diag([vd.R.PixelExtentInWorldX,vd.R.PixelExtentInWorldY,vd.R.PixelExtentInWorldZ]),[vd.R.XWorldLimits(1);vd.R.YWorldLimits(1);vd.R.ZWorldLimits(1)]];
-              vol = vd.Voxels;
+       % obj.Data.clipDark = settings.clipDark;
+       
+       switch settings.plane
+           case 'axial'
+               obj.Data.slicedim = 3;
+           case 'sagittal'
+               obj.Data.slicedim = 1;
+           case 'coronal'
+               obj.Data.slicedim = 2;
+       end
+       
+       vector = [0 0 0];
+        vector(obj.Data.slicedim) = settings.slice;
+         T = obj.Data.I2X;
+        T(4,4) = 1;
+        imagespace = SDK_transform3d(vector,inv(T'));
+        obj.Data.sliceidx = imagespace(obj.Data.slicedim);
+        
+        %refresh only when it already exists
+        if not(creation)
+            obj.Data.update_slice(scene);
+        end
+        
             
-              
-%               h1 = slice3i(vol,T,1,round(size(vol,1)/2));
-%               h2 = slice3i(vol,T,2,round(size(vol,2)/2));
-               h3 = slice3i(vol,T,3,round(size(vol,3)/2),scene);
-
-                handle = [h3];%,h2,h3];
-                
-                for iH = 1:numel(handle)
-                    thisHandle = handle(iH);
-                    thisHandle.FaceAlpha = settings.faceOpacity/100;
-                    thisHandle.EdgeAlpha = settings.edgeOpacity/100;
-                    
-
-
-                    colormap gray
-                end
-                
              
-              obj.Visualisation.handle = handle;
-            obj.Visualisation.settings = settings;
-            
+            obj.Visualisation.handle = obj.Data.handle;
+        obj.Visualisation.settings = settings;
+
             
         end
-        function settings = visualizeSlice(obj,settings,data,scene)
+        function settings = visualizeSlice_old(obj,settings,data,scene)
             %---- default settings
             if not(isstruct(settings))
                 settings = struct;
@@ -474,6 +489,12 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     scene.newconfigcontrol(obj,'vector',{settings.cathode,settings.anode},{'cathode','anode'});
                     scene.newconfigcontrol(obj,'edit',{settings.opacity},{'opacity'});
                     scene.newconfigcontrol(obj,'list',{settings.type},{'type'},{'Medtronic3389','Medtronic3387','Medtronic3391','BostonScientific'})
+                case 'Slicei'
+                    scene.newconfigcontrol(obj,'color',{settings.colorDark,settings.colorLight},{'colorDark','colorLight'});
+                    scene.newconfigcontrol(obj,'edit',{settings.valueDark,settings.valueLight},{'valueDark','valueLight'});
+                    scene.newconfigcontrol(obj,'vector',{settings.slice,settings.faceOpacity},{'slice','faceOpacity'});
+                    scene.newconfigcontrol(obj,'list',{settings.plane},{'plane'},{'axial','coronal','sagittal'})
+                    %scene.newconfigcontrol(obj,'checkbox',settings.clipDark,'clipDark');
                     
                 otherwise
                     keyboard
@@ -481,7 +502,10 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         end
         
         function updateActor(obj,scene,settings)
-            delete(obj.Visualisation.handle);
+            
+            if not(isa(obj.Data,'Slicei'))
+                delete(obj.Visualisation.handle);
+            end
             
             %replace nans with current values
             currentsettings = obj.Visualisation.settings;
@@ -505,6 +529,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     visualizeSlice(obj,settings,obj.Data,scene)
                 case 'Electrode'
                     visualizeElectrode(obj,settings,obj.Data,scene)
+                case 'Slicei'
+                    visualizeSlice(obj,settings,obj.Data,scene)
                 otherwise
                     keyboard
             end

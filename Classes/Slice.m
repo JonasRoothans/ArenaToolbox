@@ -3,6 +3,7 @@ classdef Slice < handle
     
     properties
         Plane
+        Interaction
         Settings
         Source
     end
@@ -17,14 +18,11 @@ classdef Slice < handle
                 if isa(varargin{1},'VoxelData')
                     obj.Source = varargin{1};
                 end
-                if nargin==3
-                    obj.getslicefromvoxeldata(varargin{2},varargin{3});
-                    
-                end
+                
             end
         
         
-        function obj = getslicefromvoxeldata(obj,varargin)
+        function obj = getslicefromvoxeldata_old(obj,varargin)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             if iscell(varargin{1})
@@ -101,6 +99,10 @@ classdef Slice < handle
         function cog = getCOG(obj)
             cog = Vector3D(mean(obj.Plane.X(:)),mean(obj.Plane.Y(:)),mean(obj.Plane.Z(:)));
         end
+        
+        %% based on myslice from mathworks
+        %function 
+        5end
     end
 end
 

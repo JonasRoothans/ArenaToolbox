@@ -47,8 +47,8 @@ classdef ArenaScene < handle
                 'UserData',obj,...
                 'CloseRequestFcn',@closeScene,...
                 'WindowKeyPressFcn',@keyShortCut,...
-                'WindowButtonDownFcn',@keyShortCut,...
                 'Color',[1 1 1]);
+                %'WindowButtonDownFcn',@keyShortCut,...
             
             obj.handles.axes = axes('units','normalized',...
                 'position',[0 0 1 1],...
@@ -170,11 +170,14 @@ classdef ArenaScene < handle
             obj.handles.menu.edit.add.toMesh = uimenu(obj.handles.menu.edit.add.main,'Text','as mesh','callback',{@menu_edit_add2mesh});
             obj.handles.menu.edit.add.toPlane = uimenu(obj.handles.menu.edit.add.main,'Text','as plane','callback',{@menu_edit_add2plane});
             
-            obj.handles.cameratoolbar = cameratoolbar(obj.handles.figure,'Show');
+            %obj.handles.cameratoolbar = cameratoolbar(obj.handles.figure,'Show');
+            obj.handles.cameratoolbar = A_cameratoolbar(obj.handles.figure);
             
             obj = createcoordinatesystem(obj);
             
             lighting gouraud
+            camproj('perspective')
+            view(30,30)
             
             function obj = createcoordinatesystem(obj)
                 %Coordinate system
