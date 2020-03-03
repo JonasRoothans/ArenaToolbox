@@ -6,6 +6,9 @@ function [pValue, signedP] = A_PermTest2(sample1,sample2,p)
 if nargin==2
     p = 500000;
 end
+[h,ptest,ci,stats]=ttest2(sample2, sample1);
+disp (['p will approximate : ', num2str(ptest)])
+
 test_statistic = abs(mean(sample1) - mean(sample2));
 
 mixed = [sample1(:);sample2(:)];
@@ -21,7 +24,7 @@ for iP = 1:p
 end
 
 pValue = sum(tslist>test_statistic) / p;
-signedP = (1-pValue) * sign(mean(sample2) - mean(sample1));
+signedP = (1-pValue) * sign(mean(sample1) - mean(sample2));
 disp(['precision: ',num2str(1/p)])
 disp('if signedP is positive, then sample A is bigger than sample B')
 toc
