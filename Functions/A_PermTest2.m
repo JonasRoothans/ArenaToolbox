@@ -1,4 +1,4 @@
-function [pValue] = A_PermTest2(sample1,sample2,p)
+function [pValue, signedP] = A_PermTest2(sample1,sample2,p)
 %JR_2SAMPLEPERMUTATIONTEST Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -21,5 +21,7 @@ for iP = 1:p
 end
 
 pValue = sum(tslist>test_statistic) / p;
+signedP = (1-pValue) * sign(mean(sample1) - mean(sample2));
 disp(['precision: ',num2str(1/p)])
+disp('if signedP is positive, then sample A is bigger than sample B')
 toc
