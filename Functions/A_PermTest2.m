@@ -21,7 +21,7 @@ for iP = 1:p
 end
 
 pValue = sum(tslist>test_statistic) / p;
-signedP = (1-pValue) * sign(mean(sample1) - mean(sample2));
+signedP = (1-pValue) * sign(mean(sample2) - mean(sample1));
 disp(['precision: ',num2str(1/p)])
 disp('if signedP is positive, then sample A is bigger than sample B')
 toc
