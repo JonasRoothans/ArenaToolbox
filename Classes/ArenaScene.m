@@ -132,6 +132,7 @@ classdef ArenaScene < handle
             
             obj.handles.menu.import.suretune.main = uimenu(obj.handles.menu.import.main,'Text','Suretune Session','callback',{@menu_importsuretune});
             
+            obj.handles.menu.import.sweetspot.main = uimenu(obj.handles.menu.import.main,'Text','Sweetspot (.swtspt)','callback',{@menu_importswtspt})
             
             obj.handles.menu.export.main = uimenu(obj.handles.figure,'Text','Export');
             obj.handles.menu.export.blender = uimenu(obj.handles.menu.export.main,'Text','Blender (obj)','callback',{@menu_exporttoblender});
@@ -620,7 +621,10 @@ classdef ArenaScene < handle
             
             function menu_importsuretune(hObject,eventdata)
                 newActors = A_loadsuretune(ArenaScene.getscenedata(hObject));
-                
+            end
+            
+            function menu_importswtspt(hObject,eventdata)
+                newActors = A_loadsweetspot(ArenaScene.getscenedata(hObject));
             end
             
             function menu_importimageasmesh(hObject,eventdata)
