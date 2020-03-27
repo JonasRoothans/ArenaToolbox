@@ -53,6 +53,7 @@ classdef Mesh < handle & matlab.mixin.Copyable
             histf = figure;histogram(Voxels(:),50);  
             set(gca, 'YScale', 'log')
             try
+                figure(histf)
                 [T,~] = ginput(1);
             catch
                 error('user canceled')
