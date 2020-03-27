@@ -185,6 +185,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 handle.FaceAlpha = 'interp';
                 handle.AlphaDataMapping = 'none';
                 handle.AlphaData = double(sliceVoxelValues > settings.valueDark) * (settings.faceOpacity/100);
+                material(handle,[0.8 1 0]) %mostly ambient, some diffuse, NO specular
+          
             end
             
             
@@ -204,9 +206,9 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             %---- default settings
             if and(isempty(data.Source),not(isstruct(settings))) % mesh has no voxel image as source
                 settings = struct;
-                settings.colorFace = [0.2 0.2 0.8];
-                settings.colorEdge = [0.2 0.2 0.8];
-                settings.complexity = 100;
+                settings.colorFace = [0 188 216]/255;
+                settings.colorEdge = [0 188 216]/255;
+                settings.complexity = 20;
                 settings.threshold = NaN;
                 settings.faceOpacity = 50;
                 settings.edgeOpacity = 0;
@@ -214,9 +216,9 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             else
                 if not(isstruct(settings)) %mesh has been generated from voxels
                     settings = struct;
-                    settings.colorFace = [0.2 0.2 0.8];
-                    settings.colorEdge = [0.2 0.2 0.8];
-                    settings.complexity = 100;
+                    settings.colorFace = [0 188 216]/255;
+                    settings.colorEdge = [0 188 216]/255;
+                    settings.complexity = 20;
                     settings.threshold = data.Settings.T;
                     settings.faceOpacity = 50;
                     settings.edgeOpacity = 0;
@@ -241,7 +243,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             end
             
             %create the handle
-            handle = patch('Faces',data.Faces,'Vertices',data.Vertices);
+            out2=lpflow_trismooth(data.Vertices,data.Faces)
+            handle = patch('Faces',data.Faces,'Vertices',out2);
             
             %apply settings
             reducepatch(handle,settings.complexity/100);
@@ -254,6 +257,9 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             else
                 handle.FaceLighting = 'flat';
             end
+            
+            material(handle,[0.8 1 0.2]) 
+            
             obj.Visualisation.handle = handle;
             obj.Visualisation.settings = settings;
             
@@ -360,10 +366,12 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     T = A_transformationmatriforleadmesh(data.C0,data.Direction);
                     body = leadmodel.(strucname).body.transform(T);
                     handle(end+1) = patch('Faces',body.Faces,'Vertices',body.Vertices,'FaceColor',settings.colorBase ,'EdgeColor','none','Clipping',0,'SpecularStrength',0,'FaceAlpha',settings.opacity/100);
+                    material(handle(end),[0.8 1 0.2]) 
                     
                     for i = 0:numel(fieldnames(leadmodel.(strucname)))-2
                     ci = leadmodel.(strucname).(['c',num2str(i)]).transform(T);
                     handle(end+1) = patch('Faces',ci.Faces,'Vertices',ci.Vertices,'FaceColor',settings.colorInactive,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
+                    material(handle(end),[0.2 0.2 1]) 
                     end
                     
                     for i = 1:numel(settings.cathode)

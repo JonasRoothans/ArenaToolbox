@@ -153,6 +153,33 @@ classdef VoxelData <handle
 %             end
         end
         
+        function o3 = and(o1,o2)
+            
+            img1 = o1.Voxels;
+            img2 = o2.Voxels;
+            
+            if not(islogical(img1))
+                error('input 1 should be binary')
+            end
+            if not(islogical(img2))
+                error('input 2 should be binary')
+            end
+            
+            o3 = VoxelData(and(img1,img2),o1.R);
+        end
+        
+        function o3 = times(o1,o2)
+            img1 = o1.Voxels;
+            img2 = o2.Voxels;
+            
+            o3 = VoxelData(img1.*img2,o1.R);
+        end
+        
+        function vd = changeToNan(vd,value)
+            vd.Voxels(vd.Voxels==value) = nan;
+        end
+        
+        
         function center_of_gravity = getcog(obj)
             
             

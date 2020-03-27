@@ -156,12 +156,11 @@ classdef ArenaScene < handle
             obj.handles.menu.show.camTarget.main = uimenu(obj.handles.menu.show.main,'Text','point camera at');
             obj.handles.menu.show.camTarget.actor = uimenu(obj.handles.menu.show.camTarget.main,'Text','selection','callback',{@menu_camTargetActor});
             obj.handles.menu.show.camTarget.center = uimenu(obj.handles.menu.show.camTarget.main,'Text','center','callback',{@menu_camTargetOrigin});
+            obj.handles.menu.show.lights.main = uimenu(obj.handles.menu.show.main,'Text','lights');
+            obj.handles.menu.show.lights.visible = uimenu(obj.handles.menu.show.lights.main,'Text','visible','callback',{@menu_showLight},'Checked','on');
+            obj.handles.menu.show.lights.cameraposition = uimenu(obj.handles.menu.show.lights.main,'Text','place light at camera position','callback',{@menu_placeLight});
             
-            obj.handles.menu.transform.main = uimenu(obj.handles.figure,'Text','Transform');
-            obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
-            obj.handles.menu.transform.selectedlayer.lps2ras = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','LPS <> RAS','callback',{@menu_lps2ras});
-            obj.handles.menu.transforn.selectedlayer.mirror = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','mirror (makes copy)','callback',{@menu_mirror});
-            obj.handles.menu.transforn.selectedlayer.yeb2mni = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','Legacy --> MNI','callback',{@menu_Fake2MNI});
+            
             
             obj.handles.menu.edit.main = uimenu(obj.handles.figure,'Text','Edit');
             obj.handles.menu.edit.count.main = uimenu(obj.handles.menu.edit.main,'Text','count overlap');
@@ -171,8 +170,19 @@ classdef ArenaScene < handle
             obj.handles.menu.edit.add.toMesh = uimenu(obj.handles.menu.edit.add.main,'Text','as mesh','callback',{@menu_edit_add2mesh});
             obj.handles.menu.edit.add.toPlane = uimenu(obj.handles.menu.edit.add.main,'Text','as plane','callback',{@menu_edit_add2plane});
             
+            
+            obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform'); %relocated
+            obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
+            obj.handles.menu.transform.selectedlayer.lps2ras = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','LPS <> RAS','callback',{@menu_lps2ras});
+            obj.handles.menu.transforn.selectedlayer.mirror = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','mirror (makes copy)','callback',{@menu_mirror});
+            obj.handles.menu.transforn.selectedlayer.yeb2mni = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','Legacy --> MNI','callback',{@menu_Fake2MNI});
+            
+            
             %obj.handles.cameratoolbar = cameratoolbar(obj.handles.figure,'Show');
             obj.handles.cameratoolbar = A_cameratoolbar(obj.handles.figure);
+            obj.handles.light = camlight('headlight');
+            obj.handles.light.Style = 'infinite';
+            
             
             obj = createcoordinatesystem(obj);
             
@@ -194,6 +204,23 @@ classdef ArenaScene < handle
             
             
             %---figure functions
+            function menu_showLight(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                switch hObject.Checked
+                    case 'on'
+                        scene.handles.light.Visible = 'off';
+                        hObject.Checked = 'off';
+                    case 'off'
+                        scene.handles.light.Visible = 'on';
+                        hObject.Checked = 'on';
+                end
+            end
+            
+            function menu_placeLight(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                camlight(scene.handles.light,'headlight')
+            end
+            
             function btn_toggle_callback(hObject,eventdata)
                 %get link to the "ArenaScene" instance that is stored in UserData
                 handles = hObject.Parent.UserData.handles;
