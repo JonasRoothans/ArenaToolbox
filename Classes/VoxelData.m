@@ -175,6 +175,17 @@ classdef VoxelData <handle
             o3 = VoxelData(img1.*img2,o1.R);
         end
         
+        function o3 = minus(o1,o2)
+            img1 = o1.Voxels;
+            img2 = o2.Voxels;
+            
+            o3 = VoxelData(img1-img2,o1.R);
+        end
+        
+        function vd = abs(vd)
+            vd.Voxels = abs(vd.Voxels);
+        end
+        
         function vd = changeToNan(vd,value)
             vd.Voxels(vd.Voxels==value) = nan;
         end
