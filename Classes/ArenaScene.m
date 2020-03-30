@@ -169,6 +169,7 @@ classdef ArenaScene < handle
             obj.handles.menu.edit.add.main = uimenu(obj.handles.menu.edit.main,'Text','sum voxelvalues');
             obj.handles.menu.edit.add.toMesh = uimenu(obj.handles.menu.edit.add.main,'Text','as mesh','callback',{@menu_edit_add2mesh});
             obj.handles.menu.edit.add.toPlane = uimenu(obj.handles.menu.edit.add.main,'Text','as plane','callback',{@menu_edit_add2plane});
+            obj.handles.menu.edit.getinfo.main = uimenu(obj.handles.menu.edit.main,'Text','get info','callback',{@menu_getinfo});
             
             
             obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform'); %relocated
@@ -728,10 +729,36 @@ classdef ArenaScene < handle
                 vd.getslice.see(ArenaScene.getscenedata(hObject))
             end
             
+            function menu_getinfo(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                if numel(currentActors)>1
+                    msgbox('Please select one actor at a time')
+                    return
+                end
+                
+                switch class(currentActors.Data)
+                    case 'Mesh'
+                        if isempty(currentActors.Data.Source)
+                            msgbox('This mesh is not based on VoxelData, pleas ask Jonas for help') %perhaps voxelise?
+                        else
+                            cubicmm = currentActors.Data.Source.getCubicMM(currentActors.Data.Settings.T);
+                            msgbox(['Cubic mm3: ',num2str(cubicmm)])
+                            
+                        end
+                       
+                end
+                
+                    
+                
+            end
+            
             function menu_edit_add2mesh(hObject,eventdata)
+                warning('does not exist yet')
             end
             
             function menu_edit_add2plane(hObject,eventdata)
+                warning('does not exist yet')
             end
             
             
