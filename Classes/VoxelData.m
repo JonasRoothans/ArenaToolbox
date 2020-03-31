@@ -283,7 +283,7 @@ classdef VoxelData <handle
             binaryObj = VoxelData(obj.Voxels>T,obj.R);
         end
         
-        function CubicMM = getCubicMM(obj,T)
+        function [CubicMM,voxelcount] = getCubicMM(obj,T)
             if not(all(islogical(obj.Voxels)))
                 if nargin==1
                     obj = makeBinary(obj);

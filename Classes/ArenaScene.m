@@ -731,24 +731,42 @@ classdef ArenaScene < handle
             
             function menu_getinfo(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
-                currentActors = ArenaScene.getSelectedActors(scene);
-                if numel(currentActors)>1
-                    msgbox('Please select one actor at a time')
-                    return
-                end
+                currentActors = scene.Actors; %all Actors.
                 
-                switch class(currentActors.Data)
+               name = {};
+               actorType = {};
+               nVoxels = [];
+               voxelsize = [];
+               cubicMM = [];
+               minVoxelvalue = [];
+               maxVoxelvalue = [];
+                
+               for iActor = 1:numel(currentActors)
+                thisActor = currentActors(iActor);
+                name{iActor,1} = thisActor.Tag;
+                actorType{iActor,1} = class(thisActor.Data);
+                switch class(thisActor.Data)
                     case 'Mesh'
-                        if isempty(currentActors.Data.Source)
-                            msgbox('This mesh is not based on VoxelData, pleas ask Jonas for help') %perhaps voxelise?
+                        if isempty(thisActor.Data.Source)
+                            %msgbox('This mesh is not based on VoxelData, pleas ask Jonas for help') %perhaps voxelise?
+                            nVoxels(iActor,1) = nan;
+                            voxelsize(iActor,1) = nan;
+                            cubicMM(iActor,1) = nan;
+                            minVoxelvalue(iActor,1) = nan;
+                            maxVoxelvalue(iActor,1) = nan;
                         else
-                            cubicmm = currentActors.Data.Source.getCubicMM(currentActors.Data.Settings.T);
-                            msgbox(['Cubic mm3: ',num2str(cubicmm)])
+                            [cubicmm,voxelcount] = thisActor.Data.Source.getCubicMM(thisActor.Data.Settings.T);
                             
+                            nVoxels(iActor,1) = voxelcount;
+                            voxelsize(iActor,1) = thisActor.Data.Source.R.PixelExtentInWorldX*thisActor.Data.Source.R.PixelExtentInWorldY*thisActor.Data.Source.R.PixelExtentInWorldZ;
+                            cubicMM(iActor,1) = cubicmm;
+                            minVoxelvalue(iActor,1) = nanmin(thisActor.Data.Source.Voxels(:));
+                            maxVoxelvalue(iActor,1) = nanmax(thisActor.Data.Source.Voxels(:));
                         end
-                       
                 end
-                
+               end
+               info = table(name,actorType,nVoxels,voxelsize,cubicMM,minVoxelvalue,maxVoxelvalue)
+                assignin('base','info',info);
                     
                 
             end
