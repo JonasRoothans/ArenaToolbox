@@ -29,7 +29,7 @@ classdef VoxelData <handle
             spacing = [obj.R.PixelExtentInWorldX,obj.R.PixelExtentInWorldY,obj.R.PixelExtentInWorldZ];
             origin = [x y z];
             datatype = 8%64;
-            nii = make_nii(permute(obj.Voxels,[2 1 3]), spacing, origin, datatype);
+            nii = make_nii(double(permute(obj.Voxels,[2 1 3])), spacing, origin, datatype);
             save_nii(nii,filename)
         end
         
