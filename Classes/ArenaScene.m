@@ -11,6 +11,7 @@ classdef ArenaScene < handle
     
     properties (Hidden=true)
         configcontrolpos % stores the bounding box of the uicontrols
+        colorTheme
         gitref
     end
     
@@ -170,7 +171,8 @@ classdef ArenaScene < handle
             obj.handles.menu.edit.add.toMesh = uimenu(obj.handles.menu.edit.add.main,'Text','as mesh','callback',{@menu_edit_add2mesh});
             obj.handles.menu.edit.add.toPlane = uimenu(obj.handles.menu.edit.add.main,'Text','as plane','callback',{@menu_edit_add2plane});
             obj.handles.menu.edit.getinfo.main = uimenu(obj.handles.menu.edit.main,'Text','get info','callback',{@menu_getinfo});
-            
+            obj.handles.menu.edit.analysis.main = uimenu(obj.handles.menu.edit.main,'Text','Analyse selection');
+            obj.handles.menu.edit.analysis.dice = uimenu(obj.handles.menu.edit.analysis.main,'Text','Similarity of binary data (dice)','callback',{@menu_dice});
             
             obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform'); %relocated
             obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
@@ -186,6 +188,7 @@ classdef ArenaScene < handle
             
             
             obj = createcoordinatesystem(obj);
+            obj = setColorTheme(obj,'default');
             
             lighting gouraud
             camproj('perspective')
@@ -203,6 +206,24 @@ classdef ArenaScene < handle
                 obj.handles.widgets.coordinatesystem = h;
             end
             
+            
+            function obj = setColorTheme(obj,name)
+                switch name
+                    case 'default'
+                        obj.colorTheme = {[0 0.7373 0.84171],...
+                                    [0.1804, 0.8, 0.4431],... %emerald
+                                    [0.9451, 0.7686, 0.0588],...%SunFlower
+                                    [0.9020, 0.4941, 0.133],... %Carrot
+                                    [0.9059, 0.2980, 0.2353],... %Alizarin
+                                    [0.607, 0.3490, 0.7137],... %Amethyst
+                                    [0.2039,0.533,0.8588]*0.8,... %Peter river
+                                    [0.2039, 0.2863, 0.3636],... %wet asphalt
+                                    [0.9255, 0.9412, 0.9451],... %clouds
+                                    [0.5843, 0.6471, 0.6510]}; %concrete
+                                
+                end
+                        
+            end
             
             %---figure functions
             function menu_showLight(hObject,eventdata)
@@ -729,6 +750,46 @@ classdef ArenaScene < handle
                 vd.getslice.see(ArenaScene.getscenedata(hObject))
             end
             
+            function menu_dice(hObject,eventdata)
+                 scene = ArenaScene.getscenedata(hObject);
+                    currentActors = ArenaScene.getSelectedActors(scene);
+                    
+                    %get binary data
+                    inputdata = VoxelData.empty;
+                    labels = {};
+                    for iActor = 1:numel(currentActors)
+                        thisActor = currentActors(iActor);
+                        switch class(thisActor.Data)
+                            case 'Mesh'
+                                if not(isempty(thisActor.Data.Source))
+                                    vd = thisActor.Data.Source;
+                                    vd.makeBinary(thisActor.Data.Settings.T);
+                                    inputdata(end+1) = vd;
+                                    labels{end+1} = thisActor.Tag;
+                                end
+                        end
+                    end
+                    
+                    %run dice
+                    a = [];
+                    for x = 1:numel(inputdata)
+                        for y = 1:numel(inputdata)
+                           w = inputdata(y).warpto(inputdata(x));
+                           a(x,y) = dice(w,inputdata(x));
+                        end
+                    end
+                    
+                    %show results
+                    similarity = array2table(a,'RowNames',labels,'VariableNames',labels)
+                   assignin('base','similarity',similarity);
+                    
+                    
+                    
+                    
+                    
+            end
+                
+            
             function menu_getinfo(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = scene.Actors; %all Actors.
@@ -1120,7 +1181,8 @@ classdef ArenaScene < handle
             end
             
             function cc_selectcolor(hObject,eventdata)
-                color = A_colorpicker;%uisetcolor;
+                scene = ArenaScene.getscenedata(hObject);
+                color = A_colorpicker(scene.colorTheme);%uisetcolor;
                 if length(color)==3
                     hObject.BackgroundColor = color;
                     
@@ -1178,6 +1240,11 @@ classdef ArenaScene < handle
                 end
             end
             
+            
+        end
+        
+        function color = getNewColor(scene)
+            color = scene.colorTheme{numel(scene.Actors)+1};
             
         end
         

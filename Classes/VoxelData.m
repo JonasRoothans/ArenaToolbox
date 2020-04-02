@@ -190,6 +190,10 @@ classdef VoxelData <handle
             vd.Voxels(vd.Voxels==value) = nan;
         end
         
+        function value = dice(o1,o2)
+            value = dice(o1.Voxels>0,o2.Voxels>0);
+        end
+        
         
         function center_of_gravity = getcog(obj)
             

@@ -206,8 +206,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             %---- default settings
             if and(isempty(data.Source),not(isstruct(settings))) % mesh has no voxel image as source
                 settings = struct;
-                settings.colorFace = [0 188 216]/255;
-                settings.colorEdge = [0 188 216]/255;
+                settings.colorFace = scene.getNewColor(scene);%[0 188 216]/255;
+                settings.colorEdge = scene.getNewColor(scene);%[0 188 216]/255;
                 settings.complexity = 20;
                 settings.threshold = NaN;
                 settings.faceOpacity = 50;
@@ -216,8 +216,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             else
                 if not(isstruct(settings)) %mesh has been generated from voxels
                     settings = struct;
-                    settings.colorFace = [0 188 216]/255;
-                    settings.colorEdge = [0 188 216]/255;
+                    settings.colorFace = scene.getNewColor(scene);%[0 188 216]/255;
+                    settings.colorEdge = scene.getNewColor(scene);%[0 188 216]/255;
                     settings.complexity = 20;
                     settings.threshold = data.Settings.T;
                     settings.faceOpacity = 50;
