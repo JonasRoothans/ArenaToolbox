@@ -12,15 +12,19 @@ h_toolbar.rotate3dtog=uitoggletool(h_toolbar.main, 'CData', A_loadicon('camera')
 h_toolbar.slide3dtog=uitoggletool(h_toolbar.main, 'CData', A_loadicon('move'),...
     'TooltipString', 'Slide Slices', 'OnCallback', {@A_toolbar_slideslices,'on'},...
     'OffCallback', {@A_toolbar_slideslices,'off'}, 'State', 'off');
-h_toolbar.magnifyplus=uitoggletool(h_toolbar.main,'CData',A_loadicon('zoomin'),...
-    'TooltipString', 'Zoom In', 'OnCallback', {@A_toolbar_zoomin,'on'},...
-    'OffCallback', {@A_toolbar_zoomin,'off'}, 'State', 'off');
-h_toolbar.magnifyminus=uitoggletool(h_toolbar.main, 'CData', A_loadicon('zoomout'),...
-    'TooltipString', 'Zoom Out', 'OnCallback', {@A_toolbar_zoomout,'on'},...
-    'OffCallback', {@A_toolbar_zoomout,'off'}, 'State', 'off');
+% h_toolbar.magnifyplus=uitoggletool(h_toolbar.main,'CData',A_loadicon('zoomin'),...
+%     'TooltipString', 'Zoom In', 'OnCallback', {@A_toolbar_zoomin,'on'},...
+%     'OffCallback', {@A_toolbar_zoomin,'off'}, 'State', 'off');
+% h_toolbar.magnifyminus=uitoggletool(h_toolbar.main, 'CData', A_loadicon('zoomout'),...
+%     'TooltipString', 'Zoom Out', 'OnCallback', {@A_toolbar_zoomout,'on'},...
+%     'OffCallback', {@A_toolbar_zoomout,'off'}, 'State', 'off');
 h_toolbar.handtog=uitoggletool(h_toolbar.main, 'CData', A_loadicon('pan'),...
     'TooltipString', 'Pan Scene', 'OnCallback', {@A_toolbar_pan,'on'},...
     'OffCallback', {@A_toolbar_pan,'off'}, 'State', 'off');
+
+h_toolbar.screenshot=uitoggletool(h_toolbar.main, 'CData', A_loadicon('screenshot'),...
+    'TooltipString', 'Screenshot', 'OnCallback', {@A_toolbar_screenshot,'on'},...
+    'OffCallback', {@A_toolbar_screenshot,'off'}, 'State', 'off');
 
 
 end
@@ -70,7 +74,30 @@ set(figure,'WindowButtonDownFcn', []);
 %get axes
 ax = scene.handles.axes;
 set(findobj(ax.Children,'Type','surface'),'HitTest','on'); 
+end
 
+function A_toolbar_screenshot(hObject,~,cmd)
+scene = ArenaScene.getscenedata(hObject);
+toolbar = scene.handles.cameratoolbar;
+figure = scene.handles.figure;
+figure.InvertHardcopy = 'off';
+
+[fn,pn] = uiputfile([scene.Title,strrep(datestr(datetime),':','-'),'.png']);
+
+scene.handles.panelleft.Visible = 'off';
+scene.handles.panelright.Visible = 'off';
+scene.handles.btn_toggleleft.Visible = 'off';
+scene.handles.btn_toggleright.Visible = 'off';
+scene.handles.btn_layeroptions.Visible = 'off';
+
+
+print(figure,fullfile(pn,fn),'-dpng','-r300');
+
+scene.handles.panelleft.Visible = 'on';
+scene.handles.panelright.Visible = 'on';
+scene.handles.btn_toggleleft.Visible = 'on';
+scene.handles.btn_toggleright.Visible = 'on';
+scene.handles.btn_layeroptions.Visible = 'on';
 
 end
 
@@ -101,6 +128,8 @@ switch type
          icon = imread('zoom.jpg');
     case 'pan'
          icon = imread('pan.jpg');
+    case 'screenshot'
+        icon = imread('screenshot.jpg');
 end
 end
 
