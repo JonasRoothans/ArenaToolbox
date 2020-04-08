@@ -23,7 +23,11 @@ set(f, 'ToolBar', 'none');
 
 
 handles = {};
-for iColor = 1:numel(colorlist)
+n = numel(colorlist);
+if n>10
+    n = 10;
+end
+for iColor = 1:n
     handles{iColor} = uicontrol('Style','pushbutton',...
             'BackgroundColor',colorlist{iColor},...
              'String','','Position',[0,height-25*iColor,110,25],...

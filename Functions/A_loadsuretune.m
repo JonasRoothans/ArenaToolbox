@@ -199,7 +199,7 @@ output = {};
                 gpi = ObjFile(fullfile(legacypath,'LH_IGP-ON-pmMR.obj'));
                 gpe = ObjFile(fullfile(legacypath,'LH_EGP-ON-pmMR.obj'));
                 
-                gpi= pi.transform(T);
+                gpi= gpi.transform(T);
                 gpe = gpe.transform(T);
                 if not(isempty(scene))
                     actorgpi = gpi.see(scene);

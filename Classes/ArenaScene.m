@@ -222,6 +222,8 @@ classdef ArenaScene < handle
                                     [0.5843, 0.6471, 0.6510]}; %concrete
                                 
                 end
+                
+                obj.colorTheme = repmat(obj.colorTheme,[1,10]);
                         
             end
             
