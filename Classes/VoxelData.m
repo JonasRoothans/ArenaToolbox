@@ -196,8 +196,6 @@ classdef VoxelData <handle
         
         
         function center_of_gravity = getcog(obj)
-            
-            
             [yq,xq,zq] = meshgrid(1:size(obj.Voxels,2),...
                 1:size(obj.Voxels,1),...
                 1:size(obj.Voxels,3));
@@ -209,8 +207,80 @@ classdef VoxelData <handle
             center_of_gravity_internal = [ym,xm,zm];
             [x,y,z] = obj.R.intrinsicToWorld(center_of_gravity_internal(1),center_of_gravity_internal(2),center_of_gravity_internal(3));
             center_of_gravity = Vector3D([x,y,z]);
-            
         end
+        
+        function [fwhm,f] = getDensityDistribution(obj)
+            v = obj.Voxels;
+            
+            %squeeze the data into one dimension
+            v_x = sum(sum(v,3),1);
+            v_y = sum(sum(v,3),2);
+            v_z = squeeze(sum(sum(v,2),1));
+            
+            %convert the voxel locations to worldlocations
+             [firstX,firstY,firstZ] = obj.R.intrinsicToWorld(1,1,1);
+             [lastX,lastY,lastZ] = obj.R.intrinsicToWorld(length(v_x),length(v_y),length(v_z));
+             
+             %define the x-axis values
+             x_coords = linspace(firstX,lastX,length(v_x));
+             y_coords = linspace(firstY,lastY,length(v_y));
+             z_coords = linspace(firstZ,lastZ,length(v_z));
+             
+             %interpolate
+             xCi = linspace(firstX,lastX,length(v_x)*10);
+             yCi = linspace(firstY,lastY,length(v_y)*10);
+             zCi = linspace(firstZ,lastZ,length(v_z)*10);
+             
+             xVi = interp1(x_coords,v_x,xCi,'pchip');
+             yVi = interp1(y_coords,v_y,yCi,'pchip');
+             zVi = interp1(z_coords,v_z,zCi,'pchip');
+            
+             %plot
+            f = figure; hold on
+            set(f,'DefaultLineLineWidth',2)
+            p = plot(xCi,xVi,'r',yCi,yVi,'g',zCi,zVi,'b');
+            
+            
+            
+            %find the xlim (to only include data >0)
+            minCoord = min([xCi(find(xVi>0,1,'first')),...
+                yCi(find(yVi>0,1,'first')),...
+               zCi(find(zVi>0,1,'first'))]);
+           
+           maxCoord = max([xCi(find(xVi>0,1,'last')),...
+                yCi(find(yVi>0,1,'last')),...
+               zCi(find(zVi>0,1,'last'))]);
+           
+           xlim([minCoord,maxCoord])
+           legend({'x','y','z'})
+           
+           %FWHM
+           x_1 = xCi(find(xVi>max(xVi)/2,1,'first'));
+           x_2 = xCi(find(xVi>max(xVi)/2,1,'last'));
+           
+           y_1 = yCi(find(yVi>max(yVi)/2,1,'first'));
+           y_2 = yCi(find(yVi>max(yVi)/2,1,'last'));
+           
+           z_1 = zCi(find(zVi>max(zVi)/2,1,'first'));
+           z_2 = zCi(find(zVi>max(zVi)/2,1,'last'));
+           
+           patch([x_1 x_1 x_2 x_2],[0 max(xVi)/2 max(xVi)/2 0],'red','FaceAlpha',0.4)
+           patch([y_1 y_1 y_2 y_2],[0 max(yVi)/2 max(yVi)/2 0],'green','FaceAlpha',0.4)
+           patch([z_1 z_1 z_2 z_2],[0 max(zVi)/2 max(zVi)/2 0],'blue','FaceAlpha',0.4)
+           
+           legend({'x','y','z','FWHM x','FWHM y','FWHM z'})
+           
+           %output
+           fwhm.x = x_2-x_1;
+           fwhm.y = y_2-y_1;
+           fwhm.z = z_2-z_1;
+           fwhm.xrange = [x_1 x_2];
+           fwhm.yrange = [y_1 y_2];
+           fwhm.zrange = [z_1 z_2];  
+        end
+            
+            
+            
         
         function see(obj)
             disp('This funnction does not exist. Use [].getmesh.see instead')

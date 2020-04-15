@@ -173,6 +173,7 @@ classdef ArenaScene < handle
             obj.handles.menu.edit.getinfo.main = uimenu(obj.handles.menu.edit.main,'Text','get info','callback',{@menu_getinfo});
             obj.handles.menu.edit.analysis.main = uimenu(obj.handles.menu.edit.main,'Text','Analyse selection');
             obj.handles.menu.edit.analysis.dice = uimenu(obj.handles.menu.edit.analysis.main,'Text','Similarity of binary data (dice)','callback',{@menu_dice});
+            obj.handles.menu.edit.analysis.densitydistribution = uimenu(obj.handles.menu.edit.analysis.main,'Text','Density distribution (FWHM)','callback',{@menu_fwhm});
             
             obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform'); %relocated
             obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
@@ -751,6 +752,30 @@ classdef ArenaScene < handle
                 vd = ArenaScene.countMesh(hObject);
                 vd.getslice.see(ArenaScene.getscenedata(hObject))
             end
+            
+            
+            function menu_fwhm(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                for iActor = 1:numel(currentActors)
+                        thisActor = currentActors(iActor);
+                        switch class(thisActor.Data)
+                            case 'Mesh'
+                                if not(isempty(thisActor.Data.Source))
+                                    [data,fhandle] = thisActor.Data.Source.getDensityDistribution;
+                                     title([thisActor.Tag,' {\color{red} x:',num2str(data.x),'\color{green}  y:',num2str(data.y),'\color{blue} z:',num2str(data.z),'}'])
+                                     disp('-----')
+                                     disp(thisActor.Tag)
+                                     disp('-----')
+                                     disp('>> FWHM')
+                                     disp(data)
+                                     disp('>> COG')
+                                    disp(thisActor.Data.Source.getcog)
+                                end
+                        end
+                end
+            end
+            
             
             function menu_dice(hObject,eventdata)
                  scene = ArenaScene.getscenedata(hObject);
