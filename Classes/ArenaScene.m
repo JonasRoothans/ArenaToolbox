@@ -888,9 +888,35 @@ classdef ArenaScene < handle
                 scene = hObject.Parent.UserData;
                 actorList = scene.Actors;
                 thisActor = actorList(scene.handles.panelright.Value);
-                thisActor.edit(scene);
+                if numel(thisActor)==1
+                    thisActor.edit(scene);
+                else
+                    answer = questdlg('What''s up?','Arena','add name prefix','delete selection','cancel','cancel');
+                    switch answer
+                        case 'add name prefix'
+                            newname = inputdlg('Change prefix','Arena',[1 40],{''});
+                            for iActor = 1:numel(thisActor)
+                                thisOne = thisActor(iActor);
+                                thisOne.Tag = [newname{1},thisOne.Tag];
+                            end
+                            scene.refreshLayers();
+                        case 'delete selection'
+                            rusure = questdlg(['You are about to delete some actors for eternity.'],'Arena','delete','cancel','cancel');
+                            switch rusure
+                                case 'delete'
+                                    for iActor = 1:numel(thisActor)
+                                        thisOne = thisActor(iActor);
+                                        delete(thisOne,scene)
+                                    end
+                                    scene.refreshLayers();
+                                case 'cancel'
+                                    return
+                            end
+                    
+                    end
+                end
             end
-            
+                
             function panelright_callback(hObject,~)
                 scene = hObject.Parent.UserData;
                 currentActor = scene.Actors(hObject.Value);
