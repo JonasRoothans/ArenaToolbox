@@ -174,6 +174,7 @@ classdef ArenaScene < handle
             obj.handles.menu.edit.analysis.main = uimenu(obj.handles.menu.edit.main,'Text','Analyse selection');
             obj.handles.menu.edit.analysis.dice = uimenu(obj.handles.menu.edit.analysis.main,'Text','Similarity of binary data (dice)','callback',{@menu_dice});
             obj.handles.menu.edit.analysis.densitydistribution = uimenu(obj.handles.menu.edit.analysis.main,'Text','Density distribution (FWHM)','callback',{@menu_fwhm});
+            obj.handles.menu.edit.analysis.fibers = uimenu(obj.handles.menu.edit.analysis.main,'Text','fibers','callback',{@menu_showFibers});
             
             obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform'); %relocated
             obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
@@ -774,6 +775,90 @@ classdef ArenaScene < handle
                                 end
                         end
                 end
+            end
+            
+            function menu_showFibers(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                if length(currentActors)~= 1
+                    return
+                end
+                thisActor = currentActors;
+                seed_fv.vertices = thisActor.Data.Vertices;
+                seed_fv.faces = thisActor.Data.Faces;
+                
+                
+                %load datafile
+                fibs = matfile('/Users/jonas/Documents/MATLAB/AddOns/LeadDBS/lead3/connectomes/dMRI/HCP_MGH_30fold_groupconnectome (Horn 2017)/data.mat');
+                idcs = fibs.idx;
+                idcs_cumsum = cumsum(idcs);
+                
+                ending = 0;
+                fibersPassingThrough = [];
+                fiberData = {};
+                
+                % get max distance from COG of seed (this will give a rough
+                % estimate of the radius to see if a fiber is worthwile to
+                % test.)
+                maxD = max(pdist2(mean(seed_fv.vertices),seed_fv.vertices));
+                
+                %compute distances of all vertices to the fibers.
+                tic
+                disp('loading connectome..')
+                fibers1p5gb = fibs.fibers(:,1:3);
+                fiberids = fibs.fibers(:,4);
+                toc
+                
+                disp('screening which fibers are in the neighbourhood..')
+                [~,D] = knnsearch(mean(seed_fv.vertices),fibers1p5gb(:,1:3));
+                toofar = D>maxD;
+                candidates  = unique(fiberids(not(toofar)));
+                candidateVectors = find(not(toofar));
+                toc
+                
+                
+                disp(['now evaluating ',num2str(numel(candidates)),' fibers within range.'])
+                shuffle = randperm(length(candidates));
+                counter = 0;
+                for iFib = candidates(shuffle)'
+                    try
+                    start = idcs_cumsum(iFib-1)+1;
+                    catch
+                        start = 1;
+                    end
+                    ending = idcs_cumsum(iFib);
+                    
+                    tryThese = not(toofar(start:ending));
+                    thisFib = fibs.fibers(start:ending,:);
+                    fiberPassingThrough = any(inpolyhedron(seed_fv, thisFib(tryThese,1:3),'flipnormals', true));
+                    if fiberPassingThrough
+                        disp(iFib)
+                        fiberData{end+1} = thisFib(:,1:3);
+                        color = PointCloud(abs(diff(thisFib(:,1:3),1))).Vectors.unit;
+                        color = [color;color(end,:)];
+                        %scatter3(thisFib(:,1),thisFib(:,2),thisFib(:,3),20,color.getArray)
+                        
+                        h = streamtube({thisFib(:,1:3)}, 0.5,[1 3]); % note that options.prefs.d3.fiberdiameter actually specifies the radius accoding to ea_plot3t 
+                        colorArray = color.getArray;
+                        streamFaceColors = [];
+                        streamFaceColors(:,:,1) = repmat(colorArray(:,1),1, 3+1);
+                        streamFaceColors(:,:,2) = repmat(colorArray(:,2),1, 3+1);
+                        streamFaceColors(:,:,3) = repmat(colorArray(:,3),1, 3+1);
+                        set(h, 'FaceColor', 'interp', 'CData', streamFaceColors, 'CDataMapping', 'direct', 'EdgeColor', 'none', 'FaceAlpha', 0.2);
+                        fv = surf2patch(h);
+                        drawnow
+                        counter = counter + 1;
+                        if counter > 100;
+                            break
+                        end
+                    end
+                
+                    last = ending;
+                end
+                %get Vertices
+                
+                
             end
             
             
