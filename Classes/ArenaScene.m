@@ -790,12 +790,14 @@ classdef ArenaScene < handle
                 
                 
                 %load datafile
-                fibs = matfile('/Users/jonas/Documents/MATLAB/AddOns/LeadDBS/lead3/connectomes/dMRI/HCP_MGH_30fold_groupconnectome (Horn 2017)/data.mat');
+                
+                global arena;
+                root = arena.getrootdir;
+                loaded = load(fullfile(root,'config.mat'));
+                fibs = matfile(fullfile(loaded.config.leadDBS,'connectomes','dMRI','HCP_MGH_30fold_groupconnectome (Horn 2017)','data.mat'));
                 idcs = fibs.idx;
                 idcs_cumsum = cumsum(idcs);
                 
-                ending = 0;
-                fibersPassingThrough = [];
                 fiberData = {};
                 
                 % get max distance from COG of seed (this will give a rough
