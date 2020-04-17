@@ -33,7 +33,7 @@ classdef Connectome < handle
             end
         end
         
-        function [fibers,fiberIDs] = getFibersPassingThroughMesh(obj,seedmesh,n)
+        function [FibersObject] = getFibersPassingThroughMesh(obj,seedmesh,n,scene,OPTIONALFibers)
             %run some input data tests
             % .. 
             % ..
@@ -45,15 +45,28 @@ classdef Connectome < handle
             seed_fv.vertices = seedmesh.Vertices;
             seed_fv.faces = seedmesh.Faces;
             
-            FibersObject = Fibers;
-            FibersObject.Connectome = obj;
-            FibersObject.IncludeSeed = seedmesh;
+            %If no Fibers-object is given, make a new one
+            if nargin==4
+                FibersObject = Fibers;
+                FibersObject.Connectome = obj;
+                FibersObject.IncludeSeed = seedmesh;
+                FibersObject.connectToScene(scene);
+                remove_these_from_candidates = []; %only useful when you don't want duplicates in an existing Fibers-object
+            else
+                FibersObject = OPTIONALFibers;
+                remove_these_from_candidates = FibersObject.Indices;
+            end
             
             disp('screening which fibers are in the neighbourhood..')
             maxD = max(pdist2(mean(seed_fv.vertices),seed_fv.vertices));
             [~,D] = knnsearch(mean(seed_fv.vertices),fibers(:,1:3));
             toofar = D>maxD;
             candidates  = unique(fiberids(not(toofar)));
+            
+            for iDuplicate = remove_these_from_candidates
+                candidates(candidates==iDuplicate)= [];
+            end
+            
             candidateVectors = find(not(toofar));
             
             
@@ -76,7 +89,7 @@ classdef Connectome < handle
                     if fiberPassingThrough
                         disp(iFib)
                         
-                        FibersObject.drawNewFiber(thisFib(:,1:3),iFib);
+                        FibersObject.drawNewFiberInScene(thisFib(:,1:3),iFib,scene);
                         
 
                         counter = counter + 1;

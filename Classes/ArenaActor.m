@@ -432,51 +432,84 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         
         
         function settings = visualizeFibers(obj,settings,data,scene)
+            axes(scene.handles.axes)
+            
             %---- default settings
             if not(isstruct(settings)) % mesh has no voxel image as source
                 settings = struct;
                 settings.colorFace = scene.getNewColor(scene);%[0 188 216]/255;
                 settings.numberOfFibers = 100;
                 settings.faceOpacity = 50;
-                settings.colorByDirection = false;
-            end
+                settings.colorByDirection = true;
+                 
+                
+                obj.Visualisation.settings = settings;
+                
+                
+            else 
             
-            axes(scene.handles.axes)
             
-            isBasedOnVoxelData = not(isempty(data.Source));
-            
-            % changing threshold triggers new triangulation from voxeldata
-            if isBasedOnVoxelData
-                if not(round(settings.threshold,2)==round(data.Settings.T,2))
-                    if isnan(settings.threshold)
-                        data.getmeshfromvoxeldata({data.Source});
-                        settings.threshold = data.Settings.T;
+           % check if numberOfFibers matches --> otherwise trigger
+           
+           if settings.numberOfFibers ~= numel(obj.Visualisation.handle)
+               if settings.numberOfFibers < numel(obj.Visualisation.handle)
+                   
+                   obj.Data.Vertices(settings.numberOfFibers+1:end) = [];
+                   obj.Data.Indices(settings.numberOfFibers+1:end) = [];
+                   delete(obj.Visualisation.handle(settings.numberOfFibers+1:end))
+                   obj.Visualisation.handle(settings.numberOfFibers+1:end) = [];
+                   
+               else
+                   getFibersPassingThroughMesh(obj.Data.Connectome,...
+                       obj.Data.IncludeSeed,...
+                       settings.numberOfFibers,...
+                       scene,...
+                       obj.Data)
+               end
+           end
+           
+           % Connectome
+           if settings.faceOpacity ~=obj.Visualisation.settings.faceOpacity
+               for iH = 1:numel(obj.Visualisation.handle)
+                    obj.Visualisation.handle(iH).FaceAlpha = settings.faceOpacity/100;
+               end
+           end
+           
+           % update styling settings if changed:
+            if or(settings.colorFace ~= obj.Visualisation.settings.colorFace,...
+                    settings.colorByDirection ~=obj.Visualisation.settings.colorByDirection)
+                %apply settings
+                for iH = 1:numel(obj.Visualisation.handle)
+                    if settings.colorByDirection
+                        color = PointCloud(abs(diff(obj.Data.Vertices(iH).Vectors.getArray))).Vectors.unit;
+                        color = [color;color(end,:)];
+
+
+                                colorArray = color.getArray;
+
+                                CData = [];
+                                CData(:,:,1) = repmat(colorArray(:,1),1, size(obj.Visualisation.handle(iH).CData,2));
+                                CData(:,:,2) = repmat(colorArray(:,2),1, size(obj.Visualisation.handle(iH).CData,2));
+                                CData(:,:,3) = repmat(colorArray(:,3),1, size(obj.Visualisation.handle(iH).CData,2));
+
                     else
-                        data.getmeshfromvoxeldata({data.Source,settings.threshold});
+                    CData = ones(size(obj.Visualisation.handle(iH).CData));
+                    CData(:,:,1) = CData(:,:,1)*settings.colorFace(1);
+                    CData(:,:,2) = CData(:,:,2)*settings.colorFace(2);
+                    CData(:,:,3) = CData(:,:,3)*settings.colorFace(3);
                     end
+                    obj.Visualisation.handle(iH).CData = CData;
+
                 end
             end
             
-            %create the handle
-            out2=lpflow_trismooth(data.Vertices,data.Faces)
-            handle = patch('Faces',data.Faces,'Vertices',out2);
+                
             
-            %apply settings
-            reducepatch(handle,settings.complexity/100);
-            handle.FaceColor = settings.colorFace;
-            handle.EdgeColor = settings.colorEdge;
-            handle.FaceAlpha = settings.faceOpacity/100;
-            handle.EdgeAlpha = settings.edgeOpacity/100;
-            if settings.smooth
-                handle.FaceLighting = 'gouraud';
-            else
-                handle.FaceLighting = 'flat';
-            end
             
-            material(handle,[0.8 1 0.2]) 
+            %material(handle,[0.8 1 0.2]) 
             
-            obj.Visualisation.handle = handle;
             obj.Visualisation.settings = settings;
+            end
             
             %update
             updateCC(obj,scene)
@@ -560,6 +593,12 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     scene.newconfigcontrol(obj,'vector',{settings.slice,settings.faceOpacity},{'slice','faceOpacity'});
                     scene.newconfigcontrol(obj,'list',{settings.plane},{'plane'},{'axial','coronal','sagittal'})
                     %scene.newconfigcontrol(obj,'checkbox',settings.clipDark,'clipDark');
+                case 'Fibers'
+                    scene.newconfigcontrol(obj,'color',settings.colorFace,'colorFace');
+                    scene.newconfigcontrol(obj,'edit',settings.numberOfFibers,'numberOfFibers');
+                    scene.newconfigcontrol(obj,'edit',settings.faceOpacity,'faceOpacity');
+                    scene.newconfigcontrol(obj,'checkbox',settings.colorByDirection,'colorByDirection');
+                   
                     
                 otherwise
                     keyboard
@@ -568,7 +607,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         
         function updateActor(obj,scene,settings)
             
-            if not(isa(obj.Data,'Slicei'))
+            if not(or(isa(obj.Data,'Slicei'),...
+                    isa(obj.Data,'Fibers')))
                 delete(obj.Visualisation.handle);
             end
             
@@ -596,6 +636,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     visualizeElectrode(obj,settings,obj.Data,scene)
                 case 'Slicei'
                     visualizeSlice(obj,settings,obj.Data,scene)
+                case 'Fibers'
+                    visualizeFibers(obj,settings,obj.Data,scene)
                 otherwise
                     keyboard
             end

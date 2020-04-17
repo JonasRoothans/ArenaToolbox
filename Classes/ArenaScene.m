@@ -792,7 +792,7 @@ classdef ArenaScene < handle
                     end
                 thisConnectome = connectomes.selectConnectome;
                 
-                Fibers = thisConnectome.getFibersPassingThroughMesh(currentActors.Data,100);
+                Fibers = thisConnectome.getFibersPassingThroughMesh(currentActors.Data,100,scene);
                 
                 
                 

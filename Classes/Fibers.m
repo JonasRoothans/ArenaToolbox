@@ -4,10 +4,13 @@ classdef Fibers < handle & matlab.mixin.Copyable
     properties
         Vertices = PointCloud.empty
         Indices = [];
-        Handles
         IncludeSeed = Mesh.empty
         Connectome
         Settings
+    end
+    
+    properties (Hidden)
+        ActorHandle;
     end
     
     methods
@@ -23,24 +26,37 @@ classdef Fibers < handle & matlab.mixin.Copyable
 %                 end
         end
             
-        function obj = drawNewFiber(obj,vertices,fiberindex)
+        function obj = drawNewFiberInScene(obj,vertices,fiberindex,scene)
+                        vizsettings = obj.ActorHandle.Visualisation.settings; %as set in arena
+                        axes(scene.handles.axes)
                         n = numel(obj.Vertices)+1;
                         obj.Vertices(n) = PointCloud(vertices);
                         obj.Indices(n) = fiberindex;
-            
-                        color = PointCloud(abs(diff(vertices,1))).Vectors.unit;
-                        color = [color;color(end,:)];
                         
                         h = streamtube({vertices}, 0.5,[1 3]); 
-                        colorArray = color.getArray;
-                        
-                        streamFaceColors = [];
-                        streamFaceColors(:,:,1) = repmat(colorArray(:,1),1, 3+1);
-                        streamFaceColors(:,:,2) = repmat(colorArray(:,2),1, 3+1);
-                        streamFaceColors(:,:,3) = repmat(colorArray(:,3),1, 3+1);
-                        set(h, 'FaceColor', 'interp', 'CData', streamFaceColors, 'CDataMapping', 'direct', 'EdgeColor', 'none', 'FaceAlpha', 0.2);
+                        if vizsettings.colorByDirection
+                            color = PointCloud(abs(diff(vertices,1))).Vectors.unit;
+                            color = [color;color(end,:)];
+
+                            
+                            colorArray = color.getArray;
+
+                            streamFaceColors = [];
+                            streamFaceColors(:,:,1) = repmat(colorArray(:,1),1, 3+1);
+                            streamFaceColors(:,:,2) = repmat(colorArray(:,2),1, 3+1);
+                            streamFaceColors(:,:,3) = repmat(colorArray(:,3),1, 3+1);
+                        else
+                            
+                        CData = ones(size(h.XData,1),size(h.XData,2),3);
+                        CData(:,:,1) = CData(:,:,1)*vizsettings.colorFace(1);
+                        CData(:,:,2) = CData(:,:,2)*vizsettings.colorFace(2);
+                        CData(:,:,3) = CData(:,:,3)*vizsettings.colorFace(3);
+                            streamFaceColors = CData;
+                        end
+                        set(h, 'FaceColor', 'interp', 'CData', streamFaceColors, 'CDataMapping', 'direct', 'EdgeColor', 'none', 'FaceAlpha', vizsettings.faceOpacity/100);
                         %fv = surf2patch(h);
-                        obj.Handles(n) = h;
+                        %obj.Handles(n) = h;
+                        obj.ActorHandle.Visualisation.handle(n) = h;
                         drawnow
             
         end
@@ -60,6 +76,13 @@ classdef Fibers < handle & matlab.mixin.Copyable
         end
             
 
+        function [thisActor,thisScene] = connectToScene(obj,thisScene)
+            
+             thisActor = thisScene.newActor(obj);
+             obj.ActorHandle = thisActor;
+        end
+        
+        
         function [thisActor,thisScene] = see(obj, sceneobj)
             global arena
             if nargin==1

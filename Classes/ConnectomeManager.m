@@ -78,6 +78,8 @@ classdef ConnectomeManager < handle
                     %make new connectome object
                     load_this_connectome = Connectome;
                     load_this_connectome.linkToFile(config.connectomePathList(end))
+                    obj.Connectomes(end+1) = load_this_connectome;
+                    
                 else
                     load_this_connectome = obj.Connectomes(index);
                 end
