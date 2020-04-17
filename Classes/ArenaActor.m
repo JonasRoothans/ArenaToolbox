@@ -50,6 +50,9 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 case 'Electrode'
                     obj.visualizeElectrode(settings,data,scene);
                     obj.Tag = 'Electrode';
+                case 'Fibers'
+                    obj.visualizeFibers(settings,data,scene);
+                    obj.Tag = 'Fibers';
                 otherwise
                     keyboard
             end
@@ -426,6 +429,60 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             
             
         end
+        
+        
+        function settings = visualizeFibers(obj,settings,data,scene)
+            %---- default settings
+            if not(isstruct(settings)) % mesh has no voxel image as source
+                settings = struct;
+                settings.colorFace = scene.getNewColor(scene);%[0 188 216]/255;
+                settings.numberOfFibers = 100;
+                settings.faceOpacity = 50;
+                settings.colorByDirection = false;
+            end
+            
+            axes(scene.handles.axes)
+            
+            isBasedOnVoxelData = not(isempty(data.Source));
+            
+            % changing threshold triggers new triangulation from voxeldata
+            if isBasedOnVoxelData
+                if not(round(settings.threshold,2)==round(data.Settings.T,2))
+                    if isnan(settings.threshold)
+                        data.getmeshfromvoxeldata({data.Source});
+                        settings.threshold = data.Settings.T;
+                    else
+                        data.getmeshfromvoxeldata({data.Source,settings.threshold});
+                    end
+                end
+            end
+            
+            %create the handle
+            out2=lpflow_trismooth(data.Vertices,data.Faces)
+            handle = patch('Faces',data.Faces,'Vertices',out2);
+            
+            %apply settings
+            reducepatch(handle,settings.complexity/100);
+            handle.FaceColor = settings.colorFace;
+            handle.EdgeColor = settings.colorEdge;
+            handle.FaceAlpha = settings.faceOpacity/100;
+            handle.EdgeAlpha = settings.edgeOpacity/100;
+            if settings.smooth
+                handle.FaceLighting = 'gouraud';
+            else
+                handle.FaceLighting = 'flat';
+            end
+            
+            material(handle,[0.8 1 0.2]) 
+            
+            obj.Visualisation.handle = handle;
+            obj.Visualisation.settings = settings;
+            
+            %update
+            updateCC(obj,scene)
+        end
+        
+        
         function getSettings(obj)
             disp(obj.Visualisation.settings)
         end
