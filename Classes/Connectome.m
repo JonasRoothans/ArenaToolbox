@@ -55,7 +55,7 @@ classdef Connectome < handle
             toofar = D>maxD;
             candidates  = unique(fiberids(not(toofar)));
             candidateVectors = find(not(toofar));
-            toc
+            
             
             disp(['now evaluating ',num2str(numel(candidates)),' fibers within range.'])
                 shuffle = randperm(length(candidates));

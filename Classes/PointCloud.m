@@ -61,7 +61,7 @@ classdef PointCloud
                 case 'Vector3D'
                     obj.Vectors = vectors;
                     
-                case 'double'
+                case {'double', 'single'}
                     obj.Vectors = Vector3D.empty;
                     if size(vectors,1)>1 && size(vectors,2)==3 %list
                         for i = 1:size(vectors,1)
