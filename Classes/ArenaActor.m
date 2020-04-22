@@ -755,7 +755,11 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         function delete(obj,scene)
             currentIndex = find(scene.Actors==obj);
             scene.Actors(currentIndex) = [];
+            try
             delete(obj.Visualisation.handle)
+            catch
+                disp('deleted empty actor')
+            end
             scene.refreshLayers();
         end
         

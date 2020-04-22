@@ -174,7 +174,8 @@ classdef ArenaScene < handle
             obj.handles.menu.edit.analysis.main = uimenu(obj.handles.menu.edit.main,'Text','Analyse selection');
             obj.handles.menu.edit.analysis.dice = uimenu(obj.handles.menu.edit.analysis.main,'Text','Similarity of binary data (dice)','callback',{@menu_dice});
             obj.handles.menu.edit.analysis.densitydistribution = uimenu(obj.handles.menu.edit.analysis.main,'Text','Density distribution (FWHM)','callback',{@menu_fwhm});
-            obj.handles.menu.edit.analysis.fibers = uimenu(obj.handles.menu.edit.analysis.main,'Text','fibers','callback',{@menu_showFibers});
+            obj.handles.menu.edit.analysis.fibers = uimenu(obj.handles.menu.edit.analysis.main,'Text','fibers (from 1 seed)','callback',{@menu_showFibers});
+            obj.handles.menu.edit.analysis.fibers = uimenu(obj.handles.menu.edit.analysis.main,'Text','fibers (inbetween seeds)','callback',{@menu_showFibers_inbetween});
             
             obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform'); %relocated
             obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
@@ -784,7 +785,6 @@ classdef ArenaScene < handle
                 if length(currentActors)~= 1
                     return
                 end
-                thisActor = currentActors;
                 
                 global connectomes
                     if not(isa(connectomes,'ConnectomeManager'))
@@ -793,8 +793,24 @@ classdef ArenaScene < handle
                 thisConnectome = connectomes.selectConnectome;
                 
                 Fibers = thisConnectome.getFibersPassingThroughMesh(currentActors.Data,100,scene);
+            end
+            
+            
+            function menu_showFibers_inbetween(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
                 
+                if length(currentActors)~= 2
+                    return
+                end
                 
+                global connectomes
+                    if not(isa(connectomes,'ConnectomeManager'))
+                        connectomes = ConnectomeManager;
+                    end
+                thisConnectome = connectomes.selectConnectome;
+                
+                Fibers = thisConnectome.getFibersConnectingMeshes({currentActors(1).Data,currentActors(2).Data},100,scene);
                 
                 
             end
