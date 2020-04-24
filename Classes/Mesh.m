@@ -96,6 +96,34 @@ classdef Mesh < handle & matlab.mixin.Copyable
         function cog = getCOG(obj)
             cog = PointCloud(obj.Vertices).getCOG;
         end
+        
+        function saveToFolder(obj,outdir,tag)
+            %save obj, voxeldata and thresholded voxeldat
+            if nargin==1
+                [file,outdir] = uiputfile('*.obj');
+                filepath = fullfile(outdir,file);
+                tag = file(1:end-4);
+            elseif nargin==2
+                tag = newid;
+                filepath = fullfile(outdir,[tag,'*.obj']);
+            elseif nargin==3
+                filepath = fullfile(outdir,[tag,'*.obj']);
+            else
+                return
+            end
+                
+            %OBJ
+            vertface2obj(obj.Vertices,obj.Faces,fullfile(outdir,[tag,'.obj']));
+            
+            %VoxelData
+            obj.Source.saveToFolder(outdir,tag);
+            
+            %Binary
+            obj.Source.makeBinary(obj.Settings.T).saveToFolder(outdir,[tag,'_binary']);
+            
+            
+            
+        end
             
      
     end

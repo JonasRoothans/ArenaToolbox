@@ -657,6 +657,18 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             end
         end
         
+        function saveToFolder(obj,outdir)
+            data = obj.Data;
+            try
+            data.saveToFolder(outdir,obj.Tag);
+            catch
+                warning(['Data of type ',class(data),' cannot be saved yet. Ask Jonas'])
+            end
+            Done;
+            
+            
+        end
+        
         function transform(obj,scene,varargin)
             if numel(varargin)>0
                 switch varargin{1}

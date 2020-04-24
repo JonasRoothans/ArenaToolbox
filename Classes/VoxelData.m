@@ -28,7 +28,7 @@ classdef VoxelData <handle
             [x,y,z] = obj.R.worldToIntrinsic(0,0,0);
             spacing = [obj.R.PixelExtentInWorldX,obj.R.PixelExtentInWorldY,obj.R.PixelExtentInWorldZ];
             origin = [x y z];
-            datatype = 8%64;
+            datatype = 8;%64;
             nii = make_nii(double(permute(obj.Voxels,[2 1 3])), spacing, origin, datatype);
             save_nii(nii,filename)
         end
@@ -277,6 +277,14 @@ classdef VoxelData <handle
            fwhm.xrange = [x_1 x_2];
            fwhm.yrange = [y_1 y_2];
            fwhm.zrange = [z_1 z_2];  
+           fwhm.xCi = xCi;
+           fwhm.yCi = yCi;
+           fwhm.zCi = zCi;
+           fwhm.xVi = xVi;
+           fwhm.yVi = yVi;
+           fwhm.zVi = zVi;
+           
+           
         end
             
             
@@ -397,6 +405,10 @@ classdef VoxelData <handle
             scalaroutput = VoxelData(L,obj.R);
             
             
+        end
+        
+        function saveToFolder(obj,outdir,tag)
+            savenii(obj,fullfile(outdir,[tag,'.nii']))
         end
         
     end

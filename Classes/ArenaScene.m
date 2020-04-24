@@ -133,11 +133,12 @@ classdef ArenaScene < handle
             
             obj.handles.menu.import.suretune.main = uimenu(obj.handles.menu.import.main,'Text','Suretune Session','callback',{@menu_importsuretune});
             
-            obj.handles.menu.import.sweetspot.main = uimenu(obj.handles.menu.import.main,'Text','Sweetspot (.swtspt)','callback',{@menu_importswtspt})
+            obj.handles.menu.import.sweetspot.main = uimenu(obj.handles.menu.import.main,'Text','Sweetspot (.swtspt)','callback',{@menu_importswtspt});
             
             obj.handles.menu.export.main = uimenu(obj.handles.figure,'Text','Export');
             obj.handles.menu.export.blender = uimenu(obj.handles.menu.export.main,'Text','Blender (obj)','callback',{@menu_exporttoblender});
             obj.handles.menu.export.handlestoworkspace = uimenu(obj.handles.menu.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
+            obj.handles.menu.export.saveSelection = uimenu(obj.handles.menu.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
             
             obj.handles.menu.show.main = uimenu(obj.handles.figure,'Text','Show');
             obj.handles.menu.show.legacyatlas.main = uimenu(obj.handles.menu.show.main,'Text','Legacy atlas');
@@ -756,15 +757,36 @@ classdef ArenaScene < handle
             end
             
             
+            function menu_saveSelectionToFolder(hObject,eventdata)
+                outdir = uigetdir('select output directory');
+                if outdir==0
+                    return
+                end
+                
+                
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+              
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    thisActor.saveToFolder(outdir)
+                    
+                end
+                
+                
+            end
+            
             function menu_fwhm(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
+                dataCell = {};
                 for iActor = 1:numel(currentActors)
                         thisActor = currentActors(iActor);
                         switch class(thisActor.Data)
                             case 'Mesh'
                                 if not(isempty(thisActor.Data.Source))
                                     [data,fhandle] = thisActor.Data.Source.getDensityDistribution;
+                                     dataCell{iActor} = data;
                                      title([thisActor.Tag,' {\color{red} x:',num2str(data.x),'\color{green}  y:',num2str(data.y),'\color{blue} z:',num2str(data.z),'}'])
                                      disp('-----')
                                      disp(thisActor.Tag)
@@ -776,6 +798,47 @@ classdef ArenaScene < handle
                                 end
                         end
                 end
+                
+                if iActor>1
+                    %define the x-data
+                    fields = {'xCi','yCi','zCi';'xVi','yVi','zVi'};
+                    titles = {'X','Y','Z'};
+                    for dimension = 1:3
+                        
+                        f = figure;
+                        title(titles{dimension})
+                        set(f,'DefaultLineLineWidth',2)
+                        hold on;
+                        xcell = {};
+                        ycell = {};
+                        for iD = 1:numel(dataCell)
+                            thisData = dataCell{iD};
+                            x = thisData.(fields{1,dimension});
+                            y = thisData.(fields{2,dimension});
+                            y = y/max(y);
+                            p = plot(x,y,'Color',currentActors(iD).Visualisation.settings.colorFace);
+                            
+                            
+                            xcell{iD} = x;
+                            ycell{iD} = y;
+                        end
+                        
+                         %find the xlim (to only include data >0)
+            minCoord = min([xcell{1}(find(ycell{1}>0,1,'first')),...
+                xcell{2}(find(ycell{2}>0,1,'first')),...
+               xcell{3}(find(ycell{3}>0,1,'first'))]);
+           
+           maxCoord = max([xcell{1}(find(ycell{1}>0,1,'last')),...
+                xcell{2}(find(ycell{2}>0,1,'last')),...
+               xcell{3}(find(ycell{3}>0,1,'last'))]);
+           
+           xlim([minCoord,maxCoord])
+           legend({'x','y','z'})
+                        legend({currentActors(:).Tag})
+                        
+                    end
+                end
+                    
             end
             
             function menu_showFibers(hObject,eventdata)
