@@ -24,7 +24,9 @@ end
 
 switch discriminative_statistic
     case 'mean'
-        [h,ptest,ci,stats]=ttest2(sample2, sample1);
+        if verbose
+            [h,ptest,ci,stats]=ttest2(sample2, sample1);
+        end
         test_statistic = abs(mean(sample1) - mean(sample2));
     otherwise
         error(['Discriminative method "',discriminative_statistic,'" does not exist.'])
