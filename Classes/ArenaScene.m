@@ -177,6 +177,7 @@ classdef ArenaScene < handle
             obj.handles.menu.edit.analysis.densitydistribution = uimenu(obj.handles.menu.edit.analysis.main,'Text','Density distribution (FWHM)','callback',{@menu_fwhm});
             obj.handles.menu.edit.analysis.fibers = uimenu(obj.handles.menu.edit.analysis.main,'Text','fibers (from 1 seed)','callback',{@menu_showFibers});
             obj.handles.menu.edit.analysis.fibers = uimenu(obj.handles.menu.edit.analysis.main,'Text','fibers (inbetween seeds)','callback',{@menu_showFibers_inbetween});
+            obj.handles.menu.edit.smooth = uimenu(obj.handles.menu.edit.main,'Text','Smooth VoxelData','callback',{@menu_smoothVoxelData});
             
             obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform'); %relocated
             obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
@@ -876,6 +877,30 @@ classdef ArenaScene < handle
                 Fibers = thisConnectome.getFibersConnectingMeshes({currentActors(1).Data,currentActors(2).Data},100,scene);
                 
                 
+            end
+            
+            function menu_smoothVoxelData(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                    currentActors = ArenaScene.getSelectedActors(scene);
+                    
+                    for iActor = 1:numel(currentActors)
+                        thisActor = currentActors(iActor);
+                        switch class(thisActor.Data)
+                            case 'Mesh'
+                                thisActor.Data.Source.smooth();
+                                %change the threshold so that it
+                                %redraws the shape using the new data:
+                                
+                                settings = getsettings(scene);
+                                oldSetting = thisActor.Visualisation.settings.threshold;
+                                
+                                settings.threshold = Inf; %should not render a mesh.
+                                thisActor.updateActor(scene,settings);
+                                
+                                settings.threshold = oldSetting;
+                                thisActor.updateActor(scene,settings);
+                        end
+                    end
             end
             
             

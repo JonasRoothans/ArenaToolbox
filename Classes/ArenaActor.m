@@ -235,7 +235,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             
             % changing threshold triggers new triangulation from voxeldata
             if isBasedOnVoxelData
-                if not(round(settings.threshold,2)==round(data.Settings.T,2))
+                if not(round(settings.threshold,7)==round(data.Settings.T,7))
                     if isnan(settings.threshold)
                         data.getmeshfromvoxeldata({data.Source});
                         settings.threshold = data.Settings.T;
@@ -246,8 +246,13 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             end
             
             %create the handle
-            out2=lpflow_trismooth(data.Vertices,data.Faces)
+            try
+            out2=lpflow_trismooth(data.Vertices,data.Faces);
             handle = patch('Faces',data.Faces,'Vertices',out2);
+            catch
+                handle = patch('Faces',data.Faces,'Vertices',data.Vertices);
+            end
+                
             
             %apply settings
             reducepatch(handle,settings.complexity/100);
