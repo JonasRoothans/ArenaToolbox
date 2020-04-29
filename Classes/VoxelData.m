@@ -411,7 +411,7 @@ classdef VoxelData <handle
             savenii(obj,fullfile(outdir,[tag,'.nii']))
         end
         
-        function smooth(obj,size,sd)
+        function obj=smooth(obj,size,sd)
              if nargin==1
                     obj.Voxels = smooth3(obj.Voxels);
              elseif nargin==2
