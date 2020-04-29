@@ -382,7 +382,7 @@ classdef VoxelData <handle
         end
         
         
-        function [cellarray, scalaroutput] = seperateROI(obj)
+        function [cellarray, scalaroutput,sizelist] = seperateROI(obj)
             cellarray = {};
             v = obj.Voxels;
             
@@ -394,9 +394,10 @@ classdef VoxelData <handle
             
             [L,n] = bwlabeln(v_bw);
             
-            
+            sizelist = [];
             for i = 0:n
                 region = (L==i);
+                sizelist(i+1) = sum(region(:));
                 region = int16(region);
                 region_voxeldata = VoxelData(region,obj.R);
                 cellarray{i+1} = region_voxeldata;

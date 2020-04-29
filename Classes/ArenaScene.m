@@ -178,6 +178,7 @@ classdef ArenaScene < handle
             obj.handles.menu.edit.analysis.fibers = uimenu(obj.handles.menu.edit.analysis.main,'Text','fibers (from 1 seed)','callback',{@menu_showFibers});
             obj.handles.menu.edit.analysis.fibers = uimenu(obj.handles.menu.edit.analysis.main,'Text','fibers (inbetween seeds)','callback',{@menu_showFibers_inbetween});
             obj.handles.menu.edit.smooth = uimenu(obj.handles.menu.edit.main,'Text','Smooth VoxelData','callback',{@menu_smoothVoxelData});
+            obj.handles.menu.edit.seperate = uimenu(obj.handles.menu.edit.main,'Text','separate clusters','callback',{@menu_seperateClusters});
             
             obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform'); %relocated
             obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
@@ -876,6 +877,38 @@ classdef ArenaScene < handle
                 
                 Fibers = thisConnectome.getFibersConnectingMeshes({currentActors(1).Data,currentActors(2).Data},100,scene);
                 
+                
+            end
+            
+            function menu_seperateClusters(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                    for iActor = 1:numel(currentActors)
+                        thisActor = currentActors(iActor);
+                        switch class(thisActor.Data)
+                            case 'Mesh'
+                                binaryVoxelData = thisActor.Data.Source.makeBinary(thisActor.Visualisation.settings.threshold);
+                                [regions,labeled,sizelist] = binaryVoxelData.seperateROI();
+                                [sorted,order] = sort(sizelist,'descend');
+                                if numel(sizelist)>6
+                                    ncluster = 6;
+                                else
+                                    ncluster = numel(sizelist);
+                                end
+                                for iCluster = 2:ncluster
+                                    actor = regions{order(iCluster)}.getmesh(0.5).see(scene);
+                                    actor.changeName([num2str(sorted(iCluster)),'_',thisActor.Tag])
+                                end
+                                
+                                
+                                
+                                
+                                
+                                
+                               
+                        end
+                    end
                 
             end
             
