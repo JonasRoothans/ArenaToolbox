@@ -42,8 +42,9 @@ classdef Mesh < handle & matlab.mixin.Copyable
              [X,Y,Z] = A_imref2meshgrid(VoxelData.R);
              [obj.Faces, obj.Vertices] = isosurface(X,Y,Z,VoxelData.Voxels,T);
              obj.Settings.T = T;
-              
         end
+        
+        
         
         function copyobj = duplicate(obj)
             copyobj = copy(obj);

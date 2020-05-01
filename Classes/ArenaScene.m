@@ -134,7 +134,7 @@ classdef ArenaScene < handle
             obj.handles.menu.import.suretune.main = uimenu(obj.handles.menu.import.main,'Text','Suretune Session','callback',{@menu_importsuretune});
             
             obj.handles.menu.import.sweetspot.main = uimenu(obj.handles.menu.import.main,'Text','Sweetspot (.swtspt)','callback',{@menu_importswtspt});
-            
+
             obj.handles.menu.export.main = uimenu(obj.handles.figure,'Text','Export');
             obj.handles.menu.export.blender = uimenu(obj.handles.menu.export.main,'Text','Blender (obj)','callback',{@menu_exporttoblender});
             obj.handles.menu.export.handlestoworkspace = uimenu(obj.handles.menu.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
@@ -669,6 +669,8 @@ classdef ArenaScene < handle
                 end
                 
             end
+            
+            
             
             function menu_importObjfile(hObject,eventdata)
                 o = ObjFile;

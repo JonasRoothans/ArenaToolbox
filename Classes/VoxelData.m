@@ -209,6 +209,23 @@ classdef VoxelData <handle
             center_of_gravity = Vector3D([x,y,z]);
         end
         
+        function [x_coords,y_coords,z_coords] = getlinspace(obj)
+            v = obj.Voxels;
+                    %squeeze the data into one dimension
+            v_x = sum(sum(v,3),1);
+            v_y = sum(sum(v,3),2);
+            v_z = squeeze(sum(sum(v,2),1));
+            
+            %convert the voxel locations to worldlocations
+             [firstX,firstY,firstZ] = obj.R.intrinsicToWorld(1,1,1);
+             [lastX,lastY,lastZ] = obj.R.intrinsicToWorld(length(v_x),length(v_y),length(v_z));
+             
+             %define the x-axis values
+             x_coords = linspace(firstX,lastX,length(v_x));
+             y_coords = linspace(firstY,lastY,length(v_y));
+             z_coords = linspace(firstZ,lastZ,length(v_z));
+        end
+        
         function [fwhm,f] = getDensityDistribution(obj)
             v = obj.Voxels;
             

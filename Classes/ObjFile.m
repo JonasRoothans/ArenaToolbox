@@ -80,6 +80,19 @@ classdef ObjFile
        function cog = getCOG(obj)
            cog = PointCloud(obj.Vertices).getCOG;
        end
+       
+       function saveToFolder(obj, outdir,tag)
+           [fn,pn] = uigetfile('*.nii');
+           vd = VoxelData(fullfile(pn,fn));
+           [x,y,z] = vd.getlinspace;
+           
+           fv.faces = obj.Faces;
+           fv.vertices = obj.Vertices;
+           vd.Voxels = VOXELISE(x,y,z,fv,'xyz');
+           
+           vd.savenii(fullfile(outdir,[tag,'.nii']));
+
+       end
         
     end
 end
