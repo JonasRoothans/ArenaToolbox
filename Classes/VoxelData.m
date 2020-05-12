@@ -324,7 +324,7 @@ classdef VoxelData <handle
             
         end
         
-        function obj = warpto(obj,target,T)
+        function newobj = warpto(obj,target,T)
             if nargin==2
                 T = affine3d(eye(4));
             end
@@ -337,8 +337,19 @@ classdef VoxelData <handle
                 error('input requirments: obj, target, T')
             end
             
-            obj.Voxels = imwarp(obj.Voxels,obj.R,T,'OutputView',R);
-            obj.R = R;
+            newVoxels = imwarp(double(obj.Voxels),obj.R,T,'OutputView',R);
+            
+            %restore binary data if it was binary
+            if islogical(obj.Voxels)
+                newVoxels = newVoxels>0.5;
+            end
+            
+            if nargout==1
+               newobj = VoxelData(newVoxels,R);
+            else
+                obj.Voxels = newVoxels;
+                obj.R = R;
+            end
         end
         
         function obj = imwarp(obj,T)

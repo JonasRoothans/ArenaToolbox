@@ -952,8 +952,8 @@ classdef ArenaScene < handle
                             case 'Mesh'
                                 if not(isempty(thisActor.Data.Source))
                                     vd = thisActor.Data.Source;
-                                    vd.makeBinary(thisActor.Data.Settings.T);
-                                    inputdata(end+1) = vd;
+                                    vd_bin = vd.makeBinary(thisActor.Data.Settings.T);
+                                    inputdata(end+1) = vd_bin;
                                     labels{end+1} = thisActor.Tag;
                                 end
                         end
