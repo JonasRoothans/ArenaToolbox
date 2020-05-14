@@ -177,8 +177,11 @@ classdef ArenaScene < handle
             obj.handles.menu.edit.analysis.densitydistribution = uimenu(obj.handles.menu.edit.analysis.main,'Text','Density distribution (FWHM)','callback',{@menu_fwhm});
             obj.handles.menu.edit.analysis.fibers = uimenu(obj.handles.menu.edit.analysis.main,'Text','fibers (from 1 seed)','callback',{@menu_showFibers});
             obj.handles.menu.edit.analysis.fibers = uimenu(obj.handles.menu.edit.analysis.main,'Text','fibers (inbetween seeds)','callback',{@menu_showFibers_inbetween});
+            obj.handles.menu.edit.analysis.sampleheatmap = uimenu(obj.handles.menu.edit.analysis.main,'Text','sample selection with ... ','callback',{@menu_sampleHeatmap});
             obj.handles.menu.edit.smooth = uimenu(obj.handles.menu.edit.main,'Text','Smooth VoxelData','callback',{@menu_smoothVoxelData});
             obj.handles.menu.edit.seperate = uimenu(obj.handles.menu.edit.main,'Text','separate clusters','callback',{@menu_seperateClusters});
+            obj.handles.menu.edit.intersectplane = uimenu(obj.handles.menu.edit.main,'Text','project to plane','callback',{@menu_intersectPlane});
+            
             
             obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform'); %relocated
             obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
@@ -348,17 +351,20 @@ classdef ArenaScene < handle
             
             function menu_lps2ras(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
-                actorList = scene.Actors;
-                thisActor = actorList(scene.handles.panelright.Value);
-                thisActor.transform(scene,'lps2ras');
-                currentName = thisActor.Tag;
-                label = '[LPS <> RAS]  ';
-                if contains(currentName,label)
-                    newname = erase(currentName,label);
-                else
-                    newname = [label,currentName];
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    thisActor.transform(scene,'lps2ras');
+                    currentName = thisActor.Tag;
+                    label = '[LPS <> RAS]  ';
+                    if contains(currentName,label)
+                        newname = erase(currentName,label);
+                    else
+                        newname = [label,currentName];
+                    end
+                    thisActor.changeName(newname)
                 end
-                thisActor.changeName(newname)
             end
             
             
@@ -845,6 +851,66 @@ classdef ArenaScene < handle
                     
             end
             
+            function output = menu_sampleHeatmap(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                %show popup to select ROIs
+                labels = {scene.Actors.Tag};
+                [indx,tf] = listdlg('PromptString',{'Select one or more ROIs'},'ListString',labels);
+                
+                if tf==0
+                    %user canceled
+                    return
+                end
+                
+                ROIlist = [];
+                for iROI = indx
+                    thisROI = scene.Actors(iROI);
+                    switch class(thisROI.Data)
+                        case 'Mesh'
+                            ROI_vd = thisROI.Data.Source.makeBinary(thisROI.Data.Settings.T);
+                            ROIlist(end+1).name = thisROI.Tag;
+                            ROIlist(end).vd = ROI_vd;
+                        otherwise
+                            warning('Code can be extended to support other kinds of data. But at the moment only meshes are allowed.')
+                            continue
+                    end
+                end
+                
+                output = [];
+                %each actor is supposed to be a heatmap, or some voxel data
+                %that should be sampled
+                for iHeatmap = 1:numel(currentActors)
+                    thisHeatmap = currentActors(iHeatmap);
+                    if not(isa(thisHeatmap.Data,'Mesh'))
+                        warning('Make sure the heatmap is imported as  mesh. This can be extended in the future but currently suffices')
+                        continue
+                    end
+                      
+                    heatmap_vd = thisHeatmap.Data.Source;
+                    
+                    for iROI = 1:numel(ROIlist)
+                        ROI_vd = ROIlist(iROI).vd;
+                        warped_ROI = ROI_vd.warpto(heatmap_vd);
+                        VoxelSelection = heatmap_vd.Voxels(warped_ROI.Voxels);
+                        
+                        output(end+1).heatmap = thisHeatmap.Tag;
+                        output(end).ROI = ROIlist(iROI).name;
+                        output(end).Voxels = VoxelSelection;
+                        output(end).mean = nanmean(output(end).Voxels(:));
+                        output(end).max = nanmax(output(end).Voxels(:));
+                        output(end).min = nanmin(output(end).Voxels(:));
+                    end
+
+                end
+                
+                assignin('base','ROIresult',output)
+                disp('variable "ROIresult" is now available in your workspace')
+                
+                
+            end
+            
             function menu_showFibers(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
@@ -970,13 +1036,88 @@ classdef ArenaScene < handle
                     
                     %show results
                     similarity = array2table(a,'RowNames',labels,'VariableNames',labels)
-                   assignin('base','similarity',similarity);
-                    
-                    
-                    
-                    
+                   assignin('base','similarity',similarity); 
                     
             end
+            
+            function menu_intersectPlane(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                if numel(currentActors)>1
+                    warning('Select 1 actor for intersection')
+                    return
+                end
+                if not(isa(currentActors.Data,'Slicei'))
+                    warning('actor needs to be a slice')
+                    return
+                end
+                
+                %get meshes
+                allActors = scene.Actors;
+                meshes = [];
+                for iActor = 1:numel(allActors)
+                    thisActor = allActors(iActor);
+                    if isa(thisActor.Data,'Mesh')
+                        meshes(end+1).name = thisActor.Tag;
+                        meshes(end).actor = thisActor;
+                    end
+                end
+                
+                [indx,tf] = listdlg('PromptString','Select meshes to project','ListString',{meshes.name});
+                if tf==0
+                    disp('user aborted')
+                    return
+                end
+                
+                %define plane
+
+                switch currentActors.Visualisation.settings.plane
+                    case 'axial'
+                        planes.n = [0 0 1];
+                        planes.r = planes.n*currentActors.Visualisation.settings.slice;
+                    case 'coronal'
+                        planes.n = [0 1 0];
+                        planes.r = planes.n*currentActors.Visualisation.settings.slice;
+                    case 'sagittal'
+                        planes.n = [1 0 0];
+                        planes.r = planes.n*currentActors.Visualisation.settings.slice;
+                end
+  
+                
+                %get polygons
+                for iProj = indx
+                    thisProj = meshes(iProj).actor.Data;
+                    polygons = mesh_xsections( thisProj.Vertices, thisProj.Faces, planes, [], 0 );
+                    
+                    
+                    %draw polygons
+                    for s = 1 : numel( polygons )
+                        if ~isempty( polygons{ s } )
+                            for p = 1 : numel( polygons{ s } )
+                                
+                                thispatch = patch( polygons{ s }{ p }( :, 1 ), ...
+                                       polygons{ s }{ p }( :, 2 ),...
+                                        polygons{ s }{ p }( :, 3 ));
+                                   
+                                thispatch.ZData = ones(size(thispatch.XData))*currentActors.Visualisation.settings.slice;
+                                newObj = Contour(thispatch);
+                                newActor = newObj.see(scene);
+                                newActor.changeName(['slice of ',meshes(iProj).name])
+                                newActor.changeSetting('colorFace',meshes(iProj).actor.Visualisation.settings.colorFace,...
+                                    'colorEdge',meshes(iProj).actor.Visualisation.settings.colorEdge);
+                               
+                               
+    
+                                   
+                            end
+                        end
+                    end
+                end
+                keyboard
+              
+            end
+            
                 
             
             function menu_getinfo(hObject,eventdata)

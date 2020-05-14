@@ -53,10 +53,42 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 case 'Fibers'
                     obj.visualizeFibers(settings,data,scene);
                     obj.Tag = 'Fibers';
+                case 'Contour'
+                    obj.visualizeContour(settings,data,scene);
+                    obj.Tag = 'Contour';
                 otherwise
                     keyboard
             end
             
+        end
+        
+        function settings = visualizeContour(obj,settings,data,scene)
+            %---- default settings
+            if not(isstruct(settings))
+                settings = struct;
+                settings.colorFace = scene.getNewColor(scene);
+                settings.colorEdge = scene.getNewColor(scene);%
+                settings.faceOpacity = 80;
+                settings.edgeOpacity = 0;
+
+            end
+            
+            axes(scene.handles.axes)
+            
+            
+            %create the handle
+            handle = data.patch;
+            
+            %apply settings
+            handle.FaceColor = settings.colorFace;
+            handle.EdgeColor = settings.colorEdge;
+            handle.FaceAlpha = settings.faceOpacity/100;
+            handle.EdgeAlpha = settings.edgeOpacity/100;
+            obj.Visualisation.handle = handle;
+            obj.Visualisation.settings = settings;
+            
+            %update
+            updateCC(obj,scene)
         end
         
         function settings = visualizeObjFile(obj,settings,data,scene)
@@ -374,12 +406,15 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     T = A_transformationmatriforleadmesh(data.C0,data.Direction);
                     body = leadmodel.(strucname).body.transform(T);
                     handle(end+1) = patch('Faces',body.Faces,'Vertices',body.Vertices,'FaceColor',settings.colorBase ,'EdgeColor','none','Clipping',0,'SpecularStrength',0,'FaceAlpha',settings.opacity/100);
-                    material(handle(end),[0.8 1 0.2]) 
+                   material(handle(end),[0.8 1 0.2]) 
+                    handle(end).FaceLighting = 'gouraud';
                     
                     for i = 0:numel(fieldnames(leadmodel.(strucname)))-2
                     ci = leadmodel.(strucname).(['c',num2str(i)]).transform(T);
                     handle(end+1) = patch('Faces',ci.Faces,'Vertices',ci.Vertices,'FaceColor',settings.colorInactive,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
-                    material(handle(end),[0.2 0.2 1]) 
+                    material(handle(end),[0.8,1,1,3,0]) 
+                    handle(end).FaceLighting = 'gouraud';
+     
                     end
                     
                     for i = 1:numel(settings.cathode)
@@ -540,7 +575,10 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 obj.Visualisation.settings.(varargin{iPair}) = varargin{iPair+1};
             end
             
-            delete(obj.Visualisation.handle);
+            if not(isa(obj.Data,'Contour'))
+                delete(obj.Visualisation.handle);
+            end
+            
             switch class(obj.Data)
                 case 'PointCloud'
                     visualizePointCloud(obj,obj.Visualisation.settings,obj.Data,obj.Scene)
@@ -550,6 +588,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     visualizeObjFile(obj,obj.Visualisation.settings,obj.Data,obj.Scene)
                 case 'Electrode'
                     visualizeElectrode(obj,obj.Visualisation.settings,obj.Data,obj.Scene)
+                case 'Contour'
+                    visualizeContour(obj,obj.Visualisation.settings,obj.Data,obj.Scene)
                 otherwise
                     keyboard
             end
@@ -603,6 +643,11 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     scene.newconfigcontrol(obj,'edit',settings.numberOfFibers,'numberOfFibers');
                     scene.newconfigcontrol(obj,'edit',settings.faceOpacity,'faceOpacity');
                     scene.newconfigcontrol(obj,'checkbox',settings.colorByDirection,'colorByDirection');
+                case 'Contour'
+                    scene.newconfigcontrol(obj,'color',{settings.colorFace,settings.colorEdge},{'colorFace','colorEdge'})
+                    scene.newconfigcontrol(obj,'edit',settings.faceOpacity,'faceOpacity')
+                    scene.newconfigcontrol(obj,'edit',settings.edgeOpacity,'edgeOpacity')
+                    
                    
                     
                 otherwise
@@ -643,6 +688,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     visualizeSlice(obj,settings,obj.Data,scene)
                 case 'Fibers'
                     visualizeFibers(obj,settings,obj.Data,scene)
+                case 'Contour'
+                    visualizeContour(obj,settings,obj.Data,scene)
                 otherwise
                     keyboard
             end

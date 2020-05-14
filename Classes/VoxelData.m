@@ -390,7 +390,12 @@ classdef VoxelData <handle
                 end
                 close(histf)
             end
-            binaryObj = VoxelData(obj.Voxels>T,obj.R);
+            
+            if nargout==1
+                binaryObj = VoxelData(obj.Voxels>T,obj.R);
+            else
+                obj.Voxels = obj.Voxels>T;
+            end
         end
         
         function [CubicMM,voxelcount] = getCubicMM(obj,T)
