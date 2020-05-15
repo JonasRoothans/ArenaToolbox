@@ -185,20 +185,20 @@ classdef Slicei < handle
             %disabled this, and still seems to work?
             
             %find corresponding actor
-%             for iActor  = scene.UserData.Actors
-%                 if iActor.Data == obj
-%                     
-%                     vector = [0 0 0];
-%                     vector(obj.slicedim) = obj.sliceidx;
-%                     T = obj.I2X;
-%                     T(4,4) = 1;
-%                     worldspace = SDK_transform3d(vector,T');
-% 
-%                     iActor.Visualisation.settings.slice = worldspace(obj.slicedim);
-%                     iActor.updateCC(scene.UserData);
-%                     break
-%                 end
-%             end
+            for iActor  = scene.UserData.Actors
+                if iActor.Data == obj
+                    
+                    vector = [0 0 0];
+                    vector(obj.slicedim) = obj.sliceidx;
+                    T = obj.I2X;
+                    T(4,4) = 1;
+                    worldspace = SDK_transform3d(vector,T');
+
+                    iActor.Visualisation.settings.slice = worldspace(obj.slicedim);
+                    iActor.updateCC(scene.UserData);
+                    break
+                end
+            end
 %             drawnow;
             
         
