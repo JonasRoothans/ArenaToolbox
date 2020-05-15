@@ -186,6 +186,7 @@ classdef Slicei < handle
             
             %find corresponding actor
             for iActor  = scene.UserData.Actors
+                try
                 if iActor.Data == obj
                     
                     vector = [0 0 0];
@@ -198,6 +199,7 @@ classdef Slicei < handle
                     iActor.updateCC(scene.UserData);
                     break
                 end
+                catch;end
             end
 %             drawnow;
             

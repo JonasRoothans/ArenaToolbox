@@ -40,7 +40,7 @@ classdef PointCloud
             
         end
         
-        function obj = addVectors(obj,newVectors)
+        function obj = addVectors(obj,newVectors,newWeight)
             
             if isa(newVectors,'PointCloud')
                 obj.Vectors = [obj.Vectors;newVectors.Vectors];
@@ -51,7 +51,11 @@ classdef PointCloud
                     newVectors = temp.Vectors;
                 end
                     obj.Vectors = [obj.Vectors;newVectors];
-                    obj.Weights = [obj.Weights;nan(1,numel(newVectors))];
+                    if nargin==3
+                        obj.Weights = [obj.Weights,newWeight];
+                    else
+                        obj.Weights = [obj.Weights;nan(1,numel(newVectors))];
+                    end
             end
         
         end

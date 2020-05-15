@@ -657,8 +657,10 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         
         function updateActor(obj,scene,settings)
             
-            if not(or(isa(obj.Data,'Slicei'),...
-                    isa(obj.Data,'Fibers')))
+            if not(or(or(isa(obj.Data,'Slicei'),...
+                    isa(obj.Data,'Fibers')),...
+                    isa(obj.Data,'Contour')))
+                
                 delete(obj.Visualisation.handle);
             end
             

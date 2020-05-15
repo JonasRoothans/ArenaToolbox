@@ -1151,7 +1151,7 @@ classdef ArenaScene < handle
                 meshes = [];
                 for iActor = 1:numel(allActors)
                     thisActor = allActors(iActor);
-                    if isa(thisActor.Data,'Mesh')
+                    if or(isa(thisActor.Data,'Mesh'),isa(thisActor.Data,'ObjFile'))
                         meshes(end+1).name = thisActor.Tag;
                         meshes(end).actor = thisActor;
                     end
