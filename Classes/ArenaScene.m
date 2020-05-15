@@ -158,6 +158,10 @@ classdef ArenaScene < handle
             obj.handles.menu.show.camTarget.main = uimenu(obj.handles.menu.show.main,'Text','point camera at');
             obj.handles.menu.show.camTarget.actor = uimenu(obj.handles.menu.show.camTarget.main,'Text','selection','callback',{@menu_camTargetActor});
             obj.handles.menu.show.camTarget.center = uimenu(obj.handles.menu.show.camTarget.main,'Text','center','callback',{@menu_camTargetOrigin});
+            obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','axial plane','callback',{@menu_orthogonal});
+            obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','sagittal plane','callback',{@menu_orthogonal});
+            obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','coronal plane','callback',{@menu_orthogonal});
+            
             obj.handles.menu.show.lights.main = uimenu(obj.handles.menu.show.main,'Text','lights');
             obj.handles.menu.show.lights.visible = uimenu(obj.handles.menu.show.lights.main,'Text','visible','callback',{@menu_showLight},'Checked','on');
             obj.handles.menu.show.lights.cameraposition = uimenu(obj.handles.menu.show.lights.main,'Text','place light at camera position','callback',{@menu_placeLight});
@@ -752,11 +756,100 @@ classdef ArenaScene < handle
                             end
                   
                         end
-            
             end
             
             function menu_camTargetOrigin(hObject,eventdata)
                 camtarget([0 0 0 ])
+            end
+            
+            function menu_orthogonal(hObject,eventdata)
+                camva('manual')
+                switch hObject.Text
+                    case 'axial plane'
+                        original_pos = campos;
+                        original_target = camtarget;
+                        original_camva = camva;
+                        original_up = camup;
+                        
+                        end_pos = [0 0 1000];
+                        end_target = [0 0 0];
+                        end_up = [0 1 0];
+                        end_camva = 20;
+                        
+                        easeTime = 20;
+                        for t = 1:easeTime
+                            
+                            tlog = easeTime./(1+exp(-0.5*(t-easeTime/2)));
+
+                            campos(tlog/easeTime*end_pos + (1-tlog/easeTime)*original_pos)
+                        	camtarget(tlog/easeTime*end_target + (1-tlog/easeTime)*original_target)
+                            camup(tlog/easeTime*end_up + (1-tlog/easeTime)*original_up)
+                            camva(tlog/easeTime*end_camva + (1-tlog/easeTime)*original_camva)
+                            drawnow
+                        end
+                        
+                        campos(end_pos)
+                        camtarget(end_target)
+                        camup(end_up)
+                        camva(end_camva)
+
+                    case 'coronal plane'
+                        original_pos = campos;
+                        original_target = camtarget;
+                        original_camva = camva;
+                        original_up = camup;
+                        
+                        end_pos = [0 1000 0].*sign(original_pos);
+                        end_target = [0 0 0];
+                        end_up = [0 0 1];
+                        end_camva = 20;
+                        
+                        easeTime = 20;
+                        for t = 1:easeTime
+                            
+                            tlog = easeTime./(1+exp(-0.5*(t-easeTime/2)));
+
+                            campos(tlog/easeTime*end_pos + (1-tlog/easeTime)*original_pos)
+                        	camtarget(tlog/easeTime*end_target + (1-tlog/easeTime)*original_target)
+                            camup(tlog/easeTime*end_up + (1-tlog/easeTime)*original_up)
+                            camva(tlog/easeTime*end_camva + (1-tlog/easeTime)*original_camva)
+                            drawnow
+                        end
+                        
+                        campos(end_pos)
+                        camtarget(end_target)
+                        camup(end_up)
+                        camva(end_camva)
+                    case 'sagittal plane'
+                        original_pos = campos;
+                        original_target = camtarget;
+                        original_camva = camva;
+                        original_up = camup;
+                        
+                        end_pos = [0 0 1000].*sign(original_pos);
+                        end_target = [0 0 0];
+                        end_up = [0 0 1];
+                        end_camva = 20;
+                        
+                        easeTime = 20;
+                        for t = 1:easeTime
+                            
+                            tlog = easeTime./(1+exp(-0.5*(t-easeTime/2)));
+
+                            campos(tlog/easeTime*end_pos + (1-tlog/easeTime)*original_pos)
+                        	camtarget(tlog/easeTime*end_target + (1-tlog/easeTime)*original_target)
+                            camup(tlog/easeTime*end_up + (1-tlog/easeTime)*original_up)
+                            camva(tlog/easeTime*end_camva + (1-tlog/easeTime)*original_camva)
+                            drawnow
+                        end
+                        
+                        campos(end_pos)
+                        camtarget(end_target)
+                        camup(end_up)
+                        camva(end_camva)
+                        
+                      
+                end
             end
                 
             
@@ -1114,7 +1207,7 @@ classdef ArenaScene < handle
                         end
                     end
                 end
-                keyboard
+                
               
             end
             
