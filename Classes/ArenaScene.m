@@ -1443,8 +1443,11 @@ classdef ArenaScene < handle
 %                         cameratoolbar('SetMode','none')
 %                         figure(f)
                     case 'period'
-                            flash('show actor',f)
-                           menu_camTargetActor(src,eventdata)
+                            
+                           if numel(ArenaScene.getSelectedActors(scene))==1
+                            menu_camTargetActor(src,eventdata)
+                 
+                           end
                
                 end
                 end
