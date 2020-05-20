@@ -11,16 +11,28 @@ figLastPoint = []; % global variable to store previous cursor position
 zoomFactor = 10;
 panFactor = 2;
 orbitFactor = 7;
+zoomFactor_jr = 0.1;
 
 set(hfig, 'WindowButtonDownFcn', @down_fcn);
 set(hfig, 'WindowButtonUpFcn', @up_fcn);
 set(hfig, 'WindowScrollWheelFcn', @zoom_fcn);
 
     function [] = zoom_fcn(hfig, evt)
+        
+        currentPos = Vector3D(campos);
+        currentTarget = Vector3D(camtarget);
+        difference = currentPos-currentTarget;
+        distance = difference.norm;
+        direction = difference.unit;
+        
         if evt.VerticalScrollCount > 0
-            camzoom(1 + evt.VerticalScrollCount / zoomFactor)
+            newpos = currentPos+direction*distance*zoomFactor_jr;
+            campos([newpos.x,newpos.y,newpos.z])
+           % camzoom(1 + evt.VerticalScrollCount / zoomFactor)
         else
-            camzoom(1 / (1 + abs(evt.VerticalScrollCount) / zoomFactor))
+            %camzoom(1 / (1 + abs(evt.VerticalScrollCount) / zoomFactor))
+            newpos = currentPos-direction*distance*zoomFactor_jr;
+            campos([newpos.x,newpos.y,newpos.z])
         end
     end
 
@@ -37,7 +49,7 @@ set(hfig, 'WindowScrollWheelFcn', @zoom_fcn);
             case 'alt'
                 setptr(gcf, 'hand');
             case 'extend'
-                setptr(gcf, 'glass');
+                selectlayer(hfig)
             case 'open'
                 try
                     set_defaultview;
@@ -72,12 +84,29 @@ set(hfig, 'WindowScrollWheelFcn', @zoom_fcn);
         figLastPoint = pt;
         
         switch clickType
-            case 'normal'
+            case 'normal' %this was 'normal'
                 orbitPangca(deltaPix/orbitFactor, 'o');
             case 'alt'
                 dollygca(deltaPix/panFactor);
-            case 'extend'
-                zoomgca(deltaPix);
+                
+                
+            
+        end
+        
+    end
+
+    function selectlayer(hfig)
+        
+        ax = hfig.UserData.handles.axes;
+        hObj = hittest(hfig);
+        
+        for i = 1:numel(hfig.UserData.Actors)
+            if hfig.UserData.Actors(i).Visualisation.handle == hObj
+                hfig.UserData.handles.panelright.Value=i;
+                hfig.UserData.Actors(i).updateCC(hfig.UserData)
+                disp(hfig.UserData.Actors(i).Tag)
+            end
+                
         end
         
     end

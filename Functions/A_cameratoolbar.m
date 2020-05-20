@@ -27,6 +27,12 @@ h_toolbar.screenshot=uitoggletool(h_toolbar.main, 'CData', A_loadicon('screensho
     'OffCallback', {@A_toolbar_screenshot,'off'}, 'State', 'off');
 
 
+
+camva(figurehandle.CurrentAxes,'manual')
+figurehandle.CurrentAxes.Projection = 'perspective';
+figurehandle.CurrentAxes.CameraViewAngleMode = 'manual';
+figurehandle.CurrentAxes.PlotBoxAspectRatioMode = 'manual';
+
 end
 
 

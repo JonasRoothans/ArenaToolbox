@@ -750,7 +750,9 @@ classdef ArenaScene < handle
                         for iActor = 1:numel(currentActor)
                             try
                             cog = currentActor.getCOG;
-                            camtarget(cog.getArray)
+                            
+                             easeCamera([], cog.getArray',[],10) %pos, target  
+         
                             catch
                                 error(['getCOG (center of gravity) function does not exist yet for this type of data: ',class(currentActor.Data)])
                             end
@@ -758,8 +760,50 @@ classdef ArenaScene < handle
                         end
             end
             
+            function easeCamera(end_pos, end_target, end_up,easeTime)
+                
+                if isempty(end_pos)
+                    end_pos = campos;
+                end
+                
+                if isempty(end_target)
+                    end_target = camtarget;
+                end
+                
+                if nargin==2
+                    end_up = camup;
+                else
+                    if isempty(end_up)
+                        end_up = camup;
+                    end
+                end
+                
+                original_pos = campos;
+                original_target = camtarget;
+                original_camva = camva;
+                original_up = camup;
+                
+                if nargin<4
+                easeTime = 20;
+                end
+                        for t = 1:easeTime
+                            
+                            tlog = easeTime./(1+exp(-0.5*(t-easeTime/2)));
+
+                            campos(tlog/easeTime*end_pos + (1-tlog/easeTime)*original_pos)
+                        	camtarget(tlog/easeTime*end_target + (1-tlog/easeTime)*original_target)
+                            camup(tlog/easeTime*end_up + (1-tlog/easeTime)*original_up)
+                            %camva(tlog/easeTime*end_camva + (1-tlog/easeTime)*original_camva)
+                            drawnow
+                        end
+                        
+                        campos(end_pos)
+                        camtarget(end_target)
+                        camup(end_up)
+            end
+            
             function menu_camTargetOrigin(hObject,eventdata)
-                camtarget([0 0 0 ])
+                easeCamera([], [0 0 0]) %pos, target  
             end
             
             function menu_orthogonal(hObject,eventdata)
@@ -784,14 +828,14 @@ classdef ArenaScene < handle
                             campos(tlog/easeTime*end_pos + (1-tlog/easeTime)*original_pos)
                         	camtarget(tlog/easeTime*end_target + (1-tlog/easeTime)*original_target)
                             camup(tlog/easeTime*end_up + (1-tlog/easeTime)*original_up)
-                            camva(tlog/easeTime*end_camva + (1-tlog/easeTime)*original_camva)
+                            %camva(tlog/easeTime*end_camva + (1-tlog/easeTime)*original_camva)
                             drawnow
                         end
                         
                         campos(end_pos)
                         camtarget(end_target)
                         camup(end_up)
-                        camva(end_camva)
+                        %camva(end_camva)
 
                     case 'coronal plane'
                         original_pos = campos;
@@ -799,7 +843,10 @@ classdef ArenaScene < handle
                         original_camva = camva;
                         original_up = camup;
                         
-                        end_pos = [0 1000 0].*sign(original_pos);
+                         frontorback = sign(original_pos);
+                        frontorback(frontorback==0) = 1;
+                        
+                        end_pos = [0 1000 0].*frontorback;
                         end_target = [0 0 0];
                         end_up = [0 0 1];
                         end_camva = 20;
@@ -812,24 +859,27 @@ classdef ArenaScene < handle
                             campos(tlog/easeTime*end_pos + (1-tlog/easeTime)*original_pos)
                         	camtarget(tlog/easeTime*end_target + (1-tlog/easeTime)*original_target)
                             camup(tlog/easeTime*end_up + (1-tlog/easeTime)*original_up)
-                            camva(tlog/easeTime*end_camva + (1-tlog/easeTime)*original_camva)
+                            %camva(tlog/easeTime*end_camva + (1-tlog/easeTime)*original_camva)
                             drawnow
                         end
                         
                         campos(end_pos)
                         camtarget(end_target)
                         camup(end_up)
-                        camva(end_camva)
+                        %camva(end_camva)
                     case 'sagittal plane'
                         original_pos = campos;
                         original_target = camtarget;
                         original_camva = camva;
                         original_up = camup;
                         
-                        end_pos = [0 0 1000].*sign(original_pos);
+                        leftorright = sign(original_pos);
+                        leftorright(leftorright==0) = 1;
+                        
+                        end_pos = [1000 0 0].*leftorright;
                         end_target = [0 0 0];
                         end_up = [0 0 1];
-                        end_camva = 20;
+                        %end_camva = 20;
                         
                         easeTime = 20;
                         for t = 1:easeTime
@@ -839,14 +889,14 @@ classdef ArenaScene < handle
                             campos(tlog/easeTime*end_pos + (1-tlog/easeTime)*original_pos)
                         	camtarget(tlog/easeTime*end_target + (1-tlog/easeTime)*original_target)
                             camup(tlog/easeTime*end_up + (1-tlog/easeTime)*original_up)
-                            camva(tlog/easeTime*end_camva + (1-tlog/easeTime)*original_camva)
+                            %camva(tlog/easeTime*end_camva + (1-tlog/easeTime)*original_camva)
                             drawnow
                         end
                         
                         campos(end_pos)
                         camtarget(end_target)
                         camup(end_up)
-                        camva(end_camva)
+                        %camva(end_camva)
                         
                       
                 end
@@ -1374,24 +1424,28 @@ classdef ArenaScene < handle
 
                 switch eventdata.Key
                     case 'o'
-                        pause(0.1)
-                        cameratoolbar('SetMode','orbit')
-                        flash('o: orbit',f)
+%                         pause(0.1)
+%                         cameratoolbar('SetMode','orbit')
+%                         flash('o: orbit',f)
                     case 'r'
-                        pause(0.1)
-                        cameratoolbar('SetMode','roll')
-                        flash('r: roll',f)
+%                         pause(0.1)
+%                         cameratoolbar('SetMode','roll')
+%                         flash('r: roll',f)
                     case 'z'
-                        pause(0.1)
-                        cameratoolbar('SetMode','zoom')
-                        flash('z: zoom',f)
+%                         pause(0.1)
+%                         cameratoolbar('SetMode','zoom')
+%                         flash('z: zoom',f)
                     case 'p'
-                        pause(0.1)
-                        cameratoolbar('SetMode','pan')
-                        flash('p: pan',f)
+%                         pause(0.1)
+%                         cameratoolbar('SetMode','pan')
+%                         flash('p: pan',f)
                     case {'return','space','escape'}
-                        cameratoolbar('SetMode','none')
-                        figure(f)
+%                         cameratoolbar('SetMode','none')
+%                         figure(f)
+                    case 'period'
+                            flash('show actor',f)
+                           menu_camTargetActor(src,eventdata)
+               
                 end
                 end
                 
