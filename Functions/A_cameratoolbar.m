@@ -41,8 +41,8 @@ scene = ArenaScene.getscenedata(hObject);
 toolbar = scene.handles.cameratoolbar;
 figure = scene.handles.figure;
 
-toolbar.rotate3dtog.State = 'on';
-toolbar.slide3dtog.State = 'off';
+toolbar.rotate3dtog.UserData = 'on';
+toolbar.slide3dtog.UserData = 'off';
 
 %get axes
 ax = scene.handles.axes;
@@ -68,8 +68,8 @@ scene = ArenaScene.getscenedata(hObject);
 toolbar = scene.handles.cameratoolbar;
 figure = scene.handles.figure;
 % 
-% toolbar.rotate3dtog.State = 'off';
-% toolbar.slide3dtog.State = 'on';
+ toolbar.rotate3dtog.UserData = 'off';
+ toolbar.slide3dtog.UserData = 'on';
 
 if strcmp(cmd,'off')
     return

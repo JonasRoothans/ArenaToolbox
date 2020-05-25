@@ -115,6 +115,10 @@ classdef Slicei < handle
             %set transparency
             obj.handle.FaceAlpha = obj.opacity;
             obj.handle.FaceColor = 'texturemap';
+           
+            %set material
+            material(obj.handle,'dull')
+            
             
             %function disabled
              if obj.clipDark
@@ -129,14 +133,29 @@ classdef Slicei < handle
                 scene = figure(scene.handles.figure);
             end
             set(obj.handle,'ButtonDownFcn',{@obj.startmovit,scene})
+            %set(obj.handle,'ButtonUpFcn',{@obj.reset,scene})
+     
         end
             
+        function reset(obj,hObject,eventdata,scene)
+            %after right click this is temporarily switched on. this is the
+            %off switch
+            set(scene,'WindowButtonDownFcn', []);
+        end
+        
         function startmovit(obj,hObject,eventdata,scene)
             obj.startray = get(gca,'CurrentPoint');
             obj.startidx = obj.sliceidx;
             
-            set(scene,'WindowButtonMotionFcn',@obj.movit)
-            set(scene,'WindowButtonUpFcn',@obj.stopmovit);
+            switch get(scene,'selectionType')
+                case {'normal','extend'}
+                    set(scene,'WindowButtonMotionFcn',@obj.movit)
+                    set(scene,'WindowButtonUpFcn',@obj.stopmovit);
+                otherwise
+   
+                    A_mouse_camera(scene)
+
+            end
         end
         
         function movit(obj,hObject,eventdata)
@@ -146,6 +165,15 @@ classdef Slicei < handle
                 if isequal(obj.startray,[])
                     return
                 end
+            end
+            
+            switch eventdata.Source.SelectionType
+                case 'normal'
+                    sensitivity = 1;
+                case 'extend'
+                    sensitivity = 8;
+                   
+                    
             end
             
             nowray = get(gca,'CurrentPoint');
@@ -162,7 +190,7 @@ classdef Slicei < handle
             alphabeta = pinv([s'*s, -s'*(b-a);(b-a)'*s, -(b-a)'*(b-a)])*[s'*a, (b-a)'*a]';
             pnow = alphabeta(1)*s;
             alphanow = alphabeta(1);
-            slicediff = alphanow-alphastart;
+            slicediff = (alphanow-alphastart) / sensitivity;
             
             obj.sliceidx = obj.startidx+slicediff;
             obj.sliceidx = min(max(1,obj.sliceidx),size(obj.vol,obj.slicedim));
@@ -171,11 +199,10 @@ classdef Slicei < handle
             
             % Store gui object
             %set(get(gcf,'UserData'),'UserData',gui);
-            
 
-            
-            
         end
+        
+                
         
         function stopmovit(obj,scene, eventdata)
             set(scene,'WindowButtonUpFcn','');
@@ -202,9 +229,7 @@ classdef Slicei < handle
                 catch;end
             end
 %             drawnow;
-            
-        
-            
+
         end
         
         function cog = getCOG(obj)
@@ -218,5 +243,7 @@ classdef Slicei < handle
         end
             
     end
+   
 end
+
 

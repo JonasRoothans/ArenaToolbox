@@ -17,6 +17,12 @@ set(hfig, 'WindowButtonDownFcn', @down_fcn);
 set(hfig, 'WindowButtonUpFcn', @up_fcn);
 set(hfig, 'WindowScrollWheelFcn', @zoom_fcn);
 
+if strcmp(hfig.UserData.handles.cameratoolbar.slide3dtog.UserData,'on')
+    down_fcn(hfig) %simulate right mouse click
+end
+
+
+
     function [] = zoom_fcn(hfig, evt)
         
         currentPos = Vector3D(campos);
@@ -38,8 +44,10 @@ set(hfig, 'WindowScrollWheelFcn', @zoom_fcn);
 
 
     function [] = down_fcn(hfig, evt)
+      
         
-        clickType = evt.Source.SelectionType;
+            clickType = get(hfig,'selectionType');
+     
         set(hfig, 'WindowButtonMotionFcn',{@motion_callback,clickType});
         
         % set cursor type
@@ -88,9 +96,7 @@ set(hfig, 'WindowScrollWheelFcn', @zoom_fcn);
                 orbitPangca(deltaPix/orbitFactor, 'o');
             case 'alt'
                 dollygca(deltaPix/panFactor);
-                
-                
-            
+
         end
         
     end
@@ -214,6 +220,11 @@ set(hfig, 'WindowScrollWheelFcn', @zoom_fcn);
     function [] = up_fcn(hfig, evt)
         % reset motion and cursor
         set(hfig,'WindowButtonMotionFcn',[]);
+        
+        if strcmp(hfig.UserData.handles.cameratoolbar.slide3dtog.UserData,'on')
+            set(hfig,'WindowButtonDownFcn', []);
+        end
+        
         figLastPoint = [];
         setptr(gcf, 'arrow');
     end
