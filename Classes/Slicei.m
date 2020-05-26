@@ -136,12 +136,7 @@ classdef Slicei < handle
             %set(obj.handle,'ButtonUpFcn',{@obj.reset,scene})
      
         end
-            
-        function reset(obj,hObject,eventdata,scene)
-            %after right click this is temporarily switched on. this is the
-            %off switch
-            set(scene,'WindowButtonDownFcn', []);
-        end
+
         
         function startmovit(obj,hObject,eventdata,scene)
             obj.startray = get(gca,'CurrentPoint');
