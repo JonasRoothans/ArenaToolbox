@@ -89,6 +89,27 @@ classdef VoxelData <handle
             
         end
         
+        function [bool, percentage_nonbinary] = isBinary(obj,slack)
+            if nargin==1
+                %default slack is 0%
+                slack = 0;
+            end
+            v = obj.Voxels;
+            high = v==max(v(:));
+            low = v==min(v(:));
+            
+            inbetween = not(or(high,low));
+            percentage_nonbinary = sum(inbetween(:))/numel(v(:))*100;
+            
+            if percentage_nonbinary <= slack
+                bool = true;
+            else
+                bool = false;
+            end
+            
+            
+        end
+        
         function showprojection(o1,view)
             [i,j,k] = o1.R.worldToIntrinsic(0,0,0);
             Origin_vxl = round([i,j,k]);
