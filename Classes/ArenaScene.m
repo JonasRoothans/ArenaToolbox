@@ -1103,7 +1103,12 @@ classdef ArenaScene < handle
                                 [regions,labeled,sizelist] = binaryVoxelData.seperateROI();
                                 [sorted,order] = sort(sizelist,'descend');
                                 if numel(sizelist)>6
-                                    ncluster = 6;
+                                    a1 = numel(sizelist)
+                                    prompt = {sprintf('The selected Mesh has %d clusters.\n\nPlease specify how many should be displayed:\n(biggest will be displayed first)',a1)};
+                                    dlgtitle = 'Specify number of clusters';
+                                    dims = [1 55];
+                                    a2 = inputdlg(prompt,dlgtitle,dims);
+                                    ncluster = str2num(a2{1});
                                 else
                                     ncluster = numel(sizelist);
                                 end
