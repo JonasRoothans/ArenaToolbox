@@ -6,10 +6,10 @@ h_toolbar.main =uitoolbar(figurehandle);
 
 
 % add custom rotator:
-h_toolbar.rotate3dtog=uitoggletool(h_toolbar.main, 'CData', A_loadicon('camera'),...
+h_toolbar.rotate3dtog=uitoggletool(h_toolbar.main, 'CData', A_loadicon('camera','gray'),...
     'TooltipString', 'Rotate 3D', 'OnCallback', {@A_toolbar_rotate,'on'},...
     'OffCallback', {@A_toolbar_rotate,'off'}, 'State', 'on');
-h_toolbar.slide3dtog=uitoggletool(h_toolbar.main, 'CData', A_loadicon('move'),...
+h_toolbar.slide3dtog=uitoggletool(h_toolbar.main, 'CData', A_loadicon('move','gray'),...
     'TooltipString', 'Slide Slices', 'OnCallback', {@A_toolbar_slideslices,'on'},...
     'OffCallback', {@A_toolbar_slideslices,'off'}, 'State', 'off');
 % h_toolbar.magnifyplus=uitoggletool(h_toolbar.main,'CData',A_loadicon('zoomin'),...
@@ -18,13 +18,13 @@ h_toolbar.slide3dtog=uitoggletool(h_toolbar.main, 'CData', A_loadicon('move'),..
 % h_toolbar.magnifyminus=uitoggletool(h_toolbar.main, 'CData', A_loadicon('zoomout'),...
 %     'TooltipString', 'Zoom Out', 'OnCallback', {@A_toolbar_zoomout,'on'},...
 %     'OffCallback', {@A_toolbar_zoomout,'off'}, 'State', 'off');
-h_toolbar.handtog=uitoggletool(h_toolbar.main, 'CData', A_loadicon('pan'),...
-    'TooltipString', 'Pan Scene', 'OnCallback', {@A_toolbar_pan,'on'},...
-    'OffCallback', {@A_toolbar_pan,'off'}, 'State', 'off');
+% h_toolbar.handtog=uitoggletool(h_toolbar.main, 'CData', A_loadicon('pan'),...
+%     'TooltipString', 'Pan Scene', 'OnCallback', {@A_toolbar_pan,'on'},...
+%     'OffCallback', {@A_toolbar_pan,'off'}, 'State', 'off');
 
 h_toolbar.screenshot=uitoggletool(h_toolbar.main, 'CData', A_loadicon('screenshot'),...
     'TooltipString', 'Screenshot', 'OnCallback', {@A_toolbar_screenshot,'on'},...
-    'OffCallback', {@A_toolbar_screenshot,'off'}, 'State', 'off');
+    'OffCallback', {@A_toolbar_screenshot,'off'}, 'State', 'off','Separator','on');
 
 
 
@@ -41,16 +41,18 @@ scene = ArenaScene.getscenedata(hObject);
 toolbar = scene.handles.cameratoolbar;
 figure = scene.handles.figure;
 
-toolbar.rotate3dtog.State = 'on';
-toolbar.slide3dtog.State = 'off';
+toolbar.rotate3dtog.UserData = 'on';
+toolbar.rotate3dtog.CData = A_loadicon('camera');
+toolbar.slide3dtog.UserData = 'off';
+toolbar.slide3dtog.CData = A_loadicon('move','gray');
 
 %get axes
 ax = scene.handles.axes;
-
-if strcmp(cmd,'off')
-    set(figure,'Pointer','arrow')
-    return
-end
+% 
+% if strcmp(cmd,'off')
+%     set(figure,'Pointer','arrow')
+%     return
+% end
 
 set(figure,'Pointer','circle')
 
@@ -68,12 +70,14 @@ scene = ArenaScene.getscenedata(hObject);
 toolbar = scene.handles.cameratoolbar;
 figure = scene.handles.figure;
 % 
-% toolbar.rotate3dtog.State = 'off';
-% toolbar.slide3dtog.State = 'on';
+ toolbar.rotate3dtog.UserData = 'off';
+ toolbar.rotate3dtog.CData = A_loadicon('camera','gray');
+ toolbar.slide3dtog.UserData = 'on';
+ toolbar.slide3dtog.CData = A_loadicon('move');
 
-if strcmp(cmd,'off')
-    return
-end
+% if strcmp(cmd,'off')
+%     return
+% end
 % reset button down function
 set(figure,'WindowButtonDownFcn', []);
 
@@ -122,7 +126,7 @@ disp('pan!')
 %steal from ea_pan
 end
 
-function icon = A_loadicon(type)
+function icon = A_loadicon(type,mode)
 switch type
     case 'camera'
         icon = imread('camera.jpg');
@@ -136,6 +140,12 @@ switch type
          icon = imread('pan.jpg');
     case 'screenshot'
         icon = imread('screenshot.jpg');
+end
+if nargin==2
+switch mode
+    case 'gray'
+        icon = repmat(rgb2gray(icon),1,1,3);
+end
 end
 end
 

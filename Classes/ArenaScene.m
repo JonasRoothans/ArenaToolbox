@@ -1727,7 +1727,7 @@ classdef ArenaScene < handle
     methods(Static)
         
         function thisScene = getscenedata(h)
-            while isempty(h.UserData)
+            while not(isa(h.UserData,'ArenaScene'))
                 h = h.Parent;
             end
             thisScene = h.UserData;
