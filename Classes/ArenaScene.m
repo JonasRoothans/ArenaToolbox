@@ -964,6 +964,9 @@ classdef ArenaScene < handle
                         hold on;
                         xcell = {};
                         ycell = {};
+                        
+                        min_x = [];
+                        max_x = [];
                         for iD = 1:numel(dataCell)
                             thisData = dataCell{iD};
                             x = thisData.(fields{1,dimension});
@@ -974,20 +977,20 @@ classdef ArenaScene < handle
                             
                             xcell{iD} = x;
                             ycell{iD} = y;
+                            
+                            min_x(end+1) = xcell{iD}(find(ycell{iD}>0,1,'first'));
+                            max_x(end+1) = xcell{iD}(find(ycell{iD}>0,1,'last'));
                         end
                         
                          %find the xlim (to only include data >0)
-            minCoord = min([xcell{1}(find(ycell{1}>0,1,'first')),...
-                xcell{2}(find(ycell{2}>0,1,'first')),...
-               xcell{3}(find(ycell{3}>0,1,'first'))]);
+                         
+            minCoord = min(min_x);
            
-           maxCoord = max([xcell{1}(find(ycell{1}>0,1,'last')),...
-                xcell{2}(find(ycell{2}>0,1,'last')),...
-               xcell{3}(find(ycell{3}>0,1,'last'))]);
+           maxCoord = max(max_x);
            
            xlim([minCoord,maxCoord])
-           legend({'x','y','z'})
-                        legend({currentActors(:).Tag})
+
+                        legend({currentActors(:).Tag}, 'Interpreter', 'none')
                         
                     end
                 end

@@ -221,9 +221,9 @@ classdef VoxelData <handle
                 1:size(obj.Voxels,1),...
                 1:size(obj.Voxels,3));
             
-            xm = xq(:)'*obj.Voxels(:) / sum(obj.Voxels(:));
-            ym = yq(:)'*obj.Voxels(:) / sum(obj.Voxels(:));
-            zm = zq(:)'*obj.Voxels(:) / sum(obj.Voxels(:));
+            xm = xq(:)'*double(obj.Voxels(:)) / sum(obj.Voxels(:));
+            ym = yq(:)'*double(obj.Voxels(:)) / sum(obj.Voxels(:));
+            zm = zq(:)'*double(obj.Voxels(:)) / sum(obj.Voxels(:));
             
             center_of_gravity_internal = [ym,xm,zm];
             [x,y,z] = obj.R.intrinsicToWorld(center_of_gravity_internal(1),center_of_gravity_internal(2),center_of_gravity_internal(3));
