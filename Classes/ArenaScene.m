@@ -701,8 +701,11 @@ classdef ArenaScene < handle
             function menu_importimageasmesh(hObject,eventdata)
                 
                 [filename,pathname] = uigetfile('*.nii','Find nii image(s)','MultiSelect','on');
+                try
                 if filename==0
                     return
+                end
+                catch
                 end
                 if not(iscell(filename));filename = {filename};end
                 
