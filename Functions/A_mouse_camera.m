@@ -65,9 +65,26 @@ end
             case 'extend'
                 selectlayer(hfig)
             case 'open'
-                try
-                    set_defaultview;
+                disp('yes')
+                
+                 switch hfig.UserData.handles.btn_toggleleft.Value
+                    case 1
+                        set(hfig.UserData.handles.panelleft,'Visible','off')
+                        set(hfig.UserData.handles.panelright,'Visible','off')
+                        set(hfig.UserData.handles.btn_toggleleft,'String','open panel')
+                        set(hfig.UserData.handles.btn_toggleright,'String','open panel')
+                        set(hfig.UserData.handles.btn_toggleleft, 'Value',0)
+                        set(hfig.UserData.handles.btn_toggleright, 'Value',0)
+                    case 0
+                         set(hfig.UserData.handles.panelleft,'Visible','on')
+                        set(hfig.UserData.handles.panelright,'Visible','on')
+                        set(hfig.UserData.handles.btn_toggleleft,'String','close panel')
+                        set(hfig.UserData.handles.btn_toggleright,'String','close panel')
+                        set(hfig.UserData.handles.btn_toggleleft, 'Value',1)
+                        set(hfig.UserData.handles.btn_toggleright, 'Value',1)
                 end
+                hfig.UserData.handles.btn_layeroptions.Visible = hfig.UserData.handles.panelright.Visible;
+                
                 
         end
     end
