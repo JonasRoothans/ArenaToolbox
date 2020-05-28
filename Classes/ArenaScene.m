@@ -701,12 +701,18 @@ classdef ArenaScene < handle
             function menu_importimageasmesh(hObject,eventdata)
                 
                 [filename,pathname] = uigetfile('*.nii','Find nii image(s)','MultiSelect','on');
+                if filename==0
+                    return
+                end
                 if not(iscell(filename));filename = {filename};end
                 
                 for iFile = 1:numel(filename)
                     niifile = fullfile(pathname,filename{iFile});
                     v = VoxelData;
                     [~, name] = v.loadnii(niifile);
+                    if isempty(v.Voxels)
+                        return
+                    end
                     actor = v.getmesh.see(ArenaScene.getscenedata(hObject));
                     actor.changeName(name)
                 end
@@ -1429,11 +1435,14 @@ classdef ArenaScene < handle
                 
                 switch eventdata.EventName
                     case 'WindowMousePress'
-                        disp('click')
+                        %disp('click')
                     otherwise
                         scene = ArenaScene.getscenedata(src);
                 disp(eventdata.Key)
                 f = scene.handles.figure;
+                f.WindowButtonMotionFcn = @setcurrentpointlive;
+                pt = getcurrentpoint(f);
+                clearPreviousContextMenus()
 
                 switch eventdata.Key
                     case 'o'
@@ -1462,30 +1471,43 @@ classdef ArenaScene < handle
                  
                            end
                     case 'x'
-                        
-                        f.WindowButtonMotionFcn = @setcurrentpointlive;
-                        pt = getcurrentpoint(f);
-                        
-                        
-                        if isfield(scene.handles,'contextmenu')
-                        if not(isempty(scene.handles.contextmenu))
-                            delete(scene.handles.contextmenu)
-                        end
-                        end
-                        
                          scene.handles.contextmenu = uicontrol('style','togglebutton',...
-                'units','pixels',...
-                     'position', [pt(1),pt(2),60,30],...
-                'String','delete',...
-                'Value',1,...
-                'callback',{@context_deleteActor},...
-                'Tag','left');
+                            'units','pixels',...
+                                 'position', [pt(1),pt(2),60,30],...
+                            'String','delete',...
+                            'Value',1,...
+                            'callback',{@context_deleteActor},...
+                            'Tag','context');
 
-                 f.WindowButtonMotionFcn = {@contextMenuBehaviour,pt};
-     
+                             f.WindowButtonMotionFcn = {@contextMenuBehaviour,pt};
+                    case 'a'
+                        switch eventdata.Modifier{1}
+                            case 'shift'
+                                scene.handles.contextmenu = uicontrol('style','listbox',...
+                            'units','pixels',...
+                                 'position', [pt(1),pt(2),100,100],...
+                            'String',{'mesh','plane','obj','suretune session'},...
+                            'Value',[],...
+                            'Min', 0, 'Max', 2,...
+                            'callback',{@context_import},...
+                            'Tag','context');  
+                        
+                                f.WindowButtonMotionFcn = {@contextMenuBehaviour,pt};
+                            otherwise
+                                return
+                        end
+                        
+                        
                 end
                 end
                 
+                function clearPreviousContextMenus()
+                    if isfield(scene.handles,'contextmenu')
+                        if not(isempty(scene.handles.contextmenu))
+                            delete(scene.handles.contextmenu)
+                        end
+                    end
+                end
 
                 function pt = getcurrentpoint(f)
                     
@@ -1535,10 +1557,25 @@ classdef ArenaScene < handle
                 if numel(currentActors)>1
                     return
                 end
-                scene.handles.contextmenu.Visible =  'off';    
+                
                 delete(currentActors,scene)
                 scene.refreshLayers();
-        end
+            end
+        
+            function context_import(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                scene.handles.contextmenu.Visible =  'off';    
+                switch hObject.String{hObject.Value}
+                    case 'mesh'
+                        menu_importimageasmesh(hObject,eventdata)
+                    case 'plane'
+                        menu_imoprtimageasslice(hObject,eventdata)
+                    case 'obj'
+                        menu_importObjfile(hObject,eventdata)
+                    case 'suretune session'
+                        menu_importsuretune(hObject,eventdata)
+                end
+            end
             
             function closeScene(src, callbackdata)
                 %Close request function
