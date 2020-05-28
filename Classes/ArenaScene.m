@@ -48,9 +48,10 @@ classdef ArenaScene < handle
                 'UserData',obj,...
                 'CloseRequestFcn',@closeScene,...
                 'WindowKeyPressFcn',@keyShortCut,...
+                'WindowButtonMotionFcn',@setcurrentpointlive,...
                 'Color',[1 1 1]);
                 %'WindowButtonDownFcn',@keyShortCut,...
-            
+      
             obj.handles.axes = axes('units','normalized',...
                 'position',[0 0 1 1],...
                 'fontsize',8,...
@@ -198,6 +199,7 @@ classdef ArenaScene < handle
             obj.handles.cameratoolbar = A_cameratoolbar(obj.handles.figure);
             obj.handles.light = camlight('headlight');
             obj.handles.light.Style = 'infinite';
+
             
             
             obj = createcoordinatesystem(obj);
@@ -714,6 +716,9 @@ classdef ArenaScene < handle
             function menu_imoprtimageasslice(hObject,eventdata)
                 v = VoxelData;
                 v.loadnii;
+                if isempty(v.Voxels)
+                    return
+                end
                 v.getslice.see(ArenaScene.getscenedata(hObject));
             end
             
@@ -1456,8 +1461,53 @@ classdef ArenaScene < handle
                             menu_camTargetActor(src,eventdata)
                  
                            end
-               
+                    case 'x'
+                        
+                        f.WindowButtonMotionFcn = @setcurrentpointlive;
+                        pt = getcurrentpoint(f);
+                        
+                        
+                        if isfield(scene.handles,'contextmenu')
+                        if not(isempty(scene.handles.contextmenu))
+                            delete(scene.handles.contextmenu)
+                        end
+                        end
+                        
+                         scene.handles.contextmenu = uicontrol('style','togglebutton',...
+                'units','pixels',...
+                     'position', [pt(1),pt(2),60,30],...
+                'String','delete',...
+                'Value',1,...
+                'callback',{@context_deleteActor},...
+                'Tag','left');
+
+                 f.WindowButtonMotionFcn = {@contextMenuBehaviour,pt};
+     
                 end
+                end
+                
+
+                function pt = getcurrentpoint(f)
+                    
+                        currpt = get(f,'CurrentPoint');
+                        try
+                            pt = matlab.graphics.interaction.internal.getPointInPixels(f,currpt(1:2));
+                        catch % old matlab version
+                            pt = currpt;
+                        end
+                end
+                
+                
+                function contextMenuBehaviour(fig,event,xy)
+                   
+                    pt2 = getcurrentpoint(f);
+                    distnc = norm(pt2-xy);
+                    if distnc > 200
+                        scene.handles.contextmenu.Visible =  'off';
+                        f.WindowButtonMotionFcn = @setcurrentpointlive;
+                
+                    end
+                    
                 end
                 
                 function flash(text,f)
@@ -1474,6 +1524,21 @@ classdef ArenaScene < handle
                     delete(t)
                 end
             end
+            
+                function setcurrentpointlive(fig,event)
+                    %this nothing, but its presence is enough. :-) trust me
+                end
+            function context_deleteActor(hObject,eventdata)
+               scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                if numel(currentActors)>1
+                    return
+                end
+                scene.handles.contextmenu.Visible =  'off';    
+                delete(currentActors,scene)
+                scene.refreshLayers();
+        end
             
             function closeScene(src, callbackdata)
                 %Close request function
@@ -1550,6 +1615,10 @@ classdef ArenaScene < handle
             
             %update the right box
             obj.handles.panelright.Value = index;
+            
+            if isempty(obj.Actors)
+                return
+            end
             %update the left box
             obj.Actors(index).updateCC(obj);
         end

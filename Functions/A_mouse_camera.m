@@ -17,10 +17,16 @@ set(hfig, 'WindowButtonDownFcn', @down_fcn);
 set(hfig, 'WindowButtonUpFcn', @up_fcn);
 set(hfig, 'WindowScrollWheelFcn', @zoom_fcn);
 
-if strcmp(hfig.UserData.handles.cameratoolbar.slide3dtog.UserData,'on')
-    down_fcn(hfig) %simulate right mouse click
+try
+    %what is this?
+    %well, this function is also called when right mouse click is done
+    %while in the slice sliding mode. This line redirects to the panning
+    %functionality
+    if strcmp(hfig.UserData.handles.cameratoolbar.slide3dtog.UserData,'on')
+        down_fcn(hfig) %simulate right mouse click
+    end
+catch
 end
-
 
 
     function [] = zoom_fcn(hfig, evt)

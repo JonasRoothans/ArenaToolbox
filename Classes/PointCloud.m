@@ -34,7 +34,7 @@ classdef PointCloud
                     error('number of weights does not correspond with number of vectors')
                 end
             else
-                obj.Weights(nVectors+1:nVectors+addedVectors,1) = NaN;
+                obj.Weights(nVectors+1:nVectors+addedVectors,1) = 0;
             end
             
             

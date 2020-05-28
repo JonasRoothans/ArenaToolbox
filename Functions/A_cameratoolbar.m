@@ -6,7 +6,7 @@ h_toolbar.main =uitoolbar(figurehandle);
 
 
 % add custom rotator:
-h_toolbar.rotate3dtog=uitoggletool(h_toolbar.main, 'CData', A_loadicon('camera','gray'),...
+h_toolbar.rotate3dtog=uitoggletool(h_toolbar.main, 'CData', A_loadicon('camera'),...
     'TooltipString', 'Rotate 3D', 'OnCallback', {@A_toolbar_rotate,'on'},...
     'OffCallback', {@A_toolbar_rotate,'off'}, 'State', 'on');
 h_toolbar.slide3dtog=uitoggletool(h_toolbar.main, 'CData', A_loadicon('move','gray'),...
@@ -32,6 +32,8 @@ camva(figurehandle.CurrentAxes,'manual')
 figurehandle.CurrentAxes.Projection = 'perspective';
 figurehandle.CurrentAxes.CameraViewAngleMode = 'manual';
 figurehandle.CurrentAxes.PlotBoxAspectRatioMode = 'manual';
+
+A_mouse_camera(figurehandle);
 
 end
 

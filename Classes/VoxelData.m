@@ -57,6 +57,9 @@ classdef VoxelData <handle
             
             if nargin==1
                 [filename,pathname] = uigetfile('*.nii','Find nii image');
+                if filename==0
+                    return
+                end
                 niifile = fullfile(pathname,filename);
             else
                 [~,filename] = fileparts(niifile);
