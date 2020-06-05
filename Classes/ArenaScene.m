@@ -1447,14 +1447,14 @@ classdef ArenaScene < handle
                 
                 %see of all selected actors are of the same class
                 firstActor = class(currentActor(1).Data);
-                consistentclass = true;
+                consistentclass = [true];
                 for iActor = 1:numel(currentActor)
-                    consistentclass = and(consistentclass,strcmp(firstActor,class(currentActor(iActor).Data)));
+                    consistentclass(iActor) = strcmp(firstActor,class(currentActor(iActor).Data));
                 end
                 
-                if not(consistentclass)
-                    hObject.Value = hObject.Value(1);
-                end
+                
+                    hObject.Value = hObject.Value(consistentclass);
+              
                 
                 currentActor(1).updateCC(scene);
                 
