@@ -1218,21 +1218,30 @@ classdef ArenaScene < handle
                     return
                 end
                 
-                %get meshes
+                %get meshes and pointclouds
                 allActors = scene.Actors;
                 meshes = [];
+                pointclouds = [];
                 for iActor = 1:numel(allActors)
                     thisActor = allActors(iActor);
                     if or(isa(thisActor.Data,'Mesh'),isa(thisActor.Data,'ObjFile'))
                         meshes(end+1).name = thisActor.Tag;
                         meshes(end).actor = thisActor;
                     end
+                    if isa(thisActor.Data,'PointCloud')
+                        pointclouds(end+1).name = thisActor.Tag;
+                        pointclouds(end).actor = thisActor;
+                    end
                 end
                 
-                [indx,tf] = listdlg('PromptString','Select meshes to project','ListString',{meshes.name});
-                if tf==0
-                    disp('user aborted')
-                    return
+                if not(isempty(meshes))
+                    [indx,tf] = listdlg('PromptString','Select meshes to project','ListString',{meshes.name});
+                    if tf==0
+                       % disp('user aborted')
+                        indx = [];
+                    end
+                else
+                    indx = [];
                 end
                 
                 %define plane
@@ -1261,26 +1270,73 @@ classdef ArenaScene < handle
                         if ~isempty( polygons{ s } )
                             for p = 1 : numel( polygons{ s } )
                                 
-                                thispatch = patch( polygons{ s }{ p }( :, 1 ), ...
+                                switch currentActors.Visualisation.settings.plane
+                                    case 'axial' 
+                                        thispatch = patch( polygons{ s }{ p }( :, 1 ), ...
                                        polygons{ s }{ p }( :, 2 ),...
                                         polygons{ s }{ p }( :, 3 ));
-                                   
-                                thispatch.ZData = ones(size(thispatch.XData))*currentActors.Visualisation.settings.slice;
+                                        thispatch.ZData = ones(size(thispatch.XData))*currentActors.Visualisation.settings.slice;
+                                    case 'coronal'
+                                        %patches are 2d. So pretend to
+                                        %project it axially first, and then
+                                        %flip it coronal
+                                        thispatch = patch( polygons{ s }{ p }( :, 1 ), ...
+                                       polygons{ s }{ p }( :, 3 ),...
+                                        polygons{ s }{ p }( :, 2 ));
+                                        thispatch.ZData = thispatch.YData;
+                                        thispatch.YData = ones(size(thispatch.XData))*currentActors.Visualisation.settings.slice;
+                                    
+                                    case 'sagittal'
+                                      thispatch = patch( polygons{ s }{ p }( :, 3 ), ...
+                                       polygons{ s }{ p }( :, 2 ),...
+                                        polygons{ s }{ p }( :, 1 ));
+                                        thispatch.ZData = thispatch.XData;
+                                        thispatch.XData = ones(size(thispatch.XData))*currentActors.Visualisation.settings.slice;
+                                    
+                                end
+                                
                                 newObj = Contour(thispatch);
                                 newActor = newObj.see(scene);
                                 newActor.changeName(['slice of ',meshes(iProj).name])
                                 newActor.changeSetting('colorFace',meshes(iProj).actor.Visualisation.settings.colorFace,...
                                     'colorEdge',meshes(iProj).actor.Visualisation.settings.colorEdge);
-                               
-                               
-    
-                                   
+                                
                             end
                         end
                     end
                 end
                 
-              
+                if not(isempty(pointclouds))
+                    [indx,tf] = listdlg('PromptString','Select Pointclouds to project','ListString',{pointclouds.name});
+                    if tf==0
+                        disp('user aborted')
+                        return
+                    end
+                else
+                    indx = [];
+                end
+                
+                for iPC = indx
+                    pc_source = pointclouds(iPC).actor.Data;
+                    data = pc_source.Vectors.getArray;
+                    switch currentActors.Visualisation.settings.plane
+                        case 'axial' 
+                            data(:,3) = ones(size(data(:,3)))*currentActors.Visualisation.settings.slice;
+                        case 'coronal'
+                            data(:,2) = ones(size(data(:,2)))*currentActors.Visualisation.settings.slice;
+                        case 'sagittal'
+                            data(:,1) = ones(size(data(:,1)))*currentActors.Visualisation.settings.slice;
+                    end
+                    newPC = PointCloud(data,pc_source.Weights);
+                    newActor = newPC.see(scene);
+                    newActor.changeSetting('colorLow',pointclouds(iPC).actor.Visualisation.settings.colorLow);
+                    newActor.changeSetting('colorHigh',pointclouds(iPC).actor.Visualisation.settings.colorHigh);
+                    newActor.changeSetting('thickness',pointclouds(iPC).actor.Visualisation.settings.thickness);
+                    newActor.changeSetting('opacity',pointclouds(iPC).actor.Visualisation.settings.opacity);
+                    newActor.changeName([currentActors.Visualisation.settings.plane,' ',pointclouds(iPC).actor.Tag]);
+                    
+                end
+                
             end
             
                 
