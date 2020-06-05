@@ -1498,7 +1498,7 @@ classdef ArenaScene < handle
                         %disp('click')
                     otherwise
                         scene = ArenaScene.getscenedata(src);
-                disp(eventdata.Key)
+                %disp(eventdata.Key)
                 f = scene.handles.figure;
                 f.WindowButtonMotionFcn = @setcurrentpointlive;
                 pt = getcurrentpoint(f);
@@ -1541,21 +1541,37 @@ classdef ArenaScene < handle
 
                              f.WindowButtonMotionFcn = {@contextMenuBehaviour,pt};
                     case 'a'
-                        switch eventdata.Modifier{1}
-                            case 'shift'
-                                scene.handles.contextmenu = uicontrol('style','listbox',...
-                            'units','pixels',...
-                                 'position', [pt(1),pt(2),100,100],...
-                            'String',{'mesh','plane','obj','suretune session'},...
-                            'Value',[],...
-                            'Min', 0, 'Max', 2,...
-                            'callback',{@context_import},...
-                            'Tag','context');  
-                        
-                                f.WindowButtonMotionFcn = {@contextMenuBehaviour,pt};
-                            otherwise
-                                return
+                        if not(isempty(eventdata.Modifier))
+                            switch eventdata.Modifier{1}
+                                case 'shift'
+                                    scene.handles.contextmenu = uicontrol('style','listbox',...
+                                'units','pixels',...
+                                     'position', [pt(1),pt(2),100,100],...
+                                'String',{'mesh','plane','obj','suretune session'},...
+                                'Value',[],...
+                                'Min', 0, 'Max', 2,...
+                                'callback',{@context_import},...
+                                'Tag','context');  
+
+                                    f.WindowButtonMotionFcn = {@contextMenuBehaviour,pt};
+                                otherwise
+                                    return
+                            end
                         end
+                        
+                    case 'h' %hide
+                        
+                        if not(isempty(eventdata.Modifier))
+                         switch eventdata.Modifier{1}
+                            case 'shift'
+                                hideLayers(src,'solo')
+                             case 'alt'
+                                 hideLayers(src,'unhide')
+                         end
+                        else
+                            hideLayers(src,'toggle')
+                         end
+                        
                         
                         
                 end
@@ -1605,6 +1621,35 @@ classdef ArenaScene < handle
                     pause(2)
                     delete(t)
                 end
+            end
+            
+            function hideLayers(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                [currentActors,iSelected] = ArenaScene.getSelectedActors(scene);
+                
+                switch eventdata
+                    case 'toggle'
+                        for iActor = 1:numel(currentActors)
+                            thisActor = currentActors(iActor);
+                            thisActor.Visibility('toggle');
+                        end
+                    case 'unhide'
+                        for iActor = 1:numel(scene.Actors)
+                            thisActor = scene.Actors(iActor);
+                            thisActor.Visibility('unhide');
+                        end
+                    case 'solo'
+                        for iActor = 1:numel(scene.Actors)
+                            thisActor = scene.Actors(iActor);
+                            if any(find(iSelected==iActor))
+                                thisActor.Visibility('unhide')
+                            else
+                                thisActor.Visibility('hide');
+                            end
+                        end
+                end
+                scene.refreshLayers();
+                
             end
             
                 function setcurrentpointlive(fig,event)
@@ -1678,7 +1723,8 @@ classdef ArenaScene < handle
         function refreshLayers(obj)
             %colors
             pre = '<HTML><FONT color="';
-            post = '</FONT></HTML>';
+            mid = '</FONT>';
+            post = '</HTML>';
 
             
             ActorTags = {};
@@ -1686,8 +1732,13 @@ classdef ArenaScene < handle
                 properties = fieldnames(obj.Actors(i).Visualisation.settings);
                 rgbColour = obj.Actors(i).Visualisation.settings.(properties{1})*255;
               hexStr = reshape( dec2hex( round(rgbColour), 2 )',1, 6);
-     
-                str = [pre, hexStr, '">', obj.Actors(i).Tag, post];
+                
+                if obj.Actors(i).Visible
+                    bubble = '&#11044;';
+                else
+                    bubble ='&#9711;';
+                end
+                str = [pre, hexStr, '">', bubble,' ',mid, obj.Actors(i).Tag, post];
                 ActorTags{i} = str;
             end
             obj.handles.panelright.String = ActorTags;
@@ -1941,7 +1992,7 @@ classdef ArenaScene < handle
             
         end
         
-        function currentActor = getSelectedActors(scene)
+        function [currentActor,ind] = getSelectedActors(scene)
             ind = scene.handles.panelright.Value;
             currentActor = scene.Actors(ind);
         end

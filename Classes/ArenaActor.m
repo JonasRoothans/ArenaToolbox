@@ -6,7 +6,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         Visualisation
         Scene
         Tag
-        Visible
+        Visible = true;
     end
     
     methods
@@ -16,7 +16,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             obj.Data = [];
             obj.Visualisation = [];
             obj.Scene = ArenaScene.empty;
-            Visible = true;
+            
         end
         
         function obj = create(obj,data,scene,OPTIONALvisualisation)
@@ -835,6 +835,28 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             newActor = scene.newActor(obj.Data,obj.Visualisation.settings);
             newActor.changeName(['* ',obj.Tag]);
             
+        end
+        
+        function Visibility(obj,command)
+            switch command
+                case 'toggle'
+                    obj.Visible = not(obj.Visible);
+                case 'hide'
+                    obj.Visible = false;
+                case 'unhide'
+                    obj.Visible = true;
+            end
+                            
+        end
+            
+        function set.Visible(obj,value)
+            obj.Visible = value;
+            if value
+                obj.Visualisation.handle.Visible = 'on';
+            else
+                obj.Visualisation.handle.Visible = 'off';
+            end
+        
         end
     end
 end
