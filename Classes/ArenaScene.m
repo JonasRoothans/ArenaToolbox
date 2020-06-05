@@ -677,7 +677,7 @@ classdef ArenaScene < handle
                 [indx] = listdlg('ListString',names);
                 for thisindex = indx
                     pc = PointCloud(data{thisindex});
-                    [scene,actor] = pc.see(thisScene);
+                    [actor,scene] = pc.see(thisScene);
                     actor.changeName(names{thisindex})
                 end
                 
