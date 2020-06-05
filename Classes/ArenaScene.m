@@ -478,11 +478,11 @@ classdef ArenaScene < handle
                     
                     meshR = Mesh(R.faces,R.vertices);
                     actorR = meshR.see(thisScene);
-                    actorR.changeName([name,' right'])
                     actorR.changeSetting('complexity',5,...
                         'colorFace',color,...
                         'colorEdge',color,...
                         'edgeOpacity',80);
+                    
                     
                     
                     try
@@ -499,6 +499,7 @@ classdef ArenaScene < handle
                         
                         
                     end
+                    actorR.changeName([name,' right'])
                 end
                 
                 
@@ -1669,15 +1670,25 @@ classdef ArenaScene < handle
                 thisActor.create(data,obj)
             end
             obj.Actors(end+1) = thisActor;
-            refreshLayers(obj);
+           refreshLayers(obj); 
             selectlayer(obj,'last')
             
         end
         
         function refreshLayers(obj)
+            %colors
+            pre = '<HTML><FONT color="';
+            post = '</FONT></HTML>';
+
+            
             ActorTags = {};
             for i = 1:numel(obj.Actors)
-                ActorTags{i} = obj.Actors(i).Tag;
+                properties = fieldnames(obj.Actors(i).Visualisation.settings);
+                rgbColour = obj.Actors(i).Visualisation.settings.(properties{1})*255;
+              hexStr = reshape( dec2hex( round(rgbColour), 2 )',1, 6);
+     
+                str = [pre, hexStr, '">', obj.Actors(i).Tag, post];
+                ActorTags{i} = str;
             end
             obj.handles.panelright.String = ActorTags;
             
@@ -1688,7 +1699,10 @@ classdef ArenaScene < handle
             obj.selectlayer()
             drawnow()
             
+
+          
         end
+        
         
         
         function selectlayer(obj,index)

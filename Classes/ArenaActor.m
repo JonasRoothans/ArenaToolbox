@@ -6,6 +6,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         Visualisation
         Scene
         Tag
+        Visible
     end
     
     methods
@@ -15,6 +16,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             obj.Data = [];
             obj.Visualisation = [];
             obj.Scene = ArenaScene.empty;
+            Visible = true;
         end
         
         function obj = create(obj,data,scene,OPTIONALvisualisation)
