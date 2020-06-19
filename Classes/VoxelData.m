@@ -28,7 +28,7 @@ classdef VoxelData <handle
             [x,y,z] = obj.R.worldToIntrinsic(0,0,0);
             spacing = [obj.R.PixelExtentInWorldX,obj.R.PixelExtentInWorldY,obj.R.PixelExtentInWorldZ];
             origin = [x y z];
-            datatype = 8;%64;
+            datatype = 16;%64;
             nii = make_nii(double(permute(obj.Voxels,[2 1 3])), spacing, origin, datatype);
             save_nii(nii,filename)
         end
