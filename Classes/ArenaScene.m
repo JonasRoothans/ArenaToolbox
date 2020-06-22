@@ -1407,6 +1407,8 @@ classdef ArenaScene < handle
                 for i = 1:numel(thisActor)
                     thisActor(i).updateActor(scene,settings)
                 end
+                
+                scene.refreshLayers()
             end
             
             function btn_layeroptions(hObject,eventdata)
