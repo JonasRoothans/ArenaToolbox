@@ -40,7 +40,13 @@ switch discriminative_statistic
         	[test_statistic,ptest] = corr(sample1(:),sample2(:));
             disp (['p will approximate : ', num2str(ptest)])
             p_sign = sign(test_statistic);
-            
+    case 'linear regression'
+        M= fitlm (sample1(:), sample2(:));
+        ptest= M. Coefficients.pValue(2);
+        test_statistic= M.Coefficients.tStat(2);
+        disp ([ ' p will approximate :', num2str(ptest)])
+        p_sign= sign(test_statistic);
+        
     otherwise
         error(['Discriminative method "',discriminative_statistic,'" does not exist.'])
 end
@@ -71,6 +77,10 @@ for iP = 1:p
             tslist(iP) = abs(mean(shuffle(1:numel(sample1))) - mean(shuffle(numel(sample1)+1:end)));
         case 'correlation'
             tslist(iP) = corr(shuffle1(:),sample2(:));
+        case 'linear regression'
+            L = fitlm( shuffle1(:), sample2(:));
+            tslist(iP)= L.Coefficients.tStat(2);
+            
     end
 end
 
