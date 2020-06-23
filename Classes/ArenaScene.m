@@ -717,7 +717,12 @@ classdef ArenaScene < handle
                     if isempty(v.Voxels)
                         return
                     end
-                    actor = v.getmesh.see(ArenaScene.getscenedata(hObject));
+                    
+                    if v.isBinary
+                        actor = v.getmesh(0.5).see(ArenaScene.getscenedata(hObject));
+                    else
+                        actor = v.getmesh.see(ArenaScene.getscenedata(hObject));
+                    end
                     actor.changeName(name)
                 end
                 
