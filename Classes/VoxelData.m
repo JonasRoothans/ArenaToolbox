@@ -194,9 +194,15 @@ classdef VoxelData <handle
         
         function o3 = times(o1,o2)
             img1 = o1.Voxels;
-            img2 = o2.Voxels;
+            if isa(o2,'VoxelData')
+                img2 = o2.Voxels;
+                o3 = VoxelData(img1.*img2,o1.R);
+            else %assuming o2 is a number
+                o3 = VoxelData(img1*o2,o1.R);
+            end
             
-            o3 = VoxelData(img1.*img2,o1.R);
+            
+            
         end
         
         function o3 = minus(o1,o2)
@@ -204,6 +210,13 @@ classdef VoxelData <handle
             img2 = o2.Voxels;
             
             o3 = VoxelData(img1-img2,o1.R);
+        end
+        
+        function o3 = plus(o1,o2)
+            img1 = o1.Voxels;
+            img2 = o2.Voxels;
+            
+            o3 = VoxelData(img1+img2,o1.R);
         end
         
         function vd = abs(vd)
@@ -405,14 +418,20 @@ classdef VoxelData <handle
         
         function binaryObj = makeBinary(obj,T)
             if nargin==1
-                histf = figure;histogram(obj.Voxels(:),50);
-                set(gca, 'YScale', 'log')
-                try
-                    [T,~] = ginput(1);
-                catch
-                    error('user canceled')
+                
+                if obj.isBinary
+                    T = 0.5;
+                else
+                        %ask for user input
+                    histf = figure;histogram(obj.Voxels(:),50);
+                    set(gca, 'YScale', 'log')
+                    try
+                        [T,~] = ginput(1);
+                    catch
+                        error('user canceled')
+                    end
+                    close(histf)
                 end
-                close(histf)
             end
             
             if nargout==1
