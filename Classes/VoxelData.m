@@ -114,6 +114,7 @@ classdef VoxelData <handle
         end
         
         function showprojection(o1,view)
+            
             [i,j,k] = o1.R.worldToIntrinsic(0,0,0);
             Origin_vxl = round([i,j,k]);
             if nargin == 1;view = 'a';end
@@ -219,12 +220,25 @@ classdef VoxelData <handle
             o3 = VoxelData(img1+img2,o1.R);
         end
         
-        function vd = abs(vd)
-            vd.Voxels = abs(vd.Voxels);
+        function vd_out = abs(vd)
+            if nargout==1
+                vd_out = VoxelData(abs(vd.Voxels),vd.R);
+            else
+                vd.Voxels = abs(vd.Voxels);
+                vd_out =  vd;
+            end
         end
         
-        function vd = changeToNan(vd,value)
-            vd.Voxels(vd.Voxels==value) = nan;
+        function vd_out = changeToNan(vd,value)
+            if nargout==1
+                vd_out = VoxelData(vd.Voxels,vd.R);
+                vd_out.Voxels(vd_out.Voxels==value) = nan;
+            else
+                vd.Voxels(vd.Voxels==value) = nan;
+                vd_out = vd;
+            end
+            
+                
         end
         
         function value = dice(o1,o2)
@@ -413,12 +427,16 @@ classdef VoxelData <handle
         end
         
         function newObj = mirror(obj)
-            if nargout==0
-                error('output is required. Mirror makes a copy')
-            end
             
             [imOut,rOut] = imwarp(obj.Voxels,obj.R,affine3d(diag([-1 1 1 1])));
-            newObj = VoxelData(imOut,rOut);
+            
+            if nargout==1
+                newObj = VoxelData(imOut,rOut);
+            else
+                newObj = obj;
+                newObj.Voxels = imOut;
+                newObj.R = rOut;
+            end
             
         end
         
@@ -494,15 +512,28 @@ classdef VoxelData <handle
             savenii(obj,fullfile(outdir,[tag,'.nii']))
         end
         
-        function obj=smooth(obj,size,sd)
+        function obj_out=smooth(obj,size,sd)
              if nargin==1
-                    obj.Voxels = smooth3(obj.Voxels);
+                    v = smooth3(obj.Voxels);
              elseif nargin==2
-                 obj.Voxels = smooth3(obj.Voxels,size);
+                 v = smooth3(obj.Voxels,size);
              elseif nargin==3
-                 obj.Voxels = smooth3(obj.Voxels,size,sd);
+                 v = smooth3(obj.Voxels,size,sd);
+             end
+             
+             if nargout==1
+                 obj_out = VoxelData(v,obj.R);
+             else
+                 obj.Voxels = v;
+                 obj_out = obj;
              end
             
+        end
+        
+        function whatis(obj)
+            disp('VOXELDATA')
+            disp('---------')
+            whatis(obj.Voxels)
         end
         
     end
