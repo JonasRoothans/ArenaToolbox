@@ -28,7 +28,7 @@ classdef VoxelData <handle
             [x,y,z] = obj.R.worldToIntrinsic(0,0,0);
             spacing = [obj.R.PixelExtentInWorldX,obj.R.PixelExtentInWorldY,obj.R.PixelExtentInWorldZ];
             origin = [x y z];
-            datatype = 8;%64;
+            datatype = 16;%64;
             nii = make_nii(double(permute(obj.Voxels,[2 1 3])), spacing, origin, datatype);
             save_nii(nii,filename)
         end
@@ -389,7 +389,7 @@ classdef VoxelData <handle
             end
         end
         
-        function obj = imwarp(obj,T)
+        function newObj = imwarp(obj,T)
             if nargin ==1
                 T = affine3d(eye(4));
             end
@@ -402,8 +402,14 @@ classdef VoxelData <handle
                 end
             end
             
-            disp('Transformation is applied on voxeldata')
-            [obj.Voxels,obj.R] = imwarp(obj.Voxels,obj.R,T);
+            if nargout==0
+                disp('Transformation is applied on original object')
+                [obj.Voxels,obj.R] = imwarp(obj.Voxels,obj.R,T);
+            else
+                 disp('Transformation is applied on new object')
+                [Voxels,R] = imwarp(obj.Voxels,obj.R,T);
+                newObj = VoxelData(Voxels,R);
+            end
         end
         
         function newObj = mirror(obj)
