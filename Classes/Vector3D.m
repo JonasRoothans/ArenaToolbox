@@ -79,8 +79,13 @@ classdef Vector3D
         end
         
         function bool = eq(o1,o2)
-            bool = all(eq(o1.getArray,o2.getArray));
+            bool = [];
+            for iVector = 1:numel(o1)
+                bool(iVector) = all(eq(o1(iVector).getArray,o2.getArray));
+            end
+            
         end
+        
         
         function bool  = ne(o1,o2)
             bool = any(ne(o1.getArray,o2.getArray));
