@@ -44,7 +44,7 @@ classdef ArenaScene < handle
                 'menubar','none',...
                 'name',obj.Title,...
                 'numbertitle','off',...
-                'resize','off',...
+                'resize','on',...
                 'UserData',obj,...
                 'CloseRequestFcn',@closeScene,...
                 'WindowKeyPressFcn',@keyShortCut,...
@@ -186,6 +186,8 @@ classdef ArenaScene < handle
             obj.handles.menu.edit.smooth = uimenu(obj.handles.menu.edit.main,'Text','Smooth VoxelData','callback',{@menu_smoothVoxelData});
             obj.handles.menu.edit.seperate = uimenu(obj.handles.menu.edit.main,'Text','separate clusters','callback',{@menu_seperateClusters});
             obj.handles.menu.edit.intersectplane = uimenu(obj.handles.menu.edit.main,'Text','project to plane','callback',{@menu_intersectPlane});
+            
+            obj.handles.menu.edit.pointcloudanalysis = uimenu(obj.handles.menu.edit.main,'Text','PointCloud in mesh','callback',{@menu_pointcloudinmesh});
             
             
             obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform'); %relocated
@@ -542,12 +544,12 @@ classdef ArenaScene < handle
                                 thisScene.handles.atlas.legacy.Actor_snright.changeName('[legacy] SNright')
                                 thisScene.handles.atlas.legacy.Actor_rnright.changeName('[legacy] RNright')
                                 
-                                thisScene.handles.atlas.legacy.Actor_stnleft.changeSetting('colorFace',[0 1 0],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_snleft.changeSetting('colorFace',[1 1 0],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_rnleft.changeSetting('colorFace',[1 0 0],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_stnright.changeSetting('colorFace',[0 1 0],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_snright.changeSetting('colorFace',[1 1 0],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_rnright.changeSetting('colorFace',[1 0 0],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
+                                thisScene.handles.atlas.legacy.Actor_stnleft.changeSetting('colorFace',[0 1 0],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
+                                thisScene.handles.atlas.legacy.Actor_snleft.changeSetting('colorFace',[1 1 0],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
+                                thisScene.handles.atlas.legacy.Actor_rnleft.changeSetting('colorFace',[1 0 0],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
+                                thisScene.handles.atlas.legacy.Actor_stnright.changeSetting('colorFace',[0 1 0],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
+                                thisScene.handles.atlas.legacy.Actor_snright.changeSetting('colorFace',[1 1 0],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
+                                thisScene.handles.atlas.legacy.Actor_rnright.changeSetting('colorFace',[1 0 0],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
                                 
                                 
                                 
@@ -570,10 +572,10 @@ classdef ArenaScene < handle
                                 thisScene.handles.atlas.legacy.Actor_gpiright.changeName('[legacy] GPIright')
                                 thisScene.handles.atlas.legacy.Actor_gperight.changeName('[legacy] GPRright')
                                 
-                                thisScene.handles.atlas.legacy.Actor_gpileft.changeSetting('colorFace',[0 0 1],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_gpeleft.changeSetting('colorFace',[0 1 1],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_gpiright.changeSetting('colorFace',[0 0 1],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_gperight.changeSetting('colorFace',[0 1 1],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
+                                thisScene.handles.atlas.legacy.Actor_gpileft.changeSetting('colorFace',[0 0 1],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
+                                thisScene.handles.atlas.legacy.Actor_gpeleft.changeSetting('colorFace',[0 1 1],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
+                                thisScene.handles.atlas.legacy.Actor_gpiright.changeSetting('colorFace',[0 0 1],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
+                                thisScene.handles.atlas.legacy.Actor_gperight.changeSetting('colorFace',[0 1 1],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
                                 
                             case 'Other (LPS)'
                                 %keyboard
@@ -585,14 +587,14 @@ classdef ArenaScene < handle
                                     obj_custom = ObjFile(fullfile(legacypath,atlases{iAtlas}));
                                     obj_custom_left = obj_custom.transform(T.leftstn2mni);
                                     obj_custom_right = obj_custom.transform(T.rightstn2mni);
-                                    [scene,thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left'])] = obj_custom_left.see(thisScene);
-                                    [scene,thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right'])] = obj_custom_right.see(thisScene);
+                                    [thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left'])] = obj_custom_left.see(thisScene);
+                                    [thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right'])] = obj_custom_right.see(thisScene);
                                     
-                                    thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left']).changeName(['[legacy] atlases{iAtlas} left'])
-                                    thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right']).changeName(['[legacy] atlases{iAtlas} right'])
+                                     thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left']).changeName(['[legacy] atlases{iAtlas} left'])
+                                     thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right']).changeName(['[legacy] atlases{iAtlas} right'])
                                     
-                                    thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left']).changeSetting('colorFace',[0.5 0.5 0.5],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
-                                    thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right']).changeSetting('colorFace',[0.5 0.5 0.5],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
+                                    thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left']).changeSetting('colorFace',[0.5 0.5 0.5],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
+                                    thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right']).changeSetting('colorFace',[0.5 0.5 0.5],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
                                 end
                                 
                                 
@@ -717,7 +719,12 @@ classdef ArenaScene < handle
                     if isempty(v.Voxels)
                         return
                     end
-                    actor = v.getmesh.see(ArenaScene.getscenedata(hObject));
+                    
+                    if v.isBinary
+                        actor = v.getmesh(0.5).see(ArenaScene.getscenedata(hObject));
+                    else
+                        actor = v.getmesh.see(ArenaScene.getscenedata(hObject));
+                    end
                     actor.changeName(name)
                 end
                 
@@ -940,6 +947,95 @@ classdef ArenaScene < handle
                     thisActor.saveToFolder(outdir)
                     
                 end
+                
+                
+            end
+            
+            function menu_pointcloudinmesh(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                labels_pc = {};
+                actors_pc = {};
+                for iActor = 1:numel(scene.Actors)
+                    if isa(scene.Actors(iActor).Data,'PointCloud')
+                        labels_pc{end+1} = scene.Actors(iActor).Tag;
+                        actors_pc{end+1} = scene.Actors(iActor);
+                    end
+                end
+                
+                  labels_mesh = {};
+                  actors_mesh = {};
+                for iActor = 1:numel(scene.Actors)
+                    if isprop(scene.Actors(iActor).Data,'Vertices')
+                        labels_mesh{end+1} = scene.Actors(iActor).Tag;
+                        actors_mesh{end+1} = scene.Actors(iActor);
+                    end
+                end
+                
+                %abort?
+                if isempty(labels_pc);disp('No Pointclouds available');return;end
+                if isempty(labels_mesh);disp('No Meshes available'); return;end
+            
+                [indx_pc,tf] = listdlg('PromptString',{'Select pointclouds'},'ListString',labels_pc);
+                [indx_mesh,tf] = listdlg('PromptString',{'Select meshes'},'ListString',labels_mesh);
+                
+                results = [];
+                
+                
+                for iPC = 1:numel(indx_pc)
+                    thisPC = actors_pc{indx_pc(iPC)};
+                    coordinates = thisPC.Data.Vectors.getArray;
+                    identified = zeros(numel(thisPC.Data.Vectors),1);
+                    for iMesh = 1:numel(indx_mesh)
+                        thisMesh = actors_mesh{indx_mesh(iMesh)};
+                        
+                        fv.faces = thisMesh.Visualisation.handle.Faces;
+                        fv.vertices = thisMesh.Visualisation.handle.Vertices;
+                        
+                        answer = inpolyhedron(fv,coordinates(:,[1,2,3]),'flipnormals', true);
+                        results(iPC,iMesh) = sum(answer);
+                        
+                        
+                        identified = identified+answer; 
+                    end
+                    results(iPC,iMesh+1) = sum(not(identified));
+                end
+                
+                q_answer = questdlg('What kind of bar chart do you like?','Arena','stacked','side by side','stacked');
+                
+                if strcmp(q_answer,'stacked')
+                    f = figure;b = bar(results','stacked');
+                else
+                    f = figure;b = bar(results');
+                end
+                   
+                title('Grouped per anatomical location')
+                for iB = 1:numel(b)
+                    b(iB).FaceColor = actors_pc{indx_pc(iB)}.Visualisation.settings.colorLow;
+                end
+                
+                Xlabels = [labels_mesh(indx_mesh),{'other'}];
+                set(gca, 'XTickLabel', Xlabels)
+                legend(labels_pc(indx_pc))
+                
+                 if strcmp(q_answer,'stacked')
+                    f = figure;b = bar(results,'stacked');
+                else
+                    f = figure;b = bar(results);
+                 end
+                title('Grouped per pointcloud')
+                for iB = 1:numel(b)
+                    try
+                    b(iB).FaceColor = actors_mesh{indx_mesh(iB)}.Visualisation.settings.colorFace;
+                    catch
+                        b(iB).FaceColor = [1 1 1]
+                    end
+                end
+                
+                Xlabels = [labels_pc(indx_pc)];
+                set(gca, 'XTickLabel', Xlabels)
+                legend([labels_mesh(indx_mesh),{'other'}])
+                
+                
                 
                 
             end
@@ -1666,6 +1762,7 @@ classdef ArenaScene < handle
                 end
                 
                 delete(currentActors,scene)
+                scene.handles.contextmenu.Visible = 'off'
                 scene.refreshLayers();
             end
         

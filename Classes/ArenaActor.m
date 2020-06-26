@@ -29,38 +29,9 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             else
                 settings = NaN;
             end
-            switch class(data)
-                case 'PointCloud'
-                    obj.visualizePointCloud(settings,data,scene); %settings, data, scene
-                    obj.Tag = 'PointCloud';
-                case 'Mesh'
-                    obj.visualizeMesh(settings,data,scene); %settings, data, scene
-                    obj.Tag = 'Mesh';
-                case 'Slice'
-                    obj.visualizeSlice(settings,data,scene);
-                    obj.Tag = 'Slice';
-                case 'Slicei'
-                    obj.visualizeSlice(settings,data,scene);
-                    obj.Tag = 'Slicei';
-  
-                case 'ObjFile'
-                    obj.visualizeObjFile(settings,data,scene);
-                    obj.Tag = 'ObjFile';
-                case 'VectorCloud'
-                    obj.visualizeVectorCloud(settings,data,scene);
-                    obj.Tag = 'VectorCloud';
-                case 'Electrode'
-                    obj.visualizeElectrode(settings,data,scene);
-                    obj.Tag = 'Electrode';
-                case 'Fibers'
-                    obj.visualizeFibers(settings,data,scene);
-                    obj.Tag = 'Fibers';
-                case 'Contour'
-                    obj.visualizeContour(settings,data,scene);
-                    obj.Tag = 'Contour';
-                otherwise
-                    keyboard
-            end
+            
+            visualize(obj,settings,data,scene)
+            obj.Tag = class(data);
             
         end
         
@@ -351,15 +322,15 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     
                     
                     handle(end+1) = patch('Faces',body.Faces,'Vertices',body.Vertices,'FaceColor',settings.color1 ,'EdgeColor','none','Clipping',0,'SpecularStrength',0,'FaceAlpha',settings.opacity/100);
-                    handle(end).FaceLighting = 'gouraud';
+                    %handle(end).FaceLighting = 'gouraud';
                     handle(end+1) = patch('Faces',c0.Faces,'Vertices',c0.Vertices,'FaceColor',settings.color2,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
-                    handle(end).FaceLighting = 'gouraud';
+                    %handle(end).FaceLighting = 'gouraud';
                     handle(end+1) = patch('Faces',c1.Faces,'Vertices',c1.Vertices,'FaceColor',settings.color2,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
-                    handle(end).FaceLighting = 'gouraud';
+                    %handle(end).FaceLighting = 'gouraud';
                     handle(end+1) = patch('Faces',c2.Faces,'Vertices',c2.Vertices,'FaceColor',settings.color2,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
-                    handle(end).FaceLighting = 'gouraud';
+                    %handle(end).FaceLighting = 'gouraud';
                     handle(end+1) = patch('Faces',c3.Faces,'Vertices',c3.Vertices,'FaceColor',settings.color2,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
-                    handle(end).FaceLighting = 'gouraud';
+                    %handle(end).FaceLighting = 'gouraud';
                     
                 end
                 
@@ -581,20 +552,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 delete(obj.Visualisation.handle);
             end
             
-            switch class(obj.Data)
-                case 'PointCloud'
-                    visualizePointCloud(obj,obj.Visualisation.settings,obj.Data,obj.Scene)
-                case 'Mesh'
-                    visualizeMesh(obj,obj.Visualisation.settings,obj.Data,obj.Scene)
-                case 'ObjFile'
-                    visualizeObjFile(obj,obj.Visualisation.settings,obj.Data,obj.Scene)
-                case 'Electrode'
-                    visualizeElectrode(obj,obj.Visualisation.settings,obj.Data,obj.Scene)
-                case 'Contour'
-                    visualizeContour(obj,obj.Visualisation.settings,obj.Data,obj.Scene)
-                otherwise
-                    keyboard
-            end
+            visualize(obj,obj.Visualisation.settings,obj.Data,obj.Scene)
         end
         
         function updateCC(obj,scene)
@@ -675,25 +633,31 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 end
             end
             
-            switch class(obj.Data)
+            
+            visualize(obj,settings,obj.Data,scene);
+            
+        end
+        
+        function settings = visualize(obj,settings,data,scene)
+            switch class(data)
                 case 'PointCloud'
-                    visualizePointCloud(obj,settings,obj.Data,scene)
+                    settings = visualizePointCloud(obj,settings,data,scene);
                 case 'Mesh'
-                    visualizeMesh(obj,settings,obj.Data,scene)
+                    settings = visualizeMesh(obj,settings,data,scene);
                 case 'ObjFile'
-                    visualizeObjFile(obj,settings,obj.Data,scene)
+                    settings = visualizeObjFile(obj,settings,data,scene);
                 case 'VectorCloud'
-                    visualizeVectorCloud(obj,settings,obj.Data,scene)
+                    settings = visualizeVectorCloud(obj,settings,data,scene);
                 case 'Slice'
-                    visualizeSlice(obj,settings,obj.Data,scene)
+                    settings = visualizeSlice(obj,settings,data,scene);
                 case 'Electrode'
-                    visualizeElectrode(obj,settings,obj.Data,scene)
+                    settings = visualizeElectrode(obj,settings,data,scene);
                 case 'Slicei'
-                    visualizeSlice(obj,settings,obj.Data,scene)
+                    settings = visualizeSlice(obj,settings,data,scene);
                 case 'Fibers'
-                    visualizeFibers(obj,settings,obj.Data,scene)
+                    settings = visualizeFibers(obj,settings,data,scene);
                 case 'Contour'
-                    visualizeContour(obj,settings,obj.Data,scene)
+                    settings = visualizeContour(obj,settings,data,scene);
                 otherwise
                     keyboard
             end
