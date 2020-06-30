@@ -134,6 +134,17 @@ classdef Vector3D
         end
         
         %-- vector operations
+        
+        function out = lps2ras(o1)
+            out = o1;
+            out.x = -out.x;
+            out.y = -out.y;
+        end
+        function out = ras2lps(o1)
+            out = lps2ras(o1); %identical trick.
+        end
+        
+        
         function out = cross(o1,o2)
             out = Vector3D(cross(o1.getArray,o2.getArray));
         end
