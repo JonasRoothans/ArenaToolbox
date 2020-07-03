@@ -134,6 +134,7 @@ end
                 hfig.UserData.handles.panelright.Value=i;
                 hfig.UserData.Actors(i).updateCC(hfig.UserData)
                 disp(hfig.UserData.Actors(i).Tag)
+                hfig.UserData.updateMenu()
             end
                 
         end

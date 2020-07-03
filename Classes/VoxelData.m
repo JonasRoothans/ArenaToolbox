@@ -416,6 +416,8 @@ classdef VoxelData <handle
                 end
             end
             
+            obj.Voxels(isnan(obj.Voxels))= 0;
+            
             if nargout==0
                 disp('Transformation is applied on original object')
                 [obj.Voxels,obj.R] = imwarp(obj.Voxels,obj.R,T);

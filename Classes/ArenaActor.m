@@ -558,6 +558,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         function updateCC(obj,scene)
             settings = obj.Visualisation.settings;
             scene.clearconfigcontrols()
+            
             switch class(obj.Data)
                 case 'PointCloud'
                     scene.newconfigcontrol(obj,'color',{settings.colorLow, settings.colorHigh},{'colorLow','colorHigh'});
@@ -613,6 +614,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 otherwise
                     keyboard
             end
+           
         end
         
         function updateActor(obj,scene,settings)
