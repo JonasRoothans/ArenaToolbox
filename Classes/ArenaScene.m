@@ -170,13 +170,13 @@ classdef ArenaScene < handle
             
             
             obj.handles.menu.edit.main = uimenu(obj.handles.figure,'Text','Edit');
-            obj.handles.menu.edit.count.main = uimenu(obj.handles.menu.edit.main,'Text','count overlap');
-            obj.handles.menu.edit.count.toMesh = uimenu(obj.handles.menu.edit.count.main,'Text','as mesh','callback',{@menu_edit_count2mesh});
-            obj.handles.menu.edit.count.toPlane = uimenu(obj.handles.menu.edit.count.main,'Text','as plane','callback',{@menu_edit_count2plane});
-            obj.handles.menu.edit.add.main = uimenu(obj.handles.menu.edit.main,'Text','sum voxelvalues');
-            obj.handles.menu.edit.add.toMesh = uimenu(obj.handles.menu.edit.add.main,'Text','as mesh','callback',{@menu_edit_add2mesh});
-            obj.handles.menu.edit.add.toPlane = uimenu(obj.handles.menu.edit.add.main,'Text','as plane','callback',{@menu_edit_add2plane});
-            obj.handles.menu.edit.getinfo.main = uimenu(obj.handles.menu.edit.main,'Text','get info','callback',{@menu_getinfo});
+%            obj.handles.menu.edit.count.main = uimenu(obj.handles.menu.edit.main,'Text','count overlap');
+%             obj.handles.menu.edit.count.toMesh = uimenu(obj.handles.menu.edit.count.main,'Text','as mesh','callback',{@menu_edit_count2mesh});
+%             obj.handles.menu.edit.count.toPlane = uimenu(obj.handles.menu.edit.count.main,'Text','as plane','callback',{@menu_edit_count2plane});
+%            obj.handles.menu.edit.add.main = uimenu(obj.handles.menu.edit.main,'Text','sum voxelvalues');
+%             obj.handles.menu.edit.add.toMesh = uimenu(obj.handles.menu.edit.add.main,'Text','as mesh','callback',{@menu_edit_add2mesh});
+%             obj.handles.menu.edit.add.toPlane = uimenu(obj.handles.menu.edit.add.main,'Text','as plane','callback',{@menu_edit_add2plane});
+             obj.handles.menu.edit.getinfo.main = uimenu(obj.handles.menu.edit.main,'Text','get info','callback',{@menu_getinfo});
             obj.handles.menu.edit.analysis.main = uimenu(obj.handles.menu.edit.main,'Text','Analyse selection');
             obj.handles.menu.edit.analysis.dice = uimenu(obj.handles.menu.edit.analysis.main,'Text','Similarity of binary data (dice)','callback',{@menu_dice});
             obj.handles.menu.edit.analysis.densitydistribution = uimenu(obj.handles.menu.edit.analysis.main,'Text','Density distribution (FWHM)','callback',{@menu_fwhm});
@@ -186,15 +186,28 @@ classdef ArenaScene < handle
             obj.handles.menu.edit.smooth = uimenu(obj.handles.menu.edit.main,'Text','Smooth VoxelData','callback',{@menu_smoothVoxelData});
             obj.handles.menu.edit.seperate = uimenu(obj.handles.menu.edit.main,'Text','separate clusters','callback',{@menu_seperateClusters});
             obj.handles.menu.edit.intersectplane = uimenu(obj.handles.menu.edit.main,'Text','project to plane','callback',{@menu_intersectPlane});
-            
-            obj.handles.menu.edit.pointcloudanalysis = uimenu(obj.handles.menu.edit.main,'Text','PointCloud in mesh','callback',{@menu_pointcloudinmesh});
+            %obj.handles.menu.edit.pointclouddistribution = uimenu(obj.handles.menu.edit.main,'Text','pointcloud distribution','callback',{@menu_pcDistribution});
+            %obj.handles.menu.edit.pointcloudanalysis = uimenu(obj.handles.menu.edit.main,'Text','PointCloud in mesh','callback',{@menu_pointcloudinmesh});
             
             
             obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform'); %relocated
             obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
             obj.handles.menu.transform.selectedlayer.lps2ras = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','LPS <> RAS','callback',{@menu_lps2ras});
-            obj.handles.menu.transforn.selectedlayer.mirror = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','mirror (makes copy)','callback',{@menu_mirror});
-            obj.handles.menu.transforn.selectedlayer.yeb2mni = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','Legacy --> MNI','callback',{@menu_Fake2MNI});
+            obj.handles.menu.transform.selectedlayer.mirror = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','mirror (makes copy)','callback',{@menu_mirror});
+            obj.handles.menu.transform.selectedlayer.yeb2mni = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','Legacy --> MNI','callback',{@menu_Fake2MNI});
+            
+            
+            %-- dynamic
+            obj.handles.menu.dynamic.main  = uimenu(obj.handles.figure,'Text','...');
+            obj.handles.menu.dynamic.PointCloud.distribution = uimenu(obj.handles.menu.dynamic.main,'Text','show distribution','callback',{@menu_pcDistribution},'Visible','off');
+            obj.handles.menu.dynamic.PointCloud.inMesh = uimenu(obj.handles.menu.dynamic.main,'Text','is a point inside a mesh?','callback',{@menu_pointcloudinmesh},'Visible','off');
+            
+            obj.handles.menu.dynamic.Mesh.count2mesh  = uimenu(obj.handles.menu.dynamic.main,'Text','count overlap and show as mesh','callback',{@menu_edit_count2mesh},'Visible','off');
+            obj.handles.menu.dynamic.Mesh.count2plane = uimenu(obj.handles.menu.dynamic.main,'Text','count overlap and show as plane','callback',{@menu_edit_count2plane},'Visible','off');
+            obj.handles.menu.dynamic.Mesh.add2mesh = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as mesh','callback',{@menu_edit_add2mesh},'Visible','off');
+            obj.handles.menu.dynamic.Mesh.add2plane = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as plane','callback',{@menu_edit_add2plane},'Visible','off');
+            obj.handles.menu.dynamic.Mesh.getinfo = uimenu(obj.handles.menu.dynamic.main,'Text','get info','callback',{@menu_getinfo});
+            
             
             
             %obj.handles.cameratoolbar = cameratoolbar(obj.handles.figure,'Show');
@@ -1035,7 +1048,49 @@ classdef ArenaScene < handle
                 set(gca, 'XTickLabel', Xlabels)
                 legend([labels_mesh(indx_mesh),{'other'}])
                 
+            end
+            
+            function menu_pcDistribution(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
                 
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    switch class(thisActor.Data)
+                        case 'PointCloud'
+                            
+                            %--cog
+                            thisActor.Data.getCOG;
+                            cog_actor = PointCloud(thisActor.Data.getCOG).see(scene);
+                            cog_actor.changeSetting('colorLow', thisActor.Visualisation.settings.colorLow,'thickness',500);
+                            cog_actor.changeName(['middle of ',cog_actor.Tag]);
+                            
+                           %--distribution
+                           
+                           
+                           std_ = Vector3D(std(thisActor.Data.Vectors.getArray));
+                            [ex,ey,ez] = ellipsoid(thisActor.Data.getCOG.x,...
+                                thisActor.Data.getCOG.y,...
+                                thisActor.Data.getCOG.z,...
+                                std_.x,...
+                                std_.y,...
+                                std_.z,...
+                                30);
+
+                            temp = surf(ex,ey,ez);
+                            temp2 = surf2patch(temp);
+                            delete(temp);
+
+                            dist = Mesh(temp2.faces,temp2.vertices).see(scene);
+                            dist.changeSetting('colorFace',thisActor.Visualisation.settings.colorLow,'faceOpacity',20);
+                            dist.changeName(['spread (1 std) of ',cog_actor.Tag]);
+                           
+                           
+                        otherwise
+                            disp([thisActor.Tag,' is not a pointcloud but a ',class(thisActor.Data)])
+                           
+                    end
+                end
                 
                 
             end
@@ -1556,6 +1611,7 @@ classdef ArenaScene < handle
               
                 
                 currentActor(1).updateCC(scene);
+                scene.updateMenu()
                 
             end
             
@@ -1847,12 +1903,39 @@ classdef ArenaScene < handle
             end
             
             obj.selectlayer()
+            obj.updateMenu()
             drawnow()
             
 
           
         end
         
+        function updateMenu(obj)
+            thisclass = class(obj.Actors(obj.handles.panelright.Value).Data);
+            obj.handles.menu.dynamic.main.Text = ['--> ',thisclass];
+            
+            otherclasses = fieldnames(obj.handles.menu.dynamic);
+            for iOther = 1:numel(otherclasses)
+                thisOtherClass = otherclasses{iOther};
+                switch thisOtherClass
+                    case 'main'
+                        continue
+                    case thisclass
+                        functions = fieldnames(obj.handles.menu.dynamic.(thisOtherClass));
+                        for iFunction = 1:numel(functions)
+                            thisFunction = functions{iFunction};
+                            obj.handles.menu.dynamic.(thisOtherClass).(thisFunction).Visible = 'on';
+                        end
+                    otherwise
+                        functions = fieldnames(obj.handles.menu.dynamic.(thisOtherClass));
+                        for iFunction = 1:numel(functions)
+                            thisFunction = functions{iFunction};
+                            obj.handles.menu.dynamic.(thisOtherClass).(thisFunction).Visible = 'off';
+                        end
+                end
+            end
+
+        end
         
         
         function selectlayer(obj,index)
@@ -1870,8 +1953,6 @@ classdef ArenaScene < handle
                         keyboard
                 end
             end
-            
-            
             
             %update the right box
             obj.handles.panelright.Value = index;
