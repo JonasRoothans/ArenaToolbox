@@ -850,8 +850,8 @@ classdef ArenaScene < handle
                         original_camva = camva;
                         original_up = camup;
                         
-                        end_pos = [0 0 1000];
-                        end_target = [0 0 0];
+                        end_pos = [0 0 norm(original_pos-original_target)]; %[0 0 1000];
+                        end_target = original_target;%[0 0 0];
                         end_up = [0 1 0];
                         end_camva = 20;
                         
@@ -881,8 +881,8 @@ classdef ArenaScene < handle
                          frontorback = sign(original_pos);
                         frontorback(frontorback==0) = 1;
                         
-                        end_pos = [0 1000 0].*frontorback;
-                        end_target = [0 0 0];
+                        end_pos = [0 norm(original_pos-original_target) 0].*frontorback;
+                        end_target = original_target;%[0 0 0];
                         end_up = [0 0 1];
                         end_camva = 20;
                         
@@ -911,8 +911,8 @@ classdef ArenaScene < handle
                         leftorright = sign(original_pos);
                         leftorright(leftorright==0) = 1;
                         
-                        end_pos = [1000 0 0].*leftorright;
-                        end_target = [0 0 0];
+                        end_pos = [norm(original_pos-original_target) 0 0].*leftorright;
+                        end_target = original_target;%[0 0 0];
                         end_up = [0 0 1];
                         %end_camva = 20;
                         
@@ -1084,6 +1084,14 @@ classdef ArenaScene < handle
                             dist = Mesh(temp2.faces,temp2.vertices).see(scene);
                             dist.changeSetting('colorFace',thisActor.Visualisation.settings.colorLow,'faceOpacity',20);
                             dist.changeName(['spread (1 std) of ',cog_actor.Tag]);
+                            
+                            disp('---')
+                            disp(['COG of ',thisActor.Tag])
+                            disp(thisActor.Data.getCOG)
+                            
+                            disp(['1 std of ',thisActor.Tag])
+                            disp(std_)
+                            
                            
                            
                         otherwise
@@ -1911,7 +1919,7 @@ classdef ArenaScene < handle
         end
         
         function updateMenu(obj)
-            thisclass = class(obj.Actors(obj.handles.panelright.Value).Data);
+            thisclass = class(obj.Actors(obj.handles.panelright.Value(1)).Data);
             obj.handles.menu.dynamic.main.Text = ['--> ',thisclass];
             
             otherclasses = fieldnames(obj.handles.menu.dynamic);
