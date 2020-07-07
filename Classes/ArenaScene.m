@@ -204,8 +204,8 @@ classdef ArenaScene < handle
             
             obj.handles.menu.dynamic.Mesh.count2mesh  = uimenu(obj.handles.menu.dynamic.main,'Text','count overlap and show as mesh','callback',{@menu_edit_count2mesh},'Visible','off');
             obj.handles.menu.dynamic.Mesh.count2plane = uimenu(obj.handles.menu.dynamic.main,'Text','count overlap and show as plane','callback',{@menu_edit_count2plane},'Visible','off');
-            obj.handles.menu.dynamic.Mesh.add2mesh = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as mesh','callback',{@menu_edit_add2mesh},'Visible','off');
-            obj.handles.menu.dynamic.Mesh.add2plane = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as plane','callback',{@menu_edit_add2plane},'Visible','off');
+            %obj.handles.menu.dynamic.Mesh.add2mesh = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as mesh','callback',{@menu_edit_add2mesh},'Visible','off');
+            %obj.handles.menu.dynamic.Mesh.add2plane = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as plane','callback',{@menu_edit_add2plane},'Visible','off');
             obj.handles.menu.dynamic.Mesh.getinfo = uimenu(obj.handles.menu.dynamic.main,'Text','get info','callback',{@menu_getinfo});
             
             
@@ -296,12 +296,12 @@ classdef ArenaScene < handle
             
             function menu_cameratoolbar(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
-                switch scene.handles.cameratoolbar.Visible
+                switch scene.handles.cameratoolbar.main.Visible
                     case 'on'
-                        scene.handles.cameratoolbar.Visible = 'off';
+                        scene.handles.cameratoolbar.main.Visible = 'off';
                         hObject.Checked = 'off';
                     case 'off'
-                        scene.handles.cameratoolbar.Visible = 'on';
+                        scene.handles.cameratoolbar.main.Visible = 'on';
                         hObject.Checked = 'on';
                 end
             end
@@ -850,8 +850,8 @@ classdef ArenaScene < handle
                         original_camva = camva;
                         original_up = camup;
                         
-                        end_pos = [0 0 1000];
-                        end_target = [0 0 0];
+                        end_pos = [0 0 norm(original_pos-original_target)]; %[0 0 1000];
+                        end_target = original_target;%[0 0 0];
                         end_up = [0 1 0];
                         end_camva = 20;
                         
@@ -881,8 +881,8 @@ classdef ArenaScene < handle
                          frontorback = sign(original_pos);
                         frontorback(frontorback==0) = 1;
                         
-                        end_pos = [0 1000 0].*frontorback;
-                        end_target = [0 0 0];
+                        end_pos = [0 norm(original_pos-original_target) 0].*frontorback;
+                        end_target = original_target;%[0 0 0];
                         end_up = [0 0 1];
                         end_camva = 20;
                         
@@ -911,8 +911,8 @@ classdef ArenaScene < handle
                         leftorright = sign(original_pos);
                         leftorright(leftorright==0) = 1;
                         
-                        end_pos = [1000 0 0].*leftorright;
-                        end_target = [0 0 0];
+                        end_pos = [norm(original_pos-original_target) 0 0].*leftorright;
+                        end_target = original_target;%[0 0 0];
                         end_up = [0 0 1];
                         %end_camva = 20;
                         
@@ -1084,6 +1084,14 @@ classdef ArenaScene < handle
                             dist = Mesh(temp2.faces,temp2.vertices).see(scene);
                             dist.changeSetting('colorFace',thisActor.Visualisation.settings.colorLow,'faceOpacity',20);
                             dist.changeName(['spread (1 std) of ',cog_actor.Tag]);
+                            
+                            disp('---')
+                            disp(['COG of ',thisActor.Tag])
+                            disp(thisActor.Data.getCOG)
+                            
+                            disp(['1 std of ',thisActor.Tag])
+                            disp(std_)
+                            
                            
                            
                         otherwise
@@ -1911,7 +1919,7 @@ classdef ArenaScene < handle
         end
         
         function updateMenu(obj)
-            thisclass = class(obj.Actors(obj.handles.panelright.Value).Data);
+            thisclass = class(obj.Actors(obj.handles.panelright.Value(1)).Data);
             obj.handles.menu.dynamic.main.Text = ['--> ',thisclass];
             
             otherclasses = fieldnames(obj.handles.menu.dynamic);
