@@ -204,8 +204,8 @@ classdef ArenaScene < handle
             
             obj.handles.menu.dynamic.Mesh.count2mesh  = uimenu(obj.handles.menu.dynamic.main,'Text','count overlap and show as mesh','callback',{@menu_edit_count2mesh},'Visible','off');
             obj.handles.menu.dynamic.Mesh.count2plane = uimenu(obj.handles.menu.dynamic.main,'Text','count overlap and show as plane','callback',{@menu_edit_count2plane},'Visible','off');
-            obj.handles.menu.dynamic.Mesh.add2mesh = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as mesh','callback',{@menu_edit_add2mesh},'Visible','off');
-            obj.handles.menu.dynamic.Mesh.add2plane = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as plane','callback',{@menu_edit_add2plane},'Visible','off');
+            %obj.handles.menu.dynamic.Mesh.add2mesh = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as mesh','callback',{@menu_edit_add2mesh},'Visible','off');
+            %obj.handles.menu.dynamic.Mesh.add2plane = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as plane','callback',{@menu_edit_add2plane},'Visible','off');
             obj.handles.menu.dynamic.Mesh.getinfo = uimenu(obj.handles.menu.dynamic.main,'Text','get info','callback',{@menu_getinfo});
             
             
@@ -296,12 +296,12 @@ classdef ArenaScene < handle
             
             function menu_cameratoolbar(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
-                switch scene.handles.cameratoolbar.Visible
+                switch scene.handles.cameratoolbar.main.Visible
                     case 'on'
-                        scene.handles.cameratoolbar.Visible = 'off';
+                        scene.handles.cameratoolbar.main.Visible = 'off';
                         hObject.Checked = 'off';
                     case 'off'
-                        scene.handles.cameratoolbar.Visible = 'on';
+                        scene.handles.cameratoolbar.main.Visible = 'on';
                         hObject.Checked = 'on';
                 end
             end
