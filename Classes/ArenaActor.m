@@ -818,9 +818,13 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         function set.Visible(obj,value)
             obj.Visible = value;
             if value
-                obj.Visualisation.handle.Visible = 'on';
+                for iHandle = 1:numel(obj.Visualisation.handle)
+                    obj.Visualisation.handle(iHandle).Visible = 'on';
+                end
             else
-                obj.Visualisation.handle.Visible = 'off';
+                for iHandle = 1:numel(obj.Visualisation.handle)
+                    obj.Visualisation.handle(iHandle).Visible = 'off';
+                end
             end
         
         end
