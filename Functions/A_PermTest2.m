@@ -84,8 +84,8 @@ for iP = 1:p
     end
 end
 
-pValue = sum(tslist>test_statistic) / p;
-signedP = (1-pValue) * p_sign;
+pValue = sum(tslist>test_statistic) / p
+signedP = (1-pValue) * p_sign
 if verbose
     disp(['precision: ',num2str(1/p)])
     switch discriminative_statistic
