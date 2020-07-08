@@ -264,7 +264,7 @@ classdef ArenaScene < handle
                 h.XArrow = mArrow3([0 0 0],[3 0 0], 'facealpha', 0.5, 'color', 'red', 'stemWidth', 0.06,'Visible','off','Clipping','off');
                 h.YArrow = mArrow3([0 0 0],[0 3 0], 'facealpha', 0.5, 'color', 'green', 'stemWidth', 0.06,'Visible','off','Clipping','off');
                 h.ZArrow = mArrow3([0 0 0],[0 0 3], 'facealpha', 0.5, 'color', 'blue', 'stemWidth', 0.06,'Visible','off','Clipping','off');
-                h.AC = text(-0.5,-0.5,-0.5,'MNI origin','Visible','off');
+                h.AC = text(-0.5,-0.5,-0.5,'MCP','Visible','off');
                 h.R = text(4,0,0,'R','Visible','off');
                 h.A = text(0,4,0,'A','Visible','off');
                 h.S = text(0,0,4,'S','Visible','off');
@@ -422,7 +422,6 @@ classdef ArenaScene < handle
                     thisActor.changeName(newname)
                 end
             end
-            
             
             
             function menu_mirror(hObject,eventdata)
@@ -2213,11 +2212,7 @@ classdef ArenaScene < handle
         end
         
         function clearconfigcontrols(obj)
-            try
-                 delete(obj.handles.configcontrols);
-            catch
-                disp('seems like handle was already deleted')
-            end
+            delete(obj.handles.configcontrols);
             obj.handles.configcontrols = [];
             obj.configcontrolpos = 0;
             

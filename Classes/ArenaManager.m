@@ -25,8 +25,7 @@ classdef ArenaManager < handle
                         [filename,pathname] = uigetfile('*.scn');
                         loaded = load(fullfile(pathname,filename),'-mat');
                         thisScene = loaded.Scene;
-                         obj.Scenes(end+1) = thisScene;
-                        
+                        keyboard
                     case 'New scene'
                         [thisScene] = obj.new();
 

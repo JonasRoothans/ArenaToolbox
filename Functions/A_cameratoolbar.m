@@ -26,10 +26,6 @@ h_toolbar.screenshot=uitoggletool(h_toolbar.main, 'CData', A_loadicon('screensho
     'TooltipString', 'Screenshot', 'OnCallback', {@A_toolbar_screenshot,'on'},...
     'OffCallback', {@A_toolbar_screenshot,'off'}, 'State', 'off','Separator','on');
 
-h_toolbar.origin=uitoggletool(h_toolbar.main, 'CData', A_loadicon('origin','gray'),...
-    'TooltipString', 'show origin widget', 'OnCallback', {@A_toolbar_widget,'on'},...
-    'OffCallback', {@A_toolbar_widget,'off'}, 'State', 'off','Separator','on');
-
 
 
 camva(figurehandle.CurrentAxes,'manual')
@@ -41,30 +37,6 @@ A_mouse_camera(figurehandle);
 
 end
 
-function A_toolbar_widget(hObject,~, cmd)
-thisScene = ArenaScene.getscenedata(hObject);
-toolbar = thisScene.handles.cameratoolbar;
-cs_handle = thisScene.handles.widgets.coordinatesystem;
-
-switch hObject.State
-    case 'on'
-        toolbar.origin.CData = A_loadicon('origin','gray');
-        fields=fieldnames(cs_handle);
-                        for i = 1:numel(fields)
-                            cs_handle.(fields{i}).Visible = 'off';
-                        end
-        hObject.State = 'off';
-    case 'off'
-        toolbar.origin.CData = A_loadicon('origin');
-        fields=fieldnames(cs_handle);
-                        for i = 1:numel(fields)
-                            cs_handle.(fields{i}).Visible = 'on';
-                        end
-        hObject.State = 'on';
-end
-
-
-end
 
 function A_toolbar_rotate(hObject,~,cmd)
 scene = ArenaScene.getscenedata(hObject);
@@ -132,7 +104,7 @@ scene.handles.btn_layeroptions.Visible = 'off';
 
 
 print(figure,fullfile(pn,fn),'-dpng','-r300');
-%makeLegend(scene.handles.panelright.String)
+makeLegend(scene.handles.panelright.String)
 
 scene.handles.panelleft.Visible = 'on';
 scene.handles.panelright.Visible = 'on';
@@ -179,8 +151,6 @@ switch type
          icon = imread('pan.jpg');
     case 'screenshot'
         icon = imread('screenshot.jpg');
-    case 'origin'
-        icon = imread('origin.jpg');
 end
 if nargin==2
 switch mode
