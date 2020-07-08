@@ -162,6 +162,7 @@ classdef ArenaScene < handle
             obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','axial plane','callback',{@menu_orthogonal});
             obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','sagittal plane','callback',{@menu_orthogonal});
             obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','coronal plane','callback',{@menu_orthogonal});
+            obj.handles.menu.show.camWiggle.main = uimenu(obj.handles.menu.show.main,'Text','wiggle','callback',{@menu_wiggle});
             
             obj.handles.menu.show.lights.main = uimenu(obj.handles.menu.show.main,'Text','lights');
             obj.handles.menu.show.lights.visible = uimenu(obj.handles.menu.show.lights.main,'Text','visible','callback',{@menu_showLight},'Checked','on');
@@ -387,6 +388,7 @@ classdef ArenaScene < handle
                     thisActor.changeName(newname)
                 end
             end
+            
             
             
             function menu_mirror(hObject,eventdata)
@@ -839,6 +841,70 @@ classdef ArenaScene < handle
             
             function menu_camTargetOrigin(hObject,eventdata)
                 easeCamera([], [0 0 0]) %pos, target  
+            end
+            
+            function menu_wiggle(hObject,eventdata)
+                
+                scene = ArenaScene.getscenedata(hObject);
+                 original_pos = campos;
+                 original_target = camtarget;
+                 original_up = camup;
+                 
+                 eyeline = original_target- original_pos;
+                 distance = norm(eyeline);
+                 side = cross(Vector3D(eyeline).unit,Vector3D(original_up).unit);
+                 updown = original_up;
+                 
+                 %current status
+                 pleft = scene.handles.panelleft.Visible;
+                 pright = scene.handles.panelright.Visible;
+                 tleft = scene.handles.btn_toggleleft.Visible;
+                 tright = scene.handles.btn_toggleright.Visible;
+                 layeroptions = scene.handles.btn_layeroptions.Visible;
+                 
+                 
+                 
+               %hide panels  
+                scene.handles.panelleft.Visible = 'off';
+                scene.handles.panelright.Visible = 'off';
+                scene.handles.btn_toggleleft.Visible = 'off';
+                scene.handles.btn_toggleright.Visible = 'off';
+                scene.handles.btn_layeroptions.Visible = 'off';
+                 
+                 %make mp4 object:
+                 
+                 [filename,pathname] = uiputfile([scene.Title,'.mp4'],'export wiggle video');
+                 outputVideo = VideoWriter( fullfile(pathname,filename), 'MPEG-4');
+                outputVideo.FrameRate = 30;
+                open(outputVideo);
+                 
+                imstorage = {};
+                 for deg = 1:10:360
+                     campos(original_pos + side.getArray' * cos(deg2rad(deg))*distance/20 + sin(deg2rad(deg))*updown*distance/20)
+                     drawnow
+                     frame = getframe(scene.handles.figure);
+                     imstorage{end+1} = frame2im(frame);
+                 end
+                 
+                 for loop = 1:5
+                     for frame = 1:numel(imstorage)
+                        writeVideo(outputVideo,imstorage{frame});
+                     end
+                 end
+                 
+                 campos(original_pos);
+                 close(outputVideo);
+                 
+                 %show panels again
+                 scene.handles.panelleft.Visible = pleft;
+                    scene.handles.panelright.Visible = pright;
+                    scene.handles.btn_toggleleft.Visible = 'on';
+                    scene.handles.btn_toggleright.Visible = 'on';
+                    scene.handles.btn_layeroptions.Visible = layeroptions;
+                 
+                 
+      
+                 
             end
             
             function menu_orthogonal(hObject,eventdata)
