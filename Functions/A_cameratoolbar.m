@@ -104,7 +104,7 @@ scene.handles.btn_layeroptions.Visible = 'off';
 
 
 print(figure,fullfile(pn,fn),'-dpng','-r300');
-%makeLegend(scene.handles.panelright.String)
+makeLegend(scene.handles.panelright.String)
 
 scene.handles.panelleft.Visible = 'on';
 scene.handles.panelright.Visible = 'on';
