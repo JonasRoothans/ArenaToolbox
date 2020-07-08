@@ -2054,7 +2054,11 @@ classdef ArenaScene < handle
         end
         
         function clearconfigcontrols(obj)
-            delete(obj.handles.configcontrols);
+            try
+                 delete(obj.handles.configcontrols);
+            catch
+                disp('seems like handle was already deleted')
+            end
             obj.handles.configcontrols = [];
             obj.configcontrolpos = 0;
             
