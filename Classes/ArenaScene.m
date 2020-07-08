@@ -117,7 +117,7 @@ classdef ArenaScene < handle
             obj.handles.menu.file.newscene.main = uimenu(obj.handles.menu.file.main,'Text','New empty scene','callback',{@menu_newscene});
             obj.handles.menu.file.savesceneas.main = uimenu(obj.handles.menu.file.main,'Text','Save scene as','callback',{@menu_savesceneas});
             obj.handles.menu.file.savescene.main = uimenu(obj.handles.menu.file.main,'Text','Save scene','callback',{@menu_savescene});
-            obj.handles.menu.file.import.main = uimenu(obj.handles.menu.file.main,'Text','Import actor','callback',{@menu_importAnything},'Enable','off','Separator','on');
+            obj.handles.menu.file.import.main = uimenu(obj.handles.menu.file.main,'Text','Import actor','callback',{@menu_importAnything},'Enable','on','Separator','on');
             %obj.handles.menu.file.importscene.main = uimenu(obj.handles.menu.file.main,'Text','Import scene','callback',{@menu_importscene});
             obj.handles.menu.file.export.main = uimenu(obj.handles.menu.file.main,'Text','Export');
             obj.handles.menu.file.export.wiggle = uimenu(obj.handles.menu.file.export.main,'Text','wiggle (*.mp4)','callback',{@menu_wiggle});
@@ -128,6 +128,26 @@ classdef ArenaScene < handle
             
             obj.handles.menu.view.main = uimenu(obj.handles.figure,'Text','View');
             obj.handles.menu.view.camera.main = uimenu(obj.handles.menu.view.main,'Text','Camera');
+            obj.handles.menu.view.camera.focus.main = uimenu(obj.handles.menu.view.camera.main,'Text','Focus on');
+            
+            obj.handles.menu.view.camera.focus.actor = uimenu( obj.handles.menu.view.camera.focus.main,'Text','Selection [.]','callback',{@menu_camTargetActor});
+            obj.handles.menu.view.camera.focus.origin = uimenu( obj.handles.menu.view.camera.focus.main,'Text','Origin [o]','callback',{@menu_camTargetOrigin});
+            
+            
+            obj.handles.menu.view.camera.orthogonal.main = uimenu(obj.handles.menu.view.camera.main,'Text','Orthogonal');
+             obj.handles.menu.view.camera.orthogonal.axial = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Axial [1]','callback',{@menu_orthogonal});
+             obj.handles.menu.view.camera.orthogonal.sagittal = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Sagittal [2]','callback',{@menu_orthogonal});
+             obj.handles.menu.view.camera.orthogonal.coronal = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Coronal [3]','callback',{@menu_orthogonal});
+             
+             obj.handles.menu.view.camera.multi.cameralist = {};
+             obj.handles.menu.view.camera.multi.currentcam = 1;
+             obj.handles.menu.view.camera.multi.main = uimenu(obj.handles.menu.view.camera.main,'Text','Multi');
+            % obj.handles.menu.view.camera.multi.show = uimenu(obj.handles.menu.view.camera.multi.main,'Text','Show icons','Checked','on');
+             obj.handles.menu.view.camera.multi.new = uimenu(obj.handles.menu.view.camera.multi.main,'Text','New Camera','callback',{@menu_camera_new});
+             obj.handles.menu.view.camera.multi.cam{1} = uimenu(obj.handles.menu.view.camera.multi.main,'Text','1','Checked','on','Separator','on','callback',{@menu_camera_switch});
+             
+            
+            
             obj.handles.menu.view.lights.main = uimenu(obj.handles.menu.view.main,'Text','Lights');
             obj.handles.menu.view.flat.main = uimenu(obj.handles.menu.view.main,'Text','2D','Separator','on','callback',{@menu_intersectPlane});
             obj.handles.menu.view.bgcolor.main = uimenu(obj.handles.menu.view.main,'Text','background color');
@@ -138,7 +158,7 @@ classdef ArenaScene < handle
             obj.handles.menu.view.bgcolor.custom = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','Custom','callback',{@menu_setbackgroundcolor});
             
             
-%             obj.handles.menu.import.main = uimenu(obj.handles.figure,'Text','Import');
+             obj.handles.menu.import.main = uimenu(obj.handles.figure,'Text','Import');
 %             obj.handles.menu.import.image.main = uimenu(obj.handles.menu.import.main,'Text','Image as');
 %             obj.handles.menu.import.image.imageasmesh = uimenu(obj.handles.menu.import.image.main,'Text','Mesh','callback',{@menu_importimageasmesh});
 %             obj.handles.menu.import.image.imageasslice = uimenu(obj.handles.menu.import.image.main,'Text','Slice','callback',{@menu_imoprtimageasslice});
@@ -146,7 +166,7 @@ classdef ArenaScene < handle
 %             obj.handles.menu.import.scatter.main = uimenu(obj.handles.menu.import.main,'Text','Scatter from');
 %             obj.handles.menu.import.scatter.scatterfromworkspace = uimenu(obj.handles.menu.import.scatter.main,'Text','workspace','callback',{@menu_importscatterfromworkspace});
 %             obj.handles.menu.import.scatter.scatterfromfile = uimenu(obj.handles.menu.import.scatter.main,'Text','file','callback',{@menu_importscatterfromfile});
-%             obj.handles.menu.import.objfile.main = uimenu(obj.handles.menu.import.main,'Text','OBJ file','callback',{@menu_importObjfile});
+             obj.handles.menu.import.objfile.main = uimenu(obj.handles.menu.import.main,'Text','OBJ file','callback',{@menu_importObjfile});
 %             
 %             obj.handles.menu.import.lead.main = uimenu(obj.handles.menu.import.main,'Text','Lead from');
 %             obj.handles.menu.import.lead.fromnii = uimenu(obj.handles.menu.import.lead.main,'Text','from nii (2 dots)','callback',{@menu_importleadfromnii});
@@ -173,9 +193,9 @@ classdef ArenaScene < handle
             obj.handles.menu.show.camTarget.main = uimenu(obj.handles.menu.show.main,'Text','point camera at');
             obj.handles.menu.show.camTarget.actor = uimenu(obj.handles.menu.show.camTarget.main,'Text','selection','callback',{@menu_camTargetActor});
             obj.handles.menu.show.camTarget.center = uimenu(obj.handles.menu.show.camTarget.main,'Text','center','callback',{@menu_camTargetOrigin});
-            obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','axial plane','callback',{@menu_orthogonal});
-            obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','sagittal plane','callback',{@menu_orthogonal});
-            obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','coronal plane','callback',{@menu_orthogonal});
+%             obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','axial plane','callback',{@menu_orthogonal});
+%             obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','sagittal plane','callback',{@menu_orthogonal});
+%             obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','coronal plane','callback',{@menu_orthogonal});
             obj.handles.menu.show.camWiggle.main = uimenu(obj.handles.menu.show.main,'Text','wiggle','callback',{@menu_wiggle});
             
             obj.handles.menu.show.lights.main = uimenu(obj.handles.menu.show.main,'Text','lights');
@@ -730,9 +750,60 @@ classdef ArenaScene < handle
                 newActors = A_loadsweetspot(ArenaScene.getscenedata(hObject));
             end
             
-            function menu_importimageasmesh(hObject,eventdata)
+            function actor = import_nii_mesh(scene,data,name)
+                if isempty(data.Voxels)
+                        return
+                end
+                    
+                    if data.isBinary
+                        actor = data.getmesh(0.5).see(scene);
+                    else
+                        actor = data.getmesh.see(scene);
+                    end
+                    actor.changeName(name)
+                    
+            end
+            
+            
+%             function menu_importimageasmesh(hObject,eventdata)
+%                 
+%                 [filename,pathname] = uigetfile('*.nii','Find nii image(s)','MultiSelect','on');
+%                 try
+%                 if filename==0
+%                     return
+%                 end
+%                 catch
+%                 end
+%                 if not(iscell(filename));filename = {filename};end
+%                 
+%                 for iFile = 1:numel(filename)
+%                     niifile = fullfile(pathname,filename{iFile});
+%                     v = VoxelData;
+%                     [~, name] = v.loadnii(niifile);
+%                     if isempty(v.Voxels)
+%                         return
+%                     end
+%                     
+%                     if v.isBinary
+%                         actor = v.getmesh(0.5).see(ArenaScene.getscenedata(hObject));
+%                     else
+%                         actor = v.getmesh.see(ArenaScene.getscenedata(hObject));
+%                     end
+%                     actor.changeName(name)
+%                 end
+%                 
+%            end
+            
+            function menu_importAnything(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                [filename,pathname] = uigetfile({'*.nii';...
+                    '*.obj';...
+                    '*.swtspt';...
+                    '*.scn';...
+                    '*.mat';...
+                    '*.*'}...
+                    ,'import actors','MultiSelect','on');
                 
-                [filename,pathname] = uigetfile('*.nii','Find nii image(s)','MultiSelect','on');
                 try
                 if filename==0
                     return
@@ -741,22 +812,29 @@ classdef ArenaScene < handle
                 end
                 if not(iscell(filename));filename = {filename};end
                 
-                for iFile = 1:numel(filename)
-                    niifile = fullfile(pathname,filename{iFile});
-                    v = VoxelData;
-                    [~, name] = v.loadnii(niifile);
-                    if isempty(v.Voxels)
-                        return
-                    end
-                    
-                    if v.isBinary
-                        actor = v.getmesh(0.5).see(ArenaScene.getscenedata(hObject));
-                    else
-                        actor = v.getmesh.see(ArenaScene.getscenedata(hObject));
-                    end
-                    actor.changeName(name)
-                end
                 
+                
+                for iFile = 1:numel(filename)
+                
+                    [~,name,ext] = fileparts(filename{iFile});
+                    switch ext
+                        case '.nii'
+                            v = VoxelData;
+                            v.loadnii(fullfile(pathname,filename{iFile}));
+                            if v.isBinary(80) 
+                                import_nii_mesh(scene,v,name);
+                            else
+                                import_nii_plane(scene,v,name);
+                            end
+                                
+
+                        case '.obj'
+                        case '.scn'
+                        case '.mat'
+                        otherwise
+                            keybpard
+                    end
+                end
             end
             
             function menu_imoprtimageasslice(hObject,eventdata)
@@ -766,6 +844,7 @@ classdef ArenaScene < handle
                     return
                 end
                 v.getslice.see(ArenaScene.getscenedata(hObject));
+                
             end
             
             
@@ -857,6 +936,71 @@ classdef ArenaScene < handle
                 easeCamera([], [0 0 0]) %pos, target  
             end
             
+            
+            function menu_camera_switch(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                current_cam = scene.handles.menu.view.camera.multi.currentcam;
+                
+                %save current location
+                scene.handles.menu.view.camera.multi.cameralist(current_cam).campos = campos;
+                scene.handles.menu.view.camera.multi.cameralist(current_cam).camtarget = camtarget;
+                scene.handles.menu.view.camera.multi.cameralist(current_cam).camup = camup;
+                scene.handles.menu.view.camera.multi.cam{current_cam}.Checked = 'off';
+                
+                %load selected cam
+                selected_cam = str2num(hObject.Text);
+                campos(scene.handles.menu.view.camera.multi.cameralist(selected_cam).campos)
+                camtarget(scene.handles.menu.view.camera.multi.cameralist(selected_cam).camtarget)
+                camup(scene.handles.menu.view.camera.multi.cameralist(selected_cam).camup)
+                scene.handles.menu.view.camera.multi.cam{selected_cam}.Checked = 'on';
+                scene.handles.menu.view.camera.multi.currentcam = selected_cam;
+                
+                
+               
+            end
+            
+            
+            
+            function menu_camera_new(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                current_cam = scene.handles.menu.view.camera.multi.currentcam;
+                
+                if isempty(scene.handles.menu.view.camera.multi.cameralist)
+                    new_cam = 2;
+                else
+                    new_cam = numel(scene.handles.menu.view.camera.multi.cameralist)+1;
+                end
+                
+                %save current location
+                scene.handles.menu.view.camera.multi.cameralist(current_cam).campos = campos;
+                scene.handles.menu.view.camera.multi.cameralist(current_cam).camtarget = camtarget;
+                scene.handles.menu.view.camera.multi.cameralist(current_cam).camup = camup;
+                
+                scene.handles.menu.view.camera.multi.cam{current_cam}.Checked = 'off';
+                
+                
+                
+                %--show icon here in the future
+                
+                
+                %make new camera object
+                scene.handles.menu.view.camera.multi.cam{new_cam} = uimenu(scene.handles.menu.view.camera.multi.main,'Text',num2str(new_cam),'Checked','on','callback',{@menu_camera_switch});
+                scene.handles.menu.view.camera.multi.cameralist(new_cam).campos = campos;
+                scene.handles.menu.view.camera.multi.cameralist(new_cam).camtarget = camtarget;
+                scene.handles.menu.view.camera.multi.cameralist(new_cam).camup = camup;
+                
+                
+                
+                
+                
+                scene.handles.menu.view.camera.multi.currentcam = new_cam;
+                
+                
+                
+                
+             
+            end
+            
             function menu_wiggle(hObject,eventdata)
                 
                 scene = ArenaScene.getscenedata(hObject);
@@ -925,7 +1069,7 @@ classdef ArenaScene < handle
             function menu_orthogonal(hObject,eventdata)
                 camva('manual')
                 switch hObject.Text
-                    case 'axial plane'
+                    case {'axial plane','Axial [1]'}
                         original_pos = campos;
                         original_target = camtarget;
                         original_camva = camva;
@@ -953,7 +1097,7 @@ classdef ArenaScene < handle
                         camup(end_up)
                         %camva(end_camva)
 
-                    case 'coronal plane'
+                    case {'coronal plane','Coronal [3]'}
                         original_pos = campos;
                         original_target = camtarget;
                         original_camva = camva;
@@ -983,7 +1127,7 @@ classdef ArenaScene < handle
                         camtarget(end_target)
                         camup(end_up)
                         %camva(end_camva)
-                    case 'sagittal plane'
+                    case {'sagittal plane','Sagittal [2]'}
                         original_pos = campos;
                         original_target = camtarget;
                         original_camva = camva;
@@ -1748,25 +1892,39 @@ classdef ArenaScene < handle
                 clearPreviousContextMenus()
 
                 switch eventdata.Key
+                    case 'uparrow'
+                        original_pos = campos;
+                        original_target = camtarget;
+                        viewline = original_pos - original_target;
+                        campos(original_target + viewline * 0.9);
+                    case 'downarrow'
+                        original_pos = campos;
+                        original_target = camtarget;
+                        viewline = original_pos - original_target;
+                        campos(original_target + viewline / 0.9);
+                        
+                        
                     case 'o'
-%                         pause(0.1)
-%                         cameratoolbar('SetMode','orbit')
-%                         flash('o: orbit',f)
-                    case 'r'
-%                         pause(0.1)
-%                         cameratoolbar('SetMode','roll')
-%                         flash('r: roll',f)
-                    case 'z'
-%                         pause(0.1)
-%                         cameratoolbar('SetMode','zoom')
-%                         flash('z: zoom',f)
-                    case 'p'
-%                         pause(0.1)
-%                         cameratoolbar('SetMode','pan')
-%                         flash('p: pan',f)
-                    case {'return','space','escape'}
-%                         cameratoolbar('SetMode','none')
-%                         figure(f)
+                         menu_camTargetOrigin(src,eventdata)
+                    
+                    case '1'
+                        switch eventdata.Modifier{1}
+                            case 'shift'
+                                input.Text = 'axial plane';
+                                 menu_orthogonal(input)
+                        end
+                    case '2'
+                        switch eventdata.Modifier{1}
+                            case 'shift'
+                            input.Text = 'sagittal plane';
+                            menu_orthogonal(input)
+                        end
+                    case '3'
+                        switch eventdata.Modifier{1}
+                            case 'shift'
+                                input.Text = 'coronal plane';
+                                menu_orthogonal(input)
+                        end
                     case 'period'
                             
                            if numel(ArenaScene.getSelectedActors(scene))==1
@@ -1949,7 +2107,8 @@ classdef ArenaScene < handle
             end
             
             
-        end
+    end
+        
         function thisActor = newActor(obj,data,OPTIONALvisualisation)
             thisActor = ArenaActor;
             
