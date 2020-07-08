@@ -117,29 +117,48 @@ classdef ArenaScene < handle
             obj.handles.menu.file.newscene.main = uimenu(obj.handles.menu.file.main,'Text','New empty scene','callback',{@menu_newscene});
             obj.handles.menu.file.savesceneas.main = uimenu(obj.handles.menu.file.main,'Text','Save scene as','callback',{@menu_savesceneas});
             obj.handles.menu.file.savescene.main = uimenu(obj.handles.menu.file.main,'Text','Save scene','callback',{@menu_savescene});
-            obj.handles.menu.file.importscene.main = uimenu(obj.handles.menu.file.main,'Text','Import scene','callback',{@menu_importscene});
+            obj.handles.menu.file.import.main = uimenu(obj.handles.menu.file.main,'Text','Import actor','callback',{@menu_importAnything},'Enable','off','Separator','on');
+            %obj.handles.menu.file.importscene.main = uimenu(obj.handles.menu.file.main,'Text','Import scene','callback',{@menu_importscene});
+            obj.handles.menu.file.export.main = uimenu(obj.handles.menu.file.main,'Text','Export');
+            obj.handles.menu.file.export.wiggle = uimenu(obj.handles.menu.file.export.main,'Text','wiggle (*.mp4)','callback',{@menu_wiggle});
+            obj.handles.menu.file.export.blender = uimenu(obj.handles.menu.file.export.main,'Text','Blender (*.obj)','callback',{@menu_exporttoblender});
+            obj.handles.menu.file.export.handlestoworkspace = uimenu(obj.handles.menu.file.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
+            obj.handles.menu.file.export.saveSelection = uimenu(obj.handles.menu.file.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
             
-            obj.handles.menu.import.main = uimenu(obj.handles.figure,'Text','Import');
-            obj.handles.menu.import.image.main = uimenu(obj.handles.menu.import.main,'Text','Image as');
-            obj.handles.menu.import.image.imageasmesh = uimenu(obj.handles.menu.import.image.main,'Text','Mesh','callback',{@menu_importimageasmesh});
-            obj.handles.menu.import.image.imageasslice = uimenu(obj.handles.menu.import.image.main,'Text','Slice','callback',{@menu_imoprtimageasslice});
             
-            obj.handles.menu.import.scatter.main = uimenu(obj.handles.menu.import.main,'Text','Scatter from');
-            obj.handles.menu.import.scatter.scatterfromworkspace = uimenu(obj.handles.menu.import.scatter.main,'Text','workspace','callback',{@menu_importscatterfromworkspace});
-            obj.handles.menu.import.scatter.scatterfromfile = uimenu(obj.handles.menu.import.scatter.main,'Text','file','callback',{@menu_importscatterfromfile});
-            obj.handles.menu.import.objfile.main = uimenu(obj.handles.menu.import.main,'Text','OBJ file','callback',{@menu_importObjfile});
+            obj.handles.menu.view.main = uimenu(obj.handles.figure,'Text','View');
+            obj.handles.menu.view.camera.main = uimenu(obj.handles.menu.view.main,'Text','Camera');
+            obj.handles.menu.view.lights.main = uimenu(obj.handles.menu.view.main,'Text','Lights');
+            obj.handles.menu.view.flat.main = uimenu(obj.handles.menu.view.main,'Text','2D','Separator','on','callback',{@menu_intersectPlane});
+            obj.handles.menu.view.bgcolor.main = uimenu(obj.handles.menu.view.main,'Text','background color');
+            obj.handles.menu.view.bgcolor.white = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','White','callback',{@menu_setbackgroundcolor});
+            obj.handles.menu.view.bgcolor.light = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','Light','callback',{@menu_setbackgroundcolor});
+            obj.handles.menu.view.bgcolor.dark = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','Dark','callback',{@menu_setbackgroundcolor});
+            obj.handles.menu.view.bgcolor.black = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','Black','callback',{@menu_setbackgroundcolor});
+            obj.handles.menu.view.bgcolor.custom = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','Custom','callback',{@menu_setbackgroundcolor});
             
-            obj.handles.menu.import.lead.main = uimenu(obj.handles.menu.import.main,'Text','Lead from');
-            obj.handles.menu.import.lead.fromnii = uimenu(obj.handles.menu.import.lead.main,'Text','from nii (2 dots)','callback',{@menu_importleadfromnii});
             
-            obj.handles.menu.import.suretune.main = uimenu(obj.handles.menu.import.main,'Text','Suretune Session','callback',{@menu_importsuretune});
-            
-            obj.handles.menu.import.sweetspot.main = uimenu(obj.handles.menu.import.main,'Text','Sweetspot (.swtspt)','callback',{@menu_importswtspt});
+%             obj.handles.menu.import.main = uimenu(obj.handles.figure,'Text','Import');
+%             obj.handles.menu.import.image.main = uimenu(obj.handles.menu.import.main,'Text','Image as');
+%             obj.handles.menu.import.image.imageasmesh = uimenu(obj.handles.menu.import.image.main,'Text','Mesh','callback',{@menu_importimageasmesh});
+%             obj.handles.menu.import.image.imageasslice = uimenu(obj.handles.menu.import.image.main,'Text','Slice','callback',{@menu_imoprtimageasslice});
+%             
+%             obj.handles.menu.import.scatter.main = uimenu(obj.handles.menu.import.main,'Text','Scatter from');
+%             obj.handles.menu.import.scatter.scatterfromworkspace = uimenu(obj.handles.menu.import.scatter.main,'Text','workspace','callback',{@menu_importscatterfromworkspace});
+%             obj.handles.menu.import.scatter.scatterfromfile = uimenu(obj.handles.menu.import.scatter.main,'Text','file','callback',{@menu_importscatterfromfile});
+%             obj.handles.menu.import.objfile.main = uimenu(obj.handles.menu.import.main,'Text','OBJ file','callback',{@menu_importObjfile});
+%             
+%             obj.handles.menu.import.lead.main = uimenu(obj.handles.menu.import.main,'Text','Lead from');
+%             obj.handles.menu.import.lead.fromnii = uimenu(obj.handles.menu.import.lead.main,'Text','from nii (2 dots)','callback',{@menu_importleadfromnii});
+%             
+%             obj.handles.menu.import.suretune.main = uimenu(obj.handles.menu.import.main,'Text','Suretune Session','callback',{@menu_importsuretune});
+%             
+%             obj.handles.menu.import.sweetspot.main = uimenu(obj.handles.menu.import.main,'Text','Sweetspot (.swtspt)','callback',{@menu_importswtspt});
 
-            obj.handles.menu.export.main = uimenu(obj.handles.figure,'Text','Export');
-            obj.handles.menu.export.blender = uimenu(obj.handles.menu.export.main,'Text','Blender (obj)','callback',{@menu_exporttoblender});
-            obj.handles.menu.export.handlestoworkspace = uimenu(obj.handles.menu.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
-            obj.handles.menu.export.saveSelection = uimenu(obj.handles.menu.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
+            %obj.handles.menu.export.main = uimenu(obj.handles.figure,'Text','Export');
+            %obj.handles.menu.export.blender = uimenu(obj.handles.menu.export.main,'Text','Blender (obj)','callback',{@menu_exporttoblender});
+            %obj.handles.menu.export.handlestoworkspace = uimenu(obj.handles.menu.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
+            %obj.handles.menu.export.saveSelection = uimenu(obj.handles.menu.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
             
             obj.handles.menu.show.main = uimenu(obj.handles.figure,'Text','Show');
             obj.handles.menu.show.legacyatlas.main = uimenu(obj.handles.menu.show.main,'Text','Legacy atlas');
@@ -148,12 +167,7 @@ classdef ArenaScene < handle
             obj.handles.menu.show.legacyatlas.other = uimenu(obj.handles.menu.show.legacyatlas.main,'Text','Other (LPS)','callback',{@menu_legacyatlas});
             obj.handles.menu.show.widgets.main = uimenu(obj.handles.menu.show.main,'Text','Widgets');
             obj.handles.menu.show.widgets.coordinatesystem = uimenu(obj.handles.menu.show.widgets.main,'Text','Coordinate system','callback',{@menu_coordinatesystem});
-            obj.handles.menu.show.backgroundcolor.main = uimenu(obj.handles.menu.show.main,'Text','background');
-            obj.handles.menu.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','White','callback',{@menu_setbackgroundcolor});
-            obj.handles.menu.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Light','callback',{@menu_setbackgroundcolor});
-            obj.handles.menu.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Dark','callback',{@menu_setbackgroundcolor});
-            obj.handles.menu.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Black','callback',{@menu_setbackgroundcolor});
-            obj.handles.menu.show.backgroundcolor.white = uimenu(obj.handles.menu.show.backgroundcolor.main,'Text','Custom','callback',{@menu_setbackgroundcolor});
+            
             obj.handles.menu.show.cameratoolbar.main = uimenu(obj.handles.menu.show.main,'Text','camera toolbar','callback',{@menu_cameratoolbar},'Checked','on');
             obj.handles.menu.show.MNIatlas.main = uimenu(obj.handles.menu.show.main,'Text','MNI atlas (leadDBS)','callback',{@menu_atlasleaddbs});
             obj.handles.menu.show.camTarget.main = uimenu(obj.handles.menu.show.main,'Text','point camera at');
@@ -186,7 +200,7 @@ classdef ArenaScene < handle
             obj.handles.menu.edit.analysis.sampleheatmap = uimenu(obj.handles.menu.edit.analysis.main,'Text','sample selection with ... ','callback',{@menu_sampleHeatmap});
             obj.handles.menu.edit.smooth = uimenu(obj.handles.menu.edit.main,'Text','Smooth VoxelData','callback',{@menu_smoothVoxelData});
             obj.handles.menu.edit.seperate = uimenu(obj.handles.menu.edit.main,'Text','separate clusters','callback',{@menu_seperateClusters});
-            obj.handles.menu.edit.intersectplane = uimenu(obj.handles.menu.edit.main,'Text','project to plane','callback',{@menu_intersectPlane});
+            %obj.handles.menu.edit.intersectplane = uimenu(obj.handles.menu.edit.main,'Text','project to plane','callback',{@menu_intersectPlane});
             %obj.handles.menu.edit.pointclouddistribution = uimenu(obj.handles.menu.edit.main,'Text','pointcloud distribution','callback',{@menu_pcDistribution});
             %obj.handles.menu.edit.pointcloudanalysis = uimenu(obj.handles.menu.edit.main,'Text','PointCloud in mesh','callback',{@menu_pointcloudinmesh});
             
@@ -894,6 +908,7 @@ classdef ArenaScene < handle
                  
                  campos(original_pos);
                  close(outputVideo);
+                 clear imstorage
                  
                  %show panels again
                  scene.handles.panelleft.Visible = pleft;
