@@ -68,10 +68,10 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             %---- default settings
             if not(isstruct(settings))
                 settings = struct;
-                settings.colorFace = [0.2 0.2 0.2];
-                settings.colorEdge = [0.2 0.2 0.2];
-                settings.complexity = 20;
-                settings.faceOpacity = 10;
+                settings.colorFace = scene.getNewColor(scene);
+                settings.colorEdge = scene.getNewColor(scene);
+                settings.complexity = 100;
+                settings.faceOpacity = 100;
                 settings.edgeOpacity = 0;
                 settings.smooth = 0;
             end
@@ -93,6 +93,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             else
                 handle.FaceLighting = 'flat';
             end
+            material(handle,[0.8 1 0.2]) 
             obj.Visualisation.handle = handle;
             obj.Visualisation.settings = settings;
             

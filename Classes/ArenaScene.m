@@ -117,8 +117,7 @@ classdef ArenaScene < handle
             obj.handles.menu.file.newscene.main = uimenu(obj.handles.menu.file.main,'Text','New empty scene','callback',{@menu_newscene});
             obj.handles.menu.file.savesceneas.main = uimenu(obj.handles.menu.file.main,'Text','Save scene as','callback',{@menu_savesceneas});
             obj.handles.menu.file.savescene.main = uimenu(obj.handles.menu.file.main,'Text','Save scene','callback',{@menu_savescene});
-            obj.handles.menu.file.import.main = uimenu(obj.handles.menu.file.main,'Text','Import actor','callback',{@menu_importAnything},'Enable','on','Separator','on');
-            %obj.handles.menu.file.importscene.main = uimenu(obj.handles.menu.file.main,'Text','Import scene','callback',{@menu_importscene});
+            obj.handles.menu.file.import.main = uimenu(obj.handles.menu.file.main,'Text','Import actor [cmd+i]','callback',{@menu_importAnything},'Enable','on','Separator','on');
             obj.handles.menu.file.export.main = uimenu(obj.handles.menu.file.main,'Text','Export');
             obj.handles.menu.file.export.wiggle = uimenu(obj.handles.menu.file.export.main,'Text','wiggle (*.mp4)','callback',{@menu_wiggle});
             obj.handles.menu.file.export.blender = uimenu(obj.handles.menu.file.export.main,'Text','Blender (*.obj)','callback',{@menu_exporttoblender});
@@ -135,20 +134,23 @@ classdef ArenaScene < handle
             
             
             obj.handles.menu.view.camera.orthogonal.main = uimenu(obj.handles.menu.view.camera.main,'Text','Orthogonal');
-             obj.handles.menu.view.camera.orthogonal.axial = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Axial [1]','callback',{@menu_orthogonal});
-             obj.handles.menu.view.camera.orthogonal.sagittal = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Sagittal [2]','callback',{@menu_orthogonal});
-             obj.handles.menu.view.camera.orthogonal.coronal = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Coronal [3]','callback',{@menu_orthogonal});
+             obj.handles.menu.view.camera.orthogonal.axial = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Axial [shif+1]','callback',{@menu_orthogonal});
+             obj.handles.menu.view.camera.orthogonal.sagittal = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Sagittal [shift+2]','callback',{@menu_orthogonal});
+             obj.handles.menu.view.camera.orthogonal.coronal = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Coronal [shift+3]','callback',{@menu_orthogonal});
              
              obj.handles.menu.view.camera.multi.cameralist = {};
              obj.handles.menu.view.camera.multi.currentcam = 1;
              obj.handles.menu.view.camera.multi.main = uimenu(obj.handles.menu.view.camera.main,'Text','Multi');
-            % obj.handles.menu.view.camera.multi.show = uimenu(obj.handles.menu.view.camera.multi.main,'Text','Show icons','Checked','on');
              obj.handles.menu.view.camera.multi.new = uimenu(obj.handles.menu.view.camera.multi.main,'Text','New Camera','callback',{@menu_camera_new});
              obj.handles.menu.view.camera.multi.cam{1} = uimenu(obj.handles.menu.view.camera.multi.main,'Text','1','Checked','on','Separator','on','callback',{@menu_camera_switch});
              
             
             
             obj.handles.menu.view.lights.main = uimenu(obj.handles.menu.view.main,'Text','Lights');
+            obj.handles.menu.view.lights.visible = uimenu(obj.handles.menu.view.lights.main,'Text','visible','callback',{@menu_showLight},'Checked','on');
+            obj.handles.menu.view.lights.cameraposition = uimenu(obj.handles.menu.view.lights.main,'Text','place light at camera position','callback',{@menu_placeLight});
+            
+            
             obj.handles.menu.view.flat.main = uimenu(obj.handles.menu.view.main,'Text','2D','Separator','on','callback',{@menu_intersectPlane});
             obj.handles.menu.view.bgcolor.main = uimenu(obj.handles.menu.view.main,'Text','background color');
             obj.handles.menu.view.bgcolor.white = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','White','callback',{@menu_setbackgroundcolor});
@@ -158,51 +160,13 @@ classdef ArenaScene < handle
             obj.handles.menu.view.bgcolor.custom = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','Custom','callback',{@menu_setbackgroundcolor});
             
             
-             obj.handles.menu.import.main = uimenu(obj.handles.figure,'Text','Import');
-%             obj.handles.menu.import.image.main = uimenu(obj.handles.menu.import.main,'Text','Image as');
-%             obj.handles.menu.import.image.imageasmesh = uimenu(obj.handles.menu.import.image.main,'Text','Mesh','callback',{@menu_importimageasmesh});
-%             obj.handles.menu.import.image.imageasslice = uimenu(obj.handles.menu.import.image.main,'Text','Slice','callback',{@menu_imoprtimageasslice});
-%             
-%             obj.handles.menu.import.scatter.main = uimenu(obj.handles.menu.import.main,'Text','Scatter from');
-%             obj.handles.menu.import.scatter.scatterfromworkspace = uimenu(obj.handles.menu.import.scatter.main,'Text','workspace','callback',{@menu_importscatterfromworkspace});
-%             obj.handles.menu.import.scatter.scatterfromfile = uimenu(obj.handles.menu.import.scatter.main,'Text','file','callback',{@menu_importscatterfromfile});
-             obj.handles.menu.import.objfile.main = uimenu(obj.handles.menu.import.main,'Text','OBJ file','callback',{@menu_importObjfile});
-%             
-%             obj.handles.menu.import.lead.main = uimenu(obj.handles.menu.import.main,'Text','Lead from');
-%             obj.handles.menu.import.lead.fromnii = uimenu(obj.handles.menu.import.lead.main,'Text','from nii (2 dots)','callback',{@menu_importleadfromnii});
-%             
-%             obj.handles.menu.import.suretune.main = uimenu(obj.handles.menu.import.main,'Text','Suretune Session','callback',{@menu_importsuretune});
-%             
-%             obj.handles.menu.import.sweetspot.main = uimenu(obj.handles.menu.import.main,'Text','Sweetspot (.swtspt)','callback',{@menu_importswtspt});
+            obj.handles.menu.atlas.main = uimenu(obj.handles.figure,'Text','Atlas');
+            obj.handles.menu.atlas.lead.main = uimenu(obj.handles.menu.atlas.main,'Text','from leadDBS (MNI)','callback',{@menu_atlasleaddbs});
+            obj.handles.menu.atlas.suretune.main = uimenu(obj.handles.menu.atlas.main ,'Text','from SureTune (legacy LPS)');
+            obj.handles.menu.atlas.suretune.stn = uimenu(obj.handles.menu.atlas.suretune.main ,'Text','STN','callback',{@menu_legacyatlas});
+            obj.handles.menu.atlas.suretune.gpi = uimenu(obj.handles.menu.atlas.suretune.main ,'Text','GPi','callback',{@menu_legacyatlas});
+            obj.handles.menu.atlas.suretune.other = uimenu(obj.handles.menu.atlas.suretune.main ,'Text','Other','callback',{@menu_legacyatlas});
 
-            %obj.handles.menu.export.main = uimenu(obj.handles.figure,'Text','Export');
-            %obj.handles.menu.export.blender = uimenu(obj.handles.menu.export.main,'Text','Blender (obj)','callback',{@menu_exporttoblender});
-            %obj.handles.menu.export.handlestoworkspace = uimenu(obj.handles.menu.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
-            %obj.handles.menu.export.saveSelection = uimenu(obj.handles.menu.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
-            
-            obj.handles.menu.show.main = uimenu(obj.handles.figure,'Text','Show');
-            obj.handles.menu.show.legacyatlas.main = uimenu(obj.handles.menu.show.main,'Text','Legacy atlas');
-            obj.handles.menu.show.legacyatlas.stn = uimenu(obj.handles.menu.show.legacyatlas.main,'Text','STN (LPS)','callback',{@menu_legacyatlas});
-            obj.handles.menu.show.legacyatlas.gpi = uimenu(obj.handles.menu.show.legacyatlas.main,'Text','GPi (LPS)','callback',{@menu_legacyatlas});
-            obj.handles.menu.show.legacyatlas.other = uimenu(obj.handles.menu.show.legacyatlas.main,'Text','Other (LPS)','callback',{@menu_legacyatlas});
-            obj.handles.menu.show.widgets.main = uimenu(obj.handles.menu.show.main,'Text','Widgets');
-            obj.handles.menu.show.widgets.coordinatesystem = uimenu(obj.handles.menu.show.widgets.main,'Text','Coordinate system','callback',{@menu_coordinatesystem});
-            
-            obj.handles.menu.show.cameratoolbar.main = uimenu(obj.handles.menu.show.main,'Text','camera toolbar','callback',{@menu_cameratoolbar},'Checked','on');
-            obj.handles.menu.show.MNIatlas.main = uimenu(obj.handles.menu.show.main,'Text','MNI atlas (leadDBS)','callback',{@menu_atlasleaddbs});
-            obj.handles.menu.show.camTarget.main = uimenu(obj.handles.menu.show.main,'Text','point camera at');
-            obj.handles.menu.show.camTarget.actor = uimenu(obj.handles.menu.show.camTarget.main,'Text','selection','callback',{@menu_camTargetActor});
-            obj.handles.menu.show.camTarget.center = uimenu(obj.handles.menu.show.camTarget.main,'Text','center','callback',{@menu_camTargetOrigin});
-%             obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','axial plane','callback',{@menu_orthogonal});
-%             obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','sagittal plane','callback',{@menu_orthogonal});
-%             obj.handles.menu.show.camTarget.axial = uimenu(obj.handles.menu.show.camTarget.main,'Text','coronal plane','callback',{@menu_orthogonal});
-            obj.handles.menu.show.camWiggle.main = uimenu(obj.handles.menu.show.main,'Text','wiggle','callback',{@menu_wiggle});
-            
-            obj.handles.menu.show.lights.main = uimenu(obj.handles.menu.show.main,'Text','lights');
-            obj.handles.menu.show.lights.visible = uimenu(obj.handles.menu.show.lights.main,'Text','visible','callback',{@menu_showLight},'Checked','on');
-            obj.handles.menu.show.lights.cameraposition = uimenu(obj.handles.menu.show.lights.main,'Text','place light at camera position','callback',{@menu_placeLight});
-            
-            
             
             obj.handles.menu.edit.main = uimenu(obj.handles.figure,'Text','Edit');
 %            obj.handles.menu.edit.count.main = uimenu(obj.handles.menu.edit.main,'Text','count overlap');
@@ -234,14 +198,18 @@ classdef ArenaScene < handle
             
             %-- dynamic
             obj.handles.menu.dynamic.main  = uimenu(obj.handles.figure,'Text','...');
-            obj.handles.menu.dynamic.PointCloud.distribution = uimenu(obj.handles.menu.dynamic.main,'Text','show distribution','callback',{@menu_pcDistribution},'Visible','off');
-            obj.handles.menu.dynamic.PointCloud.inMesh = uimenu(obj.handles.menu.dynamic.main,'Text','is a point inside a mesh?','callback',{@menu_pointcloudinmesh},'Visible','off');
+            obj.handles.menu.dynamic.modify.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Modify');
+            obj.handles.menu.dynamic.analyse.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Analyse');
             
-            obj.handles.menu.dynamic.Mesh.count2mesh  = uimenu(obj.handles.menu.dynamic.main,'Text','count overlap and show as mesh','callback',{@menu_edit_count2mesh},'Visible','off');
-            obj.handles.menu.dynamic.Mesh.count2plane = uimenu(obj.handles.menu.dynamic.main,'Text','count overlap and show as plane','callback',{@menu_edit_count2plane},'Visible','off');
+            
+            obj.handles.menu.dynamic.PointCloud.distribution = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: show distribution','callback',{@menu_pcDistribution},'Enable','off');
+            obj.handles.menu.dynamic.PointCloud.inMesh = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: is a point inside a mesh?','callback',{@menu_pointcloudinmesh},'Enable','off');
+            
+            obj.handles.menu.dynamic.Mesh.count2mesh  = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: count overlap and show as mesh','callback',{@menu_edit_count2mesh},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.count2plane = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: count overlap and show as plane','callback',{@menu_edit_count2plane},'Enable','off');
             %obj.handles.menu.dynamic.Mesh.add2mesh = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as mesh','callback',{@menu_edit_add2mesh},'Visible','off');
             %obj.handles.menu.dynamic.Mesh.add2plane = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as plane','callback',{@menu_edit_add2plane},'Visible','off');
-            obj.handles.menu.dynamic.Mesh.getinfo = uimenu(obj.handles.menu.dynamic.main,'Text','get info','callback',{@menu_getinfo});
+            obj.handles.menu.dynamic.Mesh.getinfo = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: get info','callback',{@menu_getinfo},'Enable','off');
             
             
             
@@ -341,10 +309,10 @@ classdef ArenaScene < handle
                 end
             end
             
-            function menu_importscene(hObject,eventdata)
-                scene = ArenaScene.getscenedata(hObject);
-                [filename,pathname] = uigetfile('*.scn');
-                loaded = load(fullfile(pathname,filename),'-mat');
+            function import_scn(scene,file)
+                
+                
+                loaded = load(file,'-mat');
                 delete(gcf);
                 %isSameVersion(loaded.Scene,'show')
                 
@@ -492,7 +460,7 @@ classdef ArenaScene < handle
                     case 'Light'
                         color = [0.92 0.9 0.88];
                     case 'Dark'
-                        color = [0.5 0.53 0.53];
+                        color = [0.5 0.53 0.53]*0.5;
                     case 'Black'
                         color = [0 0 0];
                     case 'Custom'
@@ -563,11 +531,11 @@ classdef ArenaScene < handle
                 legacypath = fullfile(rootdir,'Elements','SureTune');
                 thisScene = ArenaScene.getscenedata(hObject);
                 T = load('Tapproved.mat');
-                switch hObject.Checked
-                    case 'off'
+ 
+ 
                         
                         switch hObject.Text
-                            case 'STN (LPS)'
+                            case 'STN'
                                 obj_stn = ObjFile(fullfile(legacypath,'LH_STN-ON-pmMR.obj'));
                                 obj_rn = ObjFile(fullfile(legacypath,'LH_RU-ON-pmMR.obj'));
                                 obj_sn = ObjFile(fullfile(legacypath,'LH_SN-ON-pmMR.obj'));
@@ -586,6 +554,15 @@ classdef ArenaScene < handle
                                 [thisScene.handles.atlas.legacy.Actor_snright,scene] = obj_sn_right.see(thisScene);
                                 [thisScene.handles.atlas.legacy.Actor_rnright,scene] = obj_rn_right.see(thisScene);
                                 
+                                
+                                thisScene.handles.atlas.legacy.Actor_stnleft.changeSetting('colorFace',[0 1 0],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
+                                thisScene.handles.atlas.legacy.Actor_snleft.changeSetting('colorFace',[1 1 0],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
+                                thisScene.handles.atlas.legacy.Actor_rnleft.changeSetting('colorFace',[1 0 0],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
+                                thisScene.handles.atlas.legacy.Actor_stnright.changeSetting('colorFace',[0 1 0],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
+                                thisScene.handles.atlas.legacy.Actor_snright.changeSetting('colorFace',[1 1 0],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
+                                thisScene.handles.atlas.legacy.Actor_rnright.changeSetting('colorFace',[1 0 0],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
+                                
+                                
                                 thisScene.handles.atlas.legacy.Actor_stnleft.changeName('[legacy] STNleft')
                                 thisScene.handles.atlas.legacy.Actor_snleft.changeName('[legacy] SNleft')
                                 thisScene.handles.atlas.legacy.Actor_rnleft.changeName('[legacy] RNleft')
@@ -593,16 +570,7 @@ classdef ArenaScene < handle
                                 thisScene.handles.atlas.legacy.Actor_snright.changeName('[legacy] SNright')
                                 thisScene.handles.atlas.legacy.Actor_rnright.changeName('[legacy] RNright')
                                 
-                                thisScene.handles.atlas.legacy.Actor_stnleft.changeSetting('colorFace',[0 1 0],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_snleft.changeSetting('colorFace',[1 1 0],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_rnleft.changeSetting('colorFace',[1 0 0],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_stnright.changeSetting('colorFace',[0 1 0],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_snright.changeSetting('colorFace',[1 1 0],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_rnright.changeSetting('colorFace',[1 0 0],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
-                                
-                                
-                                
-                            case 'GPi (LPS)'
+                            case 'GPi'
                                 obj_gpi = ObjFile(fullfile(legacypath,'LH_IGP-ON-pmMR.obj'));
                                 obj_gpe = ObjFile(fullfile(legacypath,'LH_EGP-ON-pmMR.obj'));
                                 
@@ -616,17 +584,19 @@ classdef ArenaScene < handle
                                 [thisScene.handles.atlas.legacy.Actor_gpiright,scene] = obj_gpi_right.see(thisScene);
                                 [thisScene.handles.atlas.legacy.Actor_gperight,scene] = obj_gpe_right.see(thisScene);
                                 
+                                
+                                
+                                thisScene.handles.atlas.legacy.Actor_gpileft.changeSetting('colorFace',[0 0 1],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
+                                thisScene.handles.atlas.legacy.Actor_gpeleft.changeSetting('colorFace',[0 1 1],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
+                                thisScene.handles.atlas.legacy.Actor_gpiright.changeSetting('colorFace',[0 0 1],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
+                                thisScene.handles.atlas.legacy.Actor_gperight.changeSetting('colorFace',[0 1 1],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
+                                
                                 thisScene.handles.atlas.legacy.Actor_gpileft.changeName('[legacy] GPIleft')
                                 thisScene.handles.atlas.legacy.Actor_gpeleft.changeName('[legacy] GPEeft')
                                 thisScene.handles.atlas.legacy.Actor_gpiright.changeName('[legacy] GPIright')
                                 thisScene.handles.atlas.legacy.Actor_gperight.changeName('[legacy] GPRright')
                                 
-                                thisScene.handles.atlas.legacy.Actor_gpileft.changeSetting('colorFace',[0 0 1],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_gpeleft.changeSetting('colorFace',[0 1 1],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_gpiright.changeSetting('colorFace',[0 0 1],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
-                                thisScene.handles.atlas.legacy.Actor_gperight.changeSetting('colorFace',[0 1 1],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
-                                
-                            case 'Other (LPS)'
+                            case 'Other'
                                 %keyboard
                                 atlases = uigetfile(fullfile(legacypath,'*.obj'),'MultiSelect','On');
                                 if not(iscell(atlases))
@@ -639,44 +609,31 @@ classdef ArenaScene < handle
                                     [thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left'])] = obj_custom_left.see(thisScene);
                                     [thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right'])] = obj_custom_right.see(thisScene);
                                     
-                                     thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left']).changeName(['[legacy] atlases{iAtlas} left'])
-                                     thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right']).changeName(['[legacy] atlases{iAtlas} right'])
                                     
-                                    thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left']).changeSetting('colorFace',[0.5 0.5 0.5],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
-                                    thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right']).changeSetting('colorFace',[0.5 0.5 0.5],'faceOpacity',20,'edgeOpacity',0,'complexity',50)
+                                    thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left']).changeSetting('colorFace',[0.5 0.5 0.5],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
+                                    thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right']).changeSetting('colorFace',[0.5 0.5 0.5],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
+                                    
+                                    
+                                     thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left']).changeName(['[legacy] ',atlases{iAtlas},' left'])
+                                     thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right']).changeName(['[legacy] ',atlases{iAtlas},' right'])
                                 end
                                 
                                 
                                 
                         end
-                        hObject.Checked = 'on';
-                    case 'on'
-                        hObject.Checked = 'off';
-                        switch hObject.Text
-                            case 'STN (LPS)'
-                                thisScene.handles.atlas.legacy.Actor_stnleft.delete(thisScene)
-                                thisScene.handles.atlas.legacy.Actor_snleft.delete(thisScene)
-                                thisScene.handles.atlas.legacy.Actor_rnleft.delete(thisScene)
-                                thisScene.handles.atlas.legacy.Actor_stnright.delete(thisScene)
-                                thisScene.handles.atlas.legacy.Actor_snright.delete(thisScene)
-                                thisScene.handles.atlas.legacy.Actor_rnright.delete(thisScene)
-                            case 'GPi (LPS)'
-                                thisScene.handles.atlas.legacy.Actor_gpileft.delete(thisScene)
-                                thisScene.handles.atlas.legacy.Actor_gpeleft.delete(thisScene)
-                                thisScene.handles.atlas.legacy.Actor_gpiright.delete(thisScene)
-                                thisScene.handles.atlas.legacy.Actor_gperight.delete(thisScene)
-                        end
-                end
+                        
+                    
+                
                 
                 
                 
             end
             
             
-            function menu_importscatterfromfile(hObject,eventdata)
-                thisScene =  ArenaScene.getscenedata(hObject);
-                [fn,pn] = uigetfile('*.mat','MultiSelect','on');
-                loaded = load(fullfile(pn,fn));
+            function import_mat(thisScene,filename)
+               
+                
+                loaded = load(filename);
                 names = {};
                 data = {};
                 
@@ -698,7 +655,7 @@ classdef ArenaScene < handle
                 [indx] = listdlg('ListString',names);
                 for thisindex = indx
                     pc = PointCloud(data{thisindex});
-                    [scene,actor] = pc.see(thisScene);
+                    actor = pc.see(thisScene);
                     actor.changeName(names{thisindex})
                 end
             end
@@ -736,32 +693,40 @@ classdef ArenaScene < handle
             
             
             
-            function menu_importObjfile(hObject,eventdata)
-                o = ObjFile;
-                o = o.loadfile();
-                o.see(ArenaScene.getscenedata(hObject))
-            end
+
             
-            function menu_importsuretune(hObject,eventdata)
-                newActors = A_loadsuretune(ArenaScene.getscenedata(hObject));
-            end
+ 
             
-            function menu_importswtspt(hObject,eventdata)
-                newActors = A_loadsweetspot(ArenaScene.getscenedata(hObject));
-            end
+ 
             
-            function actor = import_nii_mesh(scene,data,name)
+            function [actor,threshold] = import_nii_mesh(scene,data,name,threshold)
+                
+                if nargin<4
+                    threshold = nan;
+                end
+                
                 if isempty(data.Voxels)
                         return
                 end
-                    
                     if data.isBinary
                         actor = data.getmesh(0.5).see(scene);
                     else
-                        actor = data.getmesh.see(scene);
+                        if isnan(threshold) %ask for threshold
+                            [actor,threshold] = data.getmesh.see(scene);
+                        else %use previously defined threshold
+                            actor = data.getmesh(threshold).see(scene);
+                        end
                     end
                     actor.changeName(name)
-                    
+            end
+            
+            function actor = import_nii_plane(scene,data,name)
+                v = data;
+                if isempty(v.Voxels)
+                    return
+                end
+                actor = v.getslice.see(scene);
+                actor.changeName(name);
             end
             
             
@@ -793,16 +758,28 @@ classdef ArenaScene < handle
 %                 end
 %                 
 %            end
+
+            function actor = import_obj(scene,filename)
+                o = ObjFile;
+                [~,layername,~] = fileparts(filename);
+                o = o.loadfile(filename);
+                actor  = o.see(scene);
+                actor.changeName(layername);
+            end
             
             function menu_importAnything(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
-                [filename,pathname] = uigetfile({'*.nii';...
-                    '*.obj';...
-                    '*.swtspt';...
-                    '*.scn';...
-                    '*.mat';...
-                    '*.*'}...
-                    ,'import actors','MultiSelect','on');
+                if ispc
+                [filename,pathname] = uigetfile({'*.nii','nifti files (*.nii)';...
+                    '*.obj','3d object files (*.obj)';...
+                    '*.swtspt','sweetspots (*.swtspt)';...
+                    '*.scn','scenes (*.scn)';...
+                    '*.mat','matlab data (*.mat)'},...
+                    'import actors','MultiSelect','on');
+                else
+                    [filename,pathname] = uigetfile('*.*',...
+                    'import actors','MultiSelect','on');
+                end
                 
                 try
                 if filename==0
@@ -813,7 +790,7 @@ classdef ArenaScene < handle
                 if not(iscell(filename));filename = {filename};end
                 
                 
-                
+                nii_mesh_threshold = nan; 
                 for iFile = 1:numel(filename)
                 
                     [~,name,ext] = fileparts(filename{iFile});
@@ -822,30 +799,37 @@ classdef ArenaScene < handle
                             v = VoxelData;
                             v.loadnii(fullfile(pathname,filename{iFile}));
                             if v.isBinary(80) 
-                                import_nii_mesh(scene,v,name);
+                                [~,nii_mesh_threshold] = import_nii_mesh(scene,v,name,nii_mesh_threshold);
                             else
                                 import_nii_plane(scene,v,name);
                             end
-                                
-
                         case '.obj'
+                            import_obj(scene,fullfile(pathname,filename{iFile}))
                         case '.scn'
+                            import_scn(scene,fullfile(pathname,filename{iFile}))
                         case '.mat'
+                            import_mat(thisScene,fullfile(pathname,filename{iFile}))
+                        case '*.swtspt'
+                            A_loadsweetspot(scene);
+                        case '*.dcm' 
+                            A_loadsuretune(scene);
+                            
+                            
                         otherwise
-                            keybpard
+                            disp(['file: ',name,ext,' not supported.'])
                     end
                 end
             end
             
-            function menu_imoprtimageasslice(hObject,eventdata)
-                v = VoxelData;
-                v.loadnii;
-                if isempty(v.Voxels)
-                    return
-                end
-                v.getslice.see(ArenaScene.getscenedata(hObject));
-                
-            end
+%             function menu_imoprtimageasslice(hObject,eventdata)
+%                 v = VoxelData;
+%                 v.loadnii;
+%                 if isempty(v.Voxels)
+%                     return
+%                 end
+%                 v.getslice.see(ArenaScene.getscenedata(hObject));
+%                 
+%             end
             
             
             function menu_importleadfromnii(hObject,eventdata)
@@ -949,9 +933,11 @@ classdef ArenaScene < handle
                 
                 %load selected cam
                 selected_cam = str2num(hObject.Text);
-                campos(scene.handles.menu.view.camera.multi.cameralist(selected_cam).campos)
-                camtarget(scene.handles.menu.view.camera.multi.cameralist(selected_cam).camtarget)
-                camup(scene.handles.menu.view.camera.multi.cameralist(selected_cam).camup)
+                easeCamera(scene.handles.menu.view.camera.multi.cameralist(selected_cam).campos,...
+                    scene.handles.menu.view.camera.multi.cameralist(selected_cam).camtarget,...
+                    scene.handles.menu.view.camera.multi.cameralist(selected_cam).camup,10)%end_pos, end_target, end_up,easeTime
+                
+                
                 scene.handles.menu.view.camera.multi.cam{selected_cam}.Checked = 'on';
                 scene.handles.menu.view.camera.multi.currentcam = selected_cam;
                 
@@ -1069,13 +1055,13 @@ classdef ArenaScene < handle
             function menu_orthogonal(hObject,eventdata)
                 camva('manual')
                 switch hObject.Text
-                    case {'axial plane','Axial [1]'}
+                    case {'axial plane','Axial [shift+1]'}
                         original_pos = campos;
                         original_target = camtarget;
                         original_camva = camva;
                         original_up = camup;
                         
-                        end_pos = [0 0 norm(original_pos-original_target)]; %[0 0 1000];
+                        end_pos = [original_target(1) original_target(2) norm(original_pos-original_target)]; %[0 0 1000];
                         end_target = original_target;%[0 0 0];
                         end_up = [0 1 0];
                         end_camva = 20;
@@ -1097,7 +1083,7 @@ classdef ArenaScene < handle
                         camup(end_up)
                         %camva(end_camva)
 
-                    case {'coronal plane','Coronal [3]'}
+                    case {'coronal plane','Coronal [shift+3]'}
                         original_pos = campos;
                         original_target = camtarget;
                         original_camva = camva;
@@ -1127,7 +1113,7 @@ classdef ArenaScene < handle
                         camtarget(end_target)
                         camup(end_up)
                         %camva(end_camva)
-                    case {'sagittal plane','Sagittal [2]'}
+                    case {'sagittal plane','Sagittal [shift+2]'}
                         original_pos = campos;
                         original_target = camtarget;
                         original_camva = camva;
@@ -1160,6 +1146,7 @@ classdef ArenaScene < handle
                         
                       
                 end
+                drawnow
             end
                 
             
@@ -1903,27 +1890,63 @@ classdef ArenaScene < handle
                         viewline = original_pos - original_target;
                         campos(original_target + viewline / 0.9);
                         
+                    case 's'
+                        if numel(eventdata.Modifier)>2
+                            show_shortcuts(src);
+                        end
+                    case 'i'
+                        if ~isempty(eventdata.Modifier)
+                        switch eventdata.Modifier{1}
+                            case {'command','shift'}
+                                menu_importAnything(src)
+                        end
+                        end
                         
                     case 'o'
                          menu_camTargetOrigin(src,eventdata)
                     
                     case '1'
+                        if ~isempty(eventdata.Modifier)
                         switch eventdata.Modifier{1}
                             case 'shift'
                                 input.Text = 'axial plane';
                                  menu_orthogonal(input)
+                            case 'command'
+                                if numel(scene.handles.menu.view.camera.multi.cam)>=1
+                                    hObject.Text = '1';
+                                    hObject.UserData = scene;
+                                    menu_camera_switch(hObject)
+                                end
+                        end
                         end
                     case '2'
+                        if ~isempty(eventdata.Modifier)
                         switch eventdata.Modifier{1}
                             case 'shift'
                             input.Text = 'sagittal plane';
                             menu_orthogonal(input)
+                            case 'command'
+                                if numel(scene.handles.menu.view.camera.multi.cam)>=1
+                                    hObject.Text = '2';
+                                    hObject.UserData = scene;
+                                    menu_camera_switch(hObject)
+                                end
+                        end
                         end
                     case '3'
+                        if ~isempty(eventdata.Modifier)
                         switch eventdata.Modifier{1}
                             case 'shift'
                                 input.Text = 'coronal plane';
                                 menu_orthogonal(input)
+                                case 'command'
+                                if numel(scene.handles.menu.view.camera.multi.cam)>=1
+                                    hObject.Text = '3';
+                                    hObject.UserData = scene;
+                                    menu_camera_switch(hObject)
+                                end
+                        end
+                        
                         end
                     case 'period'
                             
@@ -1945,12 +1968,11 @@ classdef ArenaScene < handle
                         if not(isempty(eventdata.Modifier))
                             switch eventdata.Modifier{1}
                                 case 'shift'
-                                    scene.handles.contextmenu = uicontrol('style','listbox',...
+                                    scene.handles.contextmenu = uicontrol('style','togglebutton',...
                                 'units','pixels',...
-                                     'position', [pt(1),pt(2),100,100],...
-                                'String',{'mesh','plane','obj','suretune session'},...
-                                'Value',[],...
-                                'Min', 0, 'Max', 2,...
+                                     'position', [pt(1),pt(2),60,30],...
+                                'String','add actor',...
+                                'Value',1,...
                                 'callback',{@context_import},...
                                 'Tag','context');  
 
@@ -2024,6 +2046,10 @@ classdef ArenaScene < handle
                 end
             end
             
+            function show_shortcuts(src)
+                msgbox('Something like this Hazem?')
+            end
+        
             function hideLayers(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 [currentActors,iSelected] = ArenaScene.getSelectedActors(scene);
@@ -2061,27 +2087,24 @@ classdef ArenaScene < handle
                 currentActors = ArenaScene.getSelectedActors(scene);
                 
                 if numel(currentActors)>1
-                    return
+                    answer = questdlg(['You are about to delete all ',num2str(numel(currentActors)),' actors, do you wish to proceed?'],'Hold on..','Yes, delete them!','go back','delete!');
+                    switch answer
+                        case 'Yes, delete them!'
+                            for i = 1:numel(currentActors)
+                                delete(currentActors(i),scene)
+                            end
+                    end
+                
+                else
+                    delete(currentActors,scene)
                 end
                 
-                delete(currentActors,scene)
-                scene.handles.contextmenu.Visible = 'off'
+                scene.handles.contextmenu.Visible = 'off';
                 scene.refreshLayers();
             end
         
             function context_import(hObject,eventdata)
-                scene = ArenaScene.getscenedata(hObject);
-                scene.handles.contextmenu.Visible =  'off';    
-                switch hObject.String{hObject.Value}
-                    case 'mesh'
-                        menu_importimageasmesh(hObject,eventdata)
-                    case 'plane'
-                        menu_imoprtimageasslice(hObject,eventdata)
-                    case 'obj'
-                        menu_importObjfile(hObject,eventdata)
-                    case 'suretune session'
-                        menu_importsuretune(hObject,eventdata)
-                end
+                menu_importAnything(hObject)
             end
             
             function closeScene(src, callbackdata)
@@ -2158,27 +2181,34 @@ classdef ArenaScene < handle
           
         end
         
+        
+        
         function updateMenu(obj)
+            try
             thisclass = class(obj.Actors(obj.handles.panelright.Value(1)).Data);
+            catch
+                obj.handles.menu.dynamic.main.Text = '...';
+                return %no layers 
+            end
             obj.handles.menu.dynamic.main.Text = ['--> ',thisclass];
             
             otherclasses = fieldnames(obj.handles.menu.dynamic);
             for iOther = 1:numel(otherclasses)
                 thisOtherClass = otherclasses{iOther};
                 switch thisOtherClass
-                    case 'main'
+                    case {'main','modify','analyse'}
                         continue
                     case thisclass
                         functions = fieldnames(obj.handles.menu.dynamic.(thisOtherClass));
                         for iFunction = 1:numel(functions)
                             thisFunction = functions{iFunction};
-                            obj.handles.menu.dynamic.(thisOtherClass).(thisFunction).Visible = 'on';
+                            obj.handles.menu.dynamic.(thisOtherClass).(thisFunction).Enable = 'on';
                         end
                     otherwise
                         functions = fieldnames(obj.handles.menu.dynamic.(thisOtherClass));
                         for iFunction = 1:numel(functions)
                             thisFunction = functions{iFunction};
-                            obj.handles.menu.dynamic.(thisOtherClass).(thisFunction).Visible = 'off';
+                            obj.handles.menu.dynamic.(thisOtherClass).(thisFunction).Enable = 'off';
                         end
                 end
             end

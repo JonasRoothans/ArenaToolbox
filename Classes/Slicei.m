@@ -130,9 +130,15 @@ classdef Slicei < handle
             
             
             if isa(scene,'ArenaScene')
-                scene = figure(scene.handles.figure);
+                fig = figure(scene.handles.figure);
             end
-            set(obj.handle,'ButtonDownFcn',{@obj.startmovit,scene})
+            set(obj.handle,'ButtonDownFcn',{@obj.startmovit,fig})
+            
+            %switch the tool to plane tool by simulating clicking on the
+            %toolbar
+            callbackCell = get(scene.handles.cameratoolbar.slide3dtog,'OnCallback');
+            hObject = scene.handles.cameratoolbar.slide3dtog;
+            callbackCell{1}(hObject,[],callbackCell{2:end});
             %set(obj.handle,'ButtonUpFcn',{@obj.reset,scene})
      
         end
