@@ -809,9 +809,9 @@ classdef ArenaScene < handle
                             import_scn(scene,fullfile(pathname,filename{iFile}))
                         case '.mat'
                             import_mat(thisScene,fullfile(pathname,filename{iFile}))
-                        case '*.swtspt'
+                        case '.swtspt'
                             A_loadsweetspot(scene);
-                        case '*.dcm' 
+                        case '.dcm' 
                             A_loadsuretune(scene);
                             
                             
@@ -933,6 +933,9 @@ classdef ArenaScene < handle
                 
                 %load selected cam
                 selected_cam = str2num(hObject.Text);
+                if selected_cam > numel(scene.handles.menu.view.camera.multi.cameralist);
+                    return
+                end
                 easeCamera(scene.handles.menu.view.camera.multi.cameralist(selected_cam).campos,...
                     scene.handles.menu.view.camera.multi.cameralist(selected_cam).camtarget,...
                     scene.handles.menu.view.camera.multi.cameralist(selected_cam).camup,10)%end_pos, end_target, end_up,easeTime

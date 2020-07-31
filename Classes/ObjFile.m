@@ -1,4 +1,4 @@
-classdef ObjFile 
+classdef ObjFile < handle
     %ObjFile contains Faces and Vertices. Can be initialised with *.obj
     
     properties
@@ -46,8 +46,10 @@ classdef ObjFile
                 [fn,pn] = uigetfile('*.obj');
                 filename = fullfile(pn,fn);
             end
-            
-            obj = ObjFile(filename);
+            temp = ObjFile(filename);
+            obj.raw = temp.raw;
+            obj.Faces = temp.Faces;
+            obj.Vertices = temp.Vertices;
         end
         
         function obj = transform(obj,T)
