@@ -812,7 +812,7 @@ classdef ArenaScene < handle
                         case '.swtspt'
                             A_loadsweetspot(scene);
                         case '.dcm' 
-                            A_loadsuretune(scene);
+                            A_loadsuretune(scene,fullfile(pathname,filename{iFile}));
                             
                             
                         otherwise

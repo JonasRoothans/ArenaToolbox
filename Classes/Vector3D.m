@@ -133,6 +133,11 @@ classdef Vector3D
             end
         end
         
+        function out = mean(o1,o2)
+            outarray = mean([o1.getArray,o2.getArray]');
+            out = Vector3D(outarray);
+        end
+        
         %-- vector operations
         
         function out = lps2ras(o1)

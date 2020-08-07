@@ -1,14 +1,19 @@
-function [output] = A_loadsuretune(OPTIONALscene)
+function [output] = A_loadsuretune(OPTIONALscene,dcmpath)
 %A_LOADSURETUNE Summary of this function goes here
 %   Detailed explanation goes here
-if nargin==1
+if nargin>0
     scene = OPTIONALscene;
 else
     scene = [];
 end
 
-S = Session;
-S.loadsession;
+if nargin==2
+    S = Session;
+    S.loadsession(dcmpath)
+else
+    S = Session;
+    S.loadsession;
+end
 [name,type] = S.listregisterables;
 n = numel(type);
 ITEM_SPACE = 30;
@@ -64,6 +69,25 @@ for iRegisterable = 1:n
                 'String',string,...
                 'UserData',userdata,...
                 'callback',callback) ;
+        case 'ImageBasedStructureSegmentation'
+            thisR = S.getregisterable(name{iRegisterable});
+            string = ['Segmentation: ',thisR.label];
+            callback = @cb_ibs;
+            userdata = thisR;
+            buttons(iRegisterable) = uicontrol('style','togglebutton','Position',[ITEM_LEFTMARGIN,bottom,ITEM_WIDTH,ITEM_HEIGHT],...
+                'String',string,...
+                'UserData',userdata,...
+                'callback',callback) ;
+        case 'ManualStructureSegmentation'
+            thisR = S.getregisterable(name{iRegisterable});
+            string = ['Manual Segmentation: ',thisR.label];
+            callback = @cb_mss;
+            userdata = thisR;
+            buttons(iRegisterable) = uicontrol('style','togglebutton','Position',[ITEM_LEFTMARGIN,bottom,ITEM_WIDTH,ITEM_HEIGHT],...
+                'String',string,...
+                'UserData',userdata,...
+                'callback',callback) ;
+            
         otherwise
             thisR = S.getregisterable(name{iRegisterable});
             string = [class(thisR),': ',thisR.label];
@@ -103,6 +127,48 @@ output = {};
         end
         
     end
+
+    function cb_mss(hObject,h)
+        this = hObject.UserData;
+        [T,reglinkdescription] = universalCallbackRoutine(this);
+        m = this.computemesh;
+        Mesh(m.f,m.v).see(scene)
+        keyboard
+    end
+
+    function cb_ibs(hObject,h)
+        this = hObject.UserData;
+        [T,reglinkdescription] = universalCallbackRoutine(this);
+        
+         %create VoxelData and warp
+        vd = VoxelData();
+        vd.importSuretuneDataset(this.parent);
+        vd.imwarp(T);
+
+        %crop vd to boundingbox
+        leftDown = Vector3D(this.boundingBox.leftDown).transform(T);
+        rightUp = Vector3D(this.boundingBox.rightUp).transform(T);
+        vd.crop(leftDown,rightUp)
+        
+        if strcmp(this.blurEnabled,'True')
+            vd.smooth;
+        end
+        
+        %get threshold
+        rescaleIntercept = str2num(this.parent.volume.volumeInfo.rescaleIntercept);
+        rescaleSlope = str2num(this.parent.volume.volumeInfo.rescaleSlope);
+
+        T = (str2num(this.threshold)-rescaleIntercept) / rescaleSlope;
+        
+        %visualise
+        vd.getmesh(T).see(scene)
+        
+        
+       
+      
+    end
+
+
     function cb_ACPC(hObject,b)
         this = hObject.UserData;
         [T,reglinkdescription] = universalCallbackRoutine(this);
@@ -251,6 +317,11 @@ output = {};
                 Tfromreglink = Tlps2ras*Tmcp2ac;
             case 'Dataset'
                 Tfromreglink= diag([-1 -1 1 1]); %lps2ras
+            case 'ImageBasedStructureSegmentation'
+                 Tfromreglink= diag([-1 -1 1 1]); %lps2ras
+             case 'ManualStructureSegmentation'
+                 Tfromreglink= diag([-1 -1 1 1]); %lps2ras
+                 
             otherwise
                 keyboard
         end

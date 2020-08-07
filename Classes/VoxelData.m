@@ -53,6 +53,43 @@ classdef VoxelData <handle
             obj.R = R;
         end
         
+        function obj = crop(obj,leftdown,rightup)
+            if not(isa(leftdown,'Vector3D'))
+                leftdown = Vector3D(leftdown);
+                rightup = Vecgtor3D(rightup);
+            end
+            
+        %get the voxelindices at boundingbox edges
+        [ldy,ldx,ldz] = obj.R.worldToSubscript(min([leftdown.x,rightup.x]),min([leftdown.y,rightup.y]),min([leftdown.z,rightup.z]));  
+        [ruy,rux,ruz] = obj.R.worldToSubscript(max([leftdown.x,rightup.x]),max([leftdown.y,rightup.y]),max([leftdown.z,rightup.z]));
+        
+        %crop voxels
+        v  = obj.Voxels(ldy:ruy,ldx:rux,ldz:ruz);
+        
+        %make new imref
+        new_x_span = [obj.R.XWorldLimits(1)+obj.R.PixelExtentInWorldX*ldx,...
+            obj.R.XWorldLimits(1)+obj.R.PixelExtentInWorldX*(rux+1)];
+        
+        new_y_span = [obj.R.YWorldLimits(1)+obj.R.PixelExtentInWorldY*ldy,...
+            obj.R.YWorldLimits(1)+obj.R.PixelExtentInWorldY*(ruy+1)];
+        
+        new_z_span = [obj.R.ZWorldLimits(1)+obj.R.PixelExtentInWorldZ*ldz,...
+            obj.R.ZWorldLimits(1)+obj.R.PixelExtentInWorldZ*(ruz+1)];
+
+        sz = size(v);
+        newR = imref3d(sz,new_x_span,new_y_span,new_z_span);
+        
+        
+        %save
+        obj.Voxels = v;
+        obj.R = newR;
+
+            if nargout==1 %make a copy (default is overwrite)
+                obj = VoxelData(obj.Voxels,obj.R);
+            end
+        end
+        
+        
         function [obj,filename] = loadnii(obj,niifile)
             
             if nargin==1
