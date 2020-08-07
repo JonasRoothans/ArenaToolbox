@@ -132,8 +132,14 @@ output = {};
         this = hObject.UserData;
         [T,reglinkdescription] = universalCallbackRoutine(this);
         m = this.computemesh;
-        Mesh(m.f,m.v).see(scene)
-        keyboard
+        %[V,F] = SDK_smoothedges(m,10,100,8,0.7)
+        % maxMaxEdgeLength,maxVertices,maxConnections,buldgeFactor)
+%         [V,F] = SDK_simultaneoussubdividesurface(m,2,100,10,0.5);
+        [V,F] = A_subdividesurface(m,0,200,10,0.5);
+        
+        segmentation = ObjFile(F,V);
+        segmentation.transform(T).see(scene)
+        
     end
 
     function cb_ibs(hObject,h)
