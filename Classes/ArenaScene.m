@@ -712,7 +712,9 @@ classdef ArenaScene < handle
                         actor = data.getmesh(0.5).see(scene);
                     else
                         if isnan(threshold) %ask for threshold
-                            [actor,threshold] = data.getmesh.see(scene);
+                            [mesh] = data.getmesh;
+                            actor = mesh.see(scene);
+                            threshold = mesh.Settings.T;
                         else %use previously defined threshold
                             actor = data.getmesh(threshold).see(scene);
                         end
@@ -2281,6 +2283,21 @@ classdef ArenaScene < handle
             end
             
             switch type
+                case 'button'
+                    left = textwidth+xpadding/2;
+                    for i = 1:numel(value)
+                        obj.handles.configcontrols(end+1) = uicontrol('style','push',...
+                            'Parent',obj.handles.panelleft,...
+                            'units','normalized',...
+                            'position', [left+xpadding,1-ypadding-colorheight-top,colorwidth,colorheight],...
+                            'String',value{i},...
+                            'callback',{@cc_callback},...
+                            'Tag',tag{i});
+                        
+                        left = left+xpadding+colorwidth;
+                    end
+                    obj.configcontrolpos = top+ypadding+colorheight;
+                    
                 case 'color'
                     left = textwidth+xpadding/2;
                     for i = 1:numel(value)
@@ -2389,6 +2406,17 @@ classdef ArenaScene < handle
                     
             end
             
+            
+            function cc_callback(hObject,eventdata)
+                 scene = ArenaScene.getscenedata(hObject);
+                 currentActors = ArenaScene.getSelectedActors(scene);
+                 
+                 %trigger callback at the actor
+                 currentActors(1).callback(hObject.String)
+            end
+                 
+                 
+ 
             function cc_selectcolor(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 color = A_colorpicker(scene.colorTheme);%uisetcolor;

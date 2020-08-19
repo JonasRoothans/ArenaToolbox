@@ -13,6 +13,7 @@ classdef Slicei < handle
         dark
         opacity
         clipDark
+        parent
     end
     
     properties (Access = private)
@@ -37,6 +38,7 @@ classdef Slicei < handle
               obj.dark = min(obj.vol(:));
               obj.opacity = 1;
               obj.clipDark = 0;
+              obj.parent = vd;
               
         end
         

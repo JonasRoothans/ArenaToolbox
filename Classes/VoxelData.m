@@ -85,7 +85,7 @@ classdef VoxelData <handle
         obj.R = newR;
 
             if nargout==1 %make a copy (default is overwrite)
-                obj = VoxelData(obj.Voxels,obj.R);
+                obj = CroppedVoxelData(obj.Voxels,obj.R,leftdown,rightup,obj);
             end
         end
         

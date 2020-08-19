@@ -154,7 +154,7 @@ output = {};
         %crop vd to boundingbox
         leftDown = Vector3D(this.boundingBox.leftDown).transform(T);
         rightUp = Vector3D(this.boundingBox.rightUp).transform(T);
-        vd.crop(leftDown,rightUp)
+        vd = vd.crop(leftDown,rightUp);
         
         if strcmp(this.blurEnabled,'True')
             vd.smooth;

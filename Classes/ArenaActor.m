@@ -568,8 +568,9 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 case 'Mesh'
                     scene.newconfigcontrol(obj,'color',{settings.colorFace,settings.colorEdge},{'colorFace','colorEdge'});
                     scene.newconfigcontrol(obj,'edit',{settings.complexity,settings.threshold},{'complexity','threshold'});
-                    scene.newconfigcontrol(obj,'edit',settings.faceOpacity,'faceOpacity')
-                    scene.newconfigcontrol(obj,'edit',settings.edgeOpacity,'edgeOpacity')
+                    scene.newconfigcontrol(obj,'edit',{settings.faceOpacity,settings.edgeOpacity},{'faceOpacity','edgeOpacity'})
+                    
+                    scene.newconfigcontrol(obj,'button',{'options','slice'},{'crop','slice'})
                     scene.newconfigcontrol(obj,'checkbox',settings.smooth,'smooth')
                 case 'ObjFile'
                     scene.newconfigcontrol(obj,'color',{settings.colorFace,settings.colorEdge},{'colorFace','colorEdge'});
@@ -599,6 +600,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     scene.newconfigcontrol(obj,'edit',{settings.valueDark,settings.valueLight},{'valueDark','valueLight'});
                     scene.newconfigcontrol(obj,'vector',{settings.slice,settings.faceOpacity},{'slice','faceOpacity'});
                     scene.newconfigcontrol(obj,'list',{settings.plane},{'plane'},{'axial','coronal','sagittal'})
+                    scene.newconfigcontrol(obj,'button','mesh','mesh')
                     %scene.newconfigcontrol(obj,'checkbox',settings.clipDark,'clipDark');
                 case 'Fibers'
                     scene.newconfigcontrol(obj,'color',settings.colorFace,'colorFace');
@@ -828,6 +830,30 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 end
             end
         
+        end
+        
+        function callback(obj,value)
+            switch value
+                case 'options'
+                    meshOptions(obj)
+                case 'slice'
+                    switch class(obj.Data)
+                        case 'Mesh'
+                            actor = obj.Data.Source.getslice.see(obj.Scene);
+                            actor.changeName(obj.Tag)
+                        otherwise
+                            keyboard
+                    end
+                case 'mesh'
+                    actor = obj.Data.parent.getmesh.see(obj.Scene);
+                    actor.changeName(obj.Tag)
+            end
+                    
+        end
+        
+        %--- mesh callbacks
+        function meshOptions(obj)
+            warning('work in progress')
         end
     end
 end
