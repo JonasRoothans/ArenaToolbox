@@ -1,5 +1,5 @@
 function  [v,f] = A_subdividesurface(obj,maxMaxEdgeAngle,maxVertices,maxConnections,buldgeFactor)
-
+global edges 
 warning('off','all')
 %nested functions:
     function edgeLengthHeap = computeEdgeLengths()
