@@ -23,7 +23,11 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             obj.Data = data;
-            obj.Scene(end+1) = scene;
+            try
+                obj.Scene(end+1) = scene;
+            catch
+                %wont work if it's not a scene; but a cropmenu
+            end
             if nargin==4
                 settings = OPTIONALvisualisation;
             else
@@ -241,7 +245,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             
             % changing threshold triggers new triangulation from voxeldata
             if isBasedOnVoxelData
-                if not(round(settings.threshold,7)==round(data.Settings.T,7))
+                if or(not(round(settings.threshold,7)==round(data.Settings.T,7)),isa(scene,'ArenaCropMenu'))
                     if isnan(settings.threshold)
                         data.getmeshfromvoxeldata({data.Source});
                         settings.threshold = data.Settings.T;
@@ -565,12 +569,12 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     scene.newconfigcontrol(obj,'color',{settings.colorLow, settings.colorHigh},{'colorLow','colorHigh'});
                     scene.newconfigcontrol(obj,'edit',settings.thickness,'thickness');
                     scene.newconfigcontrol(obj,'edit',settings.opacity,'opacity');
-                case 'Mesh'
+                case {'Mesh','CroppedVoxelData'}
                     scene.newconfigcontrol(obj,'color',{settings.colorFace,settings.colorEdge},{'colorFace','colorEdge'});
                     scene.newconfigcontrol(obj,'edit',{settings.complexity,settings.threshold},{'complexity','threshold'});
                     scene.newconfigcontrol(obj,'edit',{settings.faceOpacity,settings.edgeOpacity},{'faceOpacity','edgeOpacity'})
                     
-                    scene.newconfigcontrol(obj,'button',{'options','slice'},{'crop','slice'})
+                    scene.newconfigcontrol(obj,'button',{'crop','slice'},{'crop','slice'})
                     scene.newconfigcontrol(obj,'checkbox',settings.smooth,'smooth')
                 case 'ObjFile'
                     scene.newconfigcontrol(obj,'color',{settings.colorFace,settings.colorEdge},{'colorFace','colorEdge'});
@@ -834,8 +838,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         
         function callback(obj,value)
             switch value
-                case 'options'
-                    meshOptions(obj)
+                case 'crop'
+                    cropMesh(obj)
                 case 'slice'
                     switch class(obj.Data)
                         case 'Mesh'
@@ -852,8 +856,10 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         end
         
         %--- mesh callbacks
-        function meshOptions(obj)
-            warning('work in progress')
+        function cropMesh(obj)
+            cropwindow = ArenaCropMenu;
+            
+            cropwindow.load(obj);
         end
     end
 end

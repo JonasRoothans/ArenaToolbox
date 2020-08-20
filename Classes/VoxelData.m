@@ -81,12 +81,14 @@ classdef VoxelData <handle
         
         
         %save
-        obj.Voxels = v;
-        obj.R = newR;
-
+            
             if nargout==1 %make a copy (default is overwrite)
                 obj = CroppedVoxelData(obj.Voxels,obj.R,leftdown,rightup,obj);
             end
+              obj.Voxels = v;
+              obj.R = newR;
+             
+
         end
         
         
@@ -369,9 +371,9 @@ classdef VoxelData <handle
            z_1 = zCi(find(zVi>max(zVi)/2,1,'first'));
            z_2 = zCi(find(zVi>max(zVi)/2,1,'last'));
            
-           patch([x_1 x_1 x_2 x_2],[0 max(xVi)/2 max(xVi)/2 0],'red','FaceAlpha',0.4)
-           patch([y_1 y_1 y_2 y_2],[0 max(yVi)/2 max(yVi)/2 0],'green','FaceAlpha',0.4)
-           patch([z_1 z_1 z_2 z_2],[0 max(zVi)/2 max(zVi)/2 0],'blue','FaceAlpha',0.4)
+           patch([x_1 x_1 x_2 x_2],[0 max(xVi)/2 max(xVi)/2 0],'red','FaceAlpha',0.4);
+           patch([y_1 y_1 y_2 y_2],[0 max(yVi)/2 max(yVi)/2 0],'green','FaceAlpha',0.4);
+           patch([z_1 z_1 z_2 z_2],[0 max(zVi)/2 max(zVi)/2 0],'blue','FaceAlpha',0.4);
            
            legend({'x','y','z','FWHM x','FWHM y','FWHM z'})
            
