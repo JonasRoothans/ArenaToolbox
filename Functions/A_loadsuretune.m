@@ -155,7 +155,7 @@ output = {};
         rightUp = Vector3D(this.boundingBox.rightUp);%.transform(T);
         vd = vd.crop(leftDown,rightUp);
         
-        vd.imwarp(T);
+        vd = vd.imwarp(T);
         
         if strcmp(this.blurEnabled,'True')
             vd.smooth;

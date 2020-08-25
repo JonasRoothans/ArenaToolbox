@@ -110,6 +110,7 @@ classdef ArenaCropMenu < ArenaScene
             end
             
             function myCallbackFunc(varargin)
+                if not(obj.flags.loading)
                     ld = Vector3D([get(obj.sliders.xmin,'Value'),...
                         get(obj.sliders.ymin,'Value'),...
                         get(obj.sliders.zmin,'Value')]);
@@ -119,6 +120,7 @@ classdef ArenaCropMenu < ArenaScene
                         get(obj.sliders.zmax,'Value')]);
                
                    obj = updateBoundingBox(obj,ld,ru);
+                end
             end
          function updatemesh(varargin)
             
@@ -209,6 +211,9 @@ classdef ArenaCropMenu < ArenaScene
                         max([newActor.Data.Source.LeftDown.z,newActor.Data.Source.RightUp.z]));
                     
                     updateBoundingBox(obj,crop_ld,crop_ru)
+                    cropped = newActor.Data.Source.parent.crop(newActor.Data.Source.LeftDown,newActor.Data.Source.RightUp);
+                    cropped.smooth;
+                    cropactor = cropped.getmesh(newActor.Data.Settings.T).see(obj);
                     
                 otherwise
                     keyboard
@@ -229,11 +234,11 @@ classdef ArenaCropMenu < ArenaScene
             set(obj.sliders.zmin,'Value',crop_ld.z);
             set(obj.sliders.zmax,'Value',crop_ru.z);
             
-            addlistener(obj.sliders.xmin,'Value','PreSet',@(~,~)disp('hi'));
+%             addlistener(obj.sliders.xmin,'Value','PreSet',@(~,~)disp('hi'));
 
            
             
-            cropactor = newActor.Data.Source.getmesh(newActor.Data.Settings.T).see(obj);
+            
             cropactor.Visualisation.settings.colorFace= newActor.Visualisation.settings.colorFace;
             cropactor.Visualisation.settings.colorEdge = newActor.Visualisation.settings.colorEdge;
             cropactor.Visualisation.handle.FaceColor = newActor.Visualisation.settings.colorFace;
@@ -242,7 +247,7 @@ classdef ArenaCropMenu < ArenaScene
             
             
             axes(obj.handles.histogramaxes)
-            obj.handles.histogram = histogram(newActor.Data.Source.Voxels(:),50);
+            obj.handles.histogram = histogram(cropactor.Data.Source.Voxels(:),50);
             obj.handles.histogram.HitTest = 'off';
             obj.handles.histogram.FaceColor = obj.Actors(2).Visualisation.settings.colorFace;
             obj.handles.histogramaxes.XColor = 'w';

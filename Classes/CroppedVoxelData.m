@@ -23,8 +23,12 @@ classdef CroppedVoxelData < VoxelData
         end
         
         function obj = imwarp(obj,T)
+            
+            out = imwarp@VoxelData(obj,T);
             obj.T = T;
-            obj = imwarp@VoxelData(obj,T);
+            obj.Voxels = out.Voxels;
+            obj.R = out.R;
+            
         end
         
         
