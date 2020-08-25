@@ -6,6 +6,8 @@ classdef ArenaCropMenu < ArenaScene
         boundingbox
         sliders
         flags
+        cropped
+        reference
     end
     
     methods
@@ -18,7 +20,18 @@ classdef ArenaCropMenu < ArenaScene
 %                 'position',[xpadding 0.4 0.4 0.3],...
 %                 'Title','Bounding box');
             
-            obj.handles.axes.Position = [0.38 0.3 0.6 0.7];
+            obj.handles.axes.Position = [0.38 0 0.6 1];
+            obj.handles.panelleft.Visible = 'off';
+            obj.handles.panelright.Visible = 'off';
+            obj.handles.btn_toggleright.Visible = 'off';
+            obj.handles.btn_toggleleft.Visible = 'off';
+            obj.handles.menu.atlas.main.Visible = 'off';
+            obj.handles.menu.dynamic.main.Visible = 'off';
+            obj.handles.menu.edit.main.Visible = 'off';
+            obj.handles.menu.file.main.Visible = 'off';
+            obj.handles.menu.transform.main.Visible = 'off';
+            obj.handles.menu.view.main.Visible = 'off';
+            obj.handles.btn_layeroptions.Visible = 'off';
             
             obj.handles.histogramaxes = axes('units','normalized',...
                 'position',[0.05 0.78 0.35 0.20],...
@@ -26,41 +39,123 @@ classdef ArenaCropMenu < ArenaScene
                 'nextplot','add',...
                 'box','off');
             
+            obj.handles.bg = uibuttongroup(obj.handles.figure,'units','normalized','Position',[0.05 0.64 0.2 0.1]);
+            obj.handles.light = uicontrol(obj.handles.bg,'Style','radiobutton','Position',[10 60 91 15],'String','light','callback',@darklightcallback);
+            obj.handles.surface = uicontrol(obj.handles.bg,'Style','radiobutton','Position',[10 38 91 15],'String','surface','Value',1,'callback',@darklightcallback);
+            obj.handles.dark = uicontrol(obj.handles.bg,'Style','radiobutton','Position',[10 16 91 15],'String','dark','callback',@darklightcallback);
+            obj.handles.bg.BackgroundColor = [0 0 0];
+            obj.handles.bg.BorderWidth = 0;
             obj.handles.figure.Color = [0 0 0];
+            obj.handles.light.BackgroundColor = [0 0 0];
+            obj.handles.dark.BackgroundColor = [0 0 0];
+            obj.handles.surface.BackgroundColor = [0 0 0];
+            obj.handles.light.ForegroundColor = [1 1 1];
+            obj.handles.dark.ForegroundColor = [1 1 1];
+            obj.handles.surface.ForegroundColor = [1 1 1];
+            
+            
+            %obj.handles.figure.WindowButtonUpFcn = @clicked;
+            
             
                         %sliders
-            jRangeSliderx = com.jidesoft.swing.RangeSlider(0,100,0,100);  % min,max,low,high
-            jRangeSliderx = javacomponent(jRangeSliderx, [40,490,400,80], obj.handles.figure );
-            set(jRangeSliderx, 'MajorTickSpacing',25, 'MinorTickSpacing',5, 'PaintTicks',true, 'PaintLabels',true, ...
-            'Background',java.awt.Color.black, 'StateChangedCallback',@myCallbackFunc);
-        
-        jRangeSlidery = com.jidesoft.swing.RangeSlider(0,100,0,100);  % min,max,low,high
-            jRangeSlidery = javacomponent(jRangeSlidery, [40,410,400,80], obj.handles.figure );
-            set(jRangeSlidery, 'MajorTickSpacing',25, 'MinorTickSpacing',5, 'PaintTicks',true, 'PaintLabels',true, ...
-            'Background',java.awt.Color.black, 'StateChangedCallback',@myCallbackFunc);
-        
-        jRangeSliderz = com.jidesoft.swing.RangeSlider(0,100,0,100);  % min,max,low,high
-            jRangeSliderz = javacomponent(jRangeSliderz, [40,330,400,80], obj.handles.figure );
-            set(jRangeSliderz, 'MajorTickSpacing',25, 'MinorTickSpacing',5, 'PaintTicks',true, 'PaintLabels',true, ...
-            'Background',java.awt.Color.black, 'StateChangedCallback',@myCallbackFunc);
-          
-            obj.sliders.x = jRangeSliderx;
-            obj.sliders.y = jRangeSlidery;
-            obj.sliders.z = jRangeSliderz;
+                        
+                        obj.sliders.xmin = uicontrol(obj.handles.figure,'Style','slider',...
+                            'units','pixels',...
+                            'Position',[50,100,500,20],...
+                            'callback',@updatemesh);
+                        obj.sliders.xmax = uicontrol(obj.handles.figure,'Style','slider',...
+                            'units','pixels',...
+                            'Position',[50,120,500,20],...
+                            'callback',@updatemesh);
+                        
+                        obj.sliders.ymin = uicontrol(obj.handles.figure,'Style','slider',...
+                            'units','pixels',...
+                            'Position',[50,150,500,20],...
+                            'callback',@updatemesh);
+                        
+                        obj.sliders.ymax = uicontrol(obj.handles.figure,'Style','slider',...
+                            'units','pixels',...
+                            'Position',[50,170,500,20],...
+                            'callback',@updatemesh);
+                        
+                        obj.sliders.zmin = uicontrol(obj.handles.figure,'Style','slider',...
+                            'units','pixels',...
+                            'Position',[50,200,500,20],...
+                            'callback',@updatemesh);
+                        
+                        obj.sliders.zmax = uicontrol(obj.handles.figure,'Style','slider',...
+                            'units','pixels',...
+                            'Position',[50,220,500,20],...
+                            'callback',@updatemesh);
+                        
+                        addlistener(obj.sliders.xmin,'Value','PreSet',@myCallbackFunc);
+                        addlistener(obj.sliders.xmax,'Value','PreSet',@myCallbackFunc);
+                        addlistener(obj.sliders.ymin,'Value','PreSet',@myCallbackFunc);
+                        addlistener(obj.sliders.ymax,'Value','PreSet',@myCallbackFunc);
+                        addlistener(obj.sliders.zmin,'Value','PreSet',@myCallbackFunc);
+                        addlistener(obj.sliders.zmax,'Value','PreSet',@myCallbackFunc);
+                        
+                        obj.handles.savebutton = uicontrol(obj.handles.figure,'Style','pushbutton',...
+                            'units','normalized',...
+                            'Position',[0.87,0.05,0.08,0.05],...
+                            'String','Save and close',...
+                            'callback',@btnsaveclose);
+                        
+                        
+                        %uistack(obj.handles.bg,'bottom');
+            
+            function darklightcallback(varargin)
+                myCallbackFunc(varargin)
+                updatemesh(varargin)
+            end
             
             function myCallbackFunc(varargin)
-                    ld = Vector3D([get(obj.sliders.x,'LowValue'),...
-                        get(obj.sliders.y,'LowValue'),...
-                        get(obj.sliders.z,'LowValue')]);
+                    ld = Vector3D([get(obj.sliders.xmin,'Value'),...
+                        get(obj.sliders.ymin,'Value'),...
+                        get(obj.sliders.zmin,'Value')]);
                     
-                    ru = Vector3D([get(obj.sliders.x,'HighValue'),...
-                        get(obj.sliders.y,'HighValue'),...
-                        get(obj.sliders.z,'HighValue')]);
+                    ru = Vector3D([get(obj.sliders.xmax,'Value'),...
+                        get(obj.sliders.ymax,'Value'),...
+                        get(obj.sliders.zmax,'Value')]);
                
-                   updateBoundingBox(obj,ld,ru)
+                   obj = updateBoundingBox(obj,ld,ru);
             end
+         function updatemesh(varargin)
+            
+                
+                 
+                   %update mesh
+                obj.Actors(2).Data.Source = obj.cropped;
+                delete(obj.Actors(2).Visualisation.handle)
+
+                currentsettings = obj.Actors(2).Visualisation.settings;
+                visualize(obj.Actors(2),currentsettings,obj.Actors(2).Data,obj);
+
+         end
+        
+         function btnsaveclose(varargin)
+            obj = varargin{1}.Parent.UserData;
+            
+            obj.reference.Data.Source.Voxels = obj.cropped.Voxels;
+            obj.reference.Data.Source.R = obj.cropped.R;
+            obj.reference.Data.Source.LeftDown = obj.cropped.LeftDown;
+            obj.reference.Data.Source.RightUp = obj.cropped.RightUp;
+            
+            obj.reference.Data.Source.imwarp(obj.reference.Data.Source.T)
+            
+            currentsettings = obj.reference.Visualisation.settings;
+            currentsettings.threshold = currentsettings.threshold+0.001; %triggers remeshing
+            delete(obj.reference.Visualisation.handle)
+                visualize(obj.reference,currentsettings,obj.reference.Data,obj.reference.Scene);
+                
+                delete(obj.handles.figure)
+            
+            
+        end
              
         end
+        
+       
         
         function obj = MakeACube(obj)
             %bounding box
@@ -75,6 +170,7 @@ classdef ArenaCropMenu < ArenaScene
         function obj = ArenaCropMenu()
             obj.flags.loading = 0; %triggered by the load function
             obj.flags.startup = 1;
+            obj.flags.remesh = 0;
             
             obj = create(obj,'CROP MENU');
             obj = CustomizeSceneToBeACropMenu(obj);
@@ -87,14 +183,14 @@ classdef ArenaCropMenu < ArenaScene
         end
         
         
+        
         function obj = load(obj, newActor)
             obj.flags.loading = 1;
+            obj.reference = newActor;
             switch class(newActor.Data.Source)
                 case 'CroppedVoxelData'
                     slice = newActor.Data.Source.parent.getslice.see(obj);
-
-                    updateBoundingBox(obj,newActor.Data.Source.LeftDown,newActor.Data.Source.RightUp)
-                    
+                     
                     parent_ld = Vector3D([newActor.Data.Source.parent.R.XWorldLimits(1),...
                         newActor.Data.Source.parent.R.YWorldLimits(1),...
                         newActor.Data.Source.parent.R.ZWorldLimits(1)]);
@@ -112,28 +208,38 @@ classdef ArenaCropMenu < ArenaScene
                         max([newActor.Data.Source.LeftDown.y,newActor.Data.Source.RightUp.y]),...
                         max([newActor.Data.Source.LeftDown.z,newActor.Data.Source.RightUp.z]));
                     
+                    updateBoundingBox(obj,crop_ld,crop_ru)
+                    
                 otherwise
                     keyboard
             end
             
             %setsliders
-            set(obj.sliders.x,'Minimum',parent_ld.x);
-            set(obj.sliders.y,'Minimum',parent_ld.y);
-            set(obj.sliders.z,'Minimum',parent_ld.z);
-            set(obj.sliders.x,'Maximum',parent_ru.x);
-            set(obj.sliders.y,'Maximum',parent_ru.y);
-            set(obj.sliders.z,'Maximum',parent_ru.z);
+            set(obj.sliders.xmin,'Min',[parent_ld.x],'Max',[parent_ru.x]);
+            set(obj.sliders.xmax,'Min',[parent_ld.x],'Max',[parent_ru.x]);
+            set(obj.sliders.ymin,'Min',[parent_ld.y],'Max',[parent_ru.y]);
+            set(obj.sliders.ymax,'Min',[parent_ld.y],'Max',[parent_ru.y]);
+            set(obj.sliders.zmin,'Min',[parent_ld.z],'Max',[parent_ru.z]);
+            set(obj.sliders.zmax,'Min',[parent_ld.z],'Max',[parent_ru.z]);
             
-            set(obj.sliders.x,'LowValue',crop_ld.x);
-            set(obj.sliders.y,'LowValue',crop_ld.y);
-            set(obj.sliders.z,'LowValue',crop_ld.z);
-            set(obj.sliders.x,'HighValue',crop_ru.x);
-            set(obj.sliders.y,'HighValue',crop_ru.y);
-            set(obj.sliders.z,'HighValue',crop_ru.z);
+            set(obj.sliders.xmin,'Value',crop_ld.x);
+            set(obj.sliders.xmax,'Value',crop_ru.x);
+            set(obj.sliders.ymin,'Value',crop_ld.y);
+            set(obj.sliders.ymax,'Value',crop_ru.y);
+            set(obj.sliders.zmin,'Value',crop_ld.z);
+            set(obj.sliders.zmax,'Value',crop_ru.z);
+            
+            addlistener(obj.sliders.xmin,'Value','PreSet',@(~,~)disp('hi'));
+
+           
+            
+            cropactor = newActor.Data.Source.getmesh(newActor.Data.Settings.T).see(obj);
+            cropactor.Visualisation.settings.colorFace= newActor.Visualisation.settings.colorFace;
+            cropactor.Visualisation.settings.colorEdge = newActor.Visualisation.settings.colorEdge;
+            cropactor.Visualisation.handle.FaceColor = newActor.Visualisation.settings.colorFace;
+            cropactor.Visualisation.handle.EdgeColor = newActor.Visualisation.settings.colorEdge;
             
             
-            
-            newActor.Data.Source.getmesh(newActor.Data.Settings.T).see(obj);
             
             axes(obj.handles.histogramaxes)
             obj.handles.histogram = histogram(newActor.Data.Source.Voxels(:),50);
@@ -157,6 +263,7 @@ classdef ArenaCropMenu < ArenaScene
             
             obj.flags.loading =0 ;
             
+            
             function chooseThreshold(varargin)
                 hit = varargin{2};
                 location = hit.IntersectionPoint(1);
@@ -177,16 +284,21 @@ classdef ArenaCropMenu < ArenaScene
        
         
         
-        function updateBoundingBox(obj,ld,ru)
+        function obj= updateBoundingBox(obj,ld,ru)
      
-            if not(obj.flags.startup)
+            
             
                 obj.boundingbox.XData = [ld.x,ru.x,ru.x,ld.x,ld.x,ld.x,ru.x,ru.x,ld.x,ld.x,ru.x,ru.x,ru.x,ld.x,ld.x,ru.x,ru.x];
                obj.boundingbox.YData = [ld.y,ld.y,ru.y,ru.y,ld.y,ld.y,ld.y,ru.y,ru.y,ld.y,ld.y,ld.y,ru.y,ru.y,ru.y,ru.y,ru.y];
                obj.boundingbox.ZData = [ld.z,ld.z,ld.z,ld.z,ld.z,ru.z,ru.z,ru.z,ru.z,ru.z,ru.z,ld.z,ld.z,ld.z,ru.z,ru.z,ld.z];
         
+               if not(obj.flags.startup)
                 cropped = obj.Actors(1).Data.parent.crop(ld,ru);
                 cropped.smooth;
+                
+                cropped = padcropped(cropped);
+                
+                obj.cropped = cropped;
                
 
                 %update histogram
@@ -196,24 +308,40 @@ classdef ArenaCropMenu < ArenaScene
                 obj.handles.histogram.BinEdges= BinEdges;
                 obj.handles.histogram.BinLimits= BinLimits;
                 
-                if not(obj.flags.loading)
-                if not(any([getValueIsAdjusting(obj.sliders.x),...
-                        getValueIsAdjusting(obj.sliders.y),...
-                        getValueIsAdjusting(obj.sliders.z)]))
-                %update mesh
-                obj.Actors(2).Data.Source = cropped;
-                delete(obj.Actors(2).Visualisation.handle)
+                obj.flags.remesh = 1;
                 
-                currentsettings = obj.Actors(2).Visualisation.settings;
-                visualize(obj.Actors(2),currentsettings,obj.Actors(2).Data,obj);
-                end
-                end
-        
+                
             end
-        
-       
+            
+            function cropped = padcropped(cropped)
+                if obj.flags.loading;return;end
+                switch obj.handles.bg.SelectedObject.String
+                    case 'surface'
+                        %nothing.
+                    case 'light'
+                        cropped.R.XWorldLimits = [cropped.R.XWorldLimits] + [-1 1]*cropped.R.PixelExtentInWorldX;
+                        cropped.R.ImageSize = cropped.R.ImageSize + [2 2 2]; 
+                        
+                        v =cropped.Voxels;
+                        cropped.Voxels = ones(size(v)+[2 2 2])*(min(v(:))-1);
+                        cropped.Voxels(2:end-1,2:end-1,2:end-1) =  v;
+                        
+                    case 'dark'
+                        cropped.R.XWorldLimits = [cropped.R.XWorldLimits] + [-1 1]*cropped.R.PixelExtentInWorldX;
+                        cropped.R.ImageSize = cropped.R.ImageSize + [2 2 2]; 
+                        
+                        v =cropped.Voxels;
+                        cropped.Voxels = ones(size(v)+[2 2 2])*(max(v(:))+1);
+                        cropped.Voxels(2:end-1,2:end-1,2:end-1) =  v;
+                end
+                
+                
+                
+            end
         end
         
+        
+       
         
             
     end

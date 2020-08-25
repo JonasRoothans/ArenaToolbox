@@ -238,8 +238,11 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     settings.smooth = 1;
                 end
             end
-            
+            try
             axes(scene.handles.axes)
+            catch;
+            end
+               
             
             isBasedOnVoxelData = not(isempty(data.Source));
             

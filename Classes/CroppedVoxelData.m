@@ -6,6 +6,7 @@ classdef CroppedVoxelData < VoxelData
         parent
         LeftDown
         RightUp
+        T %to parent
     end
     
     methods
@@ -15,9 +16,15 @@ classdef CroppedVoxelData < VoxelData
             obj.LeftDown = leftdown;
             obj.RightUp = rightup;
             obj.parent = parent;
+            obj.T = eye(4);
             %CROPPEDVOXELDATA Construct an instance of this class
             %   Detailed explanation goes here
            
+        end
+        
+        function obj = imwarp(obj,T)
+            obj.T = T;
+            obj = imwarp@VoxelData(obj,T);
         end
         
         

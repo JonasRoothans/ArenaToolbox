@@ -149,12 +149,13 @@ output = {};
          %create VoxelData and warp
         vd = VoxelData();
         vd.importSuretuneDataset(this.parent);
-        vd.imwarp(T);
 
         %crop vd to boundingbox
-        leftDown = Vector3D(this.boundingBox.leftDown).transform(T);
-        rightUp = Vector3D(this.boundingBox.rightUp).transform(T);
+        leftDown = Vector3D(this.boundingBox.leftDown);%.transform(T);
+        rightUp = Vector3D(this.boundingBox.rightUp);%.transform(T);
         vd = vd.crop(leftDown,rightUp);
+        
+        vd.imwarp(T);
         
         if strcmp(this.blurEnabled,'True')
             vd.smooth;
