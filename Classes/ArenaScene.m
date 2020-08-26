@@ -210,7 +210,7 @@ classdef ArenaScene < handle
             %obj.handles.menu.dynamic.Mesh.add2mesh = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as mesh','callback',{@menu_edit_add2mesh},'Visible','off');
             %obj.handles.menu.dynamic.Mesh.add2plane = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as plane','callback',{@menu_edit_add2plane},'Visible','off');
             obj.handles.menu.dynamic.Mesh.getinfo = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: get info','callback',{@menu_getinfo},'Enable','off');
-            
+            obj.handles.menu.dynamic.Mesh.plotCOG = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: show COG','callback',{@menu_showCOG},'Enable','off');
             
             
             %obj.handles.cameratoolbar = cameratoolbar(obj.handles.figure,'Show');
@@ -256,7 +256,7 @@ classdef ArenaScene < handle
                                 
                 end
                 
-                obj.colorTheme = repmat(obj.colorTheme,[1,10]);
+                obj.colorTheme = repmat(obj.colorTheme,[1,100]);
                         
             end
             
@@ -415,6 +415,20 @@ classdef ArenaScene < handle
                 end
                 copyActor.changeName(['[mirror]  ',copyActor.Tag])
                 
+                
+            end
+            
+            function menu_showCOG(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+              
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    thisCOG = PointCloud(thisActor.getCOG).see(scene);
+                    thisCOG.changeName(['COG: ',thisActor.Tag])
+                    thisCOG.changeSetting('colorLow',thisActor.Visualisation.settings.colorFace)
+         
+                end
                 
             end
             
