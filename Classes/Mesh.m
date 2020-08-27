@@ -95,7 +95,11 @@ classdef Mesh < handle & matlab.mixin.Copyable
         end
         
         function cog = getCOG(obj)
+            try
             cog = PointCloud(obj.Vertices).getCOG;
+            catch
+            cog = Vector3D([nan nan nan]);
+            end
         end
         
         function saveToFolder(obj,outdir,tag)

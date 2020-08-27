@@ -91,6 +91,16 @@ classdef VoxelData <handle
 
         end
         
+        function cropped = convertToCropped(obj)
+            leftdown = Vector3D([obj.R.XWorldLimits(1),...
+                obj.R.YWorldLimits(1),...
+                obj.R.ZWorldLimits(1)]);
+             rightup = Vector3D([obj.R.XWorldLimits(2),...
+                obj.R.YWorldLimits(2),...
+                obj.R.ZWorldLimits(2)]);
+            cropped = CroppedVoxelData(obj.Voxels,obj.R,leftdown,rightup,obj);
+        end
+        
         
         function [obj,filename] = loadnii(obj,niifile)
             

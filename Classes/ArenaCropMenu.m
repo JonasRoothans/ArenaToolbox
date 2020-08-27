@@ -146,7 +146,12 @@ classdef ArenaCropMenu < ArenaScene
             obj.reference.Data.Source.imwarp(obj.reference.Data.Source.T)
             
             currentsettings = obj.reference.Visualisation.settings;
-            currentsettings.threshold = currentsettings.threshold+0.001; %triggers remeshing
+            if currentsettings.threshold==obj.Actors(2).Visualisation.settings.threshold
+                currentsettings.threshold = currentsettings.threshold+0.001; %triggers remeshing
+            else
+                currentsettings.threshold = obj.Actors(2).Visualisation.settings.threshold;
+                
+            end
             delete(obj.reference.Visualisation.handle)
                 visualize(obj.reference,currentsettings,obj.reference.Data,obj.reference.Scene);
                 
@@ -193,15 +198,13 @@ classdef ArenaCropMenu < ArenaScene
                 case 'CroppedVoxelData'
                     slice = newActor.Data.Source.parent.getslice.see(obj);
                      
-                    parent_ld = Vector3D([newActor.Data.Source.parent.R.XWorldLimits(1),...
+                     parent_ld = Vector3D([newActor.Data.Source.parent.R.XWorldLimits(1),...
                         newActor.Data.Source.parent.R.YWorldLimits(1),...
                         newActor.Data.Source.parent.R.ZWorldLimits(1)]);
                     
                      parent_ru = Vector3D([newActor.Data.Source.parent.R.XWorldLimits(2),...
                         newActor.Data.Source.parent.R.YWorldLimits(2),...
                         newActor.Data.Source.parent.R.ZWorldLimits(2)]);
-                    
-                    
                     crop_ld = Vector3D(min([newActor.Data.Source.LeftDown.x,newActor.Data.Source.RightUp.x]),...
                         min([newActor.Data.Source.LeftDown.y,newActor.Data.Source.RightUp.y]),...
                         min([newActor.Data.Source.LeftDown.z,newActor.Data.Source.RightUp.z]));
@@ -210,14 +213,36 @@ classdef ArenaCropMenu < ArenaScene
                         max([newActor.Data.Source.LeftDown.y,newActor.Data.Source.RightUp.y]),...
                         max([newActor.Data.Source.LeftDown.z,newActor.Data.Source.RightUp.z]));
                     
-                    updateBoundingBox(obj,crop_ld,crop_ru)
                     cropped = newActor.Data.Source.parent.crop(newActor.Data.Source.LeftDown,newActor.Data.Source.RightUp);
                     cropped.smooth;
                     cropactor = cropped.getmesh(newActor.Data.Settings.T).see(obj);
                     
                 otherwise
-                    keyboard
+                    
+                    cropped = newActor.Data.Source.convertToCropped();
+                    obj.reference.Data.Source = cropped;
+                    cropped.smooth;
+                    slice = cropped.parent.getslice.see(obj);
+                    
+                    cropactor = cropped.getmesh(newActor.Data.Settings.T).see(obj);
+                    
+                     parent_ld = Vector3D([newActor.Data.Source.R.XWorldLimits(1),...
+                        newActor.Data.Source.R.YWorldLimits(1),...
+                        newActor.Data.Source.R.ZWorldLimits(1)]);
+                    
+                     parent_ru = Vector3D([newActor.Data.Source.R.XWorldLimits(2),...
+                        newActor.Data.Source.R.YWorldLimits(2),...
+                        newActor.Data.Source.R.ZWorldLimits(2)]);
+                    crop_ld  = parent_ld;
+                    crop_ru = parent_ru;
+
             end
+               
+                    
+                    
+                    
+                    
+                    updateBoundingBox(obj,crop_ld,crop_ru)
             
             %setsliders
             set(obj.sliders.xmin,'Min',[parent_ld.x],'Max',[parent_ru.x]);
