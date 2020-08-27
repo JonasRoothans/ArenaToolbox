@@ -524,6 +524,26 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 end
             end
             
+            
+            %mirrored
+            %regenerate the first fiber and see if the vertices are the
+            %same
+            idcs_cumsum = cumsum(obj.Data.Connectome.Data.idx);
+            iFib = data.Indices(1);
+            try
+            start = idcs_cumsum(iFib-1)+1;
+            catch
+                start = 1;
+            end
+           
+            FirstVertex = obj.Data.Connectome.Data.fibers(start,1);
+            
+            
+            
+            if not(FirstVertex==obj.Data.Vertices(1).Vectors(1).x)
+                obj.Data.redraw(scene,obj);
+            end
+            
                 
             
             
@@ -746,8 +766,15 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 
                         
                         %obj.updateActor(scene,obj.Visualisation.settings);
+                    case 'Fibers'
+                        for iFiber = 1:numel(obj.Data.Vertices)
+                            obj.Data.Vertices(iFiber) = obj.Data.Vertices(iFiber).transform(T);
+
+                        end
+                        obj.updateActor(scene,obj.Visualisation.settings);
                         
                     otherwise
+                        
                         keyboard
                 end
                 
@@ -790,6 +817,9 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 for iSubPatch = 1:numel(copyobj.Visualisation.handle)
                     copyobj.Visualisation.handle(iSubPatch) = copy(copyobj.Visualisation.handle(iSubPatch));
                 end
+            elseif isa(copyobj.Data,'Fibers')
+                copyobj.Data = obj.Data.duplicate;
+                copyobj.Data.ActorHandle = copyobj;
                
             end
             scene.Actors(end+1) = copyobj;
@@ -829,11 +859,19 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             obj.Visible = value;
             if value
                 for iHandle = 1:numel(obj.Visualisation.handle)
-                    obj.Visualisation.handle(iHandle).Visible = 'on';
+                    if isstruct(obj.Visualisation.handle(iHandle))
+                        obj.Visualisation.handle(iHandle).Visible = 'on';
+                    elseif ishandle(obj.Visualisation.handle(iHandle))
+                        set( obj.Visualisation.handle(iHandle),'Visible','on');
+                    end
                 end
             else
                 for iHandle = 1:numel(obj.Visualisation.handle)
+                    if isstruct(obj.Visualisation.handle(iHandle))
                     obj.Visualisation.handle(iHandle).Visible = 'off';
+                    elseif ishandle(obj.Visualisation.handle(iHandle))
+                        set( obj.Visualisation.handle(iHandle),'Visible','off');
+                    end
                 end
             end
         

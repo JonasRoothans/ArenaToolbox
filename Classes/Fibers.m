@@ -82,6 +82,29 @@ classdef Fibers < handle & matlab.mixin.Copyable
              obj.ActorHandle = thisActor;
         end
         
+        function redraw(obj,scene,actor)
+%             idcs_cumsum = cumsum(obj.Connectome.Data.idx);
+%             iFib = obj.Indices(1);
+%             try
+%             start = idcs_cumsum(iFib-1)+1;
+%             catch
+%                 start = 1;
+%             end
+%             ending = idcs_cumsum(iFib);
+                actor.Visualisation.handle = [];
+                Vertices = obj.Vertices;
+                obj.Vertices = PointCloud.empty();
+                Indices = obj.Indices;
+                obj.Indices = [];
+                
+                
+                for iH = 1:numel(Indices)
+                       obj.drawNewFiberInScene(Vertices(iH).Vectors.getArray,Indices(iH),scene);
+                       
+               end
+        end
+        
+        
         
         function [thisActor,thisScene] = see(obj, sceneobj)
             global arena
