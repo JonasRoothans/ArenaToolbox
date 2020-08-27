@@ -53,7 +53,17 @@ classdef ObjFile < handle
         end
         
         function obj = transform(obj,T)
-            obj.Vertices = SDK_transform3d(obj.Vertices,T);
+            if nargout ==1 
+                original = obj;
+                obj = ObjFile();
+                obj.raw = original.raw;
+                obj.Faces = original.Faces;
+                obj.Vertices = SDK_transform3d(original.Vertices,T);
+                
+            else
+                obj.Vertices = SDK_transform3d(obj.Vertices,T);
+            end
+            
         end
         
        function varargout = see(obj,sceneobj)

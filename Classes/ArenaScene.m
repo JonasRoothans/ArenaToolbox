@@ -434,17 +434,19 @@ classdef ArenaScene < handle
             
             function menu_Fake2MNI(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
-                actorList = scene.Actors;
-                thisActor = actorList(scene.handles.panelright.Value);
-                thisActor.transform(scene,'Fake2MNI');
-                currentName = thisActor.Tag;
-                label = '[MNI]  ';
-                if contains(currentName,label)
-                    newname = erase(currentName,label);
-                else
-                    newname = [label,currentName];
+                currentActors = ArenaScene.getSelectedActors(scene);
+                for i = 1:numel(currentActors)
+                    thisActor = currentActors(i);
+                    thisActor.transform(scene,'Fake2MNI');
+                    currentName = thisActor.Tag;
+                    label = '[MNI]  ';
+                    if contains(currentName,label)
+                        newname = erase(currentName,label);
+                    else
+                        newname = [label,currentName];
+                    end
+                    thisActor.changeName(newname)
                 end
-                thisActor.changeName(newname)
             end
                 
             
