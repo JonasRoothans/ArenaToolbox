@@ -748,7 +748,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                         
                     case 'Mesh'
                         Source = obj.Data.Source;
-                        [imOut,rOut] = imwarp(Source.Voxels,Source.R,affine3d(diag([-1 1 1 1])));
+                        [imOut,rOut] = imwarp(Source.Voxels,Source.R,affine3d(T));
                         v = obj.Data.Vertices;
                         v_transformed = SDK_transform3d(v,T);
                         obj.Data.Vertices = v_transformed;
