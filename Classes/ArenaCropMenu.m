@@ -131,6 +131,7 @@ classdef ArenaCropMenu < ArenaScene
                 delete(obj.Actors(2).Visualisation.handle)
 
                 currentsettings = obj.Actors(2).Visualisation.settings;
+                currentsettings.complexity = 100;
                 visualize(obj.Actors(2),currentsettings,obj.Actors(2).Data,obj);
 
          end
@@ -216,6 +217,7 @@ classdef ArenaCropMenu < ArenaScene
                     cropped = newActor.Data.Source.parent.crop(newActor.Data.Source.LeftDown,newActor.Data.Source.RightUp);
                     cropped.smooth;
                     cropactor = cropped.getmesh(newActor.Data.Settings.T).see(obj);
+                    
                     
                 otherwise
                     
@@ -326,7 +328,9 @@ classdef ArenaCropMenu < ArenaScene
                 cropped = obj.Actors(1).Data.parent.crop(ld,ru);
                 cropped.smooth;
                 
-                cropped = padcropped(cropped);
+                if not(obj.flags.loading)
+                    cropped = cropped.padcropped(obj.handles.bg.SelectedObject.String);
+                end
                 
                 obj.cropped = cropped;
                
@@ -338,7 +342,23 @@ classdef ArenaCropMenu < ArenaScene
                 obj.handles.histogram.BinEdges= BinEdges;
                 obj.handles.histogram.BinLimits= BinLimits;
                 
-                obj.flags.remesh = 1;
+                obj.flags.remesh = 10;
+                center = mean([ld.getArray,ru.getArray]');
+                
+                %move camera
+                current_target = camtarget;
+                max_camera_step = 1;
+                step = Vector3D(center - current_target);
+                step.norm
+                if step.norm > max_camera_step
+                    focus = Vector3D(current_target) + step.unit*max_camera_step;
+                else
+                    focus = Vector3D(center);
+                end
+                    
+                
+                
+                camtarget(focus.getArray)
                 
                 
             end

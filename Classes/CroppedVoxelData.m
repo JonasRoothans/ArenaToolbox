@@ -31,6 +31,27 @@ classdef CroppedVoxelData < VoxelData
             
         end
         
+        function obj = padcropped(obj,type)
+                switch lower(type)
+                    case 'surface'
+                        %nothing.
+                    case 'light'
+                        obj.R.XWorldLimits = [obj.R.XWorldLimits] + [-1 1]*obj.R.PixelExtentInWorldX;
+                        obj.R.ImageSize = obj.R.ImageSize + [2 2 2]; 
+                        
+                        v =obj.Voxels;
+                        obj.Voxels = ones(size(v)+[2 2 2])*(min(v(:))-1);
+                        obj.Voxels(2:end-1,2:end-1,2:end-1) =  v;
+                        
+                    case 'dark'
+                        obj.R.XWorldLimits = [obj.R.XWorldLimits] + [-1 1]*obj.R.PixelExtentInWorldX;
+                        obj.R.ImageSize = obj.R.ImageSize + [2 2 2]; 
+                        
+                        v =obj.Voxels;
+                        obj.Voxels = ones(size(v)+[2 2 2])*(max(v(:))+1);
+                        obj.Voxels(2:end-1,2:end-1,2:end-1) =  v;
+                end
+        end
         
     end
 end

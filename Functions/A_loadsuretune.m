@@ -154,8 +154,9 @@ output = {};
         leftDown = Vector3D(this.boundingBox.leftDown);%.transform(T);
         rightUp = Vector3D(this.boundingBox.rightUp);%.transform(T);
         vd = vd.crop(leftDown,rightUp);
-        
+        vd.padcropped(this.thresholdType)
         vd = vd.imwarp(T);
+        
         
         if strcmp(this.blurEnabled,'True')
             vd.smooth;
@@ -168,7 +169,10 @@ output = {};
         T = (str2num(this.threshold)-rescaleIntercept) / rescaleSlope;
         
         %visualise
-        vd.getmesh(T).see(scene)
+        actor =vd.getmesh(T).see(scene);
+        actor.changeSetting('complexity',100,'colorFace',SDK_hex2rgb(this.color(end-5:end))/255,'colorEdge',SDK_hex2rgb(this.color(end-5:end))/255);
+
+        actor.changeName(this.label)
         
         
        
@@ -229,8 +233,8 @@ output = {};
                     actor_vta.changeName(['[VTA] ',this.label,' ',this.stimPlan{iStimplan}.label])
                 end
                 
-                actor.changeSetting('cathode',str2num(this.stimPlan{iStimplan}.activeRings));
-                actor.changeSetting('anode', str2num(this.stimPlan{iStimplan}.contactsGrounded))
+                actor.changeSetting('cathode',str2num(this.stimPlan{iStimplan}.activeRings),'anode', str2num(this.stimPlan{iStimplan}.contactsGrounded));
+  
                 
                 actor_vta.changeSetting('colorFace',[1 0.5 0])
             end
@@ -280,7 +284,7 @@ output = {};
                     actorgpi.changeName(['GPi via ',reglinkdescription])
                     actorgpe.changeName(['GPe via ',reglinkdescription])
                     actorgpi.changeSetting('colorFace',[0 0 1],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
-                    actorgoe.changeSetting('colorFace',[0 1 1],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
+                    actorgpe.changeSetting('colorFace',[0 1 1],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
                     
                 end
                 

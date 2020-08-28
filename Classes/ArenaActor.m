@@ -581,6 +581,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             end
             
             visualize(obj,obj.Visualisation.settings,obj.Data,obj.Scene)
+            obj.Scene.refreshLayers();
         end
         
         function updateCC(obj,scene)
