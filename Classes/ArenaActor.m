@@ -755,6 +755,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                         obj.Data.Vertices = v_transformed;
                         newSource = VoxelData(imOut,rOut);
                         obj.Data.Source = newSource;
+                        delete(obj.Visualisation.handle)
                         obj.Visualisation.handle = []; %remove old handle
                         obj.updateActor(scene,obj.Visualisation.settings);
                     case 'ObjFile'
@@ -763,6 +764,10 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                         obj.Data.Vertices = v_transformed;
                         obj.updateActor(scene,obj.Visualisation.settings);
                     case 'Electrode'
+                        obj.Data.C0 = obj.Data.C0.transform(T);
+                        delete(obj.Visualisation.handle)
+                        obj.visualizeElectrode(obj.Visualisation.settings,obj.Data,scene)
+                        
                         warning('Electrode can not be transformed like this')
                 
                         

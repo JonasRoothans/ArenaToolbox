@@ -194,7 +194,7 @@ classdef ArenaScene < handle
             obj.handles.menu.transform.selectedlayer.lps2ras = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','LPS <> RAS','callback',{@menu_lps2ras});
             obj.handles.menu.transform.selectedlayer.mirror = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','mirror (makes copy)','callback',{@menu_mirror});
             obj.handles.menu.transform.selectedlayer.yeb2mni = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','Legacy --> MNI','callback',{@menu_Fake2MNI});
-            
+            obj.handles.menu.transform.selectedlayer.move =  uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','Move','callback',{@menu_move});
             
             %-- dynamic
             obj.handles.menu.dynamic.main  = uimenu(obj.handles.figure,'Text','...');
@@ -395,25 +395,28 @@ classdef ArenaScene < handle
             
             function menu_mirror(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
-                actorList = scene.Actors;
-                thisActor = actorList(scene.handles.panelright.Value);
-                if isa(thisActor.Data,'Electrode')
-                     eOriginal = thisActor.Data;
-                     T = diag([-1 1 1 1]);
-                     eNew = Electrode(SDK_transform3d(eOriginal.C0.getArray',T),...
-                     SDK_transform3d(eOriginal.Direction.getArray',T));
-                     eNew.Type = thisActor.Data.Type;
-                    %vc = VectorCloud(Points(order(1)),direction.unit);
-                    copyActor = eNew.see(ArenaScene.getscenedata(hObject));
-                    copyActor.changeSetting('cathode',thisActor.Visualisation.settings.cathode);
-                    copyActor.changeSetting('anode', thisActor.Visualisation.settings.anode);
-                    copyActor.changeName([thisActor.Tag])
-                    
-                else
-                copyActor = thisActor.duplicate(scene);
-                copyActor.transform(scene,'mirror')
+                actorList = ArenaScene.getSelectedActors(scene);
+                for iActor = 1:numel(actorList)
+                    thisActor = actorList(iActor);
+                
+                    if isa(thisActor.Data,'Electrode')
+                         eOriginal = thisActor.Data;
+                         T = diag([-1 1 1 1]);
+                         eNew = Electrode(SDK_transform3d(eOriginal.C0.getArray',T),...
+                         SDK_transform3d(eOriginal.Direction.getArray',T));
+                         eNew.Type = thisActor.Data.Type;
+                        %vc = VectorCloud(Points(order(1)),direction.unit);
+                        copyActor = eNew.see(ArenaScene.getscenedata(hObject));
+                        copyActor.changeSetting('cathode',thisActor.Visualisation.settings.cathode);
+                        copyActor.changeSetting('anode', thisActor.Visualisation.settings.anode);
+                        copyActor.changeName([thisActor.Tag])
+
+                    else
+                    copyActor = thisActor.duplicate(scene);
+                    copyActor.transform(scene,'mirror')
+                    end
+                    copyActor.changeName(['[mirror]  ',copyActor.Tag])
                 end
-                copyActor.changeName(['[mirror]  ',copyActor.Tag])
                 
                 
             end
@@ -431,6 +434,24 @@ classdef ArenaScene < handle
                 end
                 
             end
+            
+            
+            function menu_move(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                for i = 1:numel(currentActors)
+                    thisActor = currentActors(i);
+                    input = newid({'Translation vector: '},'Arena',1,{'[0 0 0]'});
+                    T = eye(4);
+                    input_v = eval(input{1});
+                    T(1:3,4) = input_v;
+                    thisActor.transform(scene,'T',T');
+                  
+                  
+                end
+            end
+            
+            
             
             function menu_Fake2MNI(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
