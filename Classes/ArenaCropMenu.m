@@ -88,6 +88,13 @@ classdef ArenaCropMenu < ArenaScene
                             'Position',[50,220,500,20],...
                             'callback',@updatemesh);
                         
+                        obj.handles.text = uicontrol(obj.handles.figure,'Style','Text','String','volume: ..',...
+                            'units','pixels',...
+                            'Position',[50,50,100,20],...
+                            'ForegroundColor', [1 1 1],...
+                        'BackgroundColor',[0 0 0]);
+                            
+                        
                         addlistener(obj.sliders.xmin,'Value','PreSet',@myCallbackFunc);
                         addlistener(obj.sliders.xmax,'Value','PreSet',@myCallbackFunc);
                         addlistener(obj.sliders.ymin,'Value','PreSet',@myCallbackFunc);
@@ -308,6 +315,8 @@ classdef ArenaCropMenu < ArenaScene
                 axes(obj.handles.histogramaxes)
                 obj.handles.histogramline.XData = [location location];
                 axes(obj.handles.axes)
+                
+                updateSize(obj)
               
             end
                 
@@ -315,6 +324,16 @@ classdef ArenaCropMenu < ArenaScene
         end
        
         
+        function updateSize(obj)
+            
+            n = sum(obj.Actors(2).Data.Source.Voxels(:)>obj.Actors(2).Data.Settings.T);
+            n_vol = obj.Actors(2).Data.Source.R.PixelExtentInWorldX*obj.Actors(2).Data.Source.R.PixelExtentInWorldY*obj.Actors(2).Data.Source.R.PixelExtentInWorldZ;
+            vol = round(n*n_vol);
+            obj.handles.text.String = ['volume: ',num2str(vol),' mm3'];
+            
+            
+        end
+         
         
         function obj= updateBoundingBox(obj,ld,ru)
      
@@ -359,6 +378,7 @@ classdef ArenaCropMenu < ArenaScene
                 
                 
                 camtarget(focus.getArray)
+                updateSize(obj)
                 
                 
             end
