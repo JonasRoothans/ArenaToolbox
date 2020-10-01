@@ -833,6 +833,10 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         end
         
         function delete(obj,scene)
+            if nargin==1
+                scene = obj.Scene;
+            end
+                    
             currentIndex = find(scene.Actors==obj);
             scene.Actors(currentIndex) = [];
             try
