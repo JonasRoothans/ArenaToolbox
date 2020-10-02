@@ -671,6 +671,9 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             
         end
         
+        
+        %TO DO: THIS SWITCH SHOULD BE AVOIDED.
+        %INSTEAD: DO OBJ.DATA.VISUALIZE() AND PUT THE METHOD IN THE DATACLASS
         function settings = visualize(obj,settings,data,scene)
             switch class(data)
                 case 'PointCloud'
@@ -739,6 +742,9 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                         obj = applyT(obj,T)
                 end
             end
+            
+            %TO DO: THIS SWITCH SHOULD BE AVOIDED.
+            %INSTEAD: DO OBJ.DATA.APPLYT() AND PUT THE METHOD IN THE DATACLASS
             function obj = applyT(obj,T)
                 switch class(obj.Data)
                     case 'PointCloud'
