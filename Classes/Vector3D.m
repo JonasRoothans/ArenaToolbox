@@ -63,8 +63,8 @@ classdef Vector3D
         end
         
         %--Arena
-        function varargout = see(obj)
-            varargout = PointCloud(obj).see;
+        function [actor,scene] = see(obj)
+            [actor,scene] = PointCloud(obj).see;
         end
         
         %--Booleans
