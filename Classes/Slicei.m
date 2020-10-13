@@ -116,7 +116,7 @@ classdef Slicei < handle
             
             %set transparency
             obj.handle.FaceAlpha = obj.opacity;
-            obj.handle.FaceColor = 'texturemap';
+            %obj.handle.FaceColor = 'texturemap';
            
             %set material
             material(obj.handle,'dull')

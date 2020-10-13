@@ -177,10 +177,9 @@ classdef ArenaScene < handle
 %             obj.handles.menu.edit.add.toPlane = uimenu(obj.handles.menu.edit.add.main,'Text','as plane','callback',{@menu_edit_add2plane});
              obj.handles.menu.edit.getinfo.main = uimenu(obj.handles.menu.edit.main,'Text','get info','callback',{@menu_getinfo});
             obj.handles.menu.edit.analysis.main = uimenu(obj.handles.menu.edit.main,'Text','Analyse selection');
-            obj.handles.menu.edit.analysis.dice = uimenu(obj.handles.menu.edit.analysis.main,'Text','Similarity of binary data (dice)','callback',{@menu_dice});
-            obj.handles.menu.edit.analysis.densitydistribution = uimenu(obj.handles.menu.edit.analysis.main,'Text','Density distribution (FWHM)','callback',{@menu_fwhm});
-            obj.handles.menu.edit.analysis.fibers = uimenu(obj.handles.menu.edit.analysis.main,'Text','fibers (from 1 seed)','callback',{@menu_showFibers});
-            obj.handles.menu.edit.analysis.fibers = uimenu(obj.handles.menu.edit.analysis.main,'Text','fibers (inbetween seeds)','callback',{@menu_showFibers_inbetween});
+            
+            
+            
             obj.handles.menu.edit.analysis.sampleheatmap = uimenu(obj.handles.menu.edit.analysis.main,'Text','sample selection with ... ','callback',{@menu_sampleHeatmap});
             obj.handles.menu.edit.smooth = uimenu(obj.handles.menu.edit.main,'Text','Smooth VoxelData','callback',{@menu_smoothVoxelData});
             obj.handles.menu.edit.seperate = uimenu(obj.handles.menu.edit.main,'Text','separate clusters','callback',{@menu_seperateClusters});
@@ -200,6 +199,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.main  = uimenu(obj.handles.figure,'Text','...');
             obj.handles.menu.dynamic.modify.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Modify');
             obj.handles.menu.dynamic.analyse.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Analyse');
+            obj.handles.menu.dynamic.generate.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Generate');
             
             
             obj.handles.menu.dynamic.PointCloud.distribution = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: show distribution','callback',{@menu_pcDistribution},'Enable','off');
@@ -211,6 +211,10 @@ classdef ArenaScene < handle
             %obj.handles.menu.dynamic.Mesh.add2plane = uimenu(obj.handles.menu.dynamic.main,'Text','add up voxelvalues and show as plane','callback',{@menu_edit_add2plane},'Visible','off');
             obj.handles.menu.dynamic.Mesh.getinfo = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: get info','callback',{@menu_getinfo},'Enable','off');
             obj.handles.menu.dynamic.Mesh.plotCOG = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: show COG','callback',{@menu_showCOG},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.dice = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: dice (=comformity of voxels)','callback',{@menu_dice},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.densitydistribution = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: FWHM (=density distribution)','callback',{@menu_fwhm},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.fibers = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: fibers (from 1 seed)','callback',{@menu_showFibers},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.fibersBetween = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: fibers (inbetween seeds)','callback',{@menu_showFibers_inbetween},'Enable','off');
             
             
             %obj.handles.cameratoolbar = cameratoolbar(obj.handles.figure,'Show');
@@ -1612,10 +1616,13 @@ classdef ArenaScene < handle
                            a(x,y) = dice(w,inputdata(x));
                         end
                     end
+                    %check if the labels are valid
+                    [labels,~] = A_validname(labels);
                     
                     %show results
                     similarity = array2table(a,'RowNames',labels,'VariableNames',labels)
                    assignin('base','similarity',similarity); 
+                   disp('saved in workspace as >> similarity')
                     
             end
             
@@ -2238,7 +2245,7 @@ classdef ArenaScene < handle
             for iOther = 1:numel(otherclasses)
                 thisOtherClass = otherclasses{iOther};
                 switch thisOtherClass
-                    case {'main','modify','analyse'}
+                    case {'main','modify','analyse','generate'}
                         continue
                     case thisclass
                         functions = fieldnames(obj.handles.menu.dynamic.(thisOtherClass));
@@ -2524,6 +2531,12 @@ classdef ArenaScene < handle
         
         function [currentActor,ind] = getSelectedActors(scene)
             ind = scene.handles.panelright.Value;
+            if isempty(scene.Actors)
+                currentActor = [];
+                ind = [];
+                disp('no actor in the scene')
+                return
+            end
             currentActor = scene.Actors(ind);
         end
         

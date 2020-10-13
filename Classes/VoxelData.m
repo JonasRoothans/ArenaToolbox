@@ -15,6 +15,8 @@ classdef VoxelData <handle
             if nargin==1
                 if isfile(varargin{1})
                     obj = obj.loadnii(varargin{1});
+                else
+                    warning(['input (',varargin{1},') is not a valid filename.. (it has to include .nii)'])
                     
                 end
             elseif nargin==2

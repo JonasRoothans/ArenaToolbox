@@ -92,13 +92,15 @@ function h = image3(im,ij2xyz,handle)
 % Author: Anders Brun, anders@cb.uu.se (2008)
 
 % Hardcoded constants
-stepsize = 0.1; % Determines number of tiles in image. It is most efficient
+stepsize = 0.001; % Determines number of tiles in image. It is most efficient
               % to set this to 1, but a higher number might render better
               % graphics when the image is distorted a lot by the
               % perspective mapping of the camera. All texture mapping is
               % based on linear interpolation and does not take texture
               % into account, at least it has been so in Matlab in the
               % past.
+              
+              
 
 if ndims(im) == 2         %Scalar mode
   imsize = size(im);
@@ -109,9 +111,11 @@ else
   error('Only scalar and RGB images supported')
 end
 
-
+% fix jonas
+stepx = 1/(size(im,1)-1);
+stepy = 1/(size(im,2)-1);
 % Create the slice
-[uu,vv] = ndgrid(0:stepsize:1, 0:stepsize:1);
+[uu,vv] = ndgrid(0:stepx:1, 0:stepy:1);
 % ij2xyz refers to voxel centers. Therefore we need to 
 % add half a pixel to each size of the slice.
 irange = [0.5 imsize(1)+0.5];
@@ -131,7 +135,7 @@ if nargin<3 || handle == 0
   % Make a new surface
   h = surface('XData',x,'YData',y,'ZData',z,...
 	      'CData', im,...
-	      'FaceColor','texturemap',...
+	      'FaceColor','interp',...
 	      'EdgeColor','none',...
 	      'LineStyle','none',...
 	      'Marker','none',...
@@ -140,7 +144,7 @@ if nargin<3 || handle == 0
 	      'CDataMapping','direct');
 else
   % Reuse old surface
-  set(handle,'XData',x,'YData',y,'ZData',z,'CData',im);
+  set(handle,'XData',x,'YData',y,'ZData',z,'CData',im,'FaceColor','interp');
   h = handle;
 end
 
