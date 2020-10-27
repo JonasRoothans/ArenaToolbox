@@ -39,7 +39,7 @@ end
 for iFile = 1:numel(filename)
     [folder,name,ext] = fileparts(filename{iFile});
             %display progress
-                formatSpec = '\nProgess: file %d/%d\n\n';
+                formatSpec = '\n--------------------\n File %d/%d\n\n';
                 fprintf(formatSpec, iFile, numel(filename))
     
 %load from suretune
