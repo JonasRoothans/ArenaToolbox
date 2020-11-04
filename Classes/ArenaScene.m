@@ -138,6 +138,10 @@ classdef ArenaScene < handle
              obj.handles.menu.view.camera.orthogonal.sagittal = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Sagittal [shift+2]','callback',{@menu_orthogonal});
              obj.handles.menu.view.camera.orthogonal.coronal = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Coronal [shift+3]','callback',{@menu_orthogonal});
              
+             obj.handles.menu.view.camera.smart.main = uimenu(obj.handles.menu.view.camera.main,'Text','Smart Perspective');
+             obj.handles.menu.view.camera.smart.vertical = uimenu(obj.handles.menu.view.camera.smart.main,'Text','based on selection','callback',{@menu_smartcamperspective});
+            
+             
              obj.handles.menu.view.camera.multi.cameralist = {};
              obj.handles.menu.view.camera.multi.currentcam = 1;
              obj.handles.menu.view.camera.multi.main = uimenu(obj.handles.menu.view.camera.main,'Text','Multi');
@@ -204,6 +208,8 @@ classdef ArenaScene < handle
             
             obj.handles.menu.dynamic.PointCloud.distribution = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: show distribution','callback',{@menu_pcDistribution},'Enable','off');
             obj.handles.menu.dynamic.PointCloud.inMesh = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: is a point inside a mesh?','callback',{@menu_pointcloudinmesh},'Enable','off');
+            obj.handles.menu.dynamic.PointCloud.mergePointClouds = uimenu(obj.handles.menu.dynamic.generate.main,'Text','PointCloud: merge pointclouds','callback',{@menu_mergePointCloud},'Enable','off');
+            obj.handles.menu.dynamic.PointCloud.twoSampleTTest = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: two sample t-test','callback',{@menu_pc2samplettest},'Enable','off');
             
             obj.handles.menu.dynamic.Mesh.count2mesh  = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: count overlap and show as mesh','callback',{@menu_edit_count2mesh},'Enable','off');
             obj.handles.menu.dynamic.Mesh.count2plane = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: count overlap and show as plane','callback',{@menu_edit_count2plane},'Enable','off');
@@ -1092,11 +1098,60 @@ classdef ArenaScene < handle
                     scene.handles.btn_toggleleft.Visible = 'on';
                     scene.handles.btn_toggleright.Visible = 'on';
                     scene.handles.btn_layeroptions.Visible = layeroptions;
-                 
-                 
-      
-                 
+ 
             end
+            
+            function menu_smartcamperspective(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                allClasses = ArenaScene.getClasses(currentActors);
+                
+                if all(contains(allClasses,'PointCloud'))
+                    allVectors = [];
+                    for iActor = 1:numel(currentActors)
+                        thisActor = currentActors(iActor);
+                        allVectors = [allVectors;thisActor.Data.Vectors.getArray];
+                    end
+                    orientations = pca(allVectors);
+                    
+                   
+                    original_distance = norm(abs(campos-camtarget));
+                    end_target = mean(allVectors);
+                    
+                    %choose the camera direction that is closest to the
+                    %current direction:
+                    cam_option_a =  norm(orientations(:,3)'*original_distance - (camtarget-campos)) ;
+                    cam_option_b =  norm(-orientations(:,3)'*original_distance - (camtarget-campos));
+                    if cam_option_a > cam_option_b
+                        cam_distance = orientations(:,3)'*original_distance;
+                    else
+                        cam_distance = -orientations(:,3)'*original_distance;
+                    end
+                    end_pos = end_target+cam_distance;
+                    
+                    
+                    %choose coefficient that is closest Z-axis for camup
+                    [~,pcavertical] = max(abs(orientations(3,[1,2])));
+                    upvector = orientations(:,pcavertical);
+                    if upvector(3)<0
+                        upvector = -upvector;
+                    end
+
+                    
+                    easeCamera(end_pos, end_target,upvector')
+                    
+                    
+         
+                    %merge pointclouds
+                else
+                    warning('Define what a smart perspective is for a mixed selection!')
+                    keyboard
+                    
+                end
+                
+                
+            end
+                
             
             function menu_orthogonal(hObject,eventdata)
                 camva('manual')
@@ -1305,6 +1360,62 @@ classdef ArenaScene < handle
                 Xlabels = [labels_pc(indx_pc)];
                 set(gca, 'XTickLabel', Xlabels)
                 legend([labels_mesh(indx_mesh),{'other'}])
+                
+            end
+            
+            function  menu_pc2samplettest(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                if not(numel(currentActors)==2)
+                    error('please select two pointclouds for this TWO SAMPLE t-test')
+                end
+                
+                sample1 = currentActors(1).Data.Vectors;
+                sample2 = currentActors(2).Data.Vectors;
+                
+                %1. Run it along x, y and z
+                result = [];
+                dimtext = {'x','y','z'};
+                for dim = 1:3
+                    [result.(dimtext{dim}).h,result.(dimtext{dim}).p,result.(dimtext{dim}).ci,result.(dimtext{dim}).stats] = ttest2([sample1.(dimtext{dim})],[sample2.(dimtext{dim})]);
+                    disp([dimtext{dim},'--> p= ',num2str(result.(dimtext{dim}).p)])
+                end
+                
+                %2. also run a along PCA components.
+                %Principle component analysis finds th axes that spreads your data optimally. 
+                allData = [sample1.getArray;sample2.getArray];
+                [directions,loadings] = pca(allData);
+                [result.pca1.h,result.pca1.p,result.pca1.ci,result.pca1.stats] = ttest2(loadings(1:numel(sample1),1),loadings(numel(sample1)+1:end,1));
+                disp(['pca1 --> p= ',num2str(result.pca1.p)])
+                [result.pca2.h,result.pca2.p,result.pca2.ci,result.pca2.stats] = ttest2(loadings(1:numel(sample1),2),loadings(numel(sample1)+1:end,2));
+                disp(['pca2 --> p= ',num2str(result.pca2.p)])
+                
+                %3. run along the major discriminating axis
+                main_axis = mean(sample1.getArray) - mean(sample2.getArray);
+                allData = [sample1.getArray;sample2.getArray];
+                projection = main_axis*allData';
+                [result.proj.h,result.proj.p,result.proj.ci,result.proj.stats] = ttest2(projection(1:numel(sample1)),projection(numel(sample1)+1:end));
+                disp(['proj --> p= ',num2str(result.proj.p)])
+                
+                
+                disp('"PC_stats" is saved to the workspace')
+                 assignin('base','PC_stats',result)
+                
+            end
+            
+            
+            function menu_mergePointCloud(hObject,eventdata)
+                %make new empty pointcloud to collect others
+                newPC = PointCloud();
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    newPC = newPC.addVectors(thisActor.Data);
+                end
+                newPC.see(scene)
                 
             end
             
