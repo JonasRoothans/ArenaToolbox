@@ -125,6 +125,9 @@ classdef ArenaScene < handle
             obj.handles.menu.file.export.saveSelection = uimenu(obj.handles.menu.file.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
             
             
+            obj.handles.menu.stusessions.main = uimenu(obj.handles.figure,'Text','Suretune sessions','Visible','off','Separator','on');
+            obj.handles.menu.stusessions.openwindows = {};
+            
             obj.handles.menu.view.main = uimenu(obj.handles.figure,'Text','View');
             obj.handles.menu.view.camera.main = uimenu(obj.handles.menu.view.main,'Text','Camera');
             obj.handles.menu.view.camera.focus.main = uimenu(obj.handles.menu.view.camera.main,'Text','Focus on');
@@ -861,7 +864,8 @@ classdef ArenaScene < handle
                         case '.swtspt'
                             A_loadsweetspot(scene);
                         case '.dcm' 
-                            A_loadsuretune(scene,fullfile(pathname,filename{iFile}));
+                            addSuretuneSession(scene,fullfile(pathname,filename{iFile}))
+                          
                             
                             
                         otherwise
@@ -880,6 +884,15 @@ classdef ArenaScene < handle
 %                 
 %             end
             
+            function addSuretuneSession(scene,dcmpath)
+                STU_object = SuretunePortal(scene,dcmpath);
+                obj.handles.menu.stusessions.openwindows{end+1} = uimenu(obj.handles.menu.stusessions.main,'Text',STU_object.session.patient.name,'Callback',{@suretuneportal_callback},'UserData',STU_object);
+                obj.handles.menu.stusessions.main.Visible = 'on';
+            end
+            
+            function suretuneportal_callback(hObject,eventdata)
+                figure(hObject.UserData.handles.f); %pop-up the portal
+            end
             
             function menu_importleadfromnii(hObject,eventdata)
                 [filename,pathname] = uigetfile('*.nii','Find nii image(s)','MultiSelect','on');
@@ -2276,9 +2289,17 @@ classdef ArenaScene < handle
                     case 'Yes'
                         global arena
                         try
+                            %delete suretuneportals when still open
+                            for iPortal = 1:numel(src.UserData.handles.menu.stusessions.openwindows)
+                                delete(src.UserData.handles.menu.stusessions.openwindows{iPortal}.UserData.handles.f)
+                            end
+                            %delete from manager
                             deleteIndex = find(arena.Scenes==src.UserData);
                             arena.Scenes(deleteIndex) = [];
+                            
+                            %close window
                             delete(gcf)
+
                         catch
                             delete(gcf)
                             warning('Scene was an orphan..')
