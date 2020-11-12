@@ -160,10 +160,6 @@ classdef Connectome < handle
             subselection = fiberids(not(toofar));
             IDFiberInSeed = unique(subselection(cellfun(@isempty,vertexInSeed)));
             
-            %TEMPORARY MAX OF 200 FIBERS
-            if numel(IDFiberInSeed)>200
-                IDFiberInSeed = IDFiberInSeed(1:200);
-            end
             
             disp('Selecting all vertices in all fibers')
             vertexids = ismember(fiberids,IDFiberInSeed);
