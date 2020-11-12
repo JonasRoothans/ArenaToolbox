@@ -1618,7 +1618,13 @@ classdef ArenaScene < handle
                 currentActors = ArenaScene.getSelectedActors(scene);
                 
                 if length(currentActors)~= 1
-                    return
+                    N_FIBERS_cell = newid({'number of fibers visualised: '},'Arena Fibers',1,{'10'});
+                    N_FIBERS = N_FIBERS_cell{1};
+                    home;
+                    disp('Running batch operation.')
+                    disp('-----------------------')
+                else
+                    N_FIBERS = 100;
                 end
                 
                 global connectomes
@@ -1627,7 +1633,14 @@ classdef ArenaScene < handle
                     end
                 thisConnectome = connectomes.selectConnectome;
                 
-                Fibers = thisConnectome.getFibersPassingThroughMesh(currentActors.Data,100,scene);
+                for iActor = 1:numel(currentActors)
+                    home;
+                    thisActor = currentActors(iActor);
+                    thisFiber = thisConnectome.getFibersPassingThroughMesh(thisActor.Data,N_FIBERS,scene);
+                    thisFiber.ActorHandle.changeSetting('colorByDirection',0,'colorFace',thisActor.Visualisation.settings.colorFace,'numberOfFibers',N_FIBERS);
+                    thisFiber.ActorHandle.changeName([thisActor.Tag,'_fiber']);
+                end
+               
             end
             
             

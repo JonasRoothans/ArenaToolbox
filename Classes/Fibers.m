@@ -7,11 +7,10 @@ classdef Fibers < handle & matlab.mixin.Copyable
         IncludeSeed = Mesh.empty
         Connectome
         Settings
+        ActorHandle
     end
     
-    properties (Hidden)
-        ActorHandle;
-    end
+   
     
     methods
         function obj = Fibers(varargin)
@@ -61,15 +60,15 @@ classdef Fibers < handle & matlab.mixin.Copyable
             
         end
         
-        
-        function obj = getFibersPassingThroughMesh(obj,varargin)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            varargin = varargin{1}; %get rid of double nesting
-            VoxelData= varargin{1};
-
-              
-        end
+%         
+%         function obj = getFibersPassingThroughMesh(obj,varargin)
+%             %METHOD1 Summary of this method goes here
+%             %   Detailed explanation goes here
+%             varargin = varargin{1}; %get rid of double nesting
+%             VoxelData= varargin{1};
+% 
+%               
+%         end
         
         function copyobj = duplicate(obj)
             copyobj = copy(obj);
@@ -132,6 +131,49 @@ classdef Fibers < handle & matlab.mixin.Copyable
 %             axis tight
 %             camlight
 %             lighting gouraud
+        end
+        
+        function saveToFolder(obj,outdir,tag)
+            %template space
+           templateSpace_mni2009b = VoxelData(zeros([467,   395,   379]),...
+               imref3d([467, 395, 379],... % size
+               [-98.2500, 99.2500],... %x world
+               [-134.2500, 99.2500],... %y world
+               [-72.2500, 117.2500])); %z world 
+           
+           
+           fibers = obj.Connectome.quickFibersPassingThroughMesh(obj.IncludeSeed,obj.ActorHandle.Scene);
+           
+           % get the voxels where fibers are passing
+           disp('Projecting to MNI')
+           sparcecell = {};
+           for iFiber = 1:numel(fibers)
+               theseFibers = fibers{iFiber};
+               [x,y,z] = templateSpace_mni2009b.R.worldToSubscript(theseFibers(:,1)',... %x
+                   theseFibers(:,2)',... %y
+                   theseFibers(:,3)');%z
+                sparcecell{iFiber} = ndSparse.build([x',y',z'],1);
+           end
+
+            disp('Add up fibers')
+            template = full(sparcecell{1});
+            template(467, 395, 379) = 0;
+            for iFiber = 2:numel(fibers)
+                addthisfiber = full(sparcecell{iFiber});
+                addthisfiber(467, 395, 379) = 0;
+                try
+                template = template+addthisfiber;
+                catch;keyboard;end
+            end
+            warning('Work in progress!!')
+            templateSpace_mni2009b.Voxels = template;
+            templateSpace_mni2009b.getmesh.see(obj.ActorHandle.Scene)
+            keyboard
+             figure;imagesc(sum(template,3))
+               
+               disp('Exporting image');
+           
+           
         end
         
             

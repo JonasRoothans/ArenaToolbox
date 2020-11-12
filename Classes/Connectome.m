@@ -121,6 +121,60 @@ classdef Connectome < handle
             disp(['now showing ',num2str(counter),' fibers.'])
         end
         
+        %quicker way to detect fibers in mesh.
+        function fibervertices = quickFibersPassingThroughMesh(obj,seedmesh,scene)
+            %organize data
+            home;disp('organizing connectome')
+            fibers = obj.Data.fibers(:,1:3);
+            fiberids = obj.Data.fibers(:,4);
+            idcs_cumsum = cumsum(obj.Data.idx);
+            seed_fv.vertices = seedmesh.Vertices;
+            seed_fv.faces = seedmesh.Faces;
+            
+            %generate meshgrid for seed
+            disp('generating meshgrid')
+            stepsize = 0.25;
+            max_boundingbox = max(seed_fv.vertices);
+            min_boundingbox = min(seed_fv.vertices);
+            [xq,yq,zq] = meshgrid(min_boundingbox(1):stepsize:max_boundingbox(1),...
+                min_boundingbox(2):stepsize:max_boundingbox(2),...
+                min_boundingbox(3):stepsize:max_boundingbox(3));
+            
+            %sample seed volume to find which points fall within the seed. (=reference points)
+            %(rationale: fibers that are near those points will likely also
+            %fall within the seed)
+            disp('sampling seed volume');
+            fullsampling = [xq(:),yq(:),zq(:)];
+            inSeed = inpolyhedron(seed_fv, fullsampling ,'flipnormals', true);
+            referencePoints = fullsampling(inSeed,:);
+            
+            %make a rough preselection:
+            disp('screening which fibers are in the neighbourhood..')
+            maxD = max(pdist2(mean(seed_fv.vertices),seed_fv.vertices));
+            [~,D] = knnsearch(mean(seed_fv.vertices),fibers(:,1:3));
+            toofar = D>maxD;
+            
+            %finetune
+            disp('Finetuning fibers')
+            vertexInSeed = rangesearch(fibers(not(toofar),:),referencePoints,stepsize/2);
+            subselection = fiberids(not(toofar));
+            IDFiberInSeed = unique(subselection(cellfun(@isempty,vertexInSeed)));
+            
+            %TEMPORARY MAX OF 200 FIBERS
+            if numel(IDFiberInSeed)>200
+                IDFiberInSeed = IDFiberInSeed(1:200);
+            end
+            
+            disp('Selecting fibers in seed')
+            fibervertices = {};
+            for iFib = 1:numel(IDFiberInSeed)
+                fibervertices{iFib} = fibers(fiberids==IDFiberInSeed(iFib),:);
+            end
+                
+            
+            
+        end
+        
         
         function [FibersObject] = getFibersPassingThroughMesh(obj,seedmesh,n,scene,OPTIONALFibers)
             

@@ -497,9 +497,9 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
            end
            
            % update styling settings if changed:
-            if or(settings.colorFace ~= obj.Visualisation.settings.colorFace,...
-                    settings.colorByDirection ~=obj.Visualisation.settings.colorByDirection)
-                %apply settings
+%             if or(settings.colorFace ~= obj.Visualisation.settings.colorFace,...
+%                     settings.colorByDirection ~=obj.Visualisation.settings.colorByDirection)
+%                 %apply settings
                 for iH = 1:numel(obj.Visualisation.handle)
                     if settings.colorByDirection
                         color = PointCloud(abs(diff(obj.Data.Vertices(iH).Vectors.getArray))).Vectors.unit;
@@ -522,7 +522,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     obj.Visualisation.handle(iH).CData = CData;
 
                 end
-            end
+            %end
             
             
             %mirrored
@@ -576,8 +576,10 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 obj.Visualisation.settings.(varargin{iPair}) = varargin{iPair+1};
             end
             
-            if not(isa(obj.Data,'Contour'))
-                delete(obj.Visualisation.handle);
+            if not(or(or(isa(obj.Data,'Slicei'),...
+                    isa(obj.Data,'Fibers')),...
+                    isa(obj.Data,'Contour')))
+                    delete(obj.Visualisation.handle);
             end
             
             visualize(obj,obj.Visualisation.settings,obj.Data,obj.Scene)
@@ -715,11 +717,11 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         
         function saveToFolder(obj,outdir)
             data = obj.Data;
-            try
+%             try
             data.saveToFolder(outdir,obj.Tag);
-            catch
+%             catch
                 warning(['Data of type ',class(data),' cannot be saved yet. Ask Jonas'])
-            end
+%             end
             Done;
             
             
