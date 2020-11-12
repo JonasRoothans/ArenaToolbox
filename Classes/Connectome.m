@@ -165,14 +165,10 @@ classdef Connectome < handle
                 IDFiberInSeed = IDFiberInSeed(1:200);
             end
             
-            disp('Selecting fibers in seed')
-            fibervertices = {};
-            for iFib = 1:numel(IDFiberInSeed)
-                fibervertices{iFib} = fibers(fiberids==IDFiberInSeed(iFib),:);
-            end
-                
-            
-            
+            disp('Selecting all vertices in all fibers')
+            vertexids = ismember(fiberids,IDFiberInSeed);
+           	fibervertices = fibers(vertexids,:);
+
         end
         
         

@@ -142,36 +142,28 @@ classdef Fibers < handle & matlab.mixin.Copyable
                [-72.2500, 117.2500])); %z world 
            
            
-           fibers = obj.Connectome.quickFibersPassingThroughMesh(obj.IncludeSeed,obj.ActorHandle.Scene);
+           fibervertices = obj.Connectome.quickFibersPassingThroughMesh(obj.IncludeSeed,obj.ActorHandle.Scene);
            
            % get the voxels where fibers are passing
            disp('Projecting to MNI')
-           sparcecell = {};
-           for iFiber = 1:numel(fibers)
-               theseFibers = fibers{iFiber};
-               [x,y,z] = templateSpace_mni2009b.R.worldToSubscript(theseFibers(:,1)',... %x
-                   theseFibers(:,2)',... %y
-                   theseFibers(:,3)');%z
-                sparcecell{iFiber} = ndSparse.build([x',y',z'],1);
-           end
+               [x,y,z] = templateSpace_mni2009b.R.worldToSubscript(fibervertices(:,1)',... %x
+                   fibervertices(:,2)',... %y
+                   fibervertices(:,3)');%z
+                sparse3D = ndSparse.build([x',y',z'],1);
+           
 
             disp('Add up fibers')
-            template = full(sparcecell{1});
+            template = full(sparse3D);
             template(467, 395, 379) = 0;
-            for iFiber = 2:numel(fibers)
-                addthisfiber = full(sparcecell{iFiber});
-                addthisfiber(467, 395, 379) = 0;
-                try
-                template = template+addthisfiber;
-                catch;keyboard;end
-            end
+            
+            
             warning('Work in progress!!')
             templateSpace_mni2009b.Voxels = template;
-            templateSpace_mni2009b.getmesh.see(obj.ActorHandle.Scene)
-            keyboard
-             figure;imagesc(sum(template,3))
+            %templateSpace_mni2009b.getmesh.see(obj.ActorHandle.Scene)
+            
+            templateSpace_mni2009b.savenii(fullfile(outdir,[tag,'.nii']))
                
-               disp('Exporting image');
+               
            
            
         end
