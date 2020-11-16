@@ -67,7 +67,7 @@ end
 NumQuest=numel(Prompt);
 
 
-if nargin<2,
+if nargin<2
     Title=' ';
 end
 

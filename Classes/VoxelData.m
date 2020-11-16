@@ -474,7 +474,7 @@ classdef VoxelData <handle
                 [obj.Voxels,obj.R] = imwarp(obj.Voxels,obj.R,T);
             else
                  disp('Transformation is applied on new object')
-                [Voxels,R] = imwarp(obj.Voxels,obj.R,T);
+                [Voxels,R] = imwarp(obj.Voxels,obj.R,T); %image Transformation as a command with ref and data
                 newObj = VoxelData(Voxels,R);
             end
         end

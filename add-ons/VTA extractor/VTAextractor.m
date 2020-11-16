@@ -21,12 +21,12 @@ target = 'stn'; %or gpi
 savefolder = uigetdir('C:\','Select Folder to save to');
 
 %check if anything selected
-if numel(filename)==0
+if numel(filename)==0       %I think the uigetfile doesn't allow you to get back without taking anything... 
     disp('Nothing was selected.')
     return
 end
 
-if isa(filename,'char')
+if isa(filename,'char')     %why check if character when every input is given as char?
     filename = {filename};
 end
     
@@ -46,7 +46,7 @@ for iFile = 1:numel(filename)
 %load from suretune
   %loadSession   
      if ~exist('Session','class')
-            loadSDK;
+            loadSDK;        %behind this there is no function like it should be
      end
      
 
@@ -58,11 +58,11 @@ for iFile = 1:numel(filename)
     for iStimPlan = 1:numel(stimPlanList)
         thisStimPlan = stimPlanList{iStimPlan};
         
-        atlas = findTheMatchingAtlas(thisStimPlan,thisSession,target); % =reglink in A_loadsuretune
+        atlas = findTheMatchingAtlas(thisStimPlan,thisSession,target); % =reglink in A_loadsuretune %never put the function you need later on in the same .m file...?
         
         %get Transformation from electrode to selected atlas
         T_vta_to_atlas = thisSession.gettransformfromto(thisStimPlan.lead,atlas);
-        [T_atlas_to_mni,hemisphere]  = findTtoMNI(thisStimPlan, target);
+        [T_atlas_to_mni,hemisphere]  = findTtoMNI(thisStimPlan, target); %this works if you don't put the one area of left to right, then you can use this; but for the prediction there is a big problem
         T = round(T_vta_to_atlas*T_atlas_to_mni,6);
         
         %get and warp the VTA
@@ -96,7 +96,7 @@ function atlas = findTheMatchingAtlas(thisStimplan,thisSession,target)
             % is target matching?
             thisAtlas = thisSession.getregisterable(i);
             
-            if not(strcmp(lower(thisAtlas.group),lower(target)))
+            if not(strcmp(lower(thisAtlas.group),lower(target))) %rechecking with predictFuture
                 continue
             end
             
@@ -107,7 +107,7 @@ function atlas = findTheMatchingAtlas(thisStimplan,thisSession,target)
             end
             
             atlas = thisAtlas;
-            break
+            break               %this is a dangerous writing style, when something is wrong it could cause distortions  
         end
         if isempty(atlas)
             error(['No atlas was found for:', lower(thisStimplan.lead.label),' and ',lower(target)])
@@ -129,9 +129,9 @@ function [T_atlas_to_mni,hemisphere]  = findTtoMNI(thisStimPlan, target)
                     break
                 end
 
-             T = load('Tapproved.mat');
+             T = load('Tapproved.mat'); %Tapproved.mat is for transform everything to legacy or back
                 atlasname = [lower(hemisphere),lower(target),'2mni'];
-                Tatlas2fake = T.(atlasname);
+                Tatlas2fake = T.(atlasname);            %sweetspotspace is the same like legacyspace?
                 Tfake2mni = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
                 T_atlas_to_mni = Tatlas2fake*Tfake2mni;
 end

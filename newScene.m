@@ -6,7 +6,7 @@ function scene = newScene(OPTIONALname)
         else
         
             if nargin==1
-        scene = arena.new(OPTIONALname);
+                scene = arena.new(OPTIONALname);    %does not work?
             else
                 scene = arena.new();
             end
