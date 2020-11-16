@@ -370,10 +370,10 @@ classdef SuretunePortal
                 
                 for i = 1:numel(atlas_indices)
                     thisAtlas = session.getregisterable(atlas_indices(i));
-                    names{i} = [thisAtlas.group,' ',thisAtlas.hemisphere];
+                    names{i} = ['to MNI via ',thisAtlas.group,' ',thisAtlas.hemisphere];
                     regs{i} = thisAtlas;
                 end
-                names = [{'--','Native / Scanner','Suretune patient space','ACPC'},names];
+                names = [{'--','Native / Scanner','Suretune patient space','to MNI via ACPC'},names];
                 regs = [{nan,suretuneRegisterable,session.getregisterable(1),session.getregisterable('acpcCoordinateSystem')},regs];
             end
             
@@ -405,7 +405,7 @@ classdef SuretunePortal
             
             function [T,description] = universalCallbackRoutine(this)
                 [names,regs] = getRegistrationlink(this);
-                [selection] = listdlg('ListString',names);
+                [selection] = listdlg('PromptString','In which space do you want it?','ListString',names);
                 
                 %possibly abort?
                 if isempty(selection);return;end
