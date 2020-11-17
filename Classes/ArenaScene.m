@@ -1390,9 +1390,12 @@ classdef ArenaScene < handle
                 %1. Run it along x, y and z
                 result = [];
                 dimtext = {'x','y','z'};
+               
                 for dim = 1:3
                     [result.(dimtext{dim}).h,result.(dimtext{dim}).p,result.(dimtext{dim}).ci,result.(dimtext{dim}).stats] = ttest2([sample1.(dimtext{dim})],[sample2.(dimtext{dim})]);
+                    result.(dimtext{dim}).vector = Vector3D(double(1:3==dim));
                     disp([dimtext{dim},'--> p= ',num2str(result.(dimtext{dim}).p)])
+                    
                 end
                 
                 %2. also run a along PCA components.
@@ -1400,20 +1403,53 @@ classdef ArenaScene < handle
                 allData = [sample1.getArray;sample2.getArray];
                 [directions,loadings] = pca(allData);
                 [result.pca1.h,result.pca1.p,result.pca1.ci,result.pca1.stats] = ttest2(loadings(1:numel(sample1),1),loadings(numel(sample1)+1:end,1));
+                result.pca1.vector= Vector3D(directions(:,1));
                 disp(['pca1 --> p= ',num2str(result.pca1.p)])
                 [result.pca2.h,result.pca2.p,result.pca2.ci,result.pca2.stats] = ttest2(loadings(1:numel(sample1),2),loadings(numel(sample1)+1:end,2));
+                result.pca2.vector= Vector3D(directions(:,2));
                 disp(['pca2 --> p= ',num2str(result.pca2.p)])
                 
                 %3. run along the major discriminating axis
-                main_axis = mean(sample1.getArray) - mean(sample2.getArray);
+                main_axis = Vector3D(mean(sample1.getArray) - mean(sample2.getArray)).unit.getArray'; %makes axis: x'
                 allData = [sample1.getArray;sample2.getArray];
                 projection = main_axis*allData';
-                [result.proj.h,result.proj.p,result.proj.ci,result.proj.stats] = ttest2(projection(1:numel(sample1)),projection(numel(sample1)+1:end));
-                disp(['proj --> p= ',num2str(result.proj.p)])
                 
+                %dimension reduction: proj = v - (e*v)*e = v - d_*e;
+                v = allData;
+                d_ = repmat(projection,3,1)';
+                e = repmat(Vector3D(main_axis).unit.getArray',length(projection),1);
+                dimred = v - d_.*e;
+                [directions,loadings] = pca(dimred);
                 
+                [result.proj1.h,result.proj1.p,result.proj1.ci,result.proj1.stats] = ttest2(projection(1:numel(sample1)),projection(numel(sample1)+1:end));
+                [result.proj2.h,result.proj2.p,result.proj2.ci,result.proj2.stats] = ttest2(loadings(1:numel(sample1),1),loadings(numel(sample1)+1:end,1));
+                [result.proj3.h,result.proj3.p,result.proj3.ci,result.proj3.stats] = ttest2(loadings(1:numel(sample1),2),loadings(numel(sample1)+1:end,2));
+                
+                result.proj1.vector = Vector3D(main_axis).unit;
+                result.proj2.vector = Vector3D(directions(:,1));
+                result.proj3.vector = Vector3D(directions(:,2));
+                
+                disp(['proj1 --> p= ',num2str(result.proj1.p)])
+                disp(['proj2 --> p= ',num2str(result.proj2.p)])
+                disp(['proj3 --> p= ',num2str(result.proj3.p)])
+
                 disp('"PC_stats" is saved to the workspace')
-                 assignin('base','PC_stats',result)
+                assignin('base','PC_stats',result)
+                 
+                %draw vector in scene for all significant directions
+                basevector = Vector3D(mean(allData));
+                fields = fieldnames(result);
+                colorcounter = 1;
+                for iField = 1:numel(fields)
+                    if result.(fields{iField}).p < 0.05
+                        vc_actor = VectorCloud(basevector,result.(fields{iField}).vector).see(scene);
+                        vc_actor.changeName([fields{iField},' p=',num2str(result.(fields{iField}).p), '  ',mat2str(round(result.(fields{iField}).vector.getArray,2))])
+                        vc_actor.changeSetting('color1',scene.colorTheme{colorcounter})
+                        colorcounter = colorcounter+1;
+                    end
+                end
+                
+                
                 
             end
             
