@@ -104,31 +104,52 @@ classdef VoxelData <handle
         end
         
         
-        function [obj,filename] = loadnii(obj,niifile)
-            
+        function [obj,filename] = loadnii(obj,niifile,noreslice)
+
             if nargin==1
                 [filename,pathname] = uigetfile('*.nii','Find nii image');
                 if filename==0
                     return
                 end
                 niifile = fullfile(pathname,filename);
+            elseif nargin==2
+                noreslice = 0;
+            elseif nargin==3
+                if ischar(noreslice)
+                    switch lower(noreslice)
+                        case 'true'
+                            noreslice = 1;
+                        case 'false'
+                            noreslice = 0;
+                        otherwise
+                            error('cannnot interpret if I should reslice or not, please use 0 or 1')
+                    end
+                end
             else
                 [~,filename] = fileparts(niifile);
             end
+            
             if not(contains(niifile,'.nii'));error('input has to be a nifti file');end
             
             tempname = [datestr(datetime('now'),'yyyymmddhhMMss'),'.nii'];
-            reslice_nii(niifile,fullfile(tempdir,tempname));
-            reslicednifti = load_nii(fullfile(tempdir,tempname));
-            delete(fullfile(tempdir,tempname));
             
-            obj.Voxels = permute(reslicednifti.img,[2 1 3]);
+            if noreslice %for heatmaps: reslicing might alter voxelvalues slightly. 
+                warning('Reslicing is turned off.')
+                loadednifti = load_nii(niifile);
+            else %reslicing might change your data slightly, but rotates the data when a rotation is saved in the header. 
+                    % reslicing is recommended for normal use.
+                reslice_nii(niifile,fullfile(tempdir,tempname));
+                loadednifti = load_nii(fullfile(tempdir,tempname));
+                delete(fullfile(tempdir,tempname));
+            end
             
-            dimensions = reslicednifti.hdr.dime.dim(2:4);
-            voxelsize = reslicednifti.hdr.dime.pixdim(2:4);
-            transform = [reslicednifti.hdr.hist.srow_x;...
-                reslicednifti.hdr.hist.srow_y;...
-                reslicednifti.hdr.hist.srow_z;...
+            obj.Voxels = permute(loadednifti.img,[2 1 3]);
+            
+            dimensions = loadednifti.hdr.dime.dim(2:4);
+            voxelsize = loadednifti.hdr.dime.pixdim(2:4);
+            transform = [loadednifti.hdr.hist.srow_x;...
+                loadednifti.hdr.hist.srow_y;...
+                loadednifti.hdr.hist.srow_z;...
                 0 0 0 1];
             
             
