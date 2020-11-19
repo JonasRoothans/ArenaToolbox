@@ -8,6 +8,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         Tag
         Visible = true;
         PathDirectory
+        PredictInformation
     end
     
     methods

@@ -109,6 +109,14 @@ classdef ArenaScene < handle
             obj.handles.configcontrols = [];
             
             
+            obj.handles.box_listSelectActor = uicontrol('parent',obj.handles.figure,...
+                'style','listbox',...
+                'units','normalized',...
+                'position', [0,0.4,0.4,0.5],...
+                'String',' ',...
+                'Visible','off',...
+                'callback',{@box_listSelectActor},...
+                'Tag','left');
             
             
             %menubar
@@ -123,7 +131,8 @@ classdef ArenaScene < handle
             obj.handles.menu.file.export.blender = uimenu(obj.handles.menu.file.export.main,'Text','Blender (*.obj)','callback',{@menu_exporttoblender});
             obj.handles.menu.file.export.handlestoworkspace = uimenu(obj.handles.menu.file.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
             obj.handles.menu.file.export.saveSelection = uimenu(obj.handles.menu.file.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
-            
+            obj.handles.menu.file.predict.main = uimenu(obj.handles.menu.file.main ,'Text','Prediction','Callback',{@selectActorPrediction});
+
             
             obj.handles.menu.stusessions.main = uimenu(obj.handles.figure,'Text','Suretune sessions','Visible','off','Separator','on');
             obj.handles.menu.stusessions.openwindows = {};
@@ -206,8 +215,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.main  = uimenu(obj.handles.figure,'Text','...');
             obj.handles.menu.dynamic.modify.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Modify');
             obj.handles.menu.dynamic.analyse.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Analyse');
-            obj.handles.menu.dynamic.generate.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Generate');
-            
+            obj.handles.menu.dynamic.generate.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Generate');            
             
             obj.handles.menu.dynamic.PointCloud.distribution = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: show distribution','callback',{@menu_pcDistribution},'Enable','off');
             obj.handles.menu.dynamic.PointCloud.inMesh = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: is a point inside a mesh?','callback',{@menu_pointcloudinmesh},'Enable','off');
@@ -2358,7 +2366,28 @@ classdef ArenaScene < handle
                         return
                 end
             end
-            
+            function selectActorPrediction(hObject,eventdata)
+                thisScene=ArenaScene.getscenedata(hObject);
+                if isempty(thisScene.Actors(1, 1).Tag)
+                    thisScene.handles.box_listSelectActor.String='empty';
+                else
+                    thisScene.handles.box_listSelectActor.String={thisScene.Actors(1, 1:end).Tag};
+                end
+                thisScene.handles.box_listSelectActor.Visible='on';
+            end
+        
+            function box_listSelectActor(hObject,eventdata)
+                thisScene=ArenaScene.getscenedata(hObject);
+                if strcmp(thisScene.handles.box_listSelectActor.String,'empty')
+% there needs to be an idea for this one
+                    thisScene.Actors.PredictInformation.newPrediction();
+                else
+                    selection=thisScene.handles.box_listSelectActor.Value;
+                    PathDirectory=thisScene.Actors(selection,1).PathDirectory;
+                    thisScene.Actors(1, selection).PredictInformation=predictFuture();
+                    thisScene.Actors(1, selection).PredictInformation.newPrediction(PathDirectory);
+                end
+            end
             
     end
         
@@ -2672,7 +2701,6 @@ classdef ArenaScene < handle
                 warning('Scene was an orphan..')
             end
         end
-        
     end
     
     methods(Static)
