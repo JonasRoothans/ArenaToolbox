@@ -7,6 +7,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         Scene
         Tag
         Visible = true;
+        PathDirectory
     end
     
     methods

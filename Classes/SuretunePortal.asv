@@ -188,8 +188,9 @@ classdef SuretunePortal
                             %actor = vd.getslice.see(obj.scene);
                     end
                     actor.changeName([hObject.String,' via ',reglinkdescription])
+                    actor.PathDirectory=hObject.UserData{2};
                 end
-                actor.PathDirectory=hObject.UserData{2};
+                
             end
             
             function cb_mss(hObject,h)
@@ -237,7 +238,7 @@ classdef SuretunePortal
                 actor.changeSetting('complexity',100,'colorFace',SDK_hex2rgb(this.color(end-5:end))/255,'colorEdge',SDK_hex2rgb(this.color(end-5:end))/255);
                 
                 actor.changeName(this.label)
-                actor.PathDirectory=hObject.UserData{2};
+                
                 
                 
                 
@@ -260,7 +261,6 @@ classdef SuretunePortal
                     actor = vc.see(obj.scene);
                     actor.changeName([hObject.String,' via ',reglinkdescription])
                 end
-                actor.PathDirectory=hObject.UserData{2};
             end
             
             
@@ -304,7 +304,6 @@ classdef SuretunePortal
                         actor_vta.changeSetting('colorFace',[1 0.5 0])
                     end
                 end
-                actor.PathDirectory=hObject.UserData{2};
             end
             function cb_atlas(hObject,b)
                 this = hObject.UserData{1};
@@ -329,10 +328,6 @@ classdef SuretunePortal
                             actorrn = rn.see(obj.scene);
                             actorsn = sn.see(obj.scene);
                             
-                            actorstn.PathDirectory=hObject.UserData{2};
-                            actorrn.PathDirectory=hObject.UserData{2};
-                            actorsn.PathDirectory=hObject.UserData{2};
-                            
                             actorstn.changeName(['STN via ',reglinkdescription])
                             actorsn.changeName(['SN via ',reglinkdescription])
                             actorrn.changeName(['RN via ',reglinkdescription])
@@ -351,10 +346,6 @@ classdef SuretunePortal
                         if not(isempty(obj.scene))
                             actorgpi = gpi.see(obj.scene);
                             actorgpe = gpe.see(obj.scene);
-                            
-                            actorgpi.PathDirectory=hObject.UserData{2};
-                            actorgpe.PathDirectory=hObject.UserData{2};
-                            
                             actorgpi.changeName(['GPi via ',reglinkdescription])
                             actorgpe.changeName(['GPe via ',reglinkdescription])
                             actorgpi.changeSetting('colorFace',[0 0 1],'faceOpacity',20,'edgeOpacity',50,'complexity',50)
