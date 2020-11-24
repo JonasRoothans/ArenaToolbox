@@ -108,15 +108,35 @@ classdef ArenaScene < handle
             
             obj.handles.configcontrols = [];
             
+            obj.handles.text_box_listSelectActor = uicontrol('parent',obj.handles.figure,...
+                'style','text',...
+                'units','normalized',...
+                'position', [0.02,0.43,0.1,0.2],...
+                'String','Select the Actor ...',...
+                'Visible','off');
             
             obj.handles.box_listSelectActor = uicontrol('parent',obj.handles.figure,...
                 'style','listbox',...
                 'units','normalized',...
-                'position', [0,0.4,0.4,0.5],...
+                'position', [0.02,0.4,0.1,0.2],...
                 'String',' ',...
                 'Visible','off',...
-                'callback',{@box_listSelectActor},...
-                'Tag','left');
+                'callback',{@box_listSelectActor});
+            
+            obj.handles.text_box_listSelectResult = uicontrol('parent',obj.handles.figure,...
+                'style','text',...
+                'units','normalized',...
+                'position', [0.13,0.4,0.1,0.2],...
+                'String','Select the Result ...',...
+                'Visible','off');
+            
+            obj.handles.box_listSelectResult = uicontrol('parent',obj.handles.figure,...
+                'style','listbox',...
+                'units','normalized',...
+                'position', [0.13,0.4,0.1,0.2],...
+                'String',{},...
+                'Visible','off',...
+                'callback',{@box_listSelectResult});
             
             
             %menubar
@@ -2311,6 +2331,7 @@ classdef ArenaScene < handle
             
                 function setcurrentpointlive(fig,event)
                     %this nothing, but its presence is enough. :-) trust me
+                
                 end
             function context_deleteActor(hObject,eventdata)
                scene = ArenaScene.getscenedata(hObject);
@@ -2368,27 +2389,74 @@ classdef ArenaScene < handle
             end
             function selectActorPrediction(hObject,eventdata)
                 thisScene=ArenaScene.getscenedata(hObject);
-                if isempty(thisScene.Actors(1, 1).Tag)
+                if isempty(thisScene.Actors)
                     thisScene.handles.box_listSelectActor.String='empty';
                 else
-                    thisScene.handles.box_listSelectActor.String={thisScene.Actors(1, 1:end).Tag};
+                    actorNames={};
+                    for i=1:numel(thisScene.Actors(1, 1:end))
+                        if strcmp(thisScene.Actors(1,i).Tag(1:4),'Lead')
+                        actorNames(1,end+1).Tag=thisScene.Actors(1,i).Tag;
+                        else 
+                        end
+                    end
+                    thisScene.handles.box_listSelectActor.String={actorNames(1, 1:end).Tag};
                 end
                 thisScene.handles.box_listSelectActor.Visible='on';
+                thisScene.handles.text_box_listSelectActor.Visible='on';
             end
         
             function box_listSelectActor(hObject,eventdata)
                 thisScene=ArenaScene.getscenedata(hObject);
                 if strcmp(thisScene.handles.box_listSelectActor.String,'empty')
-% there needs to be an idea for this one
-                    thisScene.Actors.PredictInformation.newPrediction();
+                    PathDirectory=0;
+                    thisScene.Actors(1,1).PredictInformation=predictFuture();
+                    thisScene.Actors(1,1).PredictInformation.newPrediction(PathDirectory);
+                    waitfor(thisScene.Actors(1,1).PredictInformation.handles.figure);
+%                     if isempty(thisScene.Actors(1,1).PredictInformation.Heatmap)
+%                         return
+%                     end
+                    warning('If you load Actors after the prediction, your Prediction is only in your saving folder!');
+                    thisScene.handles.box_listSelectActor.String='completely made extern';
+
                 else
                     selection=thisScene.handles.box_listSelectActor.Value;
-                    PathDirectory=thisScene.Actors(selection,1).PathDirectory;
-                    thisScene.Actors(1, selection).PredictInformation=predictFuture();
-                    thisScene.Actors(1, selection).PredictInformation.newPrediction(PathDirectory);
+                    PathDirectory=thisScene.Actors(1,selection).PathDirectory;
+                    thisScene.Actors(1,selection).PredictInformation=predictFuture();
+                    thisScene.Actors(1,selection).PredictInformation.Tag=thisScene.Actors(1,selection).Tag;
+                    thisScene.Actors(1,selection).PredictInformation.newPrediction(PathDirectory);
+                    waitfor(thisScene.Actors(1,selection).PredictInformation.handles.figure);
+                    if isempty(thisScene.Actors(1,1).PredictInformation.Heatmap)
+                        warning('No Prediction Data was calculated!');
+                    else
+                    thisScene.Actors(1,selection).PredictInformation={thisScene.Actors(1,selection).PredictInformation.handles.prediction_Information,thisScene.Actors(1,selection).PredictInformation.Heatmap,...
+                        thisScene.Actors(1,selection).PredictInformation.config};
+                    end
                 end
+                    answer=questdlg('Do you want to make an other prediction?','Decision','Yes','No','No');
+                    if strcmp(answer,'No')
+                    thisScene.handles.box_listSelectActor.Visible='off';
+                    thisScene.handles.text_box_listSelectActor.Visible='off';
+                    end
+                    if not(isempty(thisScene.Actors(1,1).PredictInformation))
+                        answer=questdlg('Do you want to see your Results?','Decision','Yes','No','No');
+                        if strcmp(answer,'Yes')
+                            thisScene.handles.box_listSelectResult.Visible='on';
+                            thisScene.handles.text_box_listSelectResult ='on';
+                            thisScene.handles.box_listSelectResult.String(1,end+1)={thisScene.Actors(1,thisScene.handles.box_listSelectActor.Value).Tag};
+                        end
+                    end
             end
-            
+            %--------------------------------------------------------------
+            function box_listSelectResult(hObject,eventdata)
+             thisScene=ArenaScene.getscenedata(hObject);
+             displayDecision=thisScene.handles.box_listSelectResult.Value;
+             d=predictResults();
+             d.displayHighestResults(thisScene.Actors(1,displayDecision));
+             answer=questdlg('Do you want to see other Results?','Decision','Yes','No','No');
+                        if strcmp(answer,'No')
+                            thisScene.handles.box_listSelectResult.Visible='off';
+                        end
+            end
     end
         
         function thisActor = newActor(obj,data,OPTIONALvisualisation)
