@@ -152,7 +152,7 @@ classdef ArenaScene < handle
             obj.handles.menu.file.export.handlestoworkspace = uimenu(obj.handles.menu.file.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
             obj.handles.menu.file.export.saveSelection = uimenu(obj.handles.menu.file.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
             obj.handles.menu.file.predict.main = uimenu(obj.handles.menu.file.main ,'Text','Prediction','Callback',{@selectActorPrediction});
-
+            obj.handles.menu.file.predict.results = uimenu(obj.handles.menu.file.predict.main,'Text','View Results','Callback',{@viewActorResults},'Enable','off');
             
             obj.handles.menu.stusessions.main = uimenu(obj.handles.figure,'Text','Suretune sessions','Visible','off','Separator','on');
             obj.handles.menu.stusessions.openwindows = {};
@@ -2388,11 +2388,13 @@ classdef ArenaScene < handle
                 end
             end
             function selectActorPrediction(hObject,eventdata)
+                obj.handles.menu.file.predict.results.Enable='on'; %submenu on
                 thisScene=ArenaScene.getscenedata(hObject);
                 if isempty(thisScene.Actors)
                     thisScene.handles.box_listSelectActor.String='empty';
                 else
-                    actorNames={};
+                    actorNames=[];
+                    actorNames(1,1).Tag='empty';
                     for i=1:numel(thisScene.Actors(1, 1:end))
                         if strcmp(thisScene.Actors(1,i).Tag(1:4),'Lead')
                         actorNames(1,end+1).Tag=thisScene.Actors(1,i).Tag;
@@ -2407,44 +2409,74 @@ classdef ArenaScene < handle
         
             function box_listSelectActor(hObject,eventdata)
                 thisScene=ArenaScene.getscenedata(hObject);
-                if strcmp(thisScene.handles.box_listSelectActor.String,'empty')
+                selection=thisScene.handles.box_listSelectActor.Value;
+                if selection==1
                     PathDirectory=0;
                     thisScene.Actors(1,1).PredictInformation=predictFuture();
                     thisScene.Actors(1,1).PredictInformation.newPrediction(PathDirectory);
+                    try
                     waitfor(thisScene.Actors(1,1).PredictInformation.handles.figure);
-%                     if isempty(thisScene.Actors(1,1).PredictInformation.Heatmap)
-%                         return
-%                     end
-                    warning('If you load Actors after the prediction, your Prediction is only in your saving folder!');
-                    thisScene.handles.box_listSelectActor.String='completely made extern';
-
-                else
-                    selection=thisScene.handles.box_listSelectActor.Value;
+                    catch
+                        return
+                    end
+                    try
+                    if isempty(thisScene.Actors(1,1).PredictInformation.Heatmap)
+                        warning('No Prediction Data was calculated!');
+                    end
+                    catch
+                        return
+                    end
+                    warning('You did a Prediction which you can not be found in your current Actor list! When you do one more it gets overwritten!');
+                    thisScene.Actors=[];
+                    thisScene.Actors=ArenaActor.empty();
+                elseif selection>1
+                    if not(strcmp(thisScene.Actors(1,selection).Tag(1:4),'Lead'))   %because of the VTAs also saved in Actors it needs to check if it is a lead oder vector
+                    selection=selection-1;
+                    end
                     PathDirectory=thisScene.Actors(1,selection).PathDirectory;
                     thisScene.Actors(1,selection).PredictInformation=predictFuture();
                     thisScene.Actors(1,selection).PredictInformation.Tag=thisScene.Actors(1,selection).Tag;
                     thisScene.Actors(1,selection).PredictInformation.newPrediction(PathDirectory);
+                    try
                     waitfor(thisScene.Actors(1,selection).PredictInformation.handles.figure);
-                    if isempty(thisScene.Actors(1,1).PredictInformation.Heatmap)
+                    catch
+                        return
+                    end
+                    try
+                    if isempty(thisScene.Actors(1,selection).PredictInformation.Heatmap)
                         warning('No Prediction Data was calculated!');
                     else
                     thisScene.Actors(1,selection).PredictInformation={thisScene.Actors(1,selection).PredictInformation.handles.prediction_Information,thisScene.Actors(1,selection).PredictInformation.Heatmap,...
-                        thisScene.Actors(1,selection).PredictInformation.config};
+                             thisScene.Actors(1,selection).PredictInformation.config};
+                    end
+                    catch
+                        return
                     end
                 end
                     answer=questdlg('Do you want to make an other prediction?','Decision','Yes','No','No');
                     if strcmp(answer,'No')
                     thisScene.handles.box_listSelectActor.Visible='off';
                     thisScene.handles.text_box_listSelectActor.Visible='off';
+                    thisScene.handles.box_listSelectActor.String=[];
                     end
-                    if not(isempty(thisScene.Actors(1,1).PredictInformation))
-                        answer=questdlg('Do you want to see your Results?','Decision','Yes','No','No');
-                        if strcmp(answer,'Yes')
-                            thisScene.handles.box_listSelectResult.Visible='on';
-                            thisScene.handles.text_box_listSelectResult ='on';
-                            thisScene.handles.box_listSelectResult.String(1,end+1)={thisScene.Actors(1,thisScene.handles.box_listSelectActor.Value).Tag};
+                    try
+                        if isa(thisScene.Actors(1,selection).PredictInformation,'cell')
+                            answer=questdlg('Do you want to see your Results?','Decision','Yes','No','No');
+                            if strcmp(answer,'Yes')
+                                thisScene.handles.box_listSelectResult.Visible='on';
+                                thisScene.handles.text_box_listSelectResult.Visible ='on';
+                                thisScene.handles.box_listSelectResult.String(1,end+1)={thisScene.Actors(1,selection).Tag};
+                            end
                         end
+                    catch
+                        return;
                     end
+            end
+            
+            function viewActorResults(hObject,eventdata)
+                thisScene=ArenaScene.getscenedata(hObject);
+                thisScene.handles.text_box_listSelectResult.Visible ='on';
+                thisScene.handles.box_listSelectResult.Visible='on';
             end
             %--------------------------------------------------------------
             function box_listSelectResult(hObject,eventdata)
@@ -2455,6 +2487,7 @@ classdef ArenaScene < handle
              answer=questdlg('Do you want to see other Results?','Decision','Yes','No','No');
                         if strcmp(answer,'No')
                             thisScene.handles.box_listSelectResult.Visible='off';
+                            thisScene.handles.text_box_listSelectResult.Visible='off';
                         end
             end
     end
