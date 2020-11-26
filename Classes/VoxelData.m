@@ -112,6 +112,7 @@ classdef VoxelData <handle
                     return
                 end
                 niifile = fullfile(pathname,filename);
+                noreslice = 0;
             elseif nargin==2
                 noreslice = 0;
             elseif nargin==3
