@@ -71,9 +71,15 @@ classdef buttonConnected<handle
                      disp('You did not select a Heatmap which can be used!');   
                 end
                 
-                if (isempty(thisprediction.VTAPoolPath))
-                                waitfor(msgbox('Select your VTAPool'));
+                if not(exist('predictionConfig.mat','file'))
+                                waitfor(msgbox('This seems to be your first time running the Prediction Algorythm? Please choose your VTA path!'));
                                 thisprediction.VTAPoolPath=uigetdir;
+                                VTAPoolPath=thisprediction.VTAPoolPath;
+                                folder=what('Prediction');
+                                save(fullfile(folder.path,'/predictionConfig'),'VTAPoolPath');
+                else
+                    config=load('predictionConfig.mat');
+                    thisprediction.VTAPoolPath=config.VTAPoolPath;
                 end 
                 
                 for iLead =1: numel(leadidcs)
@@ -135,6 +141,10 @@ classdef buttonConnected<handle
             %edditings
             
             edges = -1:0.13333333333:1;                                 % gives the area of the histogram
+            bilateral=[];
+            unilateral=[];
+            unilateral.left=[];
+            unilateral.right=[];
             
             switch thisprediction.Heatmap.Name
                 case 'DystoniaWuerzburg'
@@ -155,9 +165,9 @@ classdef buttonConnected<handle
                     % about how more positiv the different voxels are or how more negativ one of both
                     % compared voxels is.
                     
-                    status='%d. left Lead predicted';
                     
-                    if thisprediction.unilateralOn || not(isempty(thisprediction.Tag))
+                    if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:9)),'left')
+                        status='%d. left Lead predicted';
                         fig1=figure('Name','Monopolar_Histogramm-Left');
                         % it is always bilateral
                         unilateral.left = [];
@@ -172,7 +182,9 @@ classdef buttonConnected<handle
                             unilateral.left(fXLS) = distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
                         end
                         delete(fig1)
-                        
+                    end
+                    
+                    if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:9)),'right')
                         status='%d. right Lead predicted';
                         fig2=figure('Name','Monopolar_Histogramm-Right');
                         % it is always bilateral
@@ -188,13 +200,10 @@ classdef buttonConnected<handle
                             unilateral.right(sXLS) = distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
                         end
                         delete(fig2)
-                        
-                    else
-                        unilateral='Not Selected';
                     end
                     
+                    if thisprediction.bilateralOn==1
                     status='%d. left Lead and %d. right Lead predicted';
-                    
                     fig3=figure('Name','Bilateral_Histogramm');
                     % it is always bilateral
                     bilateral = [];
@@ -213,6 +222,7 @@ classdef buttonConnected<handle
                         end
                     end
                     delete(fig3);
+                    end
                     
                 case 'heatmapBostonBerlin'
                      % as long as there are no linear regression parameter
@@ -221,17 +231,20 @@ classdef buttonConnected<handle
                     probabilityMap=thisprediction.Heatmap.Data.Voxels;
                     linearRegressionCoefficients = 1;  % this are the coefficients for the linear regression model
                     
-                    status='%d. left Lead predicted';
                     
-                    if thisprediction.unilateralOn || not(isempty(thisprediction.Tag))
+                    
+                    if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:9)),'left')
                         % unilateral left
+                        status='%d. left Lead predicted';
                         unilateral.left = [];
                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             disp(fprintf(status,fXLS));
                             sample=mean(sample);
                             unilateral.left(fXLS) = sample;%*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
                         end
-                        
+                    end
+                    
+                    if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:9)),'right')
                         status='%d. right Lead predicted';
                         % unilateral right
                         unilateral.right = [];
@@ -240,13 +253,10 @@ classdef buttonConnected<handle
                             sample=mean(sample);
                             unilateral.left(sXLS) = sample;%*linearRegressionCoefficients;                        % This fitts the outcomes to the in the filedcase study found values.
                         end
-                        
-                    else
-                        unilateral='Not Selected';
                     end
                     
+                    if thisprediction.bilateralOn==1
                     status='%d. left Lead and %d. right Lead predicted';
-                    
                     bilateral = [];
                     for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                         for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
@@ -257,7 +267,7 @@ classdef buttonConnected<handle
                             bilateral(fXLS,sXLS) = sample;%*linearRegressionCoefficients                    % This fitts the outcomes to the in the filedcase study found values.
                         end
                     end
-                    
+                    end
                     
                 case 'heatmapBostonAlone'
                     % as long as there are no linear regression parameter
@@ -268,7 +278,7 @@ classdef buttonConnected<handle
                     
                     status='%d. left Lead predicted';
                     
-                    if thisprediction.unilateralOn || not(isempty(thisprediction.Tag))
+                    if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:9)),'left')
                         % unilateral left
                         unilateral.left = [];
                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
@@ -276,7 +286,9 @@ classdef buttonConnected<handle
                             sample=mean(sample);
                             unilateral.left(fXLS) = sample;%*linearRegressionCoefficients                      % This fitts the outcomes to the in the filedcase study found values.
                         end
-                        
+                    end
+                    
+                    if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:9)),'right')
                         status='%d. right Lead predicted';
                         % unilateral right
                         unilateral.right = [];
@@ -285,13 +297,10 @@ classdef buttonConnected<handle
                             sample=mean(sample);
                             unilateral.left(sXLS) = sample;%*linearRegressionCoefficients                          % This fitts the outcomes to the in the filedcase study found values.
                         end
-                        
-                    else
-                        unilateral='Not Selected';
                     end
                     
+                    if thisprediction.bilateralOn==1
                     status='%d. left Lead and %d. right Lead predicted';
-                    
                     bilateral = [];
                     for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                         for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
@@ -301,6 +310,7 @@ classdef buttonConnected<handle
                             disp(fprintf(status,fXLS,sXLS));
                             bilateral(fXLS,sXLS) = sample;%*linearRegressionCoefficients                      % This fitts the outcomes to the in the filedcase study found values.
                         end
+                    end
                     end
             end
         end
@@ -331,10 +341,6 @@ classdef buttonConnected<handle
             end
             %%
             function showTheData(obj,thisprediction)
-                figure('Name','Prediction');
-                imagesc(thisprediction.handles.prediction_Information.bilateral);
-                ylabel(thisprediction.handles.VTA_Information(1,1).leadname);
-                xlabel(thisprediction.handles.VTA_Information(2,1).leadname);
 
                 contacts_vector = thisprediction.config.contacts_vector;
                 amplitudes_vector = thisprediction.config.amplitudes_vector;
@@ -344,16 +350,9 @@ classdef buttonConnected<handle
                 for i = 1:(walkthroughs)
                     ticklabels{i} = ['c = ',num2str(contacts_vector(i)),', amp = ',num2str(amplitudes_vector(i))];
                 end
-                
-                xticks(1:walkthroughs);
-                xticklabels(ticklabels);
-                yticks(1:walkthroughs);
-                yticklabels(ticklabels);
-                xtickangle(45);
-                ytickangle(0);
-                
-                if thisprediction.unilateralOn || not(isempty(thisprediction.Tag))
-                    figure('Name','Prediction Unilateral Left');
+                    thisprediction.handles.figure=[];
+                if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:9)),'left')
+                    thisprediction.handles.figure.left=figure('Name','Prediction Unilateral Left');
                     thisprediction.handles.prediction_Information.unilateral.left=shiftdim(thisprediction.handles.prediction_Information.unilateral.left);
                     imagesc(thisprediction.handles.prediction_Information.unilateral.left);
                     ylabel(thisprediction.handles.VTA_Information(1,1).leadname);
@@ -361,13 +360,28 @@ classdef buttonConnected<handle
                     yticklabels(ticklabels);
                     ytickangle(45);
                     xticklabels(' ');
-                    figure('Name','Prediction Unilateral Right');
+                end
+                if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:9)),'right')
+                    thisprediction.handles.figure.right=figure('Name','Prediction Unilateral Right');
                     imagesc(thisprediction.handles.prediction_Information.unilateral.right);
                     xlabel(thisprediction.handles.VTA_Information(2,1).leadname);
                     xticks(1:walkthroughs);
                     xticklabels(ticklabels);
                     xtickangle(45);
                     yticklabels(' ');
+                end
+                
+                if thisprediction.bilateralOn==1
+                thisprediction.handles.figure.bilateral=figure('Name','Prediction');
+                imagesc(thisprediction.handles.prediction_Information.bilateral);
+                ylabel(thisprediction.handles.VTA_Information(1,1).leadname);
+                xlabel(thisprediction.handles.VTA_Information(2,1).leadname);
+                xticks(1:walkthroughs);
+                xticklabels(ticklabels);
+                yticks(1:walkthroughs);
+                yticklabels(ticklabels);
+                xtickangle(45);
+                ytickangle(0);
                 end
             end
             

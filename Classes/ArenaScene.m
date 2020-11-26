@@ -151,8 +151,10 @@ classdef ArenaScene < handle
             obj.handles.menu.file.export.blender = uimenu(obj.handles.menu.file.export.main,'Text','Blender (*.obj)','callback',{@menu_exporttoblender});
             obj.handles.menu.file.export.handlestoworkspace = uimenu(obj.handles.menu.file.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
             obj.handles.menu.file.export.saveSelection = uimenu(obj.handles.menu.file.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
-            obj.handles.menu.file.predict.main = uimenu(obj.handles.menu.file.main ,'Text','Prediction','Callback',{@selectActorPrediction});
-            obj.handles.menu.file.predict.results = uimenu(obj.handles.menu.file.predict.main,'Text','View Results','Callback',{@viewActorResults},'Enable','off');
+            obj.handles.menu.file.predict.main = uimenu(obj.handles.menu.file.main ,'Text','Prediction');
+            obj.handles.menu.file.predict.calculation=uimenu(obj.handles.menu.file.predict.main,'Text','Calculate','Callback',{@menu_selectActorPrediction});
+            obj.handles.menu.file.predict.results = uimenu(obj.handles.menu.file.predict.main,'Text','View Results','Callback',{@menu_viewActorResults},'Enable','off');
+            obj.handles.menu.file.predict.close = uimenu(obj.handles.menu.file.predict.main,'Text','Close Prediction Windows','Callback',{@menu_closePredictionWindows},'Enable','off');
             
             obj.handles.menu.stusessions.main = uimenu(obj.handles.figure,'Text','Suretune sessions','Visible','off','Separator','on');
             obj.handles.menu.stusessions.openwindows = {};
@@ -2387,14 +2389,16 @@ classdef ArenaScene < handle
                         return
                 end
             end
-            function selectActorPrediction(hObject,eventdata)
-                obj.handles.menu.file.predict.results.Enable='on'; %submenu on
+            %--------------------------------------------------------------
+            function menu_selectActorPrediction(hObject,eventdata)
                 thisScene=ArenaScene.getscenedata(hObject);
+                thisScene.handles.menu.file.predict.close.Enable='on';
+                thisScene.handles.menu.file.predict.results.Enable='on'; %submenu on
                 if isempty(thisScene.Actors)
-                    thisScene.handles.box_listSelectActor.String='empty';
+                    thisScene.handles.box_listSelectActor.String='Prediction without using the "until now" imported data.';
                 else
                     actorNames=[];
-                    actorNames(1,1).Tag='empty';
+                    actorNames(1,1).Tag='Prediction without using the "until now" imported data.';
                     for i=1:numel(thisScene.Actors(1, 1:end))
                         if strcmp(thisScene.Actors(1,i).Tag(1:4),'Lead')
                         actorNames(1,end+1).Tag=thisScene.Actors(1,i).Tag;
@@ -2453,15 +2457,16 @@ classdef ArenaScene < handle
                         return
                     end
                 end
-                    answer=questdlg('Do you want to make an other prediction?','Decision','Yes','No','No');
+                    answer=questdlg('Do you want to try a prediction for a other lead?','Decision','Yes','No','No');
                     if strcmp(answer,'No')
                     thisScene.handles.box_listSelectActor.Visible='off';
                     thisScene.handles.text_box_listSelectActor.Visible='off';
                     thisScene.handles.box_listSelectActor.String=[];
+                    thisScene.handles.menu.file.predict.close.Enable='off';
                     end
                     try
                         if isa(thisScene.Actors(1,selection).PredictInformation,'cell')
-                            answer=questdlg('Do you want to see your Results?','Decision','Yes','No','No');
+                            answer=questdlg('Would you like to display your Results?','Decision','Yes','No','No');
                             if strcmp(answer,'Yes')
                                 thisScene.handles.box_listSelectResult.Visible='on';
                                 thisScene.handles.text_box_listSelectResult.Visible ='on';
@@ -2473,23 +2478,39 @@ classdef ArenaScene < handle
                     end
             end
             
-            function viewActorResults(hObject,eventdata)
+            function menu_viewActorResults(hObject,eventdata)
                 thisScene=ArenaScene.getscenedata(hObject);
                 thisScene.handles.text_box_listSelectResult.Visible ='on';
                 thisScene.handles.box_listSelectResult.Visible='on';
+                thisScene.handles.menu.file.predict.close.Enable='on';
             end
-            %--------------------------------------------------------------
+            
             function box_listSelectResult(hObject,eventdata)
              thisScene=ArenaScene.getscenedata(hObject);
              displayDecision=thisScene.handles.box_listSelectResult.Value;
+             if not(isempty(displayDecision))
              d=predictResults();
              d.displayHighestResults(thisScene.Actors(1,displayDecision));
-             answer=questdlg('Do you want to see other Results?','Decision','Yes','No','No');
+             answer=questdlg('Would you like to display other Results?','Decision','Yes','No','No');
                         if strcmp(answer,'No')
                             thisScene.handles.box_listSelectResult.Visible='off';
                             thisScene.handles.text_box_listSelectResult.Visible='off';
                         end
+             else
+                 error('No Prediction Data was found!');
+             end
             end
+            function menu_closePredictionWindows(hObject,eventdata)
+                thisScene=ArenaScene.getscenedata(hObject);
+                thisScene.handles.menu.file.predict.results.Enable='off';
+                thisScene.handles.text_box_listSelectActor.Visible='off';
+                thisScene.handles.box_listSelectActor.Visible='off';
+                thisScene.handles.text_box_listSelectResult.Visible='off';
+                thisScene.handles.box_listSelectResult.Visible='off'; 
+                thisScene.handles.menu.file.predict.close.Enable='off';
+            end
+            
+            %--------------------------------------------------------------
     end
         
         function thisActor = newActor(obj,data,OPTIONALvisualisation)

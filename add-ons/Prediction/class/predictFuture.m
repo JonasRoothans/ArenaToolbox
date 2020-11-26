@@ -34,6 +34,7 @@ classdef predictFuture<handle
         Data_Out
         saveLoadedVTA=1
         unilateralOn=0
+        bilateralOn=0
     end
     
     methods
@@ -87,9 +88,7 @@ classdef predictFuture<handle
                 'Callback',@startSubprogrammButton);
             
             message=sprintf(['            !!!!!!You should pay attention to following points!!!!!!' ...
-            '\n 1. Please make sure that you named your VTA in Suretune at the end with left and right!'...
-            '\n 2. It is necessary that a transformation matrix for atlas was producted in Suretune!' ...
-            '\n 3. Depending on which Heatmap you choose, it determins if you do a stn or gpi prediction!']);
+            '\n 1. Please make sure that you named your VTA in Suretune at the end with left and right!'])
             
             obj.handles.usermassage=uicontrol('parent',obj.handles.figure,...
                 'units','normalized',...
@@ -128,7 +127,7 @@ classdef predictFuture<handle
                 'units','normalized',...
                 'style','listbox',...
                 'outerposition',[0.57 0.45 0.4 0.1],...
-                'String',{'DystoniaWürzburg','BostonBerlin','BostonAlone'},...
+                'String',{'DystoniaWürzburg(gpi)','BostonBerlin(stn)','BostonAlone(stn)'},...
                 'BackgroundColor',[0.5 0.5 0.5],...
                 'FontName','Arial',...
                 'FontSize',14,...
@@ -168,13 +167,17 @@ classdef predictFuture<handle
             obj.handles.menu.file.heatmapBostonAlone.main=uimenu('parent',obj.handles.menu.file.heatmap.main,...
                 'Text','BostonAlone','callback',@heatmapBostonAlone);
             
+            obj.handles.menu.file.changeVTAPoolPath.main=uimenu('parent',obj.handles.menu.file.main,...
+                'Text','Change VTA Pool','callback',@changeVTAPoolPath);
+            
             if pathDirectory==0
                 obj.handles.menu.file.import.main=uimenu('parent',obj.handles.menu.file.main,...
                     'Accelerator','I',....
                     'Text','Import File(Com+I)','callback',@Import);
                 obj.handles.menu.file.UnilateralOn.main=uimenu('parent',obj.handles.menu.file.main,...
-                    'Accelerator','M',...
-                    'Text','Unilateral Prediction (Com+M)','callback',@unilateralOn);
+                    'Text','Unilateral Prediction ','callback',@unilateralOn);
+                obj.handles.menu.file.BilateralOn.main=uimenu('parent',obj.handles.menu.file.main,...
+                    'Text','Unilateral Prediction ','callback',@bilateralOn);
                 obj.handles.menu.file.SaveDirectory.main=uimenu('parent',obj.handles.menu.file.main,...
                     'Accelerator','V',...
                     'Text','Change Save Directory (Com+V)','callback',@saveFolder); 
@@ -182,12 +185,13 @@ classdef predictFuture<handle
             %% -----
             %Essential function for rudiment working
             function closePrediction(hObject,eventdata)
+                thisprediction=predictFuture.getpredictdata(hObject);
                 request=questdlg('Are you sure you want to close the Prediction?','Confirmation',...
-                    'Quit','Close','Close');
+                    'Cancel','Yes','Yes');
                 switch request
-                    case 'Quit'
+                    case 'Cancel'
                         return
-                    case 'Close'
+                    case 'Yes'
                         delete(gcf);
                 end
             end
@@ -269,6 +273,7 @@ classdef predictFuture<handle
             %all secondary functions are inside here
             function runButton(hObject,eventdata)
                 thisprediction=predictFuture.getpredictdata(hObject);
+                thisprediction.handles.runButton.Enable='inactive';
                 if strcmp(thisprediction.handles.saveToButton.Visible,'on')
                     error('You have not selected a folder to save your data!')
                 end
@@ -315,6 +320,7 @@ classdef predictFuture<handle
                     thisprediction.Heatmap.Name=0;
                     delete(f);
                 end
+                thisprediction.handles.runButton.Enable='on';
             end
             
             function SoundOn(hObject,eventdata)
@@ -338,7 +344,16 @@ classdef predictFuture<handle
                     thisprediction.handles.menu.file.UnilateralOn.main.ForegroundColor=[0 0.4470 0.7410];
                 end
             end
-            
+            function bilateralOn(hObject,eventdata)
+                 thisprediction=predictFuture.getpredictdata(hObject);
+                if thisprediction.bilateralOn==1
+                    thisprediction.bilateralOn=0;
+                    thisprediction.handles.menu.file.BilateralOn.main.ForegroundColor='black';
+                else
+                    thisprediction.bilateralOn=1;
+                    thisprediction.handles.menu.file.BilateralOn.main.ForegroundColor=[0 0.4470 0.7410];
+                end
+            end
             function dystoniaWuerzburgMartin(hObject,eventdata)
                 thisprediction=predictFuture.getpredictdata(hObject);
                 thisprediction.Heatmap.Name='DystoniaWuerzburg';
@@ -383,6 +398,13 @@ classdef predictFuture<handle
                     thisprediction.Heatmap.Name='';
                     thisprediction.handles.target='';
                 end
+            end
+            function changeVTAPoolPath(hObject,eventdata)
+                 waitfor(msgbox('You want to change searching path of your VTA Pool? Please choose...'));
+                                thisprediction.VTAPoolPath=uigetdir;
+                                VTAPoolPath=thisprediction.VTAPoolPath;
+                                folder=what('Prediction');
+                                save(fullfile(currentfolder.path,'/predictionConfig'),'VTAPoolPath');
             end
         end
     end
