@@ -155,6 +155,8 @@ classdef ArenaScene < handle
             obj.handles.menu.file.predict.calculation=uimenu(obj.handles.menu.file.predict.main,'Text','Calculate','Callback',{@menu_selectActorPrediction});
             obj.handles.menu.file.predict.results = uimenu(obj.handles.menu.file.predict.main,'Text','View Results','Callback',{@menu_viewActorResults},'Enable','off');
             obj.handles.menu.file.predict.close = uimenu(obj.handles.menu.file.predict.main,'Text','Close Prediction Windows','Callback',{@menu_closePredictionWindows},'Enable','off');
+            obj.handles.menu.file.predict.showOldResults = uimenu(obj.handles.menu.file.predict.main,'Text','Show old Results','Callback',{@menu_showOldResults});
+
             
             obj.handles.menu.stusessions.main = uimenu(obj.handles.figure,'Text','Suretune sessions','Visible','off','Separator','on');
             obj.handles.menu.stusessions.openwindows = {};
@@ -2500,6 +2502,7 @@ classdef ArenaScene < handle
                  error('No Prediction Data was found!');
              end
             end
+            
             function menu_closePredictionWindows(hObject,eventdata)
                 thisScene=ArenaScene.getscenedata(hObject);
                 thisScene.handles.menu.file.predict.results.Enable='off';
@@ -2508,6 +2511,15 @@ classdef ArenaScene < handle
                 thisScene.handles.text_box_listSelectResult.Visible='off';
                 thisScene.handles.box_listSelectResult.Visible='off'; 
                 thisScene.handles.menu.file.predict.close.Enable='off';
+            end
+            
+            function menu_showOldResults(hObject,eventdata)
+               waitfor(msgbox('Please select your old Results from other Prediction!'));
+                [file,pathDirectory]=uigetfile('*.mat','Select old Results');
+                result=load(fullfile(pathDirectory,file));
+                d=predictResults();
+                d.displayHighestResults(result);
+                msgbox('Your Result is shown!')
             end
             
             %--------------------------------------------------------------

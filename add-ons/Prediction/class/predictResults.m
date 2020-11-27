@@ -16,11 +16,25 @@ classdef predictResults<handle
         function displayHighestResults(obj,Actor)
             
             answer=inputdlg('How many outcomes do you want?','Display Results',1,{'5'});
+            
             if isempty(answer)
                 return;
-            elseif isa(Actor.PredictInformation,'predictFuture')
-                return;
             end
+            
+            try
+                 if isa(Actor.PredictionAndVTA.prediction_Information,'struct')
+                    Actor.PredictInformation{1,1}=Actor.PredictionAndVTA.prediction_Information;
+                    Actor.PredictInformation{1,2}='empty';
+                    Actor.PredictInformation{1,3}=Actor.PredictionAndVTA.config;
+                    Actor.Tag=Actor.PredictionAndVTA.Tag;
+                 end
+            catch
+                if isa(Actor.PredictInformation,'predictFuture')
+                    return;
+                end
+            end
+            
+           
             try
                 if isnan(answer)
                     warning('Your input was no number, therefor you get the best five results!')
@@ -84,8 +98,6 @@ classdef predictResults<handle
                 obj.HighestResults.bilateral.results=maxk(Actor.PredictInformation{1,1}.bilateral,answer);
                 obj.HighestResults.bilateral.results=reshape(obj.HighestResults.bilateral.results,[1,(answer*20)]);
                 obj.HighestResults.bilateral.results=maxk(obj.HighestResults.bilateral.results,answer);
-                contacts_vector=Actor.PredictInformation{1,3}.contacts_vector;
-                amplitudes_vector=Actor.PredictInformation{1,3}.amplitudes_vector;
                 for ianswer=1:answer
                     obj.HighestResults.bilateral.position{ianswer}=ismember(Actor.PredictInformation{1,1}.bilateral,obj.HighestResults.bilateral.results(1,ianswer));
                     [row,col]=find(obj.HighestResults.bilateral.position{ianswer});
@@ -100,12 +112,12 @@ classdef predictResults<handle
             if not(isempty(Actor.PredictInformation{1, 1}.unilateral.left))
                 obj.HighestResults.unilateralLeft.results=maxk(Actor.PredictInformation{1,1}.unilateral.left,answer);
                 for ianswer=1:answer
-                    obj.HighestResults.unilateralLeft.position{ianswer}=ismember(Actor.PredictInformation{1,1}.unilateral.left,obj.HighestResults.unilateralLeft.results(ianswer,1));
+                    obj.HighestResults.unilateralLeft.position{ianswer}=ismember(Actor.PredictInformation{1,1}.unilateral.left,obj.HighestResults.unilateralLeft.results(1,ianswer));
                     [row,col]=find(obj.HighestResults.unilateralLeft.position{ianswer});
                     part='%d. c and %d. a %d. e';
                     obj.handles.table_unilateralLeft.RowName{ianswer}=sprintf(part,contacts_vector(1,...
                         row),amplitudes_vector(1,row));
-                    obj.handles.table_unilateralLeft.Data(ianswer,1)=obj.HighestResults.unilateralLeft.results(ianswer,1);
+                    obj.handles.table_unilateralLeft.Data(ianswer,1)=obj.HighestResults.unilateralLeft.results(1,ianswer);
                 end
             end
             

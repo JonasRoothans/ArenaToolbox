@@ -320,6 +320,7 @@ classdef predictFuture<handle
                     thisprediction.Heatmap.Name=0;
                     delete(f);
                 end
+                msgbox('Your Prediction is done!');
                 thisprediction.handles.runButton.Enable='on';
             end
             

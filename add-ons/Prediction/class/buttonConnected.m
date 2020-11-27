@@ -330,6 +330,8 @@ classdef buttonConnected<handle
                 PredictionAndVTA.VTA_Information=thisprediction.handles.VTA_Information;
                 PredictionAndVTA.prediction_Information=thisprediction.handles.prediction_Information;
                 PredictionAndVTA.heatmapName=thisprediction.Heatmap.Name;
+                PredictionAndVTA.config=thisprediction.config;
+                PredictionAndVTA.Tag=thisprediction.Tag;
                 filename=['/', PredictionAndVTA.target,'_',...
                     thisprediction.handles.VTA_Information(1, 1).monoPolarConfig.leadtype,'_', ...
                     PredictionAndVTA.heatmapName,'_',...
@@ -353,8 +355,8 @@ classdef buttonConnected<handle
                     thisprediction.handles.figure=[];
                 if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:9)),'left')
                     thisprediction.handles.figure.left=figure('Name','Prediction Unilateral Left');
-                    thisprediction.handles.prediction_Information.unilateral.left=shiftdim(thisprediction.handles.prediction_Information.unilateral.left);
-                    imagesc(thisprediction.handles.prediction_Information.unilateral.left);
+                    showLeftInOtherOrientations=shiftdim(thisprediction.handles.prediction_Information.unilateral.left); %this is done, because you do need them in a vertical matrix
+                    imagesc(showLeftInOtherOrientations);
                     ylabel(thisprediction.handles.VTA_Information(1,1).leadname);
                     yticks(1:walkthroughs);
                     yticklabels(ticklabels);
