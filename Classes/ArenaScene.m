@@ -2401,18 +2401,22 @@ classdef ArenaScene < handle
                 else
                     actorNames=[];
                     actorNames(1,1).Tag='Prediction without using the "until now" imported data.';
+                    actorNames(1,1).Number=[];
                     for i=1:numel(thisScene.Actors(1, 1:end))
                         if strcmp(thisScene.Actors(1,i).Tag(1:4),'Lead')
-                        actorNames(1,end+1).Tag=thisScene.Actors(1,i).Tag;
-                        else 
+                            actorNames(1,end+1).Tag=thisScene.Actors(1,i).Tag;
+                            actorNames(1,end).Number=i;
+                        else
                         end
                     end
-                    thisScene.handles.box_listSelectActor.String={actorNames(1, 1:end).Tag};
+                    thisScene.handles.box_listSelectActor.UserData=struct();
+                    thisScene.handles.box_listSelectActor.UserData=actorNames;
+                    thisScene.handles.box_listSelectActor.String={actorNames(1,1:end).Tag};
                 end
                 thisScene.handles.box_listSelectActor.Visible='on';
                 thisScene.handles.text_box_listSelectActor.Visible='on';
             end
-        
+            
             function box_listSelectActor(hObject,eventdata)
                 thisScene=ArenaScene.getscenedata(hObject);
                 selection=thisScene.handles.box_listSelectActor.Value;
@@ -2421,14 +2425,14 @@ classdef ArenaScene < handle
                     thisScene.Actors(1,1).PredictInformation=predictFuture();
                     thisScene.Actors(1,1).PredictInformation.newPrediction(PathDirectory);
                     try
-                    waitfor(thisScene.Actors(1,1).PredictInformation.handles.figure);
+                        waitfor(thisScene.Actors(1,1).PredictInformation.handles.figure);
                     catch
                         return
                     end
                     try
-                    if isempty(thisScene.Actors(1,1).PredictInformation.Heatmap)
-                        warning('No Prediction Data was calculated!');
-                    end
+                        if isempty(thisScene.Actors(1,1).PredictInformation.Heatmap)
+                            warning('No Prediction Data was calculated!');
+                        end
                     catch
                         return
                     end
@@ -2436,71 +2440,106 @@ classdef ArenaScene < handle
                     thisScene.Actors=[];
                     thisScene.Actors=ArenaActor.empty();
                 elseif selection>1
-                    if not(strcmp(thisScene.Actors(1,selection).Tag(1:4),'Lead'))   %because of the VTAs also saved in Actors it needs to check if it is a lead oder vector
-                    selection=selection-1;
-                    end
+                    selection=thisScene.handles.box_listSelectActor.UserData(1,selection).Number;
                     PathDirectory=thisScene.Actors(1,selection).PathDirectory;
                     thisScene.Actors(1,selection).PredictInformation=predictFuture();
                     thisScene.Actors(1,selection).PredictInformation.Tag=thisScene.Actors(1,selection).Tag;
                     thisScene.Actors(1,selection).PredictInformation.newPrediction(PathDirectory);
                     try
-                    waitfor(thisScene.Actors(1,selection).PredictInformation.handles.figure);
+                        waitfor(thisScene.Actors(1,selection).PredictInformation.handles.figure);
                     catch
                         return
                     end
                     try
-                    if isempty(thisScene.Actors(1,selection).PredictInformation.Heatmap)
-                        warning('No Prediction Data was calculated!');
-                    else
-                    thisScene.Actors(1,selection).PredictInformation={thisScene.Actors(1,selection).PredictInformation.handles.prediction_Information,thisScene.Actors(1,selection).PredictInformation.Heatmap,...
-                             thisScene.Actors(1,selection).PredictInformation.config};
-                    end
+                        if isempty(thisScene.Actors(1,selection).PredictInformation.Heatmap)
+                            warning('No Prediction Data was calculated!');
+                        else
+                            thisScene.Actors(1,selection).PredictInformation={thisScene.Actors(1,selection).PredictInformation.handles.prediction_Information,thisScene.Actors(1,selection).PredictInformation.Heatmap,...
+                                thisScene.Actors(1,selection).PredictInformation.config};
+                        end
                     catch
                         return
                     end
                 end
-                    answer=questdlg('Do you want to try a prediction for a other lead?','Decision','Yes','No','No');
-                    if strcmp(answer,'No')
+                answer=questdlg('Do you want to try a prediction for a other lead?','Decision','Yes','No','No');
+                if strcmp(answer,'No')
                     thisScene.handles.box_listSelectActor.Visible='off';
                     thisScene.handles.text_box_listSelectActor.Visible='off';
                     thisScene.handles.box_listSelectActor.String=[];
                     thisScene.handles.menu.file.predict.close.Enable='off';
-                    end
-                    try
-                        if isa(thisScene.Actors(1,selection).PredictInformation,'cell')
-                            answer=questdlg('Would you like to display your Results?','Decision','Yes','No','No');
-                            if strcmp(answer,'Yes')
-                                thisScene.handles.box_listSelectResult.Visible='on';
-                                thisScene.handles.text_box_listSelectResult.Visible ='on';
-                                thisScene.handles.box_listSelectResult.String(1,end+1)={thisScene.Actors(1,selection).Tag};
+                end
+                try
+                    if isa(thisScene.Actors(1,selection).PredictInformation,'cell')
+                        answer=questdlg('Would you like to display your Results?','Decision','Yes','No','No');
+                        if strcmp(answer,'Yes')
+                            thisScene.handles.box_listSelectResult.Visible='on';
+                            thisScene.handles.text_box_listSelectResult.Visible ='on';
+                            listSelectResultEnd=numel(thisScene.handles.box_listSelectActor.String);
+                            thisScene.handles.box_listSelectResult.String={};
+                            for irepetitions=2:listSelectResultEnd
+                                actorNumber=thisScene.handles.box_listSelectActor.UserData(1,irepetitions).Number;
+                                try
+                                    if isa(thisScene.Actors(1,actorNumber).PredictInformation,'cell')
+                                        elementsOfString=numel(thisScene.handles.box_listSelectResult.String);
+                                        if elementsOfString==0
+                                            elementsOfString=1;
+                                        else
+                                            elementsOfString=elementsOfString+1;
+                                        end
+                                        thisScene.handles.box_listSelectResult.String{elementsOfString}=thisScene.Actors(1,actorNumber).Tag;
+                                        thisScene.handles.box_listSelectResult.UserData(1,elementsOfString).Number=actorNumber;
+                                        
+                                    end
+                                catch
+                                    return;
+                                end
                             end
                         end
-                    catch
-                        return;
                     end
+                end
             end
-            
+                            
             function menu_viewActorResults(hObject,eventdata)
                 thisScene=ArenaScene.getscenedata(hObject);
                 thisScene.handles.text_box_listSelectResult.Visible ='on';
                 thisScene.handles.box_listSelectResult.Visible='on';
                 thisScene.handles.menu.file.predict.close.Enable='on';
+                listSelectResultEnd=numel(thisScene.handles.box_listSelectActor.String);
+                thisScene.handles.box_listSelectResult.String={};
+                thisScene.handles.box_listSelectResult.UserData=struct();
+                for irepetitions=2:listSelectResultEnd
+                    actorNumber=thisScene.handles.box_listSelectActor.UserData(1,irepetitions).Number;
+                    try
+                        if isa(thisScene.Actors(1,actorNumber).PredictInformation,'cell')
+                            elementsOfString=numel(thisScene.handles.box_listSelectResult.String);
+                            if elementsOfString==0
+                                elementsOfString=1;
+                            else
+                                elementsOfString=elementsOfString+1;
+                            end
+                            thisScene.handles.box_listSelectResult.String{elementsOfString}=thisScene.Actors(1,actorNumber).Tag;
+                            thisScene.handles.box_listSelectResult.UserData(1,elementsOfString).Number=actorNumber;
+                        end
+                    catch
+                    end
+                end
             end
             
             function box_listSelectResult(hObject,eventdata)
-             thisScene=ArenaScene.getscenedata(hObject);
-             displayDecision=thisScene.handles.box_listSelectResult.Value;
-             if not(isempty(displayDecision))
-             d=predictResults();
-             d.displayHighestResults(thisScene.Actors(1,displayDecision));
-             answer=questdlg('Would you like to display other Results?','Decision','Yes','No','No');
-                        if strcmp(answer,'No')
-                            thisScene.handles.box_listSelectResult.Visible='off';
-                            thisScene.handles.text_box_listSelectResult.Visible='off';
-                        end
-             else
-                 error('No Prediction Data was found!');
-             end
+                thisScene=ArenaScene.getscenedata(hObject);
+                displayDecision=thisScene.handles.box_listSelectResult.Value;
+                displayDecision=thisScene.handles.box_listSelectResult.UserData(1,displayDecision).Number;
+                if not(isempty(displayDecision))
+                    d=predictResults();
+                    d.displayHighestResults(thisScene.Actors(1,displayDecision));
+                    answer=questdlg('Would you like to display other Results?','Decision','Yes','No','No');
+                    if strcmp(answer,'No')
+                        thisScene.handles.box_listSelectResult.Visible='off';
+                        thisScene.handles.text_box_listSelectResult.Visible='off';
+                    end
+                else
+                    error('No Prediction Data was found!');
+                end
             end
             
             function menu_closePredictionWindows(hObject,eventdata)
@@ -2509,12 +2548,12 @@ classdef ArenaScene < handle
                 thisScene.handles.text_box_listSelectActor.Visible='off';
                 thisScene.handles.box_listSelectActor.Visible='off';
                 thisScene.handles.text_box_listSelectResult.Visible='off';
-                thisScene.handles.box_listSelectResult.Visible='off'; 
+                thisScene.handles.box_listSelectResult.Visible='off';
                 thisScene.handles.menu.file.predict.close.Enable='off';
             end
             
             function menu_showOldResults(hObject,eventdata)
-               waitfor(msgbox('Please select your old Results from other Prediction!'));
+                waitfor(msgbox('Please select your old Results from other Prediction!'));
                 [file,pathDirectory]=uigetfile('*.mat','Select old Results');
                 result=load(fullfile(pathDirectory,file));
                 d=predictResults();

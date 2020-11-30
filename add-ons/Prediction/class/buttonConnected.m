@@ -184,7 +184,7 @@ classdef buttonConnected<handle
                         delete(fig1)
                     end
                     
-                    if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:9)),'right')
+                    if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:10)),'right')
                         status='%d. right Lead predicted';
                         fig2=figure('Name','Monopolar_Histogramm-Right');
                         % it is always bilateral
@@ -244,7 +244,7 @@ classdef buttonConnected<handle
                         end
                     end
                     
-                    if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:9)),'right')
+                    if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:10)),'right')
                         status='%d. right Lead predicted';
                         % unilateral right
                         unilateral.right = [];
@@ -288,7 +288,7 @@ classdef buttonConnected<handle
                         end
                     end
                     
-                    if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:9)),'right')
+                    if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:10)),'right')
                         status='%d. right Lead predicted';
                         % unilateral right
                         unilateral.right = [];
@@ -335,6 +335,7 @@ classdef buttonConnected<handle
                 filename=['/', PredictionAndVTA.target,'_',...
                     thisprediction.handles.VTA_Information(1, 1).monoPolarConfig.leadtype,'_', ...
                     PredictionAndVTA.heatmapName,'_',...
+                    thisprediction.Tag,'_',...
                     num2str(thisprediction.Patient_Information.name),'_', ...
                     thisprediction.Patient_Information.gender,'_',...
                     num2str(thisprediction.Patient_Information.dateOfBirth(1:10)),'_', ...
@@ -363,7 +364,8 @@ classdef buttonConnected<handle
                     ytickangle(45);
                     xticklabels(' ');
                 end
-                if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:9)),'right')
+                
+                if thisprediction.unilateralOn || strcmp(lower(thisprediction.Tag(6:10)),'right')
                     thisprediction.handles.figure.right=figure('Name','Prediction Unilateral Right');
                     imagesc(thisprediction.handles.prediction_Information.unilateral.right);
                     xlabel(thisprediction.handles.VTA_Information(2,1).leadname);
