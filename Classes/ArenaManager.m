@@ -1,3 +1,4 @@
+
 classdef ArenaManager < handle
     %ARENAMANAGER Manages instances of Scenes.
     
@@ -15,7 +16,11 @@ classdef ArenaManager < handle
             if not(exist('config.mat','file'))
                 ArenaManager.setup(ArenaFolder);
             end
-                
+            
+            %Add SDK to the path
+            load(fullfile(ArenaFolder,'config.mat'));
+            addpath(genpath(config.SDKdir))
+            
             
             
             if not(obj.hasscene)
@@ -80,16 +85,29 @@ classdef ArenaManager < handle
     
     methods (Static)
         function setup(rootdir)
+            %--- leadDBS
             waitfor(msgbox('Arena uses atlases that are available in leadDBS. Please select the lead DBS folder'))
-            leadDBSdir = uigetdir('Find leadDBS dir');
+            leadDBSdir = uigetdir('Find leadDBS directory');
             
             if isempty(leadDBSdir)
                 error('aborted by user')
             end
             
             config.leadDBS = leadDBSdir;
+            %---- SDK
+            waitfor(msgbox('Arena uses nifti tools that are available in the SuretuneSDK. Please select the lead SDK folder'))
+            SDKdir = uigetdir('Find SuretuneSDK directory');
+            
+            if isempty(SDKdir)
+                error('aborted by user')
+            end
+            config.SDKdir = SDKdir;
+            
+            %---- save config file
             save(fullfile(rootdir,'config.mat'),'config')
         end
+        
+
         
         function rootdir = getrootdir()
             rootdir = fileparts(fileparts(mfilename('fullpath')));
