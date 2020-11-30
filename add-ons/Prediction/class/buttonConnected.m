@@ -16,6 +16,9 @@ classdef buttonConnected<handle
             thisSession.loadsession(thisprediction.Data_In);
             [~,Rtype] = thisSession.listregisterables;
             leadidcs = find(contains(Rtype,'Lead'));
+            if isempty(thisSession.therapyPlanStorage)
+                error('No patient therapy plan found!')
+            end
             
             lead=leadConnected();
             
@@ -251,7 +254,7 @@ classdef buttonConnected<handle
                         unilateral.right = [];
                         for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             disp(fprintf(status,sXLS));
-                            sample=probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);
+                            sample=probabilityMap(thisprediction.handles.VTA_Information(1,sXLS).normalizedVTA.Voxels>0.5);
                             sample=mean(sample);
                             unilateral.left(sXLS) = sample;%*linearRegressionCoefficients;                        % This fitts the outcomes to the in the filedcase study found values.
                         end
@@ -296,7 +299,7 @@ classdef buttonConnected<handle
                         % unilateral right
                         unilateral.right = [];
                         for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
-                            sample=probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);
+                            sample=probabilityMap(thisprediction.handles.VTA_Information(1,sXLS).normalizedVTA.Voxels>0.5);
                             disp(fprintf(status,sXLS));
                             sample=mean(sample);
                             unilateral.left(sXLS) = sample;%*linearRegressionCoefficients                          % This fitts the outcomes to the in the filedcase study found values.

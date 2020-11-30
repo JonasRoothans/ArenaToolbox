@@ -2403,7 +2403,7 @@ classdef ArenaScene < handle
                     actorNames(1,1).Tag='Prediction without using the "until now" imported data.';
                     actorNames(1,1).Number=[];
                     for i=1:numel(thisScene.Actors(1, 1:end))
-                        if strcmp(thisScene.Actors(1,i).Tag(1:4),'Lead')
+                        if isa(thisScene.Actors(1, i).Data,'Electrode')
                             actorNames(1,end+1).Tag=thisScene.Actors(1,i).Tag;
                             actorNames(1,end).Number=i;
                         else
@@ -2472,29 +2472,7 @@ classdef ArenaScene < handle
                     if isa(thisScene.Actors(1,selection).PredictInformation,'cell')
                         answer=questdlg('Would you like to display your Results?','Decision','Yes','No','No');
                         if strcmp(answer,'Yes')
-                            thisScene.handles.box_listSelectResult.Visible='on';
-                            thisScene.handles.text_box_listSelectResult.Visible ='on';
-                            listSelectResultEnd=numel(thisScene.handles.box_listSelectActor.String);
-                            thisScene.handles.box_listSelectResult.String={};
-                            thisScene.handles.box_listSelectResult.UserData=struct();
-                            for irepetitions=2:listSelectResultEnd
-                                actorNumber=thisScene.handles.box_listSelectActor.UserData(1,irepetitions).Number;
-                                try
-                                    if isa(thisScene.Actors(1,actorNumber).PredictInformation,'cell')
-                                        elementsOfString=numel(thisScene.handles.box_listSelectResult.String);
-                                        if elementsOfString==0
-                                            elementsOfString=1;
-                                        else
-                                            elementsOfString=elementsOfString+1;
-                                        end
-                                        thisScene.handles.box_listSelectResult.String{elementsOfString}=thisScene.Actors(1,actorNumber).Tag;
-                                        thisScene.handles.box_listSelectResult.UserData(1,elementsOfString).Number=actorNumber;
-                                        
-                                    end
-                                catch
-                                    return;
-                                end
-                            end
+                            menu_viewActorResults(thisScene);
                         end
                     end
                 catch
@@ -2502,10 +2480,15 @@ classdef ArenaScene < handle
             end
                             
             function menu_viewActorResults(hObject,eventdata)
+                if not(isa(hObject,'ArenaScene'))
                 thisScene=ArenaScene.getscenedata(hObject);
+                else 
+                thisScene=hObject;
+                end
                 thisScene.handles.text_box_listSelectResult.Visible ='on';
                 thisScene.handles.box_listSelectResult.Visible='on';
                 thisScene.handles.menu.file.predict.close.Enable='on';
+                if strcmp(thisScene.handles.box_listSelectActor.Visible,'on')
                 listSelectResultEnd=numel(thisScene.handles.box_listSelectActor.String);
                 thisScene.handles.box_listSelectResult.String={};
                 thisScene.handles.box_listSelectResult.UserData=struct();
@@ -2524,6 +2507,7 @@ classdef ArenaScene < handle
                         end
                     catch
                     end
+                end
                 end
             end
             

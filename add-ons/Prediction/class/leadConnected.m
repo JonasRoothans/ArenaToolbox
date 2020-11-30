@@ -43,7 +43,7 @@ classdef leadConnected<handle
                 %does the target match?
                 if strcmp(lower(thisAtlas.group),lower(target))
                     % is hemisphere matching?
-                    if contains(lower(therapyPlanStorage.lead.label(end-4:end)),...
+                    if contains(lower(therapyPlanStorage.lead.label),...
                             lower(thisAtlas.hemisphere))                            %depending on what the person entered to the label, you need to adjust
                         atlas = thisAtlas;
                         break
@@ -51,7 +51,7 @@ classdef leadConnected<handle
                 end
             end
             if isempty(atlas)
-                error(['No atlas was found for:', lower(therapyPlanStorage.lead.label),' and ',lower(target),newline,'Please check for mismatched data to heatmap!' ])
+                error(['No atlas was found for:', lower(therapyPlanStorage.lead.label),' and ',lower(target),newline,'Please check for mismatched heatmap to data!'])
             end
         end
 
