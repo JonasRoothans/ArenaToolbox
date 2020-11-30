@@ -51,7 +51,7 @@ classdef leadConnected<handle
                 end
             end
             if isempty(atlas)
-                error(['No atlas was found for:', lower(therapyPlanStorage.lead.label),' and ',lower(target)])
+                error(['No atlas was found for:', lower(therapyPlanStorage.lead.label),' and ',lower(target),newline,'Please check for mismatched data to heatmap!' ])
             end
         end
 
