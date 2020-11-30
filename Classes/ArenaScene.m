@@ -2476,6 +2476,7 @@ classdef ArenaScene < handle
                             thisScene.handles.text_box_listSelectResult.Visible ='on';
                             listSelectResultEnd=numel(thisScene.handles.box_listSelectActor.String);
                             thisScene.handles.box_listSelectResult.String={};
+                            thisScene.handles.box_listSelectResult.UserData=struct();
                             for irepetitions=2:listSelectResultEnd
                                 actorNumber=thisScene.handles.box_listSelectActor.UserData(1,irepetitions).Number;
                                 try
@@ -2496,6 +2497,7 @@ classdef ArenaScene < handle
                             end
                         end
                     end
+                catch
                 end
             end
                             
