@@ -306,7 +306,7 @@ classdef predictFuture<handle
                     delete(f);
                 end
                 waitfor(msgbox('Your Prediction is done!'));
-                delete(thisprediction.handles.figure);
+                delete(obj.handles.figure);
             end
             
             function SoundOn(hObject,eventdata)

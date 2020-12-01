@@ -31,18 +31,18 @@ classdef buttonConnected<handle
                                 waitfor(msgbox('This seems to be your first time running the Prediction Algorythm? Please choose your VTA path!'));
                                 thisprediction.VTAPoolPath=uigetdir;
                                 predictionConfig.VTAPoolPath=thisprediction.VTAPoolPath;  
-                                waitfor(msgbox('This seems to be your first time running the Prediction Algorythm? Please choose your VTA path!'));
+                                waitfor(msgbox(' and a path where you want to save all predictions!'));
                                 thisprediction.SavePath=uigetdir;
-                                predictionConfig.savePath=thisprediction.SavePath;
+                                predictionConfig.SavePath=thisprediction.SavePath;
                                 if not(any(thisprediction.SavePath)) || not(any(thisprediction.VTAPoolPath))
                                 error('You need to select a directory for saving and the pool path!');
                                 end
                                 folder=what('Prediction');
-                                save(fullfile(folder.path,'/predictionConfig'),'predictionConfig','*mat');
+                                save(fullfile(folder.path,'/predictionConfig'),'predictionConfig');
                 else
                     config=load('predictionConfig.mat');
-                    thisprediction.VTAPoolPath=config.VTAPoolPath;
-                    thisprediction.SavePath=config.SavePath;
+                    thisprediction.VTAPoolPath=config.predictionConfig.VTAPoolPath;
+                    thisprediction.SavePath=config.predictionConfig.SavePath;
             end
             %check if this Prediction was already done
             result=lead.alreadyRun(thisprediction,Patient_Information,thisSession.therapyPlanStorage{1, 1}.lead.leadType);
@@ -128,6 +128,8 @@ classdef buttonConnected<handle
                             try
                                 thisVTA = lead.loadVTA(data,thisprediction.VTAPoolPath); %loads what was created with the makerecipeCodeMac
                             catch
+                                error(['No matching VTA was found in the VTA Pool Path!', 'Please make sure you have all possibilities as VTAs!',newline,...
+                                    'If you do not understand what is the issue here, please ask Tim!']);
                                 keyboard
                             end
                         end

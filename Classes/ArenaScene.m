@@ -152,7 +152,7 @@ classdef ArenaScene < handle
             obj.handles.menu.file.export.handlestoworkspace = uimenu(obj.handles.menu.file.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
             obj.handles.menu.file.export.saveSelection = uimenu(obj.handles.menu.file.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
             obj.handles.menu.file.predict.main = uimenu(obj.handles.menu.file.main ,'Text','Prediction');
-            obj.handles.menu.file.predict.calculation=uimenu(obj.handles.menu.file.predict.main,'Text','Open possible calculationvariables','Callback',{@menu_selectActorPrediction});
+            obj.handles.menu.file.predict.calculation=uimenu(obj.handles.menu.file.predict.main,'Text','Open leads for prediction','Callback',{@menu_selectActorPrediction});
             obj.handles.menu.file.predict.results = uimenu(obj.handles.menu.file.predict.main,'Text','View Results','Callback',{@menu_viewActorResults},'Enable','off');
             obj.handles.menu.file.predict.close = uimenu(obj.handles.menu.file.predict.main,'Text','Close Prediction Windows','Callback',{@menu_closePredictionWindows},'Enable','off');
             obj.handles.menu.file.predict.showOldResults = uimenu(obj.handles.menu.file.predict.main,'Text','Show old Results','Callback',{@menu_showOldResults});
