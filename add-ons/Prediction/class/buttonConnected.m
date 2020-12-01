@@ -25,6 +25,25 @@ classdef buttonConnected<handle
             % store the patient information for later saving
             Patient_Information=thisSession.patient;
             
+            %get all configuration data, which is only asked for in the
+            %first run
+            if not(exist('predictionConfig.mat','file'))
+                                waitfor(msgbox('This seems to be your first time running the Prediction Algorythm? Please choose your VTA path!'));
+                                thisprediction.VTAPoolPath=uigetdir;
+                                predictionConfig.VTAPoolPath=thisprediction.VTAPoolPath;  
+                                waitfor(msgbox('This seems to be your first time running the Prediction Algorythm? Please choose your VTA path!'));
+                                thisprediction.SavePath=uigetdir;
+                                predictionConfig.savePath=thisprediction.SavePath;
+                                if not(any(thisprediction.SavePath)) || not(any(thisprediction.VTAPoolPath))
+                                error('You need to select a directory for saving and the pool path!');
+                                end
+                                folder=what('Prediction');
+                                save(fullfile(folder.path,'/predictionConfig'),'predictionConfig','*mat');
+                else
+                    config=load('predictionConfig.mat');
+                    thisprediction.VTAPoolPath=config.VTAPoolPath;
+                    thisprediction.SavePath=config.SavePath;
+            end
             %check if this Prediction was already done
             result=lead.alreadyRun(thisprediction,Patient_Information,thisSession.therapyPlanStorage{1, 1}.lead.leadType);
             if result==1
@@ -38,7 +57,7 @@ classdef buttonConnected<handle
                 % Finding of Transformation data
                 for itherapyPlanStorage=1:numel(leadidcs)
                     loop_therapyPlanStorage=thisSession.therapyPlanStorage{itherapyPlanStorage};
-                    loop_atlas=lead.getMatchingAtlas(loop_therapyPlanStorage,thisSession,thisprediction.handles.target);
+                    loop_atlas=lead.getMatchingAtlas(loop_therapyPlanStorage,thisSession,thisprediction);
                     atlas{itherapyPlanStorage}=loop_atlas;
                     %Transformation from electrode space to selected atlas
                     %space
@@ -73,17 +92,6 @@ classdef buttonConnected<handle
                     otherwise
                      disp('You did not select a Heatmap which can be used!');   
                 end
-                
-                if not(exist('predictionConfig.mat','file'))
-                                waitfor(msgbox('This seems to be your first time running the Prediction Algorythm? Please choose your VTA path!'));
-                                thisprediction.VTAPoolPath=uigetdir;
-                                VTAPoolPath=thisprediction.VTAPoolPath;
-                                folder=what('Prediction');
-                                save(fullfile(folder.path,'/predictionConfig'),'VTAPoolPath');
-                else
-                    config=load('predictionConfig.mat');
-                    thisprediction.VTAPoolPath=config.VTAPoolPath;
-                end 
                 
                 for iLead =1: numel(leadidcs)
                     % Everything which is needed for each single VTA

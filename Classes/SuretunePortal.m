@@ -302,9 +302,9 @@ classdef SuretunePortal
                         
                         
                         actor_vta.changeSetting('colorFace',[1 0.5 0])
+                        actor.PathDirectory=hObject.UserData{2};
                     end
-                end
-                actor.PathDirectory=hObject.UserData{2};
+                end 
             end
             function cb_atlas(hObject,b)
                 this = hObject.UserData{1};

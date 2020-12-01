@@ -32,9 +32,10 @@ classdef leadConnected<handle
             cd(currentFolder);
         end
         
-        function atlas = getMatchingAtlas(obj,therapyPlanStorage,thisSession,target)
+        function atlas = getMatchingAtlas(obj,therapyPlanStorage,thisSession,thisprediction)
             %copied from VTAextractor.m of findeTheMatchingAtlas
             % finds the atlas which is given in the datafile
+            target=thisprediction.handles.target;
             [~,types] = thisSession.listregisterables;
             numbersOfAtlases = find(contains(types,'Atlas'));
             atlas = [];
@@ -43,10 +44,22 @@ classdef leadConnected<handle
                 %does the target match?
                 if strcmp(lower(thisAtlas.group),lower(target))
                     % is hemisphere matching?
+                    try
                     if contains(lower(therapyPlanStorage.lead.label),...
                             lower(thisAtlas.hemisphere))                            %depending on what the person entered to the label, you need to adjust
                         atlas = thisAtlas;
                         break
+                    end
+                    catch
+                        if therapyPlanStorage.lead.distal(1,2)<0 && therapyPlanStorage.lead.distal(1,3)<0 && strcmp(lower(thisAtlas.hemisphere),'left')
+                            atlas=thisAtlas;
+                            break
+                        elseif therapyPlanStorage.lead.distal(1,2)>0 && therapyPlanStorage.lead.distal(1,3)>0 && strcmp(lower(thisAtlas.hemisphere),'right')
+                            atlas=thisAtlas;
+                            break
+                        else
+                            error('Somehow there is no position for the Electrode provided!');
+                        end
                     end
                 end
             end

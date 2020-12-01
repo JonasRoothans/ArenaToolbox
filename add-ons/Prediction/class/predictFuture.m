@@ -30,7 +30,6 @@ classdef predictFuture<handle
     end
     
     properties (Hidden)
-%         Data_In
         Data_Out
         saveLoadedVTA=1
         unilateralOn=0
@@ -50,6 +49,13 @@ classdef predictFuture<handle
             
             % Everything which runs before the window is opened, comes
             % here...
+            
+            answer=questdlg('Are you sure to start a prediction?','Beginn?','Yes','No','Yes');
+            if strcmp(answer,'Yes')
+            else
+                return;
+            end
+            
             obj.handles=[];
             
             if pathDirectory>0
@@ -74,24 +80,9 @@ classdef predictFuture<handle
                 'WindowKeyPressFcn',@kSnapshotPrediction,...
                 'Color',[1 1 1]);
             
-            obj.handles.startSubprogrammButton=uicontrol('parent',obj.handles.figure,...
-                'units','normalized',...
-                'outerposition',[0 0 1 1],...
-                'String','Please Press me to start!',...
-                'style','togglebutton',...
-                'Callback',@startSubprogrammButton);
-            
-            message=sprintf(['Have fun with this new enviroment for predictions!',newline]);
-            
-            obj.handles.usermassage=uicontrol('parent',obj.handles.figure,...
-                'units','normalized',...
-                'outerposition',[0 0 1 0.2],...
-                'String',message,...
-                'style','text');
-            
             obj.handles.importButton=uicontrol('parent',obj.handles.figure,...
                 'units','normalized',...
-                'outerposition',[0.02 0.55 0.5 0.3],...
+                'outerposition',[0.02 0.15 0.5 0.6],...
                 'String','Import File',...
                 'BackgroundColor',[0.5 0.5 0.5],...
                 'FontName','Arial',...
@@ -99,22 +90,11 @@ classdef predictFuture<handle
                 'Visible','off',...
                 'Callback',@Import);
             
-            obj.handles.saveToButton=uicontrol('parent',obj.handles.figure,...
-                'units','normalized',...
-                'outerposition',[0.02 0.15 0.5 0.3],...
-                'String','Save to',...
-                'BackgroundColor',[0.5 0.5 0.5],...
-                'FontName','Arial',...
-                'FontSize',14,...
-                'Visible','off',...
-                'Callback',@saveFolder);
-            
             obj.handles.heatmapText=uicontrol('parent',obj.handles.figure,...
                 'units','normalized',...
                 'outerposition',[0.57 0.6 0.4 0.05],...
-                'String','Please select a heatmap in your last step!',...
-                'style','text',...
-                'visible','off');
+                'String','Please select a heatmap!',...
+                'style','text');
             
             obj.handles.heatmapListbox=uicontrol('parent',obj.handles.figure,...
                 'units','normalized',...
@@ -124,7 +104,6 @@ classdef predictFuture<handle
                 'BackgroundColor',[0.5 0.5 0.5],...
                 'FontName','Arial',...
                 'FontSize',14,...
-                'Visible','off',...
                 'Callback',@heatmapListbox);
             
             [pic,map]=imread('glass_sphere.png');
@@ -133,7 +112,7 @@ classdef predictFuture<handle
             obj.handles.runButton=uicontrol('parent',obj.handles.figure,...
                 'units','normalized',...
                 'outerposition',[0.05 0.05 0.9 0.9],...
-                'String','Start Prediction',...
+                'String','Press me to your Start Prediction',...
                 'BackgroundColor',[0.5 0.5 0.5],...
                 'FontName','Arial',...
                 'FontSize',14,...
@@ -147,8 +126,8 @@ classdef predictFuture<handle
                 'Visible','off');
           
             obj.handles.menu.file.Sound.main=uimenu('parent',obj.handles.menu.file.main,...
-                'Accelerator','S',...
-                'Text','Finish Sound  (Com+S)','callback',@SoundOn); 
+                'Accelerator','A',...
+                'Text','Finish Sound  (Com+A)','callback',@SoundOn); 
           
             obj.handles.menu.file.heatmap.main=uimenu('parent',obj.handles.menu.file.main,...
                 'Text','Heatmap');
@@ -161,21 +140,38 @@ classdef predictFuture<handle
                 'Text','BostonAlone','callback',@heatmapBostonAlone);
             
             obj.handles.menu.file.changeVTAPoolPath.main=uimenu('parent',obj.handles.menu.file.main,...
-                'Text','Change VTA Pool','callback',@changeVTAPoolPath);
+                'Text','Change VTA Pool','callback',@changeVTAPoolPath);           
+            obj.handles.menu.file.SaveDirectory.main=uimenu('parent',obj.handles.menu.file.main,...
+                    'Accelerator','S',...
+                    'Text','Change Save Directory (Com+S)','callback',@saveFolder); 
+                
             obj.handles.menu.file.BilateralOn.main=uimenu('parent',obj.handles.menu.file.main,...
                     'Text','Bilateral Prediction ','callback',@bilateralOn);
-            
+
+                
             if pathDirectory==0
                 obj.handles.menu.file.import.main=uimenu('parent',obj.handles.menu.file.main,...
                     'Accelerator','I',....
                     'Text','Import File(Com+I)','callback',@Import);
                 obj.handles.menu.file.UnilateralOn.main=uimenu('parent',obj.handles.menu.file.main,...
                     'Text','Unilateral Prediction ','callback',@unilateralOn);
-                obj.handles.menu.file.SaveDirectory.main=uimenu('parent',obj.handles.menu.file.main,...
-                    'Accelerator','V',...
-                    'Text','Change Save Directory (Com+V)','callback',@saveFolder); 
                 bilateralOn();
             end
+            %%------
+            %everything which is executed after the enviroment is built
+            
+                obj.handles.SoundOn=struct('value',0,'gong',0);
+                obj.handles.SoundOn.value=0;
+                obj.handles.menu.file.main.Visible='on';
+                if obj.Data_In==0
+                obj.handles.importButton.Visible='on';
+                else  
+                obj.handles.menu.file.import.main.ForegroundColor=[0 0.4470 0.7410];
+                obj.Data_Out.Creation_Date=now;
+                obj.handles.heatmapText.OuterPosition=[0.3 0.6 0.4 0.05];
+                obj.handles.heatmapListbox.OuterPosition=[0.3 0.45 0.4 0.1];
+                end
+            
             %% -----
             %Essential function for rudiment working
             function closePrediction(hObject,eventdata)
@@ -201,33 +197,13 @@ classdef predictFuture<handle
                 end
             end
             
-            function startSubprogrammButton(hObject,eventdata)
-                thisprediction=predictFuture.getpredictdata(hObject);
-                delete(thisprediction.handles.startSubprogrammButton);
-                delete(thisprediction.handles.usermassage);
-                thisprediction.handles.saveToButton.Visible='on';
-                thisprediction.handles.heatmapListbox.Visible='on';
-                thisprediction.handles.heatmapText.Visible='on';
-                thisprediction.handles.SoundOn=struct('value',0,'gong',0);
-                thisprediction.handles.SoundOn.value=0;
-                thisprediction.handles.menu.file.main.Visible='on';
-                if thisprediction.Data_In==0
-                thisprediction.handles.importButton.Visible='on';
-                else  
-                thisprediction.handles.menu.file.import.main.ForegroundColor=[0 0.4470 0.7410];
-                thisprediction.Data_Out.Creation_Date=now;
-                end
-            end
-            
             function saveFolder(hObject,eventdata)
                 thisprediction=predictFuture.getpredictdata(hObject);
                 %definition of the save path
-                waitfor(msgbox('Please select your savePrediction folder!','Select'));
                 thisprediction.SavePath=uigetdir('/Users','Save to');
                 if not(any(thisprediction.SavePath))
                     return
                 end
-                thisprediction.handles.saveToButton.Visible='off';
             end
             
             function Import(hObject,eventdata)
@@ -250,14 +226,28 @@ classdef predictFuture<handle
                 thisprediction=predictFuture.getpredictdata(hObject);
                 switch thisprediction.handles.heatmapListbox.Value
                     case 1
+                        check=questdlg('Your about to run your prediction with the "Dystonia Heatmap"!','Confirm','Yes','No','Yes');
+                        if strcmp(check,'Yes')
                         thisprediction.handles.menu.file.heatmapDystoniaWuerzburgMartin.main.MenuSelectedFcn(hObject,eventdata);
+                        else
+                            return
+                        end
                     case 2
+                        check=questdlg('Your about to run your prediction with the "Boston Heatmap"!','Confirm','Yes','No','Yes');
+                        if strcmp(check,'Yes')
                         thisprediction.handles.menu.file.heatmapBostonBerlin.main.MenuSelectedFcn(hObject,eventdata);
+                         else
+                            return
+                        end
                     case 3
+                        check=questdlg('Your about to run your prediction with the "Boston Alone Heatmap"!','Confirm','Yes','No','Yes');
+                        if strcmp(check,'Yes')
                         thisprediction.handles.menu.file.heatmapBostonAlone.main.MenuSelectedFcn(hObject,eventdata);
+                         else
+                            return
+                        end
                 end
-                if strcmp(lower(thisprediction.handles.saveToButton.Visible),'off')&&...
-                        strcmp(lower(thisprediction.handles.importButton.Visible),'off')
+                if strcmp(lower(thisprediction.handles.importButton.Visible),'off')  
                     thisprediction.handles.runButton.Visible='on';
                     delete(thisprediction.handles.heatmapListbox);
                     delete(thisprediction.handles.heatmapText);
@@ -268,8 +258,9 @@ classdef predictFuture<handle
             function runButton(hObject,eventdata)
                 thisprediction=predictFuture.getpredictdata(hObject);
                 thisprediction.handles.runButton.Enable='inactive';
-                if strcmp(thisprediction.handles.saveToButton.Visible,'on')
-                    error('You have not selected a folder to save your data!')
+                
+                if isempty(thisprediction.Data_In)
+                    error('You did not provide the programm with the right data!');
                 end
                 
                 if ~(strcmp(thisprediction.Data_In(end-3:end),'.dcm'))
@@ -314,8 +305,8 @@ classdef predictFuture<handle
                     thisprediction.Heatmap.Name=0;
                     delete(f);
                 end
-                msgbox('Your Prediction is done!');
-                thisprediction.handles.runButton.Enable='on';
+                waitfor(msgbox('Your Prediction is done!'));
+                delete(thisprediction.handles.figure);
             end
             
             function SoundOn(hObject,eventdata)

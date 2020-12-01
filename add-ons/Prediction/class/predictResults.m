@@ -135,7 +135,7 @@ classdef predictResults<handle
             
             
             function closeResult(hObject,eventdata)
-                request=questdlg('Are you sure you want to close the Prediction?','Confirmation',...
+                request=questdlg('Are you sure you want to close the Windwo?','Confirmation',...
                     'Cancel','Yes','Yes');
                 switch request
                     case 'Cancel'
