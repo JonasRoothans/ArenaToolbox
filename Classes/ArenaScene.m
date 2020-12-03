@@ -2443,6 +2443,33 @@ classdef ArenaScene < handle
                     selection=thisScene.handles.box_listSelectActor.UserData(1,selection).Number;
                     PathDirectory=thisScene.Actors(1,selection).PathDirectory;
                     thisScene.Actors(1,selection).PredictInformation=predictFuture();
+                    %----
+                    % for bilateral predictions
+                    for iActor=1:numel(thisScene.Actors)
+                        if thisScene.Actors(1,selection).PredictInformation.bilateralOn==0
+                            try
+                                if strcmp(PathDirectory,thisScene.Actors(1,iActor).PathDirectory)
+                                    if isa(thisScene.Actors(1,iActor).Data,'Electrode')
+                                        selected=thisScene.Actors(1,selection).Data.C0.x>0;
+                                        maybeMatching=thisScene.Actors(1,iActor).Data.C0.x>0;
+                                        if selected~=maybeMatching
+                                            message=['Two electrodes of one Session for left and right were found!',...
+                                                newline, 'Do you want to run a bilateral prediction for',newline,' %s and %s?'];
+                                            message=sprintf(message,thisScene.Actors(1,selection).Tag,thisScene.Actors(1,iActor).Tag);
+                                            answer=questdlg(message,'Bilateral?','Yes','No','Yes');
+                                            if strcmp(answer,'Yes')
+                                                thisScene.Actors(1,selection).PredictInformation.bilateralOn=1;
+                                                thisScene.Actors(1,selection).PredictInformation.config.NumberOfSecondLead=thisScene.Actors(1,iActor).Data.NumberOfLead;
+                                                waitfor(msgbox('Your bilateral prediction data will be stored in the Actor you just selected...'));
+                                            end
+                                        end
+                                    end
+                                end
+                            catch
+                            end
+                        end
+                    end
+                    thisScene.Actors(1,selection).PredictInformation.config.NumberOfFirstLead=thisScene.Actors(1,selection).Data.NumberOfLead;
                     thisScene.Actors(1,selection).PredictInformation.Tag=thisScene.Actors(1,selection).Tag;
                     thisScene.Actors(1,selection).PredictInformation.newPrediction(PathDirectory);
                     try
@@ -2461,7 +2488,7 @@ classdef ArenaScene < handle
                         return
                     end
                 end
-                answer=questdlg('Do you want to try a prediction for a other lead?','Decision','Yes','No','No');
+                answer=questdlg('Do you want to try a prediction for an other lead?','Decision','Yes','No','No');
                 if strcmp(answer,'No')
                     thisScene.handles.box_listSelectActor.Visible='off';
                     thisScene.handles.text_box_listSelectActor.Visible='off';

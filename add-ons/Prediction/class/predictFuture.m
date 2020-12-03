@@ -31,7 +31,7 @@ classdef predictFuture<handle
     
     properties (Hidden)
         Data_Out
-        saveLoadedVTA=1
+        PositionHemisphere
         unilateralOn=0
         bilateralOn=0
     end
@@ -60,8 +60,8 @@ classdef predictFuture<handle
             
             if pathDirectory>0
                 obj.handles.importButton.Visible='off';
+                obj.Data_In=pathDirectory;
             end
-            obj.Data_In=pathDirectory;
             
             % All components for the window creation are inside here.
             xpos=0.15;
@@ -155,7 +155,6 @@ classdef predictFuture<handle
                     'Text','Import File(Com+I)','callback',@Import);
                 obj.handles.menu.file.UnilateralOn.main=uimenu('parent',obj.handles.menu.file.main,...
                     'Text','Unilateral Prediction ','callback',@unilateralOn);
-                bilateralOn();
             end
             %%------
             %everything which is executed after the enviroment is built
@@ -163,13 +162,13 @@ classdef predictFuture<handle
                 obj.handles.SoundOn=struct('value',0,'gong',0);
                 obj.handles.SoundOn.value=0;
                 obj.handles.menu.file.main.Visible='on';
-                if obj.Data_In==0
-                obj.handles.importButton.Visible='on';
-                else  
+                if obj.Data_In>0
                 obj.handles.menu.file.import.main.ForegroundColor=[0 0.4470 0.7410];
                 obj.Data_Out.Creation_Date=now;
                 obj.handles.heatmapText.OuterPosition=[0.3 0.6 0.4 0.05];
                 obj.handles.heatmapListbox.OuterPosition=[0.3 0.45 0.4 0.1];
+                else  
+                obj.handles.importButton.Visible='on';
                 end
             
             %% -----
@@ -274,7 +273,7 @@ classdef predictFuture<handle
                 end
                 
                 f=uifigure;
-                progress=uiprogressdlg(f,'Message','VTAs are processed!','Value',0.1);
+                progress=uiprogressdlg(f,'Message','VTAs will be prepared!','Value',0.1);
                 pause(1);
                 b=buttonConnected();
                 [thisprediction.handles.VTA_Information,thisprediction.Patient_Information,result] =b.VTA_Transformation(thisprediction);
@@ -306,7 +305,7 @@ classdef predictFuture<handle
                     delete(f);
                 end
                 waitfor(msgbox('Your Prediction is done!'));
-                delete(obj.handles.figure);
+                delete(findobj('Name','Prediction Enviroment'));
             end
             
             function SoundOn(hObject,eventdata)
@@ -394,8 +393,6 @@ classdef predictFuture<handle
             end
         end
     end
-
-
     %% This methode is used to get back at the first position in the hirarchy
     %of subclasses(parent, child):
     methods(Static)

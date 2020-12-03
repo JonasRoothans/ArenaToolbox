@@ -8,6 +8,7 @@ classdef Electrode < handle & matlab.mixin.Copyable
         Type = 'Medtronic3389'
         Settings
         Source
+        NumberOfLead
     end
     
     methods

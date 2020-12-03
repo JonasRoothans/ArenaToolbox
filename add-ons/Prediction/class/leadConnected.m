@@ -44,23 +44,15 @@ classdef leadConnected<handle
                 %does the target match?
                 if strcmp(lower(thisAtlas.group),lower(target))
                     % is hemisphere matching?
-                    try
-                    if contains(lower(therapyPlanStorage.lead.label),...
-                            lower(thisAtlas.hemisphere))                            %depending on what the person entered to the label, you need to adjust
-                        atlas = thisAtlas;
-                        break
-                    end
-                    catch
-                        if therapyPlanStorage.lead.distal(1,2)<0 && therapyPlanStorage.lead.distal(1,3)<0 && strcmp(lower(thisAtlas.hemisphere),'left')
+                        if therapyPlanStorage.lead.distal(1,1)>0 && strcmp(lower(thisAtlas.hemisphere),'left')
                             atlas=thisAtlas;
+                            thisprediction.PositionHemisphere=0;
                             break
-                        elseif therapyPlanStorage.lead.distal(1,2)>0 && therapyPlanStorage.lead.distal(1,3)>0 && strcmp(lower(thisAtlas.hemisphere),'right')
+                        elseif therapyPlanStorage.lead.distal(1,1)<0 && strcmp(lower(thisAtlas.hemisphere),'right')
                             atlas=thisAtlas;
+                            thisprediction.PositionHemisphere=1;
                             break
-                        else
-                            error('Somehow there is no position for the Electrode provided!');
                         end
-                    end
                 end
             end
             if isempty(atlas)
@@ -235,6 +227,41 @@ classdef leadConnected<handle
                         Rpsmleft = Rpsm;
                 end
                 
+            end
+        end
+        
+        function getMissingMetaData(obj,thisSession,thisprediction)
+            for fselect=1:numel(thisSession.therapyPlanStorage)
+                if thisprediction.bilateralOn
+                    for sselect=1:numel(thisSession.therapyPlanStorage)
+                        selected=thisSession.therapyPlanStorage{1,fselect}.lead.distal(1,1)>0;
+                        maybeMatching=thisSession.therapyPlanStorage{1,sselect}.lead.distal(1,1)>0;
+                        if selected~=maybeMatching
+                            message=['Two electrodes of one Session for left and right were found!',...
+                                newline, 'Do you want to run a bilateral prediction for',newline,' %s and %s?'];
+                            message=sprintf(message,thisSession.therapyPlanStorage{1,fselect}.lead.label,thisSession.therapyPlanStorage{1,sselect}.lead.label);
+                            answer=questdlg(message,'Bilateral?','Yes','No','Yes');
+                            if strcmp(answer,'Yes')
+                                thisprediction.bilateralOn=1;
+                                obj.config.NumberOfFirstLead=fselect;
+                                obj.config.NumberOfSecondLead=sselect;
+                                waitfor(msgbox('Your bilateral prediction data will be stored in the Actor you just selected...'));
+                                return;
+                            end
+                        end
+                    end
+                else
+                    message='Do you want a unilateral prediction with %s';
+                    message=sprintf(message,thisSession.therapyPlanStorage{1,fselect}.lead.label);
+                    answer=questdlg(message,'Unilateral','Yes','No','Yes');
+                    if strcmp(answer,'Yes')
+                    obj.config.NumberOfFirstLead=fselect;
+                    return;
+                    end
+                end
+            end  
+            if isempty(obj.config)
+                error('You have to select a lead!');
             end
         end
     end

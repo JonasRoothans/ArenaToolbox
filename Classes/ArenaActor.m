@@ -10,6 +10,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         PathDirectory
         PredictInformation
     end
+
     
     methods
         function obj = ArenaActor()

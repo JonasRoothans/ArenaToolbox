@@ -283,6 +283,7 @@ classdef SuretunePortal
                         actor = e.see(obj.scene);
                         actor.changeName(this.label)
                     end
+                    actor.PathDirectory=hObject.UserData{2};
                 else
                     for iStimplan = 1:numel(this.stimPlan)
                         %import VTA
@@ -303,6 +304,7 @@ classdef SuretunePortal
                         
                         actor_vta.changeSetting('colorFace',[1 0.5 0])
                         actor.PathDirectory=hObject.UserData{2};
+                        actor.Data.NumberOfLead=iStimplan;
                     end
                 end 
             end
