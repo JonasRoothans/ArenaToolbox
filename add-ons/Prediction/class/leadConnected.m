@@ -32,7 +32,7 @@ classdef leadConnected<handle
             cd(currentFolder);
         end
         
-        function atlas = getMatchingAtlas(obj,therapyPlanStorage,thisSession,thisprediction)
+        function atlas = getMatchingAtlas(obj,therapyPlanStorage,thisSession,thisprediction,c0)
             %copied from VTAextractor.m of findeTheMatchingAtlas
             % finds the atlas which is given in the datafile
             target=thisprediction.handles.target;
@@ -44,13 +44,13 @@ classdef leadConnected<handle
                 %does the target match?
                 if strcmp(lower(thisAtlas.group),lower(target))
                     % is hemisphere matching?
-                        if therapyPlanStorage.lead.distal(1,1)>0 && strcmp(lower(thisAtlas.hemisphere),'left')
+                        if  c0<0 && strcmp(lower(thisAtlas.hemisphere),'left')
                             atlas=thisAtlas;
-                            thisprediction.PositionHemisphere=0;
+                            thisprediction.PositionHemisphere.left=1;
                             break
-                        elseif therapyPlanStorage.lead.distal(1,1)<0 && strcmp(lower(thisAtlas.hemisphere),'right')
+                        elseif  c0>0 && strcmp(lower(thisAtlas.hemisphere),'right')
                             atlas=thisAtlas;
-                            thisprediction.PositionHemisphere=1;
+                            thisprediction.PositionHemisphere.right=1;
                             break
                         end
                 end
@@ -243,9 +243,23 @@ classdef leadConnected<handle
                             answer=questdlg(message,'Bilateral?','Yes','No','Yes');
                             if strcmp(answer,'Yes')
                                 thisprediction.bilateralOn=1;
-                                obj.config.NumberOfFirstLead=fselect;
-                                obj.config.NumberOfSecondLead=sselect;
+                                thisprediction.config.FirstLead.NumberOfLead=fselect;
+                                answer=questdlg('Where was the first lead implanted?','Task','Left','Right','Left');
+                                if strcmp(answer,'Left')
+                                    thisprediction.config.FirstLead.c0=-10; %this needs to be smaller than 0, that is the expression for left
+                                elseif strcmp(answer,'Right')
+                                    thisprediction.config.FirstLead.c0=10;
+                                end
+                                thisprediction.config.SecondLead.NumberOfLead=sselect;
+                                thisprediction.config.SecondLead.C0 = thisSession.therapyPlanStorage{1,sselect}.lead.distal(1,1);
+                                answer=questdlg('Where was the second lead implanted?','Task','Left','Right','Right');
+                                if strcmp(answer,'Left')
+                                    thisprediction.config.SecondLead.c0=-10; %this needs to be smaller than 0, that is the expression for left
+                                elseif strcmp(answer,'Right')
+                                    thisprediction.config.SecondLead.c0=10;
+                                end
                                 waitfor(msgbox('Your bilateral prediction data will be stored in the Actor you just selected...'));
+                                obj.config.runWithoutLoadedActor=1;
                                 return;
                             end
                         end
@@ -255,15 +269,22 @@ classdef leadConnected<handle
                     message=sprintf(message,thisSession.therapyPlanStorage{1,fselect}.lead.label);
                     answer=questdlg(message,'Unilateral','Yes','No','Yes');
                     if strcmp(answer,'Yes')
-                    obj.config.NumberOfFirstLead=fselect;
+                    thisprediction.config.FirstLead.NumberOfLead=fselect;
+                    answer=questdlg('Where was your lead implanted?','Task','Left','Right','Left');
+                    if strcmp(answer,'Left')
+                    thisprediction.config.FirstLead.c0=-10; %this needs to be smaller than 0, that is the expression for left    
+                    elseif strcmp(answer,'Right')
+                    thisprediction.config.FirstLead.c0=10;    
+                    end
+                    obj.config.runWithoutLoadedActor=1;
                     return;
                     end
                 end
             end  
-            if isempty(obj.config)
+            if isempty(thisprediction.config)
                 error('You have to select a lead!');
             end
-        end
+        end   
     end
 end
 

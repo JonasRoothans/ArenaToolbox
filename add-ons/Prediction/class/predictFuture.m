@@ -32,7 +32,7 @@ classdef predictFuture<handle
     properties (Hidden)
         Data_Out
         PositionHemisphere
-        unilateralOn=0
+        bothUnilateral=0
         bilateralOn=0
     end
     
@@ -112,7 +112,7 @@ classdef predictFuture<handle
             obj.handles.runButton=uicontrol('parent',obj.handles.figure,...
                 'units','normalized',...
                 'outerposition',[0.05 0.05 0.9 0.9],...
-                'String','Press me to your Start Prediction',...
+                'String','Press me to start your Prediction',...
                 'BackgroundColor',[0.5 0.5 0.5],...
                 'FontName','Arial',...
                 'FontSize',14,...
@@ -153,8 +153,8 @@ classdef predictFuture<handle
                 obj.handles.menu.file.import.main=uimenu('parent',obj.handles.menu.file.main,...
                     'Accelerator','I',....
                     'Text','Import File(Com+I)','callback',@Import);
-                obj.handles.menu.file.UnilateralOn.main=uimenu('parent',obj.handles.menu.file.main,...
-                    'Text','Unilateral Prediction ','callback',@unilateralOn);
+                obj.handles.menu.file.bothUnilateral.main=uimenu('parent',obj.handles.menu.file.main,...
+                    'Text','Unilateral Prediction ','callback',@bothUnilateral);
             end
             %%------
             %everything which is executed after the enviroment is built
@@ -319,14 +319,14 @@ classdef predictFuture<handle
                 end
             end
             
-            function unilateralOn(hObject,eventdata)
+            function bothUnilateral(hObject,eventdata)
                 thisprediction=predictFuture.getpredictdata(hObject);
-                if thisprediction.unilateralOn==1
-                    thisprediction.unilateralOn=0;
-                    thisprediction.handles.menu.file.UnilateralOn.main.ForegroundColor='black';
+                if thisprediction.bothUnilateral==1
+                    thisprediction.bothUnilateral=0;
+                    thisprediction.handles.menu.file.bothUnilateral.main.ForegroundColor='black';
                 else
-                    thisprediction.unilateralOn=1;
-                    thisprediction.handles.menu.file.UnilateralOn.main.ForegroundColor=[0 0.4470 0.7410];
+                    thisprediction.bothUnilateral=1;
+                    thisprediction.handles.menu.file.bothUnilateral.main.ForegroundColor=[0 0.4470 0.7410];
                 end
             end
             function bilateralOn(hObject,eventdata)

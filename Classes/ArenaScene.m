@@ -2459,7 +2459,7 @@ classdef ArenaScene < handle
                                             answer=questdlg(message,'Bilateral?','Yes','No','Yes');
                                             if strcmp(answer,'Yes')
                                                 thisScene.Actors(1,selection).PredictInformation.bilateralOn=1;
-                                                thisScene.Actors(1,selection).PredictInformation.config.NumberOfSecondLead=thisScene.Actors(1,iActor).Data.NumberOfLead;
+                                                thisScene.Actors(1,selection).PredictInformation.config.SecondLead=thisScene.Actors(1,iActor).Data;
                                                 waitfor(msgbox('Your bilateral prediction data will be stored in the Actor you just selected...'));
                                             end
                                         end
@@ -2469,7 +2469,7 @@ classdef ArenaScene < handle
                             end
                         end
                     end
-                    thisScene.Actors(1,selection).PredictInformation.config.NumberOfFirstLead=thisScene.Actors(1,selection).Data.NumberOfLead;
+                    thisScene.Actors(1,selection).PredictInformation.config.FirstLead=thisScene.Actors(1,selection).Data;
                     thisScene.Actors(1,selection).PredictInformation.Tag=thisScene.Actors(1,selection).Tag;
                     thisScene.Actors(1,selection).PredictInformation.newPrediction(PathDirectory);
                     try

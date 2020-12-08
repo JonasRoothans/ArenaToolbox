@@ -8,7 +8,8 @@ classdef Electrode < handle & matlab.mixin.Copyable
         Type = 'Medtronic3389'
         Settings
         Source
-        NumberOfLead
+        maxStimPlans
+        c0
     end
     
     methods
@@ -37,7 +38,6 @@ classdef Electrode < handle & matlab.mixin.Copyable
             
             if isempty(thisScene);return;end %user cancels
             thisActor = thisScene.newActor(obj);
-            
         end
         
         function set.C0(obj,C0)

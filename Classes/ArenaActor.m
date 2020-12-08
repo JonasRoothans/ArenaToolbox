@@ -1,4 +1,4 @@
-classdef ArenaActor < handle & matlab.mixin.Copyable
+classdef ArenaActor < handle & matlab.mixin.Copyable & dynamicprops
     %ARENAACTOR Connects visualisation settings to Data. Links to Scene.
     
     properties
