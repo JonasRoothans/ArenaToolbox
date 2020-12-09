@@ -23,10 +23,11 @@ classdef predictResults<handle
             
             try
                  if isa(Actor.PredictionAndVTA.prediction_Information,'struct')
-                    Actor.PredictInformation{1,1}=Actor.PredictionAndVTA.prediction_Information;
-                    Actor.PredictInformation{1,2}='empty';
-                    Actor.PredictInformation{1,3}=Actor.PredictionAndVTA.config;
-                    Actor.Tag=Actor.PredictionAndVTA.Tag;
+                    A=Actor;
+                    clear Actor
+                    Actor.PredictInformation.Results{1}=A.PredictionAndVTA.prediction_Information;
+                    Actor.PredictInformation.configStructure=A.PredictionAndVTA.configStructure;
+                    Actor.Tag=A.PredictionAndVTA.Tag;
                  end
             catch
                 if isa(Actor.PredictInformation.Results,'predictFuture')

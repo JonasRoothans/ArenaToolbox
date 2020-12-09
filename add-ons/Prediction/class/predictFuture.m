@@ -33,7 +33,6 @@ classdef predictFuture<handle
     properties (Hidden)
         Data_Out
         PositionHemisphere
-        bothUnilateral=0
         bilateralOn=0
         Heatmap
     end
@@ -155,8 +154,6 @@ classdef predictFuture<handle
                 obj.handles.menu.file.import.main=uimenu('parent',obj.handles.menu.file.main,...
                     'Accelerator','I',....
                     'Text','Import File(Com+I)','callback',@Import);
-                obj.handles.menu.file.bothUnilateral.main=uimenu('parent',obj.handles.menu.file.main,...
-                    'Text','Unilateral Prediction ','callback',@bothUnilateral);
             end
             %%------
             %everything which is executed after the enviroment is built
@@ -321,16 +318,6 @@ classdef predictFuture<handle
                 end
             end
             
-            function bothUnilateral(hObject,eventdata)
-                thisprediction=predictFuture.getpredictdata(hObject);
-                if thisprediction.bothUnilateral==1
-                    thisprediction.bothUnilateral=0;
-                    thisprediction.handles.menu.file.bothUnilateral.main.ForegroundColor='black';
-                else
-                    thisprediction.bothUnilateral=1;
-                    thisprediction.handles.menu.file.bothUnilateral.main.ForegroundColor=[0 0.4470 0.7410];
-                end
-            end
             function bilateralOn(hObject,eventdata)
                  thisprediction=predictFuture.getpredictdata(hObject);
                 if thisprediction.bilateralOn==1

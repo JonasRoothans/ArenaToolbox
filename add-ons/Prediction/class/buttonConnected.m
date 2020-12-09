@@ -338,7 +338,7 @@ classdef buttonConnected<handle
                             disp(fprintf(status,sXLS));
                             sample=probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5);
                             sample=mean(sample);
-                            unilateral.left(sXLS) = sample;%*linearRegressionCoefficients;                        % This fitts the outcomes to the in the filedcase study found values.
+                            unilateral.right(sXLS) = sample;%*linearRegressionCoefficients;                        % This fitts the outcomes to the in the filedcase study found values.
                         end
                     end
                     
@@ -384,7 +384,7 @@ classdef buttonConnected<handle
                             sample=probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5);
                             disp(fprintf(status,sXLS));
                             sample=mean(sample);
-                            unilateral.left(sXLS) = sample;%*linearRegressionCoefficients                          % This fitts the outcomes to the in the filedcase study found values.
+                            unilateral.right(sXLS) = sample;%*linearRegressionCoefficients                          % This fitts the outcomes to the in the filedcase study found values.
                         end
                     end
                     
@@ -420,6 +420,7 @@ classdef buttonConnected<handle
             PredictionAndVTA.prediction_Information=thisprediction.handles.prediction_Information;
             PredictionAndVTA.heatmapName=thisprediction.Heatmap.Name;
             PredictionAndVTA.config=thisprediction.config;
+            PredictionAndVTA.configStructure=thisprediction.configStructure;
             PredictionAndVTA.Tag=thisprediction.Tag;
             try
                 leadtype=thisprediction.handles.VTA_Information(1,1).monoPolarConfig.leadtype;

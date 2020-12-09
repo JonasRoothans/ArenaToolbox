@@ -2421,6 +2421,7 @@ classdef ArenaScene < handle
                 thisScene=ArenaScene.getscenedata(hObject);
                 selection=thisScene.handles.box_listSelectActor.Value;
                 if selection==1
+                    error('Without Jonas fixing the name of his delete function for Actors, this will never work!')
                     PathDirectory=0;
                     thisScene.Actors(1,end+1).PredictInformation=predictFuture();
                     thisScene.Actors(1,numel(thisScene.Actors)).PredictInformation.newPrediction(PathDirectory);
@@ -2437,7 +2438,7 @@ classdef ArenaScene < handle
                         return
                     end
                     warning('You did a Prediction which you can not be found in your current Actor list! When you do one more it gets overwritten!');
-                    delete(thisScene.Actors(1,numel(thisScene.Actors)));
+                    delete(thisScene,numel(thisScene.Actors));
                 elseif selection>1
                     selection=thisScene.handles.box_listSelectActor.UserData(1,selection).Number;
                     PathDirectory=thisScene.Actors(1,selection).PathDirectory;
