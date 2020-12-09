@@ -74,7 +74,7 @@ classdef buttonConnected<handle
                     end
                     thisprediction.config.SecondLead=firstLead;
                 end
-                
+
                 %Check whether it was done with an Actor or with selected
                 %Data inside the predictFuture enviroment.
                 
@@ -106,6 +106,7 @@ classdef buttonConnected<handle
                             PlanNumber=thisprediction.config.SecondLead.NumberOfLead;
                             c0=thisprediction.config.SecondLead.c0(1,1);
                             catch
+                                continue;
                             end
                         end
                         loop_therapyPlanStorage=thisSession.therapyPlanStorage{PlanNumber};
@@ -128,7 +129,7 @@ classdef buttonConnected<handle
                 %configuration data
                 
                 lead.getConfiguration(thisSession);
-                thisprediction.config=lead.config;
+                thisprediction.configStructure=lead.config;
                 switch thisprediction.Heatmap.Name
                     case 'DystoniaWuerzburg'
                         %Please never switch reslicing on with the Dystonia Heatmap
@@ -160,10 +161,11 @@ classdef buttonConnected<handle
                 %ProoveOfWrongSpace
                 iLead=0;
                 while iLead~=2
-                        if isempty(thisprediction.handles.TransformationLegacySpace{1, 1})
+                        if isempty(thisprediction.config.FirstLead)
                             iLead=2;
-                        end
+                        else
                         iLead=iLead+1;
+                        end
                     % Everything which is needed for each single VTA
                     thisLead = thisSession.getregisterable(leadidcs(1,iLead));
                     for iStimplan = 1:numel(thisLead.stimPlan)
@@ -206,6 +208,14 @@ classdef buttonConnected<handle
                         
                         Excel_output(iLead,iMonoPolar).normalizedVTA.Voxels = single(iVTA>0.5);    %voxels as only greater than 0.5 of all iVTA data
                         Excel_output(iLead,iMonoPolar).normalizedVTA.Imref = rVTA;
+                        
+                    end
+                    try
+                        if isempty(thisprediction.config.SecondLead);
+                            iLead=2;
+                        end
+                    catch
+                        iLead=2;
                     end
                 end
             end
@@ -429,8 +439,8 @@ classdef buttonConnected<handle
         %%
         function showTheData(obj,thisprediction)
             
-            contacts_vector = thisprediction.config.contacts_vector;
-            amplitudes_vector = thisprediction.config.amplitudes_vector;
+            contacts_vector = thisprediction.configStructure.contacts_vector;
+            amplitudes_vector = thisprediction.configStructure.amplitudes_vector;
             walkthroughs=numel(amplitudes_vector);
             
             ticklabels = {};

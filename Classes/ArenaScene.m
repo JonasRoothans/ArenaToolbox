@@ -2422,23 +2422,22 @@ classdef ArenaScene < handle
                 selection=thisScene.handles.box_listSelectActor.Value;
                 if selection==1
                     PathDirectory=0;
-                    thisScene.Actors(1,1).PredictInformation=predictFuture();
-                    thisScene.Actors(1,1).PredictInformation.newPrediction(PathDirectory);
+                    thisScene.Actors(1,end+1).PredictInformation=predictFuture();
+                    thisScene.Actors(1,numel(thisScene.Actors)).PredictInformation.newPrediction(PathDirectory);
                     try
-                        waitfor(thisScene.Actors(1,1).PredictInformation.handles.figure);
+                        waitfor(thisScene.Actors(1,numel(thisScene.Actors)).PredictInformation.handles.figure);
                     catch
                         return
                     end
                     try
-                        if isempty(thisScene.Actors(1,1).PredictInformation.Heatmap)
+                        if isempty(thisScene.Actors(1,numel(thisScene.Actors)).PredictInformation.Heatmap)
                             warning('No Prediction Data was calculated!');
                         end
                     catch
                         return
                     end
                     warning('You did a Prediction which you can not be found in your current Actor list! When you do one more it gets overwritten!');
-                    thisScene.Actors=[];
-                    thisScene.Actors=ArenaActor.empty();
+                    delete(thisScene.Actors(1,numel(thisScene.Actors)));
                 elseif selection>1
                     selection=thisScene.handles.box_listSelectActor.UserData(1,selection).Number;
                     PathDirectory=thisScene.Actors(1,selection).PathDirectory;
@@ -2460,6 +2459,7 @@ classdef ArenaScene < handle
                                             if strcmp(answer,'Yes')
                                                 thisScene.Actors(1,selection).PredictInformation.bilateralOn=1;
                                                 thisScene.Actors(1,selection).PredictInformation.config.SecondLead=thisScene.Actors(1,iActor).Data;
+                                                thisScene.Actors(1,selection).PredictInformation.config.SecondLead.NumberOfLead=thisScene.Actors(1,iActor).NumberOfLead;
                                                 waitfor(msgbox('Your bilateral prediction data will be stored in the Actor you just selected...'));
                                             end
                                         end
@@ -2470,6 +2470,7 @@ classdef ArenaScene < handle
                         end
                     end
                     thisScene.Actors(1,selection).PredictInformation.config.FirstLead=thisScene.Actors(1,selection).Data;
+                    thisScene.Actors(1,selection).PredictInformation.config.FirstLead.NumberOfLead=thisScene.Actors(1,selection).NumberOfLead;
                     thisScene.Actors(1,selection).PredictInformation.Tag=thisScene.Actors(1,selection).Tag;
                     thisScene.Actors(1,selection).PredictInformation.newPrediction(PathDirectory);
                     try
@@ -2481,8 +2482,8 @@ classdef ArenaScene < handle
                         if isempty(thisScene.Actors(1,selection).PredictInformation.Heatmap)
                             warning('No Prediction Data was calculated!');
                         else
-                            thisScene.Actors(1,selection).PredictInformation={thisScene.Actors(1,selection).PredictInformation.handles.prediction_Information,thisScene.Actors(1,selection).PredictInformation.Heatmap,...
-                                thisScene.Actors(1,selection).PredictInformation.config};
+                            thisScene.Actors(1,selection).PredictInformation.Results={thisScene.Actors(1,selection).PredictInformation.handles.prediction_Information,thisScene.Actors(1,selection).PredictInformation.Heatmap,...
+                                thisScene.Actors(1,selection).PredictInformation.configStructure};
                         end
                     catch
                         return
@@ -2496,7 +2497,7 @@ classdef ArenaScene < handle
                     thisScene.handles.menu.file.predict.close.Enable='off';
                 end
                 try
-                    if isa(thisScene.Actors(1,selection).PredictInformation,'cell')
+                    if isa(thisScene.Actors(1,selection).PredictInformation.Results,'cell')
                         answer=questdlg('Would you like to display your Results?','Decision','Yes','No','No');
                         if strcmp(answer,'Yes')
                             menu_viewActorResults(thisScene);
@@ -2519,10 +2520,10 @@ classdef ArenaScene < handle
                 listSelectResultEnd=numel(thisScene.handles.box_listSelectActor.String);
                 thisScene.handles.box_listSelectResult.String={};
                 thisScene.handles.box_listSelectResult.UserData=struct();
-                for irepetitions=2:listSelectResultEnd
+                for irepetitions=1:listSelectResultEnd
                     actorNumber=thisScene.handles.box_listSelectActor.UserData(1,irepetitions).Number;
                     try
-                        if isa(thisScene.Actors(1,actorNumber).PredictInformation,'cell')
+                        if isa(thisScene.Actors(1,actorNumber).PredictInformation.Results,'cell')
                             elementsOfString=numel(thisScene.handles.box_listSelectResult.String);
                             if elementsOfString==0
                                 elementsOfString=1;

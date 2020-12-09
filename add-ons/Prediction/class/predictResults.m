@@ -29,7 +29,7 @@ classdef predictResults<handle
                     Actor.Tag=Actor.PredictionAndVTA.Tag;
                  end
             catch
-                if isa(Actor.PredictInformation,'predictFuture')
+                if isa(Actor.PredictInformation.Results,'predictFuture')
                     return;
                 end
             end
@@ -47,7 +47,7 @@ classdef predictResults<handle
             obj.handles.showResultsWindow=figure('units','normalized',...
                 'outerposition',[0.25 0.25 0.8 0.2],...
                 'menubar','none',...
-                'name',['Result', Actor.Tag],...
+                'name',['Result ', Actor.Tag],...
                 'numbertitle','off',...
                 'resize','off',...
                 'CloseRequestFcn',@closeResult,...
@@ -91,15 +91,15 @@ classdef predictResults<handle
             obj.HighestResults.bilateral.position={};
             obj.HighestResults.unilateralLeft.position={};
             obj.HighestResults.unilateralRight.position={};
-            contacts_vector=Actor.PredictInformation{1,3}.contacts_vector;
-            amplitudes_vector=Actor.PredictInformation{1,3}.amplitudes_vector;
+            contacts_vector=Actor.PredictInformation.configStructure.contacts_vector;
+            amplitudes_vector=Actor.PredictInformation.configStructure.amplitudes_vector;
             
-            if not(isempty(Actor.PredictInformation{1}.bilateral))
-                obj.HighestResults.bilateral.results=maxk(Actor.PredictInformation{1,1}.bilateral,answer);
+            if not(isempty(Actor.PredictInformation.Results{1}.bilateral))
+                obj.HighestResults.bilateral.results=maxk(Actor.PredictInformation.Results{1,1}.bilateral,answer);
                 obj.HighestResults.bilateral.results=reshape(obj.HighestResults.bilateral.results,[1,(answer*20)]);
                 obj.HighestResults.bilateral.results=maxk(obj.HighestResults.bilateral.results,answer);
                 for ianswer=1:answer
-                    obj.HighestResults.bilateral.position{ianswer}=ismember(Actor.PredictInformation{1,1}.bilateral,obj.HighestResults.bilateral.results(1,ianswer));
+                    obj.HighestResults.bilateral.position{ianswer}=ismember(Actor.PredictInformation.Results{1,1}.bilateral,obj.HighestResults.bilateral.results(1,ianswer));
                     [row,col]=find(obj.HighestResults.bilateral.position{ianswer});
                     part='%d. c and %d. a %d. e';
                     part1=sprintf(part,contacts_vector(1,row),amplitudes_vector(1,row));
@@ -109,10 +109,10 @@ classdef predictResults<handle
                 end
             end
             
-            if not(isempty(Actor.PredictInformation{1, 1}.unilateral.left))
-                obj.HighestResults.unilateralLeft.results=maxk(Actor.PredictInformation{1,1}.unilateral.left,answer);
+            if not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.left))
+                obj.HighestResults.unilateralLeft.results=maxk(Actor.PredictInformation.Results{1,1}.unilateral.left,answer);
                 for ianswer=1:answer
-                    obj.HighestResults.unilateralLeft.position{ianswer}=ismember(Actor.PredictInformation{1,1}.unilateral.left,obj.HighestResults.unilateralLeft.results(1,ianswer));
+                    obj.HighestResults.unilateralLeft.position{ianswer}=ismember(Actor.PredictInformation.Results{1,1}.unilateral.left,obj.HighestResults.unilateralLeft.results(1,ianswer));
                     [row,col]=find(obj.HighestResults.unilateralLeft.position{ianswer});
                     part='%d. c and %d. a %d. e';
                     obj.handles.table_unilateralLeft.RowName{ianswer}=sprintf(part,contacts_vector(1,...
@@ -121,10 +121,10 @@ classdef predictResults<handle
                 end
             end
             
-            if not(isempty(Actor.PredictInformation{1, 1}.unilateral.right))
-                 obj.HighestResults.unilateralRight.results=maxk(Actor.PredictInformation{1,1}.unilateral.right,answer);
+            if not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.right))
+                 obj.HighestResults.unilateralRight.results=maxk(Actor.PredictInformation.Results{1,1}.unilateral.right,answer);
                 for ianswer=1:answer
-                    obj.HighestResults.unilateralRight.position{ianswer}=ismember(Actor.PredictInformation{1,1}.unilateral.right,obj.HighestResults.unilateralRight.results(1,ianswer));
+                    obj.HighestResults.unilateralRight.position{ianswer}=ismember(Actor.PredictInformation.Results{1,1}.unilateral.right,obj.HighestResults.unilateralRight.results(1,ianswer));
                     [row,col]=find(obj.HighestResults.unilateralRight.position{ianswer});
                     part='%d. c and %d. a %d. e';
                     obj.handles.table_unilateralRight.RowName{ianswer}=sprintf(part,contacts_vector(1,...

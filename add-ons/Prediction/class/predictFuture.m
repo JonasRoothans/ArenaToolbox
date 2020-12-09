@@ -22,11 +22,12 @@ classdef predictFuture<handle
         Patient_Information
         handles
         SavePath
-        VTAPoolPath
-        Heatmap
+        VTAPoolPath 
         Tag
         config
+        configStructure
         Data_In
+        Results
     end
     
     properties (Hidden)
@@ -34,6 +35,7 @@ classdef predictFuture<handle
         PositionHemisphere
         bothUnilateral=0
         bilateralOn=0
+        Heatmap
     end
     
     methods
