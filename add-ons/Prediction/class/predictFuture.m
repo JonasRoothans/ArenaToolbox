@@ -45,17 +45,11 @@ classdef predictFuture<handle
             %First linking of class to variable
         end
         
-        function  newPrediction(obj,pathDirectory)
+        function  newPrediction(obj,pathDirectory,answer)
             %It builds the enviroment to work on predictions
             
             % Everything which runs before the window is opened, comes
             % here...
-            
-            answer=questdlg('Are you sure to start a prediction?','Beginn?','Yes','No','Yes');
-            if strcmp(answer,'Yes')
-            else
-                return;
-            end
             
             obj.handles=[];
             
@@ -108,12 +102,12 @@ classdef predictFuture<handle
                 'Callback',@heatmapListbox);
             
             [pic,map]=imread('glass_sphere.png');
-            pic=imresize(pic,0.4);
+            pic=imresize(pic,0.148);
             
             obj.handles.runButton=uicontrol('parent',obj.handles.figure,...
                 'units','normalized',...
-                'outerposition',[0.05 0.05 0.9 0.9],...
-                'String','Press me to start your Prediction',...
+                'outerposition',[0.68 0.1 0.173 0.3],...
+                'String','Run Prediction',...
                 'BackgroundColor',[0.5 0.5 0.5],...
                 'FontName','Arial',...
                 'FontSize',14,...
@@ -166,6 +160,7 @@ classdef predictFuture<handle
                 obj.Data_Out.Creation_Date=now;
                 obj.handles.heatmapText.OuterPosition=[0.3 0.6 0.4 0.05];
                 obj.handles.heatmapListbox.OuterPosition=[0.3 0.45 0.4 0.1];
+                obj.handles.runButton.OuterPosition=[0.41 0.1 0.173 0.3];
                 else  
                 obj.handles.importButton.Visible='on';
                 end
@@ -206,8 +201,6 @@ classdef predictFuture<handle
             
             function Import(hObject,eventdata)
                 thisprediction=predictFuture.getpredictdata(hObject);
-                questdlg('You can only import .dcm files!','Import',...
-                    'Import','Import');
                 [filename,pathname]=uigetfile('*.dcm');
                 if not(any(filename))
                     warning('You did not select a file!');
@@ -224,31 +217,14 @@ classdef predictFuture<handle
                 thisprediction=predictFuture.getpredictdata(hObject);
                 switch thisprediction.handles.heatmapListbox.Value
                     case 1
-                        check=questdlg('Your about to run your prediction with the "Dystonia Heatmap"!','Confirm','Yes','No','Yes');
-                        if strcmp(check,'Yes')
                         thisprediction.handles.menu.file.heatmapDystoniaWuerzburgMartin.main.MenuSelectedFcn(hObject,eventdata);
-                        else
-                            return
-                        end
                     case 2
-                        check=questdlg('Your about to run your prediction with the "Boston Heatmap"!','Confirm','Yes','No','Yes');
-                        if strcmp(check,'Yes')
                         thisprediction.handles.menu.file.heatmapBostonBerlin.main.MenuSelectedFcn(hObject,eventdata);
-                         else
-                            return
-                        end
                     case 3
-                        check=questdlg('Your about to run your prediction with the "Boston Alone Heatmap"!','Confirm','Yes','No','Yes');
-                        if strcmp(check,'Yes')
                         thisprediction.handles.menu.file.heatmapBostonAlone.main.MenuSelectedFcn(hObject,eventdata);
-                         else
-                            return
-                        end
                 end
                 if strcmp(lower(thisprediction.handles.importButton.Visible),'off')  
                     thisprediction.handles.runButton.Visible='on';
-                    delete(thisprediction.handles.heatmapListbox);
-                    delete(thisprediction.handles.heatmapText);
                 end
             end
             %% -----

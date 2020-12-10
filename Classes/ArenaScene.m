@@ -120,8 +120,14 @@ classdef ArenaScene < handle
                 'units','normalized',...
                 'position', [0.02,0.4,0.1,0.2],...
                 'String',' ',...
+                'Visible','off');
+            
+            obj.handles.confirmbutton_box_listSelectActor = uicontrol('parent',obj.handles.figure,...
+                'units','normalized',...
+                'position', [0.02,0.37,0.1,0.03],...
+                'String','Confirm',...
                 'Visible','off',...
-                'callback',{@box_listSelectActor});
+                'callback',{@confirmbutton_box_listSelectActor});
             
             obj.handles.text_box_listSelectResult = uicontrol('parent',obj.handles.figure,...
                 'style','text',...
@@ -135,10 +141,14 @@ classdef ArenaScene < handle
                 'units','normalized',...
                 'position', [0.13,0.4,0.1,0.2],...
                 'String',{},...
+                'Visible','off');
+            
+            obj.handles.confirmbutton_box_listSelectResult = uicontrol('parent',obj.handles.figure,...
+                'units','normalized',...
+                'position',[0.13,0.37,0.1,0.03],...
+                'String','Confirm',...
                 'Visible','off',...
-                'callback',{@box_listSelectResult});
-            
-            
+                'callback',{@confirmbutton_box_listSelectResult});
             %menubar
             obj.handles.menu.file.main = uimenu(obj.handles.figure,'Text','File');
             
@@ -2415,30 +2425,31 @@ classdef ArenaScene < handle
                 end
                 thisScene.handles.box_listSelectActor.Visible='on';
                 thisScene.handles.text_box_listSelectActor.Visible='on';
+                thisScene.handles.confirmbutton_box_listSelectActor.Visible='on';
             end
             
-            function box_listSelectActor(hObject,eventdata)
-                thisScene=ArenaScene.getscenedata(hObject);
+            function box_listSelectActor(thisScene)
                 selection=thisScene.handles.box_listSelectActor.Value;
+                
                 if selection==1
-                    error('Without Jonas fixing the name of his delete function for Actors, this will never work!')
                     PathDirectory=0;
-                    thisScene.Actors(1,end+1).PredictInformation=predictFuture();
-                    thisScene.Actors(1,numel(thisScene.Actors)).PredictInformation.newPrediction(PathDirectory);
+                    lead=PredictionActor();
+                    lead.PredictInformation=predictFuture();
+                    lead.PredictInformation.newPrediction(PathDirectory);
                     try
-                        waitfor(thisScene.Actors(1,numel(thisScene.Actors)).PredictInformation.handles.figure);
+                        waitfor(lead.PredictInformation.handles.figure);
                     catch
                         return
                     end
                     try
-                        if isempty(thisScene.Actors(1,numel(thisScene.Actors)).PredictInformation.Heatmap)
+                        if isempty(lead.PredictInformation.Heatmap)
                             warning('No Prediction Data was calculated!');
                         end
                     catch
                         return
                     end
-                    warning('You did a Prediction which you can not be found in your current Actor list! When you do one more it gets overwritten!');
-                    delete(thisScene,numel(thisScene.Actors));
+                    warning('If you want to display this results, please use the "Show old results" submenu!');
+                    lead.delete();
                 elseif selection>1
                     selection=thisScene.handles.box_listSelectActor.UserData(1,selection).Number;
                     PathDirectory=thisScene.Actors(1,selection).PathDirectory;
@@ -2490,33 +2501,32 @@ classdef ArenaScene < handle
                         return
                     end
                 end
-                answer=questdlg('Do you want to try a prediction for an other lead?','Decision','Yes','No','No');
-                if strcmp(answer,'No')
-                    thisScene.handles.box_listSelectActor.Visible='off';
-                    thisScene.handles.text_box_listSelectActor.Visible='off';
-                    thisScene.handles.box_listSelectActor.String=[];
-                    thisScene.handles.menu.file.predict.close.Enable='off';
-                end
+
                 try
                     if isa(thisScene.Actors(1,selection).PredictInformation.Results,'cell')
-                        answer=questdlg('Would you like to display your Results?','Decision','Yes','No','No');
-                        if strcmp(answer,'Yes')
                             menu_viewActorResults(thisScene);
-                        end
                     end
                 catch
+                end
+            end
+            
+            function confirmbutton_box_listSelectActor(hObject,eventdata)
+                 thisScene=ArenaScene.getscenedata(hObject);
+                if not(isempty(thisScene.handles.box_listSelectActor.Value))
+                 box_listSelectActor(thisScene);
                 end
             end
                             
             function menu_viewActorResults(hObject,eventdata)
                 if not(isa(hObject,'ArenaScene'))
-                thisScene=ArenaScene.getscenedata(hObject);
-                else 
-                thisScene=hObject;
+                    thisScene=ArenaScene.getscenedata(hObject);
+                else
+                    thisScene=hObject;
                 end
                 thisScene.handles.text_box_listSelectResult.Visible ='on';
                 thisScene.handles.box_listSelectResult.Visible='on';
                 thisScene.handles.menu.file.predict.close.Enable='on';
+                thisScene.handles.confirmbutton_box_listSelectResult.Visible='on';
                 if strcmp(thisScene.handles.box_listSelectActor.Visible,'on')
                 listSelectResultEnd=numel(thisScene.handles.box_listSelectActor.String);
                 thisScene.handles.box_listSelectResult.String={};
@@ -2540,8 +2550,14 @@ classdef ArenaScene < handle
                 end
             end
             
-            function box_listSelectResult(hObject,eventdata)
+            function confirmbutton_box_listSelectResult(hObject,eventdata)
                 thisScene=ArenaScene.getscenedata(hObject);
+                if not(isempty(thisScene.handles.box_listSelectResult.Value))
+                    box_listSelectResult(thisScene);
+                end
+            end
+            
+            function box_listSelectResult(thisScene)
                 displayDecision=thisScene.handles.box_listSelectResult.Value;
                 displayDecision=thisScene.handles.box_listSelectResult.UserData(1,displayDecision).Number;
                 if not(isempty(displayDecision))
@@ -2557,8 +2573,10 @@ classdef ArenaScene < handle
                 thisScene.handles.menu.file.predict.results.Enable='off';
                 thisScene.handles.text_box_listSelectActor.Visible='off';
                 thisScene.handles.box_listSelectActor.Visible='off';
+                thisScene.handles.confirmbutton_box_listSelectActor.Visible='off';
                 thisScene.handles.text_box_listSelectResult.Visible='off';
                 thisScene.handles.box_listSelectResult.Visible='off';
+                thisScene.handles.confirmbutton_box_listSelectResult.Visible='off';
                 thisScene.handles.menu.file.predict.close.Enable='off';
             end
             

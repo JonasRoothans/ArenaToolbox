@@ -15,11 +15,7 @@ classdef predictResults<handle
         
         function displayHighestResults(obj,Actor)
             
-            answer=inputdlg('How many outcomes do you want?','Display Results',1,{'5'});
-            
-            if isempty(answer)
-                return;
-            end
+            answer=5; % If in in the future this an other value is needed, you can add the outcomings here.
             
             try
                  if isa(Actor.PredictionAndVTA.prediction_Information,'struct')
@@ -34,16 +30,6 @@ classdef predictResults<handle
                     return;
                 end
             end
-            
-           
-            try
-                if isnan(answer)
-                    warning('Your input was no number, therefor you get the best five results!')
-                    answer=5;
-                end
-            catch
-            end
-            answer=str2double(answer{1});
             
             obj.handles.showResultsWindow=figure('units','normalized',...
                 'outerposition',[0.25 0.25 0.8 0.2],...
@@ -102,10 +88,10 @@ classdef predictResults<handle
                 for ianswer=1:answer
                     obj.HighestResults.bilateral.position{ianswer}=ismember(Actor.PredictInformation.Results{1,1}.bilateral,obj.HighestResults.bilateral.results(1,ianswer));
                     [row,col]=find(obj.HighestResults.bilateral.position{ianswer});
-                    part='%d. c and %d. a %d. e';
+                    part='C%d-%dmA';
                     part1=sprintf(part,contacts_vector(1,row),amplitudes_vector(1,row));
                     part2=sprintf(part,contacts_vector(1,col),amplitudes_vector(1,col));
-                    obj.handles.table_bilateral.RowName{ianswer}=sprintf([part1,part2]);
+                    obj.handles.table_bilateral.RowName{ianswer}=sprintf([part1,'and',part2]);
                     obj.handles.table_bilateral.Data(ianswer,1)=obj.HighestResults.bilateral.results(1,ianswer);
                 end
             end
@@ -115,9 +101,9 @@ classdef predictResults<handle
                 for ianswer=1:answer
                     obj.HighestResults.unilateralLeft.position{ianswer}=ismember(Actor.PredictInformation.Results{1,1}.unilateral.left,obj.HighestResults.unilateralLeft.results(1,ianswer));
                     [row,col]=find(obj.HighestResults.unilateralLeft.position{ianswer});
-                    part='%d. c and %d. a %d. e';
+                    part='C%d-%dmA';
                     obj.handles.table_unilateralLeft.RowName{ianswer}=sprintf(part,contacts_vector(1,...
-                        row),amplitudes_vector(1,row));
+                        col),amplitudes_vector(1,col));
                     obj.handles.table_unilateralLeft.Data(ianswer,1)=obj.HighestResults.unilateralLeft.results(1,ianswer);
                 end
             end
@@ -127,7 +113,7 @@ classdef predictResults<handle
                 for ianswer=1:answer
                     obj.HighestResults.unilateralRight.position{ianswer}=ismember(Actor.PredictInformation.Results{1,1}.unilateral.right,obj.HighestResults.unilateralRight.results(1,ianswer));
                     [row,col]=find(obj.HighestResults.unilateralRight.position{ianswer});
-                    part='%d. c and %d. a %d. e';
+                    part='C%d-%dmA';
                     obj.handles.table_unilateralRight.RowName{ianswer}=sprintf(part,contacts_vector(1,...
                         col),amplitudes_vector(1,col));
                     obj.handles.table_unilateralRight.Data(ianswer,1)=obj.HighestResults.unilateralRight.results(1,ianswer);
@@ -136,7 +122,7 @@ classdef predictResults<handle
             
             
             function closeResult(hObject,eventdata)
-                request=questdlg('Are you sure you want to close the Windwo?','Confirmation',...
+                request=questdlg('Close Window?','Confirmation',...
                     'Cancel','Yes','Yes');
                 switch request
                     case 'Cancel'
