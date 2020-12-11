@@ -38,11 +38,16 @@ classdef buttonConnected<handle
                     error('You need to select a directory for saving and the pool path!');
                 end
                 folder=what('Prediction');
+                mkdir ../Prediction Temp
+                predictionConfig.Temp=[folder.path,'/Temp'];
+                thisprediction.Temp=[folder.path,'/Temp'];
+                addpath('Temp');
                 save(fullfile(folder.path,'/predictionConfig'),'predictionConfig');
             else
                 config=load('predictionConfig.mat');
                 thisprediction.VTAPoolPath=config.predictionConfig.VTAPoolPath;
                 thisprediction.SavePath=config.predictionConfig.SavePath;
+                thisprediction.Temp=config.predictionConfig.Temp;
             end
             
             %check if this Prediction was already done
@@ -174,16 +179,16 @@ classdef buttonConnected<handle
                     for iMonoPolar = 1:numel(lead.config.amplitudes_vector)
                         disp(fprintf(status,iLead,iMonoPolar));
                         
-                                                data.leadtype='Medtronic3389'; %Big question, is it enough or more correctness needed?
-                                                data.pulsewidth='60';
+%                                                 data.pulsewidth='60';     %Big question, is it enough or more correctness needed?
+%                                                 data.voltage='False';
+                                                
+                                                data.pulsewidth='60';       %Big question, is it enough or more correctness needed?
                                                 data.voltage='False';
-                                                data.groundedcontact = '0 0 0 0';
-                        
-%                         data.leadtype= thisSession.therapyPlanStorage{1, iLead}.lead.leadType; %this is like how it should be with a bigger vta pool
+                        data.leadtype= thisSession.therapyPlanStorage{1, iLead}.lead.leadType; %this is like how it should be with a bigger vta pool
 %                         data.voltage = thisSession.therapyPlanStorage{1, iLead}.voltageBasedStimulation;
 %                         data.pulsewidth = thisSession.therapyPlanStorage{1, iLead}.pulseWidth;
-%                         data.groundedcontact = thisSession.therapyPlanStorage{1, iLead}.contactsGrounded;
-%                         
+                        data.groundedcontact = thisSession.therapyPlanStorage{1, iLead}.contactsGrounded;
+                        
                         data.amplitude = num2str(lead.config.amplitudes_vector(iMonoPolar));
                         activevector = lead.config.activevector;
                         activevector(lead.config.contacts_vector(iMonoPolar)+1) = 1;
@@ -414,6 +419,9 @@ classdef buttonConnected<handle
             %why this sould also work even when more changes are made to the handles
             %struct in whatever way.
             
+            %save data as .mat file, for easier later on processing
+            currentDirectory=cd;
+            cd(thisprediction.Temp) 
             PredictionAndVTA.target=thisprediction.handles.target;
             PredictionAndVTA.TransformationLegacySpace=thisprediction.handles.TransformationLegacySpace;
             PredictionAndVTA.VTA_Information=thisprediction.handles.VTA_Information;
@@ -435,7 +443,34 @@ classdef buttonConnected<handle
                 thisprediction.Patient_Information.gender,'_',...
                 num2str(thisprediction.Patient_Information.dateOfBirth(1:10)),'_', ...
                 num2str(thisprediction.Patient_Information.patientID),'.mat'];
-            save(fullfile(thisprediction.SavePath,filename),'PredictionAndVTA');
+            save(fullfile(thisprediction.Temp,filename),'PredictionAndVTA');
+            cd(currentDirectory);
+            
+            %save only the results and no other data as .csv file
+            currentDirectory=cd;
+            cd(thisprediction.SavePath)  
+            filename=[PredictionAndVTA.target,'_',...
+                leadtype,'_', ...
+                PredictionAndVTA.heatmapName,'_',...
+                thisprediction.Tag,'_',...
+                num2str(thisprediction.Patient_Information.name),'_', ...
+                thisprediction.Patient_Information.gender,'_',...
+                num2str(thisprediction.Patient_Information.dateOfBirth(1:10)),'_', ...
+                num2str(thisprediction.Patient_Information.patientID)];
+            
+            writematrix('Bilateral Information',[filename,'.xls'],'Range','A1');
+            writematrix('Unilateral Left Information',[filename,'.xls'],'Range','A2');
+            writematrix('Unilateral Right Information',[filename,'.xls'],'Range','A3');
+            writematrix('Tag',[filename,'.xls'],'Range','A4');
+            writematrix('Heatmap Name',[filename,'.xls'],'Range','A5');
+            writematrix('Save Directory of .mat',[filename,'.xls'],'Range','A6');
+            writematrix(PredictionAndVTA.prediction_Information.bilateral,[filename,'.xls'],'Range','B1');
+            writematrix(PredictionAndVTA.prediction_Information.unilateral.left,[filename,'.xls'],'Range','B2');
+            writematrix(PredictionAndVTA.prediction_Information.unilateral.right,[filename,'.xls'],'Range','B3');
+            writematrix(PredictionAndVTA.Tag,[filename,'.xls'],'Range','B4');
+            writematrix(PredictionAndVTA.heatmapName,[filename,'.xls'],'Range','B5');
+            writematrix(thisprediction.Temp,[filename,'.xls'],'Range','B6');
+            cd(currentDirectory);
         end
         %%
         function showTheData(obj,thisprediction)

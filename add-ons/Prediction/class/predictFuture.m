@@ -31,6 +31,7 @@ classdef predictFuture<handle
     end
     
     properties (Hidden)
+        Temp
         Data_Out
         PositionHemisphere
         bilateralOn=0
@@ -97,6 +98,9 @@ classdef predictFuture<handle
                 'outerposition',[0.57 0.45 0.4 0.1],...
                 'String',{'DystoniaWürzburg(gpi)','BostonBerlin(stn)','BostonAlone(stn)'},...
                 'BackgroundColor',[0.5 0.5 0.5],...
+                'Tooltip',{['This heatmap was designed as part of a study made by Dr. Reich and Mr. Roothans in May 2019',newline,...
+                ' with the name "Probabilistic mapping of the antidystonic effect of pallidal neurostimulation"']},...
+                'Value',1,...
                 'FontName','Arial',...
                 'FontSize',14,...
                 'Callback',@heatmapListbox);
@@ -112,7 +116,6 @@ classdef predictFuture<handle
                 'FontName','Arial',...
                 'FontSize',14,...
                 'cdata',pic,...
-                'Visible','off',...
                 'Callback',@runButton);
             
             obj.handles.menu.file.main=uimenu('parent',obj.handles.figure,...
@@ -218,13 +221,16 @@ classdef predictFuture<handle
                 switch thisprediction.handles.heatmapListbox.Value
                     case 1
                         thisprediction.handles.menu.file.heatmapDystoniaWuerzburgMartin.main.MenuSelectedFcn(hObject,eventdata);
+                        thisprediction.handles.heatmapListbox.Tooltip={['This heatmap was designed as part of a study made by Dr. Reich and Mr. Roothans in May 2019',newline,...
+                                                                        ' with the name "Probabilistic mapping of the antidystonic effect of pallidal neurostimulation"']};
                     case 2
                         thisprediction.handles.menu.file.heatmapBostonBerlin.main.MenuSelectedFcn(hObject,eventdata);
+                        thisprediction.handles.heatmapListbox.Tooltip={'This heatmap was designed as part of a cooperation between Boston and Berlin and is still in progress!'};
                     case 3
                         thisprediction.handles.menu.file.heatmapBostonAlone.main.MenuSelectedFcn(hObject,eventdata);
-                end
-                if strcmp(lower(thisprediction.handles.importButton.Visible),'off')  
-                    thisprediction.handles.runButton.Visible='on';
+                        thisprediction.handles.heatmapListbox.Tooltip={'This heatmap was designed by a team of researches from Boston and is still in progress!'};
+
+ 
                 end
             end
             %% -----
@@ -242,9 +248,8 @@ classdef predictFuture<handle
                     return
                 end
                 
-                if isempty(thisprediction.Heatmap)
-                    error('No Heatmap was given! Please select one in the menu!');
-                    return
+                if thisprediction.handles.heatmapListbox.Value==1
+                   dystoniaWuerzburgMartin(hObject,eventdata);
                 end
                 
                 f=uifigure;

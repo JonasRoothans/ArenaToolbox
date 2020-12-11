@@ -108,47 +108,34 @@ classdef ArenaScene < handle
             
             obj.handles.configcontrols = [];
             
-            obj.handles.text_box_listSelectActor = uicontrol('parent',obj.handles.figure,...
-                'style','text',...
-                'units','normalized',...
-                'position', [0.02,0.43,0.1,0.2],...
-                'String','Select the Actor ...',...
-                'Visible','off');
-            
-            obj.handles.box_listSelectActor = uicontrol('parent',obj.handles.figure,...
-                'style','listbox',...
-                'units','normalized',...
-                'position', [0.02,0.4,0.1,0.2],...
-                'String',' ',...
-                'Visible','off');
-            
-            obj.handles.confirmbutton_box_listSelectActor = uicontrol('parent',obj.handles.figure,...
-                'units','normalized',...
-                'position', [0.02,0.37,0.1,0.03],...
-                'String','Confirm',...
-                'Visible','off',...
-                'callback',{@confirmbutton_box_listSelectActor});
-            
             obj.handles.text_box_listSelectResult = uicontrol('parent',obj.handles.figure,...
                 'style','text',...
                 'units','normalized',...
-                'position', [0.13,0.43,0.1,0.2],...
-                'String','Select the Result ...',...
+                'position', [0.02,0.43,0.1,0.2],...
+                'String','All results which were found...',...
                 'Visible','off');
             
             obj.handles.box_listSelectResult = uicontrol('parent',obj.handles.figure,...
                 'style','listbox',...
                 'units','normalized',...
-                'position', [0.13,0.4,0.1,0.2],...
+                'position', [0.02,0.4,0.11,0.2],...
                 'String',{},...
                 'Visible','off');
             
             obj.handles.confirmbutton_box_listSelectResult = uicontrol('parent',obj.handles.figure,...
                 'units','normalized',...
-                'position',[0.13,0.37,0.1,0.03],...
-                'String','Confirm',...
+                'position',[0.02,0.37,0.11,0.03],...
+                'String','Show Result',...
                 'Visible','off',...
                 'callback',{@confirmbutton_box_listSelectResult});
+            
+            obj.handles.closebutton_box_listSelectResult = uicontrol('parent',obj.handles.figure,...
+                'units','normalized',...
+                'position',[0.12,0.60,0.01,0.03],...
+                'String','X',...
+                'Visible','off',...
+                'callback',{@menu_closePredictionWindow});
+            
             %menubar
             obj.handles.menu.file.main = uimenu(obj.handles.figure,'Text','File');
             
@@ -161,13 +148,7 @@ classdef ArenaScene < handle
             obj.handles.menu.file.export.blender = uimenu(obj.handles.menu.file.export.main,'Text','Blender (*.obj)','callback',{@menu_exporttoblender});
             obj.handles.menu.file.export.handlestoworkspace = uimenu(obj.handles.menu.file.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
             obj.handles.menu.file.export.saveSelection = uimenu(obj.handles.menu.file.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
-            obj.handles.menu.file.predict.main = uimenu(obj.handles.menu.file.main ,'Text','Prediction');
-            obj.handles.menu.file.predict.calculation=uimenu(obj.handles.menu.file.predict.main,'Text','Open leads for prediction','Callback',{@menu_selectActorPrediction});
-            obj.handles.menu.file.predict.results = uimenu(obj.handles.menu.file.predict.main,'Text','View Results','Callback',{@menu_viewActorResults},'Enable','off');
-            obj.handles.menu.file.predict.close = uimenu(obj.handles.menu.file.predict.main,'Text','Close Prediction Windows','Callback',{@menu_closePredictionWindows},'Enable','off');
-            obj.handles.menu.file.predict.showOldResults = uimenu(obj.handles.menu.file.predict.main,'Text','Show old Results','Callback',{@menu_showOldResults});
-
-            
+                     
             obj.handles.menu.stusessions.main = uimenu(obj.handles.figure,'Text','Suretune sessions','Visible','off','Separator','on');
             obj.handles.menu.stusessions.openwindows = {};
             
@@ -250,6 +231,13 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.modify.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Modify');
             obj.handles.menu.dynamic.analyse.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Analyse');
             obj.handles.menu.dynamic.generate.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Generate');            
+            obj.handles.menu.dynamic.predict.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Prediction');
+            
+            obj.handles.menu.dynamic.Electrode.loadedLeadBasedCalculation = uimenu(obj.handles.menu.dynamic.predict.main,'Text','Open Prediction Enviroment','Callback',{@menu_openPredictionEnviroment},'Enable','off');
+            obj.handles.menu.dynamic.Electrode.randomDataBasedcalculation = uimenu(obj.handles.menu.dynamic.predict.main,'Text','Run a prediction without preloaded data','Callback',{@menu_runPredictionWithoutPreloadedData});
+            obj.handles.menu.dynamic.Electrode.results = uimenu(obj.handles.menu.dynamic.predict.main,'Text','View Results','Callback',{@menu_viewActorResults},'Enable','off');
+            obj.handles.menu.dynamic.Electrode.close = uimenu(obj.handles.menu.dynamic.predict.main,'Text','Close Result Window','Callback',{@menu_closePredictionWindow},'Enable','off');
+            obj.handles.menu.dynamic.Electrode.showOldResults = uimenu(obj.handles.menu.dynamic.predict.main,'Text','Show old Results','Callback',{@menu_showOldResults},'Enable','off');
             
             obj.handles.menu.dynamic.PointCloud.distribution = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: show distribution','callback',{@menu_pcDistribution},'Enable','off');
             obj.handles.menu.dynamic.PointCloud.inMesh = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: is a point inside a mesh?','callback',{@menu_pointcloudinmesh},'Enable','off');
@@ -2402,37 +2390,65 @@ classdef ArenaScene < handle
                 end
             end
             %--------------------------------------------------------------
-            function menu_selectActorPrediction(hObject,eventdata)
+            
+            function menu_openPredictionEnviroment(hObject,eventdata)
                 thisScene=ArenaScene.getscenedata(hObject);
-                thisScene.handles.menu.file.predict.close.Enable='on';
-                thisScene.handles.menu.file.predict.results.Enable='on'; %submenu on
-                if isempty(thisScene.Actors)
-                    thisScene.handles.box_listSelectActor.String='Prediction without using the "until now" imported data.';
-                else
-                    actorNames=[];
-                    actorNames(1,1).Tag='Prediction without using the "until now" imported data.';
-                    actorNames(1,1).Number=[];
-                    for i=1:numel(thisScene.Actors(1, 1:end))
-                        if isa(thisScene.Actors(1, i).Data,'Electrode')
-                            actorNames(1,end+1).Tag=thisScene.Actors(1,i).Tag;
-                            actorNames(1,end).Number=i;
-                        else
+                thisScene.handles.menu.file.predict.close.Enable='off';
+                thisScene.handles.menu.file.predict.results.Enable='off';
+                
+                if numel(thisScene.handles.panelright.Value)<3 && numel(thisScene.handles.panelright.Value)>0
+                    selection=thisScene.handles.panelright.Value(1,1);
+                    PathDirectory=thisScene.Actors(1,selection).PathDirectory;
+                    thisScene.Actors(1,selection).PredictInformation=predictFuture();
+                    try
+                        selection2=thisScene.handles.panelright.Value(1,2);
+                        %----
+                        % for bilateral predictions
+                        if strcmp(thisScene.Actors(1,selection).PathDirectory,thisScene.Actors(1,selection2).PathDirectory)
+                            if isa(thisScene.Actors(1,selection2).Data,'Electrode')
+                                selected=thisScene.Actors(1,selection).Data.C0.x>0;
+                                maybeMatching=thisScene.Actors(1,selection2).Data.C0.x>0;
+                                if selected~=maybeMatching
+                                    thisScene.Actors(1,selection).PredictInformation.bilateralOn=1;
+                                    thisScene.Actors(1,selection).PredictInformation.config.SecondLead=thisScene.Actors(1,selection2).Data;
+                                    thisScene.Actors(1,selection).PredictInformation.config.SecondLead.NumberOfLead=thisScene.Actors(1,selection2).NumberOfLead;
+                                    waitfor(msgbox('Your bilateral prediction data will be stored under the name coming first in the panel on the right...'));
+                                end
+                            end
                         end
+                    catch
+                        disp('Unilateral prediction will be done!');
                     end
-                    thisScene.handles.box_listSelectActor.UserData=struct();
-                    thisScene.handles.box_listSelectActor.UserData=actorNames;
-                    thisScene.handles.box_listSelectActor.String={actorNames(1,1:end).Tag};
+                    % for unilateral prediction
+                    thisScene.Actors(1,selection).PredictInformation.config.FirstLead=thisScene.Actors(1,selection).Data;
+                    thisScene.Actors(1,selection).PredictInformation.config.FirstLead.NumberOfLead=thisScene.Actors(1,selection).NumberOfLead;
+                    thisScene.Actors(1,selection).PredictInformation.Tag=thisScene.Actors(1,selection).Tag;
+                    thisScene.Actors(1,selection).PredictInformation.newPrediction(PathDirectory);
+                    % when prediction is finished the Results should be
+                    % shown and also accessed
+                    try
+                        waitfor(thisScene.Actors(1,selection).PredictInformation.handles.figure);
+                        if isempty(thisScene.Actors(1,selection).PredictInformation.Heatmap)
+                            warning('No Prediction Data was calculated!');
+                        else
+                            thisScene.Actors(1,selection).PredictInformation.Results={thisScene.Actors(1,selection).PredictInformation.handles.prediction_Information,thisScene.Actors(1,selection).PredictInformation.Heatmap,...
+                                thisScene.Actors(1,selection).PredictInformation.configStructure};
+                        end
+                        
+                        if isa(thisScene.Actors(1,selection).PredictInformation.Results,'cell')
+                            menu_viewActorResults(thisScene);
+                        end
+                    catch
+                        return
+                    end
+                else
+                    error('You selected too many leads!');
                 end
-                thisScene.handles.box_listSelectActor.Visible='on';
-                thisScene.handles.text_box_listSelectActor.Visible='on';
-                thisScene.handles.confirmbutton_box_listSelectActor.Visible='on';
             end
             
-            function box_listSelectActor(thisScene)
-                selection=thisScene.handles.box_listSelectActor.Value;
-                
-                if selection==1
-                    PathDirectory=0;
+            function menu_runPredictionWithoutPreloadedData(hObject,eventdata)
+                thisScene=ArenaScene.getscenedata(hObject);
+                PathDirectory=0;
                     lead=PredictionActor();
                     lead.PredictInformation=predictFuture();
                     lead.PredictInformation.newPrediction(PathDirectory);
@@ -2450,73 +2466,9 @@ classdef ArenaScene < handle
                     end
                     warning('If you want to display this results, please use the "Show old results" submenu!');
                     lead.delete();
-                elseif selection>1
-                    selection=thisScene.handles.box_listSelectActor.UserData(1,selection).Number;
-                    PathDirectory=thisScene.Actors(1,selection).PathDirectory;
-                    thisScene.Actors(1,selection).PredictInformation=predictFuture();
-                    %----
-                    % for bilateral predictions
-                    for iActor=1:numel(thisScene.Actors)
-                        if thisScene.Actors(1,selection).PredictInformation.bilateralOn==0
-                            try
-                                if strcmp(PathDirectory,thisScene.Actors(1,iActor).PathDirectory)
-                                    if isa(thisScene.Actors(1,iActor).Data,'Electrode')
-                                        selected=thisScene.Actors(1,selection).Data.C0.x>0;
-                                        maybeMatching=thisScene.Actors(1,iActor).Data.C0.x>0;
-                                        if selected~=maybeMatching
-                                            message=['Two electrodes of one Session for left and right were found!',...
-                                                newline, 'Do you want to run a bilateral prediction for',newline,' %s and %s?'];
-                                            message=sprintf(message,thisScene.Actors(1,selection).Tag,thisScene.Actors(1,iActor).Tag);
-                                            answer=questdlg(message,'Bilateral?','Yes','No','Yes');
-                                            if strcmp(answer,'Yes')
-                                                thisScene.Actors(1,selection).PredictInformation.bilateralOn=1;
-                                                thisScene.Actors(1,selection).PredictInformation.config.SecondLead=thisScene.Actors(1,iActor).Data;
-                                                thisScene.Actors(1,selection).PredictInformation.config.SecondLead.NumberOfLead=thisScene.Actors(1,iActor).NumberOfLead;
-                                                waitfor(msgbox('Your bilateral prediction data will be stored in the Actor you just selected...'));
-                                            end
-                                        end
-                                    end
-                                end
-                            catch
-                            end
-                        end
-                    end
-                    thisScene.Actors(1,selection).PredictInformation.config.FirstLead=thisScene.Actors(1,selection).Data;
-                    thisScene.Actors(1,selection).PredictInformation.config.FirstLead.NumberOfLead=thisScene.Actors(1,selection).NumberOfLead;
-                    thisScene.Actors(1,selection).PredictInformation.Tag=thisScene.Actors(1,selection).Tag;
-                    thisScene.Actors(1,selection).PredictInformation.newPrediction(PathDirectory);
-                    try
-                        waitfor(thisScene.Actors(1,selection).PredictInformation.handles.figure);
-                    catch
-                        return
-                    end
-                    try
-                        if isempty(thisScene.Actors(1,selection).PredictInformation.Heatmap)
-                            warning('No Prediction Data was calculated!');
-                        else
-                            thisScene.Actors(1,selection).PredictInformation.Results={thisScene.Actors(1,selection).PredictInformation.handles.prediction_Information,thisScene.Actors(1,selection).PredictInformation.Heatmap,...
-                                thisScene.Actors(1,selection).PredictInformation.configStructure};
-                        end
-                    catch
-                        return
-                    end
-                end
-
-                try
-                    if isa(thisScene.Actors(1,selection).PredictInformation.Results,'cell')
-                            menu_viewActorResults(thisScene);
-                    end
-                catch
-                end
+                thisScene.handles.menu.dynamic.Electrode.showOldResults.Enable='on';
             end
             
-            function confirmbutton_box_listSelectActor(hObject,eventdata)
-                 thisScene=ArenaScene.getscenedata(hObject);
-                if not(isempty(thisScene.handles.box_listSelectActor.Value))
-                 box_listSelectActor(thisScene);
-                end
-            end
-                            
             function menu_viewActorResults(hObject,eventdata)
                 if not(isa(hObject,'ArenaScene'))
                     thisScene=ArenaScene.getscenedata(hObject);
@@ -2524,29 +2476,28 @@ classdef ArenaScene < handle
                     thisScene=hObject;
                 end
                 thisScene.handles.text_box_listSelectResult.Visible ='on';
+                thisScene.handles.menu.dynamic.Electrode.showOldResults.Enable='on';
                 thisScene.handles.box_listSelectResult.Visible='on';
-                thisScene.handles.menu.file.predict.close.Enable='on';
+                thisScene.handles.menu.dynamic.Electrode.close.Enable='on';
                 thisScene.handles.confirmbutton_box_listSelectResult.Visible='on';
-                if strcmp(thisScene.handles.box_listSelectActor.Visible,'on')
-                listSelectResultEnd=numel(thisScene.handles.box_listSelectActor.String);
+                thisScene.handles.closebutton_box_listSelectResult.Visible='on';
+                listSelectResultEnd=numel(thisScene.handles.panelright.String);
                 thisScene.handles.box_listSelectResult.String={};
                 thisScene.handles.box_listSelectResult.UserData=struct();
                 for irepetitions=1:listSelectResultEnd
-                    actorNumber=thisScene.handles.box_listSelectActor.UserData(1,irepetitions).Number;
                     try
-                        if isa(thisScene.Actors(1,actorNumber).PredictInformation.Results,'cell')
+                        if isa(thisScene.Actors(1,irepetitions).PredictInformation.Results,'cell')
                             elementsOfString=numel(thisScene.handles.box_listSelectResult.String);
                             if elementsOfString==0
                                 elementsOfString=1;
                             else
                                 elementsOfString=elementsOfString+1;
                             end
-                            thisScene.handles.box_listSelectResult.String{elementsOfString}=thisScene.Actors(1,actorNumber).Tag;
-                            thisScene.handles.box_listSelectResult.UserData(1,elementsOfString).Number=actorNumber;
+                            thisScene.handles.box_listSelectResult.String{elementsOfString}=thisScene.Actors(1,irepetitions).Tag;
+                            thisScene.handles.box_listSelectResult.UserData(1,elementsOfString).Number=irepetitions;
                         end
                     catch
                     end
-                end
                 end
             end
             
@@ -2568,16 +2519,14 @@ classdef ArenaScene < handle
                 end
             end
             
-            function menu_closePredictionWindows(hObject,eventdata)
+            function menu_closePredictionWindow(hObject,eventdata)
                 thisScene=ArenaScene.getscenedata(hObject);
-                thisScene.handles.menu.file.predict.results.Enable='off';
-                thisScene.handles.text_box_listSelectActor.Visible='off';
-                thisScene.handles.box_listSelectActor.Visible='off';
-                thisScene.handles.confirmbutton_box_listSelectActor.Visible='off';
+                thisScene.handles.menu.dynamic.Electrode.close.Enable='off';
                 thisScene.handles.text_box_listSelectResult.Visible='off';
                 thisScene.handles.box_listSelectResult.Visible='off';
                 thisScene.handles.confirmbutton_box_listSelectResult.Visible='off';
-                thisScene.handles.menu.file.predict.close.Enable='off';
+                thisScene.handles.closebutton_box_listSelectResult.Visible='off';
+
             end
             
             function menu_showOldResults(hObject,eventdata)
@@ -2586,7 +2535,6 @@ classdef ArenaScene < handle
                 result=load(fullfile(pathDirectory,file));
                 d=predictResults();
                 d.displayHighestResults(result);
-                msgbox('Your Result is shown!')
             end
             
             %--------------------------------------------------------------
@@ -2656,7 +2604,7 @@ classdef ArenaScene < handle
             for iOther = 1:numel(otherclasses)
                 thisOtherClass = otherclasses{iOther};
                 switch thisOtherClass
-                    case {'main','modify','analyse','generate'}
+                    case {'main','modify','analyse','generate','predict'}
                         continue
                     case thisclass
                         functions = fieldnames(obj.handles.menu.dynamic.(thisOtherClass));

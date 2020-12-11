@@ -37,7 +37,6 @@ classdef predictResults<handle
                 'name',['Result ', Actor.Tag],...
                 'numbertitle','off',...
                 'resize','off',...
-                'CloseRequestFcn',@closeResult,...
                 'WindowKeyPressFcn',@kSnapshotResult,...
                 'Color',[1 1 1]);
             
@@ -117,18 +116,6 @@ classdef predictResults<handle
                     obj.handles.table_unilateralRight.RowName{ianswer}=sprintf(part,contacts_vector(1,...
                         col),amplitudes_vector(1,col));
                     obj.handles.table_unilateralRight.Data(ianswer,1)=obj.HighestResults.unilateralRight.results(1,ianswer);
-                end
-            end
-            
-            
-            function closeResult(hObject,eventdata)
-                request=questdlg('Close Window?','Confirmation',...
-                    'Cancel','Yes','Yes');
-                switch request
-                    case 'Cancel'
-                        return
-                    case 'Yes'
-                        delete(gcf);
                 end
             end
             
