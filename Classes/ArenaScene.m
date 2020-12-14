@@ -2531,8 +2531,10 @@ classdef ArenaScene < handle
             
             function menu_showOldResults(hObject,eventdata)
                 waitfor(msgbox('Please select your old Results from other Prediction!'));
-                [file,pathDirectory]=uigetfile('*.mat','Select old Results');
-                result=load(fullfile(pathDirectory,file));
+                [file,pathDirectory]=uigetfile('*.xls','Select old Results');
+                c=load('predictionConfig.mat');   %for every .xls data there is a appropriate .mat file which is used for the displaying of old results
+                file=[file(1:end-4),'.mat'];
+                result=load([c.predictionConfig.Temp,'/',file]);
                 d=predictResults();
                 d.displayHighestResults(result);
             end
