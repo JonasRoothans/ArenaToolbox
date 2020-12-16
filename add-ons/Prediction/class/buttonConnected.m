@@ -458,18 +458,18 @@ classdef buttonConnected<handle
                 num2str(thisprediction.Patient_Information.dateOfBirth(1:10)),'_', ...
                 num2str(thisprediction.Patient_Information.patientID)];
             
-            writematrix('Bilateral Information',[filename,'.xls'],'Range','A1');
-            writematrix('Unilateral Left Information',[filename,'.xls'],'Range','A2');
-            writematrix('Unilateral Right Information',[filename,'.xls'],'Range','A3');
-            writematrix('Tag',[filename,'.xls'],'Range','A4');
-            writematrix('Heatmap Name',[filename,'.xls'],'Range','A5');
-            writematrix('Save Directory of .mat',[filename,'.xls'],'Range','A6');
-            writematrix(PredictionAndVTA.prediction_Information.bilateral,[filename,'.xls'],'Range','B1');
-            writematrix(PredictionAndVTA.prediction_Information.unilateral.left,[filename,'.xls'],'Range','B2');
-            writematrix(PredictionAndVTA.prediction_Information.unilateral.right,[filename,'.xls'],'Range','B3');
-            writematrix(PredictionAndVTA.Tag,[filename,'.xls'],'Range','B4');
-            writematrix(PredictionAndVTA.heatmapName,[filename,'.xls'],'Range','B5');
-            writematrix(thisprediction.Temp,[filename,'.xls'],'Range','B6');
+            writematrix('Bilateral Information',[filename,'.xls'],'Range','A1','Sheet',2);
+            writematrix('Unilateral Left Information',[filename,'.xls'],'Range','A2','Sheet',1);
+            writematrix('Unilateral Right Information',[filename,'.xls'],'Range','A3','Sheet',1);
+            writematrix('Tag',[filename,'.xls'],'Range','A4','Sheet',1);
+            writematrix('Heatmap Name',[filename,'.xls'],'Range','A5','Sheet',1);
+            writematrix('Save Directory of .mat',[filename,'.xls'],'Range','A6','Sheet',1);
+            writematrix(PredictionAndVTA.prediction_Information.bilateral,[filename,'.xls'],'Range','B1','Sheet',2);
+            writematrix(PredictionAndVTA.prediction_Information.unilateral.left,[filename,'.xls'],'Range','B2','Sheet',1);
+            writematrix(PredictionAndVTA.prediction_Information.unilateral.right,[filename,'.xls'],'Range','B3','Sheet',1);
+            writematrix(PredictionAndVTA.Tag,[filename,'.xls'],'Range','B4','Sheet',1);
+            writematrix(PredictionAndVTA.heatmapName,[filename,'.xls'],'Range','B5','Sheet',1);
+            writematrix(thisprediction.Temp,[filename,'.xls'],'Range','B6','Sheet',1);
             cd(currentDirectory);
         end
         %%
