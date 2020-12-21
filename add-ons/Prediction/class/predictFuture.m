@@ -252,25 +252,25 @@ classdef predictFuture<handle
                    dystoniaWuerzburgMartin(hObject,eventdata);
                 end
                 
-                f=uifigure;
-                progress=uiprogressdlg(f,'Message','VTAs will be prepared!','Value',0.1);
-                pause(1);
                 b=buttonConnected();
+                waitbarFigurePredictFuture=uifigure;
+                b.progress=uiprogressdlg(waitbarFigurePredictFuture,'Message','VTAs will be prepared!','Value',0.1,'ShowPercentage','on');
+                pause(3);
                 [thisprediction.handles.VTA_Information,thisprediction.Patient_Information,result] =b.VTA_Transformation(thisprediction);
                 if result==0
-                progress.Message='Prediction is in progress!';
-                progress.Value=0.3;
+                b.progress.Message='Prediction is in progress!';
+                b.progress.Value=0.3;
                 pause(1);
                 [thisprediction.handles.prediction_Information.bilateral,thisprediction.handles.prediction_Information.unilateral]=b.predictionProcess(thisprediction);
-                progress.Message='Prediction is finished!';
-                progress.Value=0.6;
+                b.progress.Message='Prediction is finished!';
+                b.progress.Value=0.8;
                 b.saveTheData(thisprediction);
-                progress.Message='Data is stored';
-                progress.Value=0.8;
+                b.progress.Message='Data is stored';
+                b.progress.Value=0.9;
                 b.showTheData(thisprediction);
-                progress.Value=1;
-                progress.Message='Finished';
-                pause(1);
+                b.progress.Value=1;
+                b.progress.Message='Finished';
+                pause(3);
                 if thisprediction.handles.SoundOn.value
                     % if you are not around looking on the monitor, then you
                     % can just hear it is finished
@@ -279,10 +279,10 @@ classdef predictFuture<handle
                     play(gong);
                     pause(3);
                 end
-                delete(f);
+                delete(waitbarFigurePredictFuture);
                 else
                     thisprediction.Heatmap.Name=0;
-                    delete(f);
+                    delete(waitbarFigurePredictFuture);
                 end
                 waitfor(msgbox('Your Prediction is done!'));
                 delete(findobj('Name','Prediction Enviroment'));

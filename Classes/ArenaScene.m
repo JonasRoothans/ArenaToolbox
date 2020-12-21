@@ -2433,6 +2433,7 @@ classdef ArenaScene < handle
                         else
                             thisScene.Actors(1,selection).PredictInformation.Results={thisScene.Actors(1,selection).PredictInformation.handles.prediction_Information,thisScene.Actors(1,selection).PredictInformation.Heatmap,...
                                 thisScene.Actors(1,selection).PredictInformation.configStructure};
+                            thisScene.Actors(1,selection).Tag=thisScene.Actors(1,selection).PredictInformation.Tag;
                         end
                         
                         if isa(thisScene.Actors(1,selection).PredictInformation.Results,'cell')

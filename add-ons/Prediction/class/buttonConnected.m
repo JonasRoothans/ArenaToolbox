@@ -2,11 +2,11 @@ classdef buttonConnected<handle
     % All to the button connected functions go here.
     
     properties
-        
+        progress
     end
     
     methods
-        function [Excel_output,Patient_Information,result]=VTA_Transformation(obj,thisprediction)
+        function [Excel_output,Patient_Information,result]=VTA_Transformation(obj,thisprediction,waitbarFigurePredictFuture)
             %--
             %to work on this data, we need the toolbox Suretune SDK and
             %it's own class
@@ -19,6 +19,8 @@ classdef buttonConnected<handle
             if isempty(thisSession.therapyPlanStorage)
                 error('No patient therapy plan found!')
             end
+            
+            obj.progress.Value=0.13;
             
             lead=leadConnected();
             
@@ -50,6 +52,8 @@ classdef buttonConnected<handle
                 thisprediction.Temp=config.predictionConfig.Temp;
             end
             
+            obj.progress.Value=0.14;
+            
             %check if this Prediction was already done
             result=lead.alreadyRun(thisprediction,Patient_Information,thisSession.therapyPlanStorage{1, 1}.lead.leadType);
             if result==1
@@ -65,65 +69,97 @@ classdef buttonConnected<handle
                 % need this!
                 if isempty(thisprediction.config)
                     lead.getMissingMetaData(thisSession,thisprediction);
-                end                  
-                    
+                end
+                
                 % Check wheter first is left, how it has to be...
                 if thisprediction.config.FirstLead.c0(1,1)>0
                     firstLead=thisprediction.config.FirstLead;
-                    try
-                    SecondLead=thisprediction.config.SecondLead;
-                    thisprediction.config.FirstLead=SecondLead;
-                    catch
-                    warning('No second lead found! It is okay for unilateral predictions.');
                     thisprediction.config.FirstLead=[];
+                    thisprediction.config.FirstLead.maxStimPlans=[];
+                    try
+                        SecondLead=thisprediction.config.SecondLead;
+                        thisprediction.config.FirstLead=SecondLead;
+                    catch
+                        warning('No second lead found! It is okay for unilateral predictions.');
+                        % In first lead there needs to be a maxStimPlan number,
+                        % because it is used later on. If the leads have
+                        % different amount of stimPlans you get the other on.
+                        try
+                            runOld=lead.config.runWithoutLoadedActor;
+                        catch
+                            for itherapyPlans=1:numel(thisSession.therapyPlanStorage)
+                                if firstLead.maxStimPlans~=numel(thisSession.therapyPlanStorage{1, itherapyPlans}.lead.stimPlan)
+                                    thisprediction.config.FirstLead.maxStimPlans=numel(thisSession.therapyPlanStorage{1, itherapyPlans}.lead.stimPlan);
+                                    break;
+                                end
+                            end
+                            if isempty(thisprediction.config.FirstLead.maxStimPlans)
+                                thisprediction.config.FirstLead.maxStimPlans=firstLead.maxStimPlans;
+                            end
+                        end
                     end
                     thisprediction.config.SecondLead=firstLead;
                 end
-
+                
+                obj.progress.Value=0.15;
+                
                 %Check whether it was done with an Actor or with selected
                 %Data inside the predictFuture enviroment.
                 
                 try
                     runOld=lead.config.runWithoutLoadedActor;
                 catch
+                    %change of Actor Name to a better understandable one
+                    if thisprediction.bilateralOn==1
+                        if strcmp(lower(thisprediction.Tag(end-9:end)),'_bilateral')
+                        else
+                            thisprediction.Tag=[ thisprediction.Tag,'_Bilateral'];
+                        end
+                    elseif strcmp(lower(thisprediction.Tag(end-9:end)),'_bilateral')
+                        thisprediction.Tag=thisprediction.Tag(1:end-10);
+                    end
                     try
-                    thisprediction.config.SecondLead.NumberOfLead=thisprediction.config.FirstLead.maxStimPlans+thisprediction.config.SecondLead.NumberOfLead;
+                        thisprediction.config.SecondLead.NumberOfLead=thisprediction.config.FirstLead.maxStimPlans+thisprediction.config.SecondLead.NumberOfLead;
                     catch
+                        warning('No second lead found! It is okay for unilateral predictions.');
                     end
                 end
                 
-                    
                 % Finding of Transformation data
-                    thisprediction.PositionHemisphere.left=0;
-                    thisprediction.PositionHemisphere.right=0;
-                    for itherapyPlanNumber=1:2
-                        if isempty(thisprediction.config.FirstLead) % If you run this and you only have a right lead...
-                            itherapyPlanNumber=2;
-                        end
-                        if itherapyPlanNumber==1                    % You need always the right number of the stimplan. But in thisSession all therapyPlans are more or less all stimplans there where found in on column.
-                            try
-                            PlanNumber=thisprediction.config.FirstLead.NumberOfLead;
+                thisprediction.PositionHemisphere.left=0;
+                thisprediction.PositionHemisphere.right=0;
+                for itherapyPlanNumber=1:2
+                    try
+                        c0=thisprediction.config.FirstLead.c0; % If you run this and you only have a right lead...
+                    catch
+                        itherapyPlanNumber=2;
+                    end
+                    if itherapyPlanNumber==1                    % You need always the right number of the stimplan. But in thisSession all therapyPlans are more or less all stimplans there where found in on column.
+                        PlanNumber=thisprediction.config.FirstLead.NumberOfLead;
+                        try
                             c0=thisprediction.config.FirstLead.c0(1,1);
-                            catch
-                            end
-                        elseif itherapyPlanNumber==2
-                            try
+                        catch
+                        end
+                    elseif itherapyPlanNumber==2
+                        try
                             PlanNumber=thisprediction.config.SecondLead.NumberOfLead;
                             c0=thisprediction.config.SecondLead.c0(1,1);
-                            catch
-                                continue;
-                            end
+                        catch
+                            continue;
                         end
-                        loop_therapyPlanStorage=thisSession.therapyPlanStorage{PlanNumber};
-                        loop_atlas=lead.getMatchingAtlas(loop_therapyPlanStorage,thisSession,thisprediction,c0);
-                        atlas{itherapyPlanNumber}=loop_atlas;
-                        %Transformation from electrode space to selected atlas
-                        %space
-                        T_vta_to_atlas = thisSession.gettransformfromto(loop_therapyPlanStorage.lead,loop_atlas);
-                        T_atlas_to_legacySpace= lead.findTtolegacySpace(loop_therapyPlanStorage,thisprediction.handles.target);
-                        thisprediction.handles.TransformationLegacySpace{itherapyPlanNumber} =...            % this is the euqivalent of XLS.Tlead2MNI.value
-                            T_vta_to_atlas*T_atlas_to_legacySpace;          %If this value of correctness is not needed it can be shortened with round()
                     end
+                    loop_therapyPlanStorage=thisSession.therapyPlanStorage{PlanNumber};
+                    loop_atlas=lead.getMatchingAtlas(loop_therapyPlanStorage,thisSession,thisprediction,c0);
+                    atlas{itherapyPlanNumber}=loop_atlas;
+                    %Transformation from electrode space to selected atlas
+                    %space
+                    T_vta_to_atlas = thisSession.gettransformfromto(loop_therapyPlanStorage.lead,loop_atlas);
+                    T_atlas_to_legacySpace= lead.findTtolegacySpace(loop_therapyPlanStorage,thisprediction.handles.target);
+                    thisprediction.handles.TransformationLegacySpace{itherapyPlanNumber} =...            % this is the euqivalent of XLS.Tlead2MNI.value
+                        T_vta_to_atlas*T_atlas_to_legacySpace;          %If this value of correctness is not needed it can be shortened with round()
+                end
+                
+                obj.progress.Value=0.17;
                 
                 % VTA with Information is created
                 status='%d. Lead and %d. Contactcombination for aligning monopolar VTAs to sweetspot...';
@@ -143,7 +179,7 @@ classdef buttonConnected<handle
                         % index!
                         thisprediction.Heatmap.T_Data=VoxelData;
                         thisprediction.Heatmap.P_Data=VoxelData;
-                        thisprediction.Heatmap.T_Data.loadnii('BilateralSweetspot_t_p_average_realMNI_nii_tValue.nii',1); 
+                        thisprediction.Heatmap.T_Data.loadnii('BilateralSweetspot_t_p_average_realMNI_nii_tValue.nii',1);
                         thisprediction.Heatmap.P_Data.loadnii('BilateralSweetspot_t_p_average_realMNI_nii_pValue.nii',1);
                     case 'heatmapBostonBerlin'
                         %Please never switch reslicing off with the
@@ -162,32 +198,47 @@ classdef buttonConnected<handle
                     otherwise
                         disp('You did not select a Heatmap which can be used!');
                 end
+                
                 %For prove of this, just look in the programm folder for
                 %ProoveOfWrongSpace
                 iLead=0;
                 while iLead~=2
-                        if isempty(thisprediction.config.FirstLead)
-                            iLead=2;
-                        else
-                        iLead=iLead+1;
-                        end
-                    % Everything which is needed for each single VTA
-                    thisLead = thisSession.getregisterable(leadidcs(1,iLead));
-                    for iStimplan = 1:numel(thisLead.stimPlan)
-                        lead.ExporttoVTApool(thisprediction,thisLead.stimPlan{iStimplan});
+                    iLead=iLead+1;
+                    try
+                        c0=thisprediction.config.FirstLead.c0; % If you run this and you only have a right lead...
+                    catch
+                        iLead=2;
                     end
+                    if iLead==1                    % You need always the right number of the stimplan. But in thisSession all therapyPlans are more or less all stimplans there where found in on column.
+                        PlanNumber=thisprediction.config.FirstLead.NumberOfLead;
+                        
+                    elseif iLead==2
+                        try
+                            PlanNumber=thisprediction.config.SecondLead.NumberOfLead;
+                            
+                            obj.progress.Value=0.26;
+                            
+                        catch
+                            break;
+                        end
+                    end
+                    % This stores the vta which is coming within the
+                    % dataset, which was loaded.
+                    thisLead = thisSession.therapyPlanStorage(PlanNumber);
+                    lead.ExporttoVTApool(thisprediction,thisLead);
                     for iMonoPolar = 1:numel(lead.config.amplitudes_vector)
                         disp(fprintf(status,iLead,iMonoPolar));
+                        data.pulsewidth='60';       %Big question, is it enough or more correctness needed?
+                        data.voltage='False';
+                        data.leadtype='Medtronic3389';
+                        data.groundedcontact='0 0 0 0';
                         
-%                                                 data.pulsewidth='60';     %Big question, is it enough or more correctness needed?
-%                                                 data.voltage='False';
-                                                
-                                                data.pulsewidth='60';       %Big question, is it enough or more correctness needed?
-                                                data.voltage='False';
-                        data.leadtype= thisSession.therapyPlanStorage{1, iLead}.lead.leadType; %this is like how it should be with a bigger vta pool
-%                         data.voltage = thisSession.therapyPlanStorage{1, iLead}.voltageBasedStimulation;
-%                         data.pulsewidth = thisSession.therapyPlanStorage{1, iLead}.pulseWidth;
-                        data.groundedcontact = thisSession.therapyPlanStorage{1, iLead}.contactsGrounded;
+                        obj.progress.Value=obj.progress.Value+0.0021;
+                        
+                        %                         data.leadtype= thisSession.therapyPlanStorage{1, PlanNumber}.lead.leadType; %this is like how it should be with a bigger vta pool
+                        %                         data.voltage = thisSession.therapyPlanStorage{1, PlanNumber}.voltageBasedStimulation;
+                        %                         data.pulsewidth = thisSession.therapyPlanStorage{1, PlanNumber}.pulseWidth;
+                        %                         data.groundedcontact = thisSession.therapyPlanStorage{1, PlanNumber}.contactsGrounded;
                         
                         data.amplitude = num2str(lead.config.amplitudes_vector(iMonoPolar));
                         activevector = lead.config.activevector;
@@ -195,7 +246,7 @@ classdef buttonConnected<handle
                         data.activecontact = strrep(num2str(activevector),'  ',' ');
                         
                         Excel_output(iLead,iMonoPolar).monoPolarConfig = data;
-                        Excel_output(iLead,iMonoPolar).leadname = thisSession.therapyPlanStorage{1,iLead}.lead.label;
+                        Excel_output(iLead,iMonoPolar).leadname = thisSession.therapyPlanStorage{1,PlanNumber}.lead.label;
                         
                         try
                             thisVTA = lead.loadVTA(data,thisprediction.VTAPoolPath); %loads what was created with the makerecipeCodeMac
@@ -216,11 +267,10 @@ classdef buttonConnected<handle
                         
                     end
                     try
-                        if isempty(thisprediction.config.SecondLead);
+                        if isempty(thisprediction.config.SecondLead)
                             iLead=2;
                         end
                     catch
-                        iLead=2;
                     end
                 end
             end
@@ -300,6 +350,8 @@ classdef buttonConnected<handle
                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
                                 
+                                obj.progress.Value=obj.progress.Value+0.001;
+                                
                                 disp(fprintf(status,fXLS,sXLS));
                                 sample = [signed_p_map(and(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0));...
                                     signed_p_map(and(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0))];
@@ -320,8 +372,6 @@ classdef buttonConnected<handle
                     % alone
                     probabilityMap=thisprediction.Heatmap.Data.Voxels;
                     linearRegressionCoefficients = 1;  % this are the coefficients for the linear regression model
-                    
-                    
                     
                     if thisprediction.PositionHemisphere.left==1
                         % unilateral left
@@ -352,6 +402,9 @@ classdef buttonConnected<handle
                         bilateral = [];
                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
+                                
+                                obj.progress.Value=obj.progress.Value+0.001;
+                                
                                 sample=[probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);...
                                     probabilityMap(thisprediction.handles.VTA_Information(1,sXLS).normalizedVTA.Voxels>0.5)];
                                 sample=mean(mean(sample));
@@ -397,6 +450,9 @@ classdef buttonConnected<handle
                         status='%d. left Lead and %d. right Lead predicted';
                         bilateral = [];
                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
+                            
+                            obj.progress.Value=obj.progress.Value+0.001;
+                            
                             for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
                                 sample=[probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);...
                                     probabilityMap(thisprediction.handles.VTA_Information(1,sXLS).normalizedVTA.Voxels>0.5)];
@@ -421,7 +477,7 @@ classdef buttonConnected<handle
             
             %save data as .mat file, for easier later on processing
             currentDirectory=cd;
-            cd(thisprediction.Temp) 
+            cd(thisprediction.Temp)
             PredictionAndVTA.target=thisprediction.handles.target;
             PredictionAndVTA.TransformationLegacySpace=thisprediction.handles.TransformationLegacySpace;
             PredictionAndVTA.VTA_Information=thisprediction.handles.VTA_Information;
@@ -442,22 +498,14 @@ classdef buttonConnected<handle
                 num2str(thisprediction.Patient_Information.name),'_', ...
                 thisprediction.Patient_Information.gender,'_',...
                 num2str(thisprediction.Patient_Information.dateOfBirth(1:10)),'_', ...
-                num2str(thisprediction.Patient_Information.patientID),'.mat'];
-            save(fullfile(thisprediction.Temp,filename),'PredictionAndVTA');
+                num2str(thisprediction.Patient_Information.patientID)];
+            save([thisprediction.Temp,filename,'.mat'],'PredictionAndVTA');
             cd(currentDirectory);
             
             %save only the results and no other data as .csv file
             currentDirectory=cd;
-            cd(thisprediction.SavePath)  
-            filename=[PredictionAndVTA.target,'_',...
-                leadtype,'_', ...
-                PredictionAndVTA.heatmapName,'_',...
-                thisprediction.Tag,'_',...
-                num2str(thisprediction.Patient_Information.name),'_', ...
-                thisprediction.Patient_Information.gender,'_',...
-                num2str(thisprediction.Patient_Information.dateOfBirth(1:10)),'_', ...
-                num2str(thisprediction.Patient_Information.patientID)];
-            
+            cd(thisprediction.SavePath)
+            filename=filename(2:end);
             writematrix('Bilateral Information',[filename,'.xls'],'Range','A1','Sheet',2);
             writematrix('Unilateral Left Information',[filename,'.xls'],'Range','A2','Sheet',1);
             writematrix('Unilateral Right Information',[filename,'.xls'],'Range','A3','Sheet',1);
@@ -493,6 +541,7 @@ classdef buttonConnected<handle
                 yticklabels(ticklabels);
                 ytickangle(45);
                 xticklabels(' ');
+                caxis([30 110]);
             end
             
             if thisprediction.PositionHemisphere.right==1
@@ -502,7 +551,7 @@ classdef buttonConnected<handle
                 xticks(1:walkthroughs);
                 xticklabels(ticklabels);
                 xtickangle(45);
-                yticklabels(' ');
+                caxis([30 110]);
             end
             
             if thisprediction.bilateralOn==1
@@ -516,9 +565,9 @@ classdef buttonConnected<handle
                 yticklabels(ticklabels);
                 xtickangle(45);
                 ytickangle(0);
+                caxis([30 110]);
             end
-        end
-        
+    end
     end
 end
 

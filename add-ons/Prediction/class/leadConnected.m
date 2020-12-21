@@ -17,14 +17,21 @@ classdef leadConnected<handle
             currentFolder=cd;
             cd(thisprediction.SavePath);
             result=0;
+            if thisprediction.bilateralOn==1
+                if strcmp(lower(thisprediction.Tag(end-9:end)),'_bilateral')
+                Tag=[thisprediction.Tag(1:end-10),'_Bilateral'];
+                else 
+                Tag=[thisprediction.Tag,'_Bilateral'];
+                end
+            end
             filename=['/',thisprediction.handles.target,'_',...
                 leadtype,'_', ...        
                 thisprediction.Heatmap.Name,'_',...
-                thisprediction.Tag,'_',...
+                Tag,'_',...
                 num2str(Patient_Information.name),'_', ...
                 Patient_Information.gender,'_',...
                 num2str(Patient_Information.dateOfBirth(1:10)),'_', ...
-                num2str(Patient_Information.patientID),'.mat'];
+                num2str(Patient_Information.patientID),'.xls'];
             filename=fullfile(thisprediction.SavePath,filename);
             if exist(filename,'file')
                 result=1;
@@ -83,7 +90,7 @@ classdef leadConnected<handle
         
         function obj=getConfiguration(obj,thisSession)
         
-        valueOfContactLetters=str2num(thisSession.therapyPlanStorage{1, 1}.activeRings);
+        valueOfContactLetters=str2num(thisSession.therapyPlanStorage{1,1}.activeRings);
         contacts=numel(valueOfContactLetters);
         contacts = 0:contacts-1;
         amplitudes = 1:5;
@@ -104,25 +111,25 @@ classdef leadConnected<handle
             % deleted in the future, if the idea behinde is also not needed anymore.
             
             
-            type = thisStimplan.lead.leadType;
-            amp = num2str(round(thisStimplan.stimulationValue,1));
-            voltagecontrolled = thisStimplan.voltageBasedStimulation;
-            pw = num2str(thisStimplan.pulseWidth);
-            cathode = ['c',thisStimplan.activeRings];
-            anode = ['a',thisStimplan.contactsGrounded];
+            type = thisStimplan{1}.lead.leadType;
+            amp = num2str(round(thisStimplan{1}.stimulationValue,1));
+            voltagecontrolled = thisStimplan{1}.voltageBasedStimulation;
+            pw = num2str(thisStimplan{1}.pulseWidth);
+            cathode = ['c',thisStimplan{1}.activeRings];
+            anode = ['a',thisStimplan{1}.contactsGrounded];
             name = [type,amp,voltagecontrolled,pw,cathode,anode,'.mat'];
             
             %Rvta: dim, spacing
-            Rvta = imref3d(thisStimplan.vta.Medium.volumeInfo.dimensions,...
-                thisStimplan.vta.Medium.volumeInfo.spacing(1),...
-                thisStimplan.vta.Medium.volumeInfo.spacing(2),...
-                thisStimplan.vta.Medium.volumeInfo.spacing(3));
+            Rvta = imref3d(thisStimplan{1}.vta.Medium.volumeInfo.dimensions,...
+                thisStimplan{1}.vta.Medium.volumeInfo.spacing(1),...
+                thisStimplan{1}.vta.Medium.volumeInfo.spacing(2),...
+                thisStimplan{1}.vta.Medium.volumeInfo.spacing(3));
             %Rvta: origin
-            Rvta.XWorldLimits = Rvta.XWorldLimits+thisStimplan.vta.Medium.volumeInfo.origin(1);
-            Rvta.YWorldLimits = Rvta.YWorldLimits+thisStimplan.vta.Medium.volumeInfo.origin(2);
-            Rvta.ZWorldLimits = Rvta.ZWorldLimits+thisStimplan.vta.Medium.volumeInfo.origin(3);
+            Rvta.XWorldLimits = Rvta.XWorldLimits+thisStimplan{1}.vta.Medium.volumeInfo.origin(1);
+            Rvta.YWorldLimits = Rvta.YWorldLimits+thisStimplan{1}.vta.Medium.volumeInfo.origin(2);
+            Rvta.ZWorldLimits = Rvta.ZWorldLimits+thisStimplan{1}.vta.Medium.volumeInfo.origin(3);
             
-            Ivta = thisStimplan.vta.Medium.voxelArray;
+            Ivta = thisStimplan{1}.vta.Medium.voxelArray;
             
             if ~exist(fullfile(thisprediction.VTAPoolPath,name),'file')
                 save(fullfile(thisprediction.VTAPoolPath,name),'Rvta','Ivta');
