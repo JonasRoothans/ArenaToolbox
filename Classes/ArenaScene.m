@@ -109,6 +109,19 @@ classdef ArenaScene < handle
             
             obj.handles.configcontrols = [];
             
+            %list template spaces
+            templatedir = fullfile(fileparts(fileparts(matlab.desktop.editor.getActiveFilename)),'Elements','templates');
+            if not(isfolder(templatedir))
+                mkdir(templatedir)
+            end
+            obj.handles.templates = [];
+            templates = dir(fullfile(templatedir,'*.nii'));
+            for iTemplate = 1:numel(templates)
+                obj.handles.templates(iTemplate).path = fullfile(templatedir,templates(iTemplate).name);
+                obj.handles.templates(iTemplate).name = templates(iTemplate).name;
+            end
+ 
+            
             
             
             
@@ -174,6 +187,12 @@ classdef ArenaScene < handle
             obj.handles.menu.atlas.suretune.stn = uimenu(obj.handles.menu.atlas.suretune.main ,'Text','STN','callback',{@menu_legacyatlas});
             obj.handles.menu.atlas.suretune.gpi = uimenu(obj.handles.menu.atlas.suretune.main ,'Text','GPi','callback',{@menu_legacyatlas});
             obj.handles.menu.atlas.suretune.other = uimenu(obj.handles.menu.atlas.suretune.main ,'Text','Other','callback',{@menu_legacyatlas});
+            obj.handles.menu.atlas.MRI.main = uimenu(obj.handles.menu.atlas.main,'Text','MRI template');
+            for iMRItemplate = 1:numel(obj.handles.templates)
+                obj.handles.menu.atlas.MRI.template(iMRItemplate) = uimenu(obj.handles.menu.atlas.MRI.main,'Text',obj.handles.templates(iMRItemplate).name,'callback',{@menu_addMRItemplate,obj.handles.templates(iMRItemplate)});
+            end
+            
+            
             
             
             obj.handles.menu.edit.main = uimenu(obj.handles.figure,'Text','Edit');
@@ -277,6 +296,14 @@ classdef ArenaScene < handle
             end
             
             %---figure functions
+            function menu_addMRItemplate(hObject,eventdata,template)
+                scene = ArenaScene.getscenedata(hObject);
+                templateVD = VoxelData;
+                templateVD.loadnii(template.path);
+                template_actor = templateVD.getslice.see(scene);
+                template_actor.changeName(template.name);
+            end
+            
             function menu_showLight(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 switch hObject.Checked
