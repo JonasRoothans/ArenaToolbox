@@ -110,16 +110,8 @@ classdef ArenaScene < handle
             obj.handles.configcontrols = [];
             
             %list template spaces
-            templatedir = fullfile(fileparts(fileparts(matlab.desktop.editor.getActiveFilename)),'Elements','templates');
-            if not(isfolder(templatedir))
-                mkdir(templatedir)
-            end
-            obj.handles.templates = [];
-            templates = dir(fullfile(templatedir,'*.nii'));
-            for iTemplate = 1:numel(templates)
-                obj.handles.templates(iTemplate).path = fullfile(templatedir,templates(iTemplate).name);
-                obj.handles.templates(iTemplate).name = templates(iTemplate).name;
-            end
+            obj.handles.templates =  menu_refreshTemplatelist(obj,[],'startup');
+
  
             
             
@@ -188,9 +180,11 @@ classdef ArenaScene < handle
             obj.handles.menu.atlas.suretune.gpi = uimenu(obj.handles.menu.atlas.suretune.main ,'Text','GPi','callback',{@menu_legacyatlas});
             obj.handles.menu.atlas.suretune.other = uimenu(obj.handles.menu.atlas.suretune.main ,'Text','Other','callback',{@menu_legacyatlas});
             obj.handles.menu.atlas.MRI.main = uimenu(obj.handles.menu.atlas.main,'Text','MRI template');
+             obj.handles.menu.atlas.MRI.update = uimenu(obj.handles.menu.atlas.MRI.main,'Text','[Refresh list]','callback',{@menu_refreshTemplatelist,'user'});
             for iMRItemplate = 1:numel(obj.handles.templates)
                 obj.handles.menu.atlas.MRI.template(iMRItemplate) = uimenu(obj.handles.menu.atlas.MRI.main,'Text',obj.handles.templates(iMRItemplate).name,'callback',{@menu_addMRItemplate,obj.handles.templates(iMRItemplate)});
             end
+           
             
             
             
@@ -302,6 +296,39 @@ classdef ArenaScene < handle
                 templateVD.loadnii(template.path);
                 template_actor = templateVD.getslice.see(scene);
                 template_actor.changeName(template.name);
+            end
+            
+            function templatelist =  menu_refreshTemplatelist(hObject,eventdata,custom)
+                
+                 templatedir = fullfile(fileparts(fileparts(matlab.desktop.editor.getActiveFilename)),'Elements','templates');
+                if not(isfolder(templatedir))
+                    mkdir(templatedir)
+                end
+                obj.handles.templates = [];
+                templates = dir(fullfile(templatedir,'*.nii'));
+                templatelist = [];
+                for iTemplate = 1:numel(templates)
+                   templatelist(iTemplate).path = fullfile(templatedir,templates(iTemplate).name);
+                   templatelist(iTemplate).name = templates(iTemplate).name;
+                end
+                
+                if strcmp(custom,'user')
+                    scene = ArenaScene.getscenedata(hObject);
+                    if isempty(iTemplate)
+                        msgbox('No .nii files are detected in the folder: ArenaToolbox/Elements/templates')
+                        return
+                    end
+                    
+                    %refresh the handles
+                   for iDelete = 1:numel(obj.handles.menu.atlas.MRI.template)
+                        delete(obj.handles.menu.atlas.MRI.template(iDelete))
+                   end
+                   for iAdd = 1:numel(templatelist)
+                        scene.handles.menu.atlas.MRI.template(iAdd) = uimenu(scene.handles.menu.atlas.MRI.main,'Text',templatelist(iAdd).name,'callback',{@menu_addMRItemplate,templatelist(iAdd)});
+                    end
+                    
+                end
+
             end
             
             function menu_showLight(hObject,eventdata)
