@@ -273,7 +273,6 @@ classdef SuretunePortal
                 c0 = SDK_transform3d([0 0 0],T);
                 c3 = SDK_transform3d([0 0 6],T);
                 
-                
                 e.Direction = Vector3D(c3-c0).unit.getArray';
                 e.C0 = c0;
                 e.Type = this.leadType;
@@ -299,13 +298,18 @@ classdef SuretunePortal
                             actor.changeName([this.label,' ',this.stimPlan{iStimplan}.label])
                             
                             actor_vta = vd.getmesh(0.5).see(obj.scene);
+                            actor_vta.PathDirectory=hObject.UserData{2};
+                            actor_vta.addprop('NumberOfLead');
+                            actor_vta.NumberOfLead=iStimplan;
+                            actor_vta.addprop('C0');
+                            actor_vta.C0=c0;
                             actor_vta.changeName(['[VTA] ',this.label,' ',this.stimPlan{iStimplan}.label])
                         end
                         
                         actor.changeSetting('cathode',str2num(this.stimPlan{iStimplan}.activeRings),'anode', str2num(this.stimPlan{iStimplan}.contactsGrounded));
                         
                         
-                        actor_vta.changeSetting('colorFace',[1 0.5 0])
+                        actor_vta.changeSetting('colorFace',[1 0.5 0]);
                         actor.PathDirectory=hObject.UserData{2};
                         actor.Data.c0=c0;
                         actor.Data.maxStimPlans=numel(this.stimPlan);

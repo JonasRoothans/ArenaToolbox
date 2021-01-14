@@ -23,6 +23,8 @@ classdef leadConnected<handle
                 else 
                 Tag=[thisprediction.Tag,'_Bilateral'];
                 end
+            else 
+                 Tag=thisprediction.Tag;   
             end
             filename=['/',thisprediction.handles.target,'_',...
                 leadtype,'_', ...        

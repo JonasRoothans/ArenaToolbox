@@ -233,11 +233,11 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.generate.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Generate');            
             obj.handles.menu.dynamic.predict.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Prediction');
             
-            obj.handles.menu.dynamic.Electrode.loadedLeadBasedCalculation = uimenu(obj.handles.menu.dynamic.predict.main,'Text','Open Prediction Enviroment','Callback',{@menu_openPredictionEnviroment},'Enable','off');
-            obj.handles.menu.dynamic.Electrode.randomDataBasedcalculation = uimenu(obj.handles.menu.dynamic.predict.main,'Text','Run a prediction without preloaded data','Callback',{@menu_runPredictionWithoutPreloadedData});
-            obj.handles.menu.dynamic.Electrode.results = uimenu(obj.handles.menu.dynamic.predict.main,'Text','View Results','Callback',{@menu_viewActorResults},'Enable','off');
-            obj.handles.menu.dynamic.Electrode.close = uimenu(obj.handles.menu.dynamic.predict.main,'Text','Close Result Window','Callback',{@menu_closePredictionWindow},'Enable','off');
-            obj.handles.menu.dynamic.Electrode.showOldResults = uimenu(obj.handles.menu.dynamic.predict.main,'Text','Show old Results','Callback',{@menu_showOldResults},'Enable','off');
+            obj.handles.menu.dynamic.Electrode.loadedLeadBasedCalculation = uimenu(obj.handles.menu.dynamic.predict.main,'Text','Electrode:Open Prediction Enviroment','Callback',{@menu_openPredictionEnviroment},'Enable','off');
+            obj.handles.menu.dynamic.Electrode.randomDataBasedcalculation = uimenu(obj.handles.menu.dynamic.predict.main,'Text','Electrode:Run a prediction without preloaded data','Callback',{@menu_runPredictionWithoutPreloadedData});
+            obj.handles.menu.dynamic.Electrode.results = uimenu(obj.handles.menu.dynamic.predict.main,'Text','Electrode:View Results','Callback',{@menu_viewActorResults},'Enable','off');
+            obj.handles.menu.dynamic.Electrode.close = uimenu(obj.handles.menu.dynamic.predict.main,'Text','Electrode:Close Result Window','Callback',{@menu_closePredictionWindow},'Enable','off');
+            obj.handles.menu.dynamic.Electrode.showOldResults = uimenu(obj.handles.menu.dynamic.predict.main,'Text','Electrode:Show old Results','Callback',{@menu_showOldResults},'Enable','off');
             
             obj.handles.menu.dynamic.PointCloud.distribution = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: show distribution','callback',{@menu_pcDistribution},'Enable','off');
             obj.handles.menu.dynamic.PointCloud.inMesh = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: is a point inside a mesh?','callback',{@menu_pointcloudinmesh},'Enable','off');
@@ -252,6 +252,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Mesh.plotCOG = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: show COG','callback',{@menu_showCOG},'Enable','off');
             obj.handles.menu.dynamic.Mesh.dice = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: dice (=comformity of voxels)','callback',{@menu_dice},'Enable','off');
             obj.handles.menu.dynamic.Mesh.densitydistribution = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: FWHM (=density distribution)','callback',{@menu_fwhm},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.getPredictionValue=uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: Get Prediction Value for VTA','callback',{@menu_getPredictionValue},'Enable','off');
             obj.handles.menu.dynamic.Mesh.fibers = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: fibers (from 1 seed)','callback',{@menu_showFibers},'Enable','off');
             obj.handles.menu.dynamic.Mesh.fibersBetween = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: fibers (inbetween seeds)','callback',{@menu_showFibers_inbetween},'Enable','off');
             
@@ -1727,6 +1728,31 @@ classdef ArenaScene < handle
                 Fibers = thisConnectome.getFibersConnectingMeshes({currentActors(1).Data,currentActors(2).Data},100,scene);
                 
                 
+            end
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            function menu_getPredictionValue(hObject,eventdata)
+                
+                scene = ArenaScene.getscenedata(hObject);
+                selection=scene.handles.panelright.Value(1,1);
+                if ismember('#',scene.Actors(1,selection).Tag)
+                    scene.Actors(1,selection).Tag=scene.Actors(1,selection).Tag(1:end-10);
+                end
+                try 
+                    selection=scene.handles.panelright.Value(1,2);
+                    error('You selected to many VTAs! Only one is allowed!');
+                catch
+                scene.Actors(1,selection).PredictInformation=predictFuture();
+                scene.Actors(1,selection).PredictInformation.newPrediction(scene.Actors(1,selection).PathDirectory,scene.Actors(1,selection).Data);
+
+                        waitfor(scene.Actors(1,selection).PredictInformation.handles.figure);
+                        if isempty(scene.Actors(1,selection).PredictInformation.Heatmap)
+                            warning('No Prediction Data was calculated!');
+                        else
+                            scene.Actors(1,selection).Tag=[scene.Actors(1,selection).Tag,scene.Actors(1,selection).PredictInformation.Tag];
+                            scene.refreshLayers();
+                        end
+                end
             end
             
             function menu_seperateClusters(hObject,eventdata)

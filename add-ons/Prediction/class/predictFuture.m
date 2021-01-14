@@ -28,6 +28,7 @@ classdef predictFuture<handle
         configStructure
         Data_In
         Results
+        samplesOutsideHeatmap
     end
     
     properties (Hidden)
@@ -46,7 +47,7 @@ classdef predictFuture<handle
             %First linking of class to variable
         end
         
-        function  newPrediction(obj,pathDirectory,answer)
+        function  newPrediction(obj,pathDirectory,Data)
             %It builds the enviroment to work on predictions
             
             % Everything which runs before the window is opened, comes
@@ -54,13 +55,7 @@ classdef predictFuture<handle
             
             obj.handles=[];
             
-            if pathDirectory>0
-                obj.handles.importButton.Visible='off';
-                obj.Data_In=pathDirectory;
-            end
-            
-            % All components for the window creation are inside here.
-            xpos=0.15;
+              xpos=0.15;
             ypos=0.1;
             xwidth=0.7;
             yheight=0.7;
@@ -75,16 +70,6 @@ classdef predictFuture<handle
                 'CloseRequestFcn',@closePrediction,...
                 'WindowKeyPressFcn',@kSnapshotPrediction,...
                 'Color',[1 1 1]);
-            
-            obj.handles.importButton=uicontrol('parent',obj.handles.figure,...
-                'units','normalized',...
-                'outerposition',[0.02 0.15 0.5 0.6],...
-                'String','Import File',...
-                'BackgroundColor',[0.5 0.5 0.5],...
-                'FontName','Arial',...
-                'FontSize',14,...
-                'Visible','off',...
-                'Callback',@Import);
             
             obj.handles.heatmapText=uicontrol('parent',obj.handles.figure,...
                 'units','normalized',...
@@ -106,6 +91,7 @@ classdef predictFuture<handle
                 'Callback',@heatmapListbox);
             
             [pic,map]=imread('glass_sphere.png');
+            
             pic=imresize(pic,0.148);
             
             obj.handles.runButton=uicontrol('parent',obj.handles.figure,...
@@ -119,55 +105,89 @@ classdef predictFuture<handle
                 'Callback',@runButton);
             
             obj.handles.menu.file.main=uimenu('parent',obj.handles.figure,...
-                'Text','File',...
-                'ForegroundColor','black',...
-                'Visible','off');
-          
-            obj.handles.menu.file.Sound.main=uimenu('parent',obj.handles.menu.file.main,...
-                'Accelerator','A',...
-                'Text','Finish Sound  (Com+A)','callback',@SoundOn); 
-          
-            obj.handles.menu.file.heatmap.main=uimenu('parent',obj.handles.menu.file.main,...
-                'Text','Heatmap');
-            %submenu for the heatmap setting
-            obj.handles.menu.file.heatmapDystoniaWuerzburgMartin.main=uimenu('parent',obj.handles.menu.file.heatmap.main,...
-                'Text','Dystonia Würzburg','callback',@dystoniaWuerzburgMartin);
-            obj.handles.menu.file.heatmapBostonBerlin.main=uimenu('parent',obj.handles.menu.file.heatmap.main,...
-                'Text','BostonBerlin','callback',@heatmapBostonBerlin);
-            obj.handles.menu.file.heatmapBostonAlone.main=uimenu('parent',obj.handles.menu.file.heatmap.main,...
-                'Text','BostonAlone','callback',@heatmapBostonAlone);
-            
-            obj.handles.menu.file.changeVTAPoolPath.main=uimenu('parent',obj.handles.menu.file.main,...
-                'Text','Change VTA Pool','callback',@changeVTAPoolPath);           
-            obj.handles.menu.file.SaveDirectory.main=uimenu('parent',obj.handles.menu.file.main,...
+                    'Text','File',...
+                    'ForegroundColor','black',...
+                    'Visible','off');
+                
+                obj.handles.menu.file.Sound.main=uimenu('parent',obj.handles.menu.file.main,...
+                    'Accelerator','A',...
+                    'Text','Finish Sound  (Com+A)','callback',@SoundOn);
+                
+                obj.handles.menu.file.heatmap.main=uimenu('parent',obj.handles.menu.file.main,...
+                    'Text','Heatmap');
+                %submenu for the heatmap setting
+                obj.handles.menu.file.heatmapDystoniaWuerzburgMartin.main=uimenu('parent',obj.handles.menu.file.heatmap.main,...
+                    'Text','Dystonia Würzburg','callback',@dystoniaWuerzburgMartin);
+                obj.handles.menu.file.heatmapBostonBerlin.main=uimenu('parent',obj.handles.menu.file.heatmap.main,...
+                    'Text','BostonBerlin','callback',@heatmapBostonBerlin);
+                obj.handles.menu.file.heatmapBostonAlone.main=uimenu('parent',obj.handles.menu.file.heatmap.main,...
+                    'Text','BostonAlone','callback',@heatmapBostonAlone);
+                
+                obj.handles.menu.file.changeVTAPoolPath.main=uimenu('parent',obj.handles.menu.file.main,...
+                    'Text','Change VTA Pool','callback',@changeVTAPoolPath);
+                obj.handles.menu.file.SaveDirectory.main=uimenu('parent',obj.handles.menu.file.main,...
                     'Accelerator','S',...
-                    'Text','Change Save Directory (Com+S)','callback',@saveFolder); 
+                    'Text','Change Save Directory (Com+S)','callback',@saveFolder);
                 
-            obj.handles.menu.file.BilateralOn.main=uimenu('parent',obj.handles.menu.file.main,...
+                obj.handles.menu.file.BilateralOn.main=uimenu('parent',obj.handles.menu.file.main,...
                     'Text','Bilateral Prediction ','callback',@bilateralOn);
-
                 
-            if pathDirectory==0
-                obj.handles.menu.file.import.main=uimenu('parent',obj.handles.menu.file.main,...
-                    'Accelerator','I',....
-                    'Text','Import File(Com+I)','callback',@Import);
-            end
-            %%------
-            %everything which is executed after the enviroment is built
-            
+            % the try and catch is added, because this way the prediction
+            % for a single vta is made possible-> has it's own class
+            try
+                if isa(Data,'Mesh')
+                    obj.Data_In=Data;
+                disp('A Mesh is recognized and a prediction will be done for it!');
+                obj.handles.menu.file.import.main.ForegroundColor=[0 0.4470 0.7410];
+                    obj.Data_Out.Creation_Date=now;
+                    obj.handles.heatmapText.OuterPosition=[0.3 0.6 0.4 0.05];
+                    obj.handles.heatmapListbox.OuterPosition=[0.3 0.45 0.4 0.1];
+                    obj.handles.runButton.OuterPosition=[0.41 0.1 0.173 0.3];
+                    obj.handles.menu.file.main.Enable='off';
+                end
+                
+            catch
+                if pathDirectory>0
+                    obj.handles.importButton.Visible='off';
+                    obj.Data_In=pathDirectory;
+                end
+                
+                obj.handles.importButton=uicontrol('parent',obj.handles.figure,...
+                    'units','normalized',...
+                    'outerposition',[0.02 0.15 0.5 0.6],...
+                    'String','Import File',...
+                    'BackgroundColor',[0.5 0.5 0.5],...
+                    'FontName','Arial',...
+                    'FontSize',14,...
+                    'Visible','off',...
+                    'Callback',@Import);
+                
+                if pathDirectory==0
+                    obj.handles.menu.file.import.main=uimenu('parent',obj.handles.menu.file.main,...
+                        'Accelerator','I',....
+                        'Text','Import File(Com+I)','callback',@Import);
+                end
+                
+                %%------
+                %everything which is executed after the enviroment is built
+                
                 obj.handles.SoundOn=struct('value',0,'gong',0);
                 obj.handles.SoundOn.value=0;
                 obj.handles.menu.file.main.Visible='on';
                 if obj.Data_In>0
-                obj.handles.menu.file.import.main.ForegroundColor=[0 0.4470 0.7410];
-                obj.Data_Out.Creation_Date=now;
-                obj.handles.heatmapText.OuterPosition=[0.3 0.6 0.4 0.05];
-                obj.handles.heatmapListbox.OuterPosition=[0.3 0.45 0.4 0.1];
-                obj.handles.runButton.OuterPosition=[0.41 0.1 0.173 0.3];
-                else  
-                obj.handles.importButton.Visible='on';
+                    obj.handles.menu.file.import.main.ForegroundColor=[0 0.4470 0.7410];
+                    obj.Data_Out.Creation_Date=now;
+                    obj.handles.heatmapText.OuterPosition=[0.3 0.6 0.4 0.05];
+                    obj.handles.heatmapListbox.OuterPosition=[0.3 0.45 0.4 0.1];
+                    obj.handles.runButton.OuterPosition=[0.41 0.1 0.173 0.3];
+                else
+                    obj.handles.importButton.Visible='on';
                 end
+                
+            end
             
+          
+
             %% -----
             %Essential function for rudiment working
             function closePrediction(hObject,eventdata)
@@ -236,7 +256,18 @@ classdef predictFuture<handle
             %% -----
             %all secondary functions are inside here
             function runButton(hObject,eventdata)
-                thisprediction=predictFuture.getpredictdata(hObject);
+                 thisprediction=predictFuture.getpredictdata(hObject);
+                 
+                 if thisprediction.handles.heatmapListbox.Value==1
+                   dystoniaWuerzburgMartin(hObject,eventdata);
+                 end
+                
+                if isa(thisprediction.Data_In,'Mesh')
+                   thisprediction.Results=predictSingleVTA();
+                   thisprediction.Results.newPrediction(thisprediction);
+                   waitfor(thisprediction.handles.figure);
+                   return; 
+                end
                 thisprediction.handles.runButton.Enable='inactive';
                 
                 if isempty(thisprediction.Data_In)
@@ -246,10 +277,6 @@ classdef predictFuture<handle
                 if ~(strcmp(thisprediction.Data_In(end-3:end),'.dcm'))
                     warning('You selected the wrong filetype as input!!!');
                     return
-                end
-                
-                if thisprediction.handles.heatmapListbox.Value==1
-                   dystoniaWuerzburgMartin(hObject,eventdata);
                 end
                 
                 b=buttonConnected();
@@ -312,15 +339,18 @@ classdef predictFuture<handle
             function dystoniaWuerzburgMartin(hObject,eventdata)
                 thisprediction=predictFuture.getpredictdata(hObject);
                 thisprediction.Heatmap.Name='DystoniaWuerzburg';
-                if thisprediction.handles.menu.file.heatmapDystoniaWuerzburgMartin.main.ForegroundColor(1,3)==0
-                    thisprediction.handles.menu.file.heatmapDystoniaWuerzburgMartin.main.ForegroundColor=[0 0.4470 0.7410];
-                    thisprediction.handles.menu.file.heatmapBostonBerlin.main.ForegroundColor='black';
-                    thisprediction.handles.menu.file.heatmapBostonAlone.main.ForegroundColor='black';
-                    thisprediction.handles.target='gpi';
+                if not(isa(thisprediction.Data_In,'Mesh'))
+                    if thisprediction.handles.menu.file.heatmapDystoniaWuerzburgMartin.main.ForegroundColor(1,3)==0
+                        thisprediction.handles.menu.file.heatmapDystoniaWuerzburgMartin.main.ForegroundColor=[0 0.4470 0.7410];
+                        thisprediction.handles.menu.file.heatmapBostonBerlin.main.ForegroundColor='black';
+                        thisprediction.handles.menu.file.heatmapBostonAlone.main.ForegroundColor='black';
+                        thisprediction.handles.target='gpi';
+                    else
+                        thisprediction.handles.menu.file.heatmapDystoniaWuerzburgMartin.main.ForegroundColor='black';
+                        thisprediction.handles.target='';
+                        thisprediction.Heatmap.Name='';
+                    end
                 else
-                    thisprediction.handles.menu.file.heatmapDystoniaWuerzburgMartin.main.ForegroundColor='black';
-                    thisprediction.handles.target='';
-                    thisprediction.Heatmap.Name='';
                 end
                 
             end
@@ -328,6 +358,7 @@ classdef predictFuture<handle
             function heatmapBostonBerlin(hObject,eventdata)
                 thisprediction=predictFuture.getpredictdata(hObject);
                 thisprediction.Heatmap.Name='heatmapBostonBerlin';
+                if not(isa(thisprediction.Data_In,'Mesh'))
                 if thisprediction.handles.menu.file.heatmapBostonBerlin.main.ForegroundColor(1,3)==0
                     thisprediction.handles.menu.file.heatmapBostonBerlin.main.ForegroundColor=[0 0.4470 0.7410];
                     thisprediction.handles.menu.file.heatmapDystoniaWuerzburgMartin.main.ForegroundColor='black';
@@ -338,11 +369,14 @@ classdef predictFuture<handle
                     thisprediction.Heatmap.Name='';
                     thisprediction.handles.target='';
                 end
+                else
+                end
             end
             
             function heatmapBostonAlone(hObject,eventdata)
                 thisprediction=predictFuture.getpredictdata(hObject);
                 thisprediction.Heatmap.Name='heatmapBostonAlone';
+                if not(isa(thisprediction.Data_In,'Mesh'))
                 if thisprediction.handles.menu.file.heatmapBostonAlone.main.ForegroundColor(1,3)==0
                     thisprediction.handles.menu.file.heatmapBostonAlone.main.ForegroundColor=[0 0.4470 0.7410];
                     thisprediction.handles.menu.file.heatmapBostonBerlin.main.ForegroundColor='black';
@@ -352,6 +386,8 @@ classdef predictFuture<handle
                     thisprediction.handles.menu.file.heatmapBostonAlone.main.ForegroundColor='black';
                     thisprediction.Heatmap.Name='';
                     thisprediction.handles.target='';
+                end
+                else
                 end
             end
             function changeVTAPoolPath(hObject,eventdata)

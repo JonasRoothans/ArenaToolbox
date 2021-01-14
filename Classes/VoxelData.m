@@ -7,6 +7,11 @@ classdef VoxelData <handle
         R
     end
     
+    properties(Hidden)
+       VoxelsOriginal
+       ROriginal
+    end
+    
     
     methods
         function obj = VoxelData(varargin)
@@ -52,7 +57,9 @@ classdef VoxelData <handle
             R.YWorldLimits = R.YWorldLimits+info.origin(b)-info.spacing(b);%-Rfrom.ImageExtentInWorldY;
             R.ZWorldLimits = R.ZWorldLimits+info.origin(c)-info.spacing(c);
             obj.Voxels = voxels;
+            obj.VoxelsOriginal=voxels;
             obj.R = R;
+            obj.ROriginal=R;
         end
         
         function obj = crop(obj,leftdown,rightup)

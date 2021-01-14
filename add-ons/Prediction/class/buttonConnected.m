@@ -311,9 +311,13 @@ classdef buttonConnected<handle
                         fig1=figure('Name','Monopolar_Histogramm-Left');
                         % it is always bilateral
                         unilateral.left = [];
+                        thisprediction.samplesOutsideHeatmap.left=string();
                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             disp(fprintf(status,fXLS));
                             sample = signed_p_map(and(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0));
+                            outOfSample=signed_p_map(and(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5,heatmap.pmap==0));
+                            completeVTA=signed_p_map(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);
+                            thisprediction.samplesOutsideHeatmap.left(fXLS)=num2str(round(100*numel(outOfSample)/numel(completeVTA),6));
                             % When you take only values which aren't 0 than you get only a worsening or
                             % improving effekt for the prediction.
                             
@@ -329,9 +333,13 @@ classdef buttonConnected<handle
                         fig2=figure('Name','Monopolar_Histogramm-Right');
                         % it is always bilateral
                         unilateral.right = [];
+                        thisprediction.samplesOutsideHeatmap.right=string();
                         for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             disp(fprintf(status,sXLS));
                             sample = signed_p_map(and(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0));
+                            outOfSample=signed_p_map(and(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5,heatmap.pmap==0));
+                            completeVTA=signed_p_map(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5);
+                            thisprediction.samplesOutsideHeatmap.right(sXLS)=num2str(round(100*numel(outOfSample)/numel(completeVTA),6));
                             % When you take only values which aren't 0 than you get only a worsening or
                             % improving effekt for the prediction.
                             
@@ -377,11 +385,15 @@ classdef buttonConnected<handle
                         % unilateral left
                         status='%d. left Lead predicted';
                         unilateral.left = [];
+                        thisprediction.samplesOutsideHeatmap.left=string();
                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             disp(fprintf(status,fXLS));
                             sample=probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);
+                            outOfSample=probabilityMap(and(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5,probabilityMap==0));
+                            completeVTA=probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);
+                            thisprediction.samplesOutsideHeatmap.left(fXLS)=num2str(round(100*numel(outOfSample)/numel(completeVTA),6));
                             sample=mean(sample);
-                            unilateral.left(fXLS) = sample;%*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
+                            unilateral.left(fXLS) = sample*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
                         end
                     end
                     
@@ -389,11 +401,15 @@ classdef buttonConnected<handle
                         status='%d. right Lead predicted';
                         % unilateral right
                         unilateral.right = [];
+                        thisprediction.samplesOutsideHeatmap.right=string();
                         for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             disp(fprintf(status,sXLS));
                             sample=probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5);
+                            outOfSample=probabilityMap(and(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5,probabilityMap==0));
+                            completeVTA=probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5);
+                            thisprediction.samplesOutsideHeatmap.right(sXLS)=num2str(round(100*numel(outOfSample)/numel(completeVTA),6));
                             sample=mean(sample);
-                            unilateral.right(sXLS) = sample;%*linearRegressionCoefficients;                        % This fitts the outcomes to the in the filedcase study found values.
+                            unilateral.right(sXLS) = sample*linearRegressionCoefficients;                        % This fitts the outcomes to the in the filedcase study found values.
                         end
                     end
                     
@@ -406,10 +422,10 @@ classdef buttonConnected<handle
                                 obj.progress.Value=obj.progress.Value+0.001;
                                 
                                 sample=[probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);...
-                                    probabilityMap(thisprediction.handles.VTA_Information(1,sXLS).normalizedVTA.Voxels>0.5)];
+                                    probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5)];
                                 sample=mean(mean(sample));
                                 disp(fprintf(status,fXLS,sXLS));
-                                bilateral(fXLS,sXLS) = sample;%*linearRegressionCoefficients                    % This fitts the outcomes to the in the filedcase study found values.
+                                bilateral(fXLS,sXLS) = sample*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
                             end
                         end
                     end
@@ -426,11 +442,15 @@ classdef buttonConnected<handle
                     if thisprediction.PositionHemisphere.left==1
                         % unilateral left
                         unilateral.left = [];
+                        thisprediction.samplesOutsideHeatmap.left=string();
                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             disp(fprintf(status,fXLS));
                             sample=probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);
+                            outOfSample=probabilityMap(and(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5,probabilityMap==0));
+                            completeVTA=probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);
+                            thisprediction.samplesOutsideHeatmap.left(fXLS)=num2str(round(100*numel(outOfSample)/numel(completeVTA),6));
                             sample=mean(sample);
-                            unilateral.left(fXLS) = sample;%*linearRegressionCoefficients                      % This fitts the outcomes to the in the filedcase study found values.
+                            unilateral.left(fXLS) = sample*linearRegressionCoefficients;                      % This fitts the outcomes to the in the filedcase study found values.
                         end
                     end
                     
@@ -438,11 +458,16 @@ classdef buttonConnected<handle
                         status='%d. right Lead predicted';
                         % unilateral right
                         unilateral.right = [];
+                        thisprediction.samplesOutsideHeatmap.right=string();
                         for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             sample=probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5);
                             disp(fprintf(status,sXLS));
+                            sample=probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5);
+                            outOfSample=probabilityMap(and(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5,probabilityMap==0));
+                            completeVTA=probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5);
+                            thisprediction.samplesOutsideHeatmap.right(sXLS)=num2str(round(100*numel(outOfSample)/numel(completeVTA),6));
                             sample=mean(sample);
-                            unilateral.right(sXLS) = sample;%*linearRegressionCoefficients                          % This fitts the outcomes to the in the filedcase study found values.
+                            unilateral.right(sXLS) = sample*linearRegressionCoefficients;                          % This fitts the outcomes to the in the filedcase study found values.
                         end
                     end
                     
@@ -455,10 +480,10 @@ classdef buttonConnected<handle
                             
                             for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
                                 sample=[probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);...
-                                    probabilityMap(thisprediction.handles.VTA_Information(1,sXLS).normalizedVTA.Voxels>0.5)];
+                                    probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5)];
                                 sample=mean(mean(sample));
                                 disp(fprintf(status,fXLS,sXLS));
-                                bilateral(fXLS,sXLS) = sample;%*linearRegressionCoefficients                      % This fitts the outcomes to the in the filedcase study found values.
+                                bilateral(fXLS,sXLS) = sample*linearRegressionCoefficients;                      % This fitts the outcomes to the in the filedcase study found values.
                             end
                         end
                     end
@@ -538,10 +563,18 @@ classdef buttonConnected<handle
                 imagesc(showLeftInOtherOrientations);
                 ylabel(thisprediction.handles.VTA_Information(1,1).leadname);
                 yticks(1:walkthroughs);
-                yticklabels(ticklabels);
+                ticklabelsLeft={};
+                for i=1:(walkthroughs)
+                    ticklabelsLeft{i}=[char(ticklabels(i)),'#',char(thisprediction.samplesOutsideHeatmap.left(i))];
+                end
+                yticklabels(ticklabelsLeft);
                 ytickangle(45);
                 xticklabels(' ');
+                if strcmp(thisprediction.Heatmap.Name,'heatmapBostonBerlin')||strcmp(thisprediction.Heatmap.Name,'heatmapBostonAlone')
+                    caxis([0.3 1.2]);
+                else
                 caxis([30 110]);
+                end 
             end
             
             if thisprediction.PositionHemisphere.right==1
@@ -549,9 +582,17 @@ classdef buttonConnected<handle
                 imagesc(thisprediction.handles.prediction_Information.unilateral.right);
                 xlabel(thisprediction.handles.VTA_Information(2,1).leadname);
                 xticks(1:walkthroughs);
-                xticklabels(ticklabels);
+                ticklabelsRight={};
+                for i=1:(walkthroughs)
+                    ticklabelsRight{i}=[char(ticklabels(i)),'#',char(thisprediction.samplesOutsideHeatmap.right(i))];
+                end
+                xticklabels(ticklabelsRight);
                 xtickangle(45);
+                if strcmp(thisprediction.Heatmap.Name,'heatmapBostonBerlin')||strcmp(thisprediction.Heatmap.Name,'heatmapBostonAlone')
+                    caxis([0.3 1.2]);
+                else
                 caxis([30 110]);
+                end
             end
             
             if thisprediction.bilateralOn==1
@@ -565,7 +606,11 @@ classdef buttonConnected<handle
                 yticklabels(ticklabels);
                 xtickangle(45);
                 ytickangle(0);
+                if strcmp(thisprediction.Heatmap.Name,'heatmapBostonBerlin')||strcmp(thisprediction.Heatmap.Name,'heatmapBostonAlone')
+                    caxis([0.3 1.2]);
+                else
                 caxis([30 110]);
+                end
             end
     end
     end
