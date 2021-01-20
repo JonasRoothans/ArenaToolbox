@@ -315,6 +315,7 @@ classdef buttonConnected<handle
                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             disp(fprintf(status,fXLS));
                             sample = signed_p_map(and(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0));
+                            
                             outOfSample=signed_p_map(and(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5,heatmap.pmap==0));
                             completeVTA=signed_p_map(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);
                             thisprediction.samplesOutsideHeatmap.left(fXLS)=num2str(round(100*numel(outOfSample)/numel(completeVTA),6));
