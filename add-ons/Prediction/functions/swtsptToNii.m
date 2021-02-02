@@ -22,6 +22,7 @@ WorldLimitY=[data.originMNIleft(1,2),data.originMNIleft(1,2)+WorldLimitY];
 WorldLimitZ=[data.originMNIleft(1,3),data.originMNIleft(1,3)+WorldLimitZ];
 
 datasample.R=imref3d(data.dimensions,WorldLimitX,WorldLimitY,WorldLimitZ);
+datasample.R=imref3d(data.dimensions,data.spacing(1,1),data.spacing(1,2),data.spacing(1,3));
 [x,y,z] = datasample.R.worldToIntrinsic(0,0,0);
 spacing = [datasample.R.PixelExtentInWorldX,datasample.R.PixelExtentInWorldY,datasample.R.PixelExtentInWorldZ];
 origin = [x y z];
@@ -29,3 +30,7 @@ datatype = 16;%64;
 nii = make_nii(double(permute(datasample.Voxels,[2 1 3])), spacing, origin, datatype);
 filename=inputdlg('How do you want to name your file?','Filename');
 save_nii(nii,[filename{1},'.nii']);
+
+
+
+

@@ -95,7 +95,7 @@ classdef leadConnected<handle
         valueOfContactLetters=str2num(thisSession.therapyPlanStorage{1,1}.activeRings);
         contacts=numel(valueOfContactLetters);
         contacts = 0:contacts-1;
-        amplitudes = 1:5;
+        amplitudes = 1:0.5:8;
         [contacts2d,amplitudes2d] = meshgrid(contacts,amplitudes); %maybe a new way of getting the same values but without this meshgrid crazyness
         obj.config.contacts_vector = reshape(contacts2d,1,[]);         %gets the 0123 in row to follow in column
         obj.config.amplitudes_vector = reshape(amplitudes2d,1,[]);     %gets the 12345 in row to follow in column
@@ -293,7 +293,7 @@ classdef leadConnected<handle
             if isempty(thisprediction.config)
                 error('You have to select a lead!');
             end
-        end   
+        end 
     end
 end
 

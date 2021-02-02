@@ -30,37 +30,28 @@ classdef predictResults<handle
                     return;
                 end
             end
-            
-            obj.handles.showResultsWindow=figure('units','normalized',...
-                'outerposition',[0.25 0.25 0.8 0.2],...
-                'menubar','none',...
-                'name',['Result ', Actor.Tag],...
-                'numbertitle','off',...
-                'resize','off',...
-                'WindowKeyPressFcn',@kSnapshotResult,...
-                'Color',[1 1 1]);
-            
-            obj.handles.table_bilateral=uitable('Parent',obj.handles.showResultsWindow,...
-                'Units','normalized',...
-                'OuterPosition',[0.05 0 0.4 1],...
+
+            fig1=figure('Units','normalized','Position',[0.05 0 0.9 0.9],'Name','Results');
+            table_bilateral=uitable('Parent',fig1,'Units','normalized',...
+                'OuterPosition',[0.05 0.64 0.9 0.3],...
                 'ColumnEditable',[false false],...
                 'ColumnName','Bilateral',...
                 'RowName',{},...
                 'BackgroundColor',[0.9290 0.6940 0.1250],...
                 'ForegroundColor','blue');
             
-            obj.handles.table_unilateralLeft=uitable('Parent',obj.handles.showResultsWindow,...
-                'Units','normalized',...
-                'OuterPosition',[0.46 0 0.3 1],...
+
+            table_unilateralLeft=uitable('Parent',fig1,'Units','normalized',...
+                'OuterPosition',[0.25 0.32 0.5 0.3],...
                 'ColumnEditable',[false false],...
                 'ColumnName','Unilateral Left',...
                 'RowName',{},...
                 'BackgroundColor',[0.9290 0.6940 0.1250],...
                 'ForegroundColor','blue');
             
-            obj.handles.table_unilateralRight=uitable('Parent',obj.handles.showResultsWindow,...
-                'Units','normalized',...
-                'OuterPosition',[0.77 0 0.3 1],...
+            
+            table_unilateralRight=uitable('Parent',fig1,'Units','normalized',...
+                'OuterPosition',[0.25 0 0.5 0.3],...
                 'ColumnEditable',[false false],...
                 'ColumnName','Unilateral Right',...
                 'RowName',{},...
@@ -77,45 +68,92 @@ classdef predictResults<handle
             obj.HighestResults.bilateral.position={};
             obj.HighestResults.unilateralLeft.position={};
             obj.HighestResults.unilateralRight.position={};
+            dimensionsOfPredictionResults=Actor.PredictInformation.configStructure.numberOfContacts*Actor.PredictInformation.configStructure.numberOfContactSettings;
             contacts_vector=Actor.PredictInformation.configStructure.contacts_vector;
             amplitudes_vector=Actor.PredictInformation.configStructure.amplitudes_vector;
             
             if not(isempty(Actor.PredictInformation.Results{1}.bilateral))
                 obj.HighestResults.bilateral.results=maxk(Actor.PredictInformation.Results{1,1}.bilateral,answer);
-                obj.HighestResults.bilateral.results=reshape(obj.HighestResults.bilateral.results,[1,(answer*20)]);
+                obj.HighestResults.bilateral.results=reshape(obj.HighestResults.bilateral.results,[1,(answer*dimensionsOfPredictionResults)]);
+                obj.HighestResults.bilateral.results=unique(obj.HighestResults.bilateral.results);
                 obj.HighestResults.bilateral.results=maxk(obj.HighestResults.bilateral.results,answer);
                 for ianswer=1:answer
                     obj.HighestResults.bilateral.position{ianswer}=ismember(Actor.PredictInformation.Results{1,1}.bilateral,obj.HighestResults.bilateral.results(1,ianswer));
                     [row,col]=find(obj.HighestResults.bilateral.position{ianswer});
-                    part='C%d-%dmA';
-                    part1=sprintf(part,contacts_vector(1,row),amplitudes_vector(1,row));
-                    part2=sprintf(part,contacts_vector(1,col),amplitudes_vector(1,col));
-                    obj.handles.table_bilateral.RowName{ianswer}=sprintf([part1,'and',part2]);
-                    obj.handles.table_bilateral.Data(ianswer,1)=obj.HighestResults.bilateral.results(1,ianswer);
+                    row=unique(row);
+                    col=unique(col);
+                    part='C%s-%smA';
+                    if numel(row)>1 || numel(col)>1
+                        part1=sprintf(part,num2str(contacts_vector(1,row(1,1))),num2str(amplitudes_vector(1,row(1,1))));
+                        part2=sprintf(part,num2str(contacts_vector(1,col(1,1))),num2str(amplitudes_vector(1,col(1,1))));
+                        for i=2:numel(row)
+                            helpPart=sprintf(part,num2str(contacts_vector(1,row(i,1))),num2str(amplitudes_vector(1,row(i,1))));
+                            part1=[part1,' or ',helpPart];
+                        end
+                        part1=[part1,'"l"'];
+                         for i=2:numel(col)
+                            helpPart=sprintf(part,num2str(contacts_vector(1,col(i,1))),num2str(amplitudes_vector(1,col(i,1))));
+                            part2=[part2,' or ',helpPart];
+                         end
+                        part2=[part2,'"r"'];
+                    else
+                    part1=sprintf(part,num2str(contacts_vector(1,row)),num2str(amplitudes_vector(1,row)));
+                    part2=sprintf(part,num2str(contacts_vector(1,col)),num2str(amplitudes_vector(1,col)));
+                    end
+                    table_bilateral.RowName{ianswer}=sprintf([part1,'and',part2]);
+                    table_bilateral.Data(ianswer,1)=obj.HighestResults.bilateral.results(1,ianswer);
                 end
             end
             
             if not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.left))
-                obj.HighestResults.unilateralLeft.results=maxk(Actor.PredictInformation.Results{1,1}.unilateral.left,answer);
+                obj.HighestResults.unilateralLeft.results=unique(Actor.PredictInformation.Results{1,1}.unilateral.left);
+                obj.HighestResults.unilateralLeft.results=maxk(obj.HighestResults.unilateralLeft.results,answer);
                 for ianswer=1:answer
                     obj.HighestResults.unilateralLeft.position{ianswer}=ismember(Actor.PredictInformation.Results{1,1}.unilateral.left,obj.HighestResults.unilateralLeft.results(1,ianswer));
                     [row,col]=find(obj.HighestResults.unilateralLeft.position{ianswer});
-                    part='C%d-%dmA';
-                    obj.handles.table_unilateralLeft.RowName{ianswer}=sprintf(part,contacts_vector(1,...
-                        col),amplitudes_vector(1,col));
-                    obj.handles.table_unilateralLeft.Data(ianswer,1)=obj.HighestResults.unilateralLeft.results(1,ianswer);
+                    row=unique(row);
+                    col=unique(col);
+                    part='C%s-%smA';
+                    if numel(col)>1
+                        nameing=sprintf(part,num2str(contacts_vector(1,...
+                            col(1,1))),num2str(amplitudes_vector(1,col(1,1))));
+                         for i=2:numel(col)
+                        nameing2=sprintf(part,num2str(contacts_vector(1,...
+                            col(1,i))),num2str(amplitudes_vector(1,col(1,i))));
+                        nameing=[nameing,' or ', nameing2]
+                        table_unilateralLeft.RowName{ianswer}=nameing;
+                         end
+                    else
+                        table_unilateralLeft.RowName{ianswer}=sprintf(part,num2str(contacts_vector(1,...
+                            col)),num2str(amplitudes_vector(1,col)));
+                    end
+                    table_unilateralLeft.Data(ianswer,1)=obj.HighestResults.unilateralLeft.results(1,ianswer);
                 end
             end
             
             if not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.right))
-                 obj.HighestResults.unilateralRight.results=maxk(Actor.PredictInformation.Results{1,1}.unilateral.right,answer);
+                obj.HighestResults.unilateralRight.results=unique(Actor.PredictInformation.Results{1,1}.unilateral.right);
+                obj.HighestResults.unilateralRight.results=maxk(obj.HighestResults.unilateralRight.results,answer);
                 for ianswer=1:answer
                     obj.HighestResults.unilateralRight.position{ianswer}=ismember(Actor.PredictInformation.Results{1,1}.unilateral.right,obj.HighestResults.unilateralRight.results(1,ianswer));
                     [row,col]=find(obj.HighestResults.unilateralRight.position{ianswer});
-                    part='C%d-%dmA';
-                    obj.handles.table_unilateralRight.RowName{ianswer}=sprintf(part,contacts_vector(1,...
-                        col),amplitudes_vector(1,col));
-                    obj.handles.table_unilateralRight.Data(ianswer,1)=obj.HighestResults.unilateralRight.results(1,ianswer);
+                    row=unique(row);
+                    col=unique(col);
+                    part='C%s-%smA';
+                    if numel(col)>1
+                        nameing=sprintf(part,num2str(contacts_vector(1,...
+                            col(1,1))),num2str(amplitudes_vector(1,col(1,1))));
+                         for i=2:numel(col)
+                        nameing2=sprintf(part,num2str(contacts_vector(1,col(1,...
+                            i))),num2str(amplitudes_vector(1,col(1,i))));
+                        nameing=[nameing,' or ', nameing2]
+                        table_unilateralRight.RowName{ianswer}=nameing;
+                         end
+                    else
+                        table_unilateralRight.RowName{ianswer}=sprintf(part,num2str(contacts_vector(1,...
+                            col)),num2str(amplitudes_vector(1,col)));
+                    end
+                    table_unilateralRight.Data(ianswer,1)=obj.HighestResults.unilateralRight.results(1,ianswer);
                 end
             end
             

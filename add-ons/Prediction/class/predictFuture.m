@@ -28,7 +28,7 @@ classdef predictFuture<handle
         configStructure
         Data_In
         Results
-        samplesOutsideHeatmap
+        confidenceLevel
     end
     
     properties (Hidden)
@@ -220,6 +220,14 @@ classdef predictFuture<handle
                 if not(any(thisprediction.SavePath))
                     return
                 end
+                try
+                load('predictionConfig.mat');
+                catch
+                    error('This function can only be used if the prediction add on was already onetime executed');
+                end
+                predictionConfig.SavePath=thisprediction.SavePath;
+                folder=what('Prediction');
+                save(fullfile(folder.path,'/predictionConfig'),'predictionConfig');
             end
             
             function Import(hObject,eventdata)
@@ -393,9 +401,10 @@ classdef predictFuture<handle
             function changeVTAPoolPath(hObject,eventdata)
                  waitfor(msgbox('You want to change searching path of your VTA Pool? Please choose...'));
                                 thisprediction.VTAPoolPath=uigetdir;
-                                VTAPoolPath=thisprediction.VTAPoolPath;
+                                load('predictionConfig.mat');
+                                predictionConfig.VTAPoolPath=thisprediction.VTAPoolPath;
                                 folder=what('Prediction');
-                                save(fullfile(currentfolder.path,'/predictionConfig'),'VTAPoolPath');
+                                save(fullfile(folder.path,'/predictionConfig'),'predictionConfig');
             end
         end
     end
