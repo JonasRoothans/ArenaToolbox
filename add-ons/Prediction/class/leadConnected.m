@@ -3,6 +3,7 @@ classdef leadConnected<handle
     
     properties
         config
+        amplitudesParameter
     end
     
     methods
@@ -35,9 +36,9 @@ classdef leadConnected<handle
                 num2str(Patient_Information.dateOfBirth(1:10)),'_', ...
                 num2str(Patient_Information.patientID),'.xls'];
             filename=fullfile(thisprediction.SavePath,filename);
-            if exist(filename,'file')
-                result=1;
-            end
+%             if exist(filename,'file')
+%                 result=1;
+%             end
             cd(currentFolder);
         end
         
@@ -95,7 +96,7 @@ classdef leadConnected<handle
         valueOfContactLetters=str2num(thisSession.therapyPlanStorage{1,1}.activeRings);
         contacts=numel(valueOfContactLetters);
         contacts = 0:contacts-1;
-        amplitudes = 1:0.5:8;
+        amplitudes = obj.amplitudesParameter(1,1):obj.amplitudesParameter(1,2):obj.amplitudesParameter(1,3);
         [contacts2d,amplitudes2d] = meshgrid(contacts,amplitudes); %maybe a new way of getting the same values but without this meshgrid crazyness
         obj.config.contacts_vector = reshape(contacts2d,1,[]);         %gets the 0123 in row to follow in column
         obj.config.amplitudes_vector = reshape(amplitudes2d,1,[]);     %gets the 12345 in row to follow in column
@@ -136,6 +137,14 @@ classdef leadConnected<handle
             if ~exist(fullfile(thisprediction.VTAPoolPath,name),'file')
                 save(fullfile(thisprediction.VTAPoolPath,name),'Rvta','Ivta');
             end
+            
+            if isempty(thisprediction.config.FirstLeadrelatedVTA.name) && thisprediction.PositionHemisphere.left
+                thisprediction.config.FirstLeadrelatedVTA.name=name;
+                thisprediction.config.FirstLeadrelatedVTA.VTA=[];
+            else
+                thisprediction.config.SecondLeadrelatedVTA=[];
+                thisprediction.config.SecondLeadrelatedVTA.name=name;
+            end
         end
         
         function [Ivta,Rvta] = getVTAInformation(obj,thisStimplan)
@@ -153,7 +162,8 @@ classdef leadConnected<handle
             Ivta = thisStimplan.vta.Medium.voxelArray;
         end
         
-        function VTA = loadVTA(obj,data,VTApool)
+        function VTA = loadVTA(obj,data,thisprediction)
+            if isa(data,'struct')
             name = [data.leadtype,...
                 num2str(data.amplitude),...
                 num2str(data.voltage),...
@@ -161,8 +171,10 @@ classdef leadConnected<handle
                 'c',data.activecontact,...
                 'a',data.groundedcontact,...
                 '.mat'];
-            
-            VTA = load(fullfile(VTApool,name));
+            else
+                name=data;
+            end
+            VTA = load(fullfile(thisprediction.VTAPoolPath,name));
             
         end
         

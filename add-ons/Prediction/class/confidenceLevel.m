@@ -5,6 +5,7 @@ classdef confidenceLevel<handle
     properties
         leftSide
         rightSide
+        bilateral
         side
     end
     
@@ -14,6 +15,9 @@ classdef confidenceLevel<handle
         end
         
         function sampleToRealMNI(obj,heatmap,number)
+            % The original map for creating the heatmap was constructed in
+            % a wrong space, the so called legacy MNI space. That is why it
+            % needs to be transformed.
             sampleToTransform=VoxelData;
             Tlegacy2mni = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
             
@@ -56,32 +60,52 @@ classdef confidenceLevel<handle
         end
         
         function calculationConfidenceLevel(obj,VTA,counter)
+            %this is needed, because three different values which
+            %correspond with the confidence level have to be found.
+            %Also in one more discussion it was asked for a average value
+            %of VTAs been there for one voxel when the heatmap was created.
+            %This is seen as the second part for each side. 
+            
             
             if not(isempty(obj.leftSide)) && obj.leftSide.Level.h10(counter,1)==0
-                [MapHigherTen,MapHigherOneSmalerTen,MapZero]=obj.getMaps(obj.leftSide.Map);
+                [MapHigherTen,MapHigherOneSmalerTen,MapZero]=obj.getMaps(obj.leftSide.Map); 
                 score10=MapHigherTen(MapHigherTen==1 & VTA>0.5);
                 score1=MapHigherOneSmalerTen(MapHigherOneSmalerTen==1 & VTA>0.5);
                 score0=MapZero(MapZero==1 & VTA>0.5);
-                VTA=numel(find(VTA>0.5));
-                percentage10=100*numel(find(score10))/VTA;
-                percentage1=100*numel(find(score1))/VTA;
-                percentage0=100*numel(find(score0))/VTA;
+                VTANumber=numel(find(VTA>0.5));
+                percentage10=100*numel(find(score10))/VTANumber;
+                percentage1=100*numel(find(score1))/VTANumber;
+                percentage0=100*numel(find(score0))/VTANumber;
                 obj.leftSide.Level.h10(counter,1)=percentage10;
                 obj.leftSide.Level.h1(counter,1)=percentage1;
                 obj.leftSide.Level.equal0(counter,1)=percentage0;
+                
+                allVTAsAcounted=VTA>0.5;
+                allUsedOriginVTAs=obj.leftSide.Map.*allVTAsAcounted;
+                finalSum=sum(allUsedOriginVTAs,'all');
+                sumOfValues=find(allVTAsAcounted);
+                sumOfValues=numel(sumOfValues);
+                obj.leftSide.average(1,counter)=finalSum/sumOfValues;
             end
             if not(isempty(obj.rightSide)) && obj.rightSide.Level.h10(counter,1)==0
                 [MapHigherTen,MapHigherOneSmalerTen,MapZero]=obj.getMaps(obj.rightSide.Map);
                 score10=MapHigherTen(MapHigherTen==1 & VTA>0.5);
                 score1=MapHigherOneSmalerTen(MapHigherOneSmalerTen==1 & VTA>0.5);
                 score0=MapZero(MapZero==1 & VTA>0.5);
-                VTA=numel(find(VTA>0.5));
-                percentage10=100*numel(find(score10))/VTA;
-                percentage1=100*numel(find(score1))/VTA;
-                percentage0=100*numel(find(score0))/VTA;
+                VTANumber=numel(find(VTA>0.5));
+                percentage10=100*numel(find(score10))/VTANumber;
+                percentage1=100*numel(find(score1))/VTANumber;
+                percentage0=100*numel(find(score0))/VTANumber;
                 obj.rightSide.Level.h10(counter,1)=percentage10;
                 obj.rightSide.Level.h1(counter,1)=percentage1;
                 obj.rightSide.Level.equal0(counter,1)=percentage0;
+                
+                allVTAsAcounted=VTA>0.5;
+                allUsedOriginVTAs=obj.rightSide.Map.*allVTAsAcounted;
+                finalSum=sum(allUsedOriginVTAs,'all');
+                sumOfValues=find(allVTAsAcounted);
+                sumOfValues=numel(sumOfValues);
+                obj.rightSide.average(1,counter)=finalSum/sumOfValues;
             end
         end
         

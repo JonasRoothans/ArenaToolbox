@@ -252,7 +252,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Mesh.plotCOG = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: show COG','callback',{@menu_showCOG},'Enable','off');
             obj.handles.menu.dynamic.Mesh.dice = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: dice (=comformity of voxels)','callback',{@menu_dice},'Enable','off');
             obj.handles.menu.dynamic.Mesh.densitydistribution = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: FWHM (=density distribution)','callback',{@menu_fwhm},'Enable','off');
-            obj.handles.menu.dynamic.Mesh.getPredictionValue=uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: Get Prediction Value for VTA','callback',{@menu_getPredictionValue},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.getPredictionValue=uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: Get Prediction Value for ','callback',{@menu_getPredictionValue},'Enable','off');
             obj.handles.menu.dynamic.Mesh.fibers = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: fibers (from 1 seed)','callback',{@menu_showFibers},'Enable','off');
             obj.handles.menu.dynamic.Mesh.fibersBetween = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: fibers (inbetween seeds)','callback',{@menu_showFibers_inbetween},'Enable','off');
             
@@ -1735,23 +1735,30 @@ classdef ArenaScene < handle
                 
                 scene = ArenaScene.getscenedata(hObject);
                 selection=scene.handles.panelright.Value(1,1);
-                if ismember('#',scene.Actors(1,selection).Tag)
-                    scene.Actors(1,selection).Tag=scene.Actors(1,selection).Tag(1:end-10);
+                if ismember(';',scene.Actors(1,selection).Tag)
+                    scene.Actors(1,selection).Tag=scene.Actors(1,selection).Tag(1:end-8);
                 end
                 try 
                     selection=scene.handles.panelright.Value(1,2);
                     error('You selected to many VTAs! Only one is allowed!');
                 catch
-                scene.Actors(1,selection).PredictInformation=predictFuture();
-                scene.Actors(1,selection).PredictInformation.newPrediction(scene.Actors(1,selection).PathDirectory,scene.Actors(1,selection).Data);
-
-                        waitfor(scene.Actors(1,selection).PredictInformation.handles.figure);
-                        if isempty(scene.Actors(1,selection).PredictInformation.Heatmap)
-                            warning('No Prediction Data was calculated!');
-                        else
-                            scene.Actors(1,selection).Tag=[scene.Actors(1,selection).Tag,scene.Actors(1,selection).PredictInformation.Tag];
-                            scene.refreshLayers();
+                    
+                    try
+                        for i=1:numel(scene.Actors)
+                            if scene.Actors(1,selection).C0(1,1)==scene.Actors(1,i).Data.c0(1,1) && scene.Actors(1,selection).NumberOfLead==scene.Actors(1,i).NumberOfLead
+                                if scene.Actors(1,selection).C0(1,1)<0
+                                scene.Actors(1,selection).Tag=[scene.Actors(1,selection).Tag,';',num2str(scene.Actors(1,i).PredictInformation.handles.prediction_Information.unilateral.leftVTAPrediction)];
+                                break;
+                                else
+                                scene.Actors(1,selection).Tag=[scene.Actors(1,selection).Tag,';',num2str(scene.Actors(1,i).PredictInformation.handles.prediction_Information.unilateral.rightVTAPrediction)];
+                                break;
+                                end
+                            end
                         end
+                        scene.refreshLayers();
+                    catch
+                        error('No calculated prediction value was found for this VTA! Please check, wheter you already did the prediction on the referenced lead!');
+                    end
                 end
             end
             

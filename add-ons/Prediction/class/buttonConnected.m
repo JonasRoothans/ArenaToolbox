@@ -169,7 +169,11 @@ classdef buttonConnected<handle
                 %for now on you can work with Boston or Medtronic leads and its
                 %configuration data
                 
+                lead.amplitudesParameter=thisprediction.amplitudesParameter;
                 lead.getConfiguration(thisSession);
+                thisprediction.config.FirstLeadrelatedVTA=[];%otherwise the could will not work with an if statement
+                thisprediction.config.FirstLeadrelatedVTA.name=[];
+                thisprediction.config.FirstLeadrelatedVTA.VTA=[];
                 thisprediction.configStructure=lead.config;
                 switch thisprediction.Heatmap.Name
                     case 'DystoniaWuerzburg'
@@ -226,6 +230,15 @@ classdef buttonConnected<handle
                     % dataset, which was loaded.
                     thisLead = thisSession.therapyPlanStorage(PlanNumber);
                     lead.ExporttoVTApool(thisprediction,thisLead);
+                    if isempty(thisprediction.config.FirstLeadrelatedVTA.VTA) && thisprediction.PositionHemisphere.left
+                    thisprediction.config.FirstLeadrelatedVTA.VTA = lead.loadVTA(thisprediction.config.FirstLeadrelatedVTA.name,thisprediction);
+                    [thisprediction.config.FirstLeadrelatedVTA.iVTA,thisprediction.config.FirstLeadrelatedVTA.rVTA] = lead.getVTAInMNISpace(thisprediction.config.FirstLeadrelatedVTA.VTA,thisprediction,...
+                            thisprediction.handles.TransformationLegacySpace{1,iLead},atlas{1,iLead}.hemisphere);
+                    else
+                    thisprediction.config.SecondLeadrelatedVTA.VTA = lead.loadVTA(thisprediction.config.SecondLeadrelatedVTA.name,thisprediction);
+                    [thisprediction.config.SecondLeadrelatedVTA.iVTA,thisprediction.config.SecondLeadrelatedVTA.rVTA] = lead.getVTAInMNISpace(thisprediction.config.SecondLeadrelatedVTA.VTA,thisprediction,...
+                            thisprediction.handles.TransformationLegacySpace{1,iLead},atlas{1,iLead}.hemisphere);
+                    end
                     for iMonoPolar = 1:numel(lead.config.amplitudes_vector)
                         disp(fprintf(status,iLead,iMonoPolar));
                         data.pulsewidth='150';       %Big question, is it enough or more correctness needed?
@@ -249,7 +262,7 @@ classdef buttonConnected<handle
                         Excel_output(iLead,iMonoPolar).leadname = thisSession.therapyPlanStorage{1,PlanNumber}.lead.label;
                         
                         try
-                            thisVTA = lead.loadVTA(data,thisprediction.VTAPoolPath); %loads what was created with the makerecipeCodeMac
+                            thisVTA = lead.loadVTA(data,thisprediction); %loads what was created with the makerecipeCodeMac
                         catch
                             error(['No matching VTA was found in the VTA Pool Path!', 'Please make sure you have all possibilities as VTAs!',newline,...
                                 'If you do not understand what is the issue here, please ask Tim!']);
@@ -325,6 +338,10 @@ classdef buttonConnected<handle
                             distanceFromMeanOfMostLikelyEffekt = [1,zscore(h.Values)];   % normaly just the signed_p_map would be enough, but big VTAs would get a hugh weight in the prediction
                             unilateral.left(fXLS) = distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
                         end
+                        sample = signed_p_map(and(thisprediction.config.FirstLeadrelatedVTA.iVTA>0.5,heatmap.pmap>0));
+                        h = histogram(sample,edges);
+                        distanceFromMeanOfMostLikelyEffekt = [1,zscore(h.Values)];
+                        unilateral.leftVTAPrediction=distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;
                         delete(fig1)
                     end
                     
@@ -345,6 +362,10 @@ classdef buttonConnected<handle
                             distanceFromMeanOfMostLikelyEffekt = [1,zscore(h.Values)];   % normaly just the signed_p_map would be enough, but big VTAs would get a hugh weight in the prediction
                             unilateral.right(sXLS) = distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
                         end
+                        sample = signed_p_map(and(thisprediction.config.SecondLeadrelatedVTA.iVTA>0.5,heatmap.pmap>0));
+                        h = histogram(sample,edges);
+                        distanceFromMeanOfMostLikelyEffekt = [1,zscore(h.Values)];
+                        unilateral.rightVTAPrediction=distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;
                         delete(fig2)
                     end
                     
@@ -353,6 +374,7 @@ classdef buttonConnected<handle
                         fig3=figure('Name','Bilateral_Histogramm');
                         % it is always bilateral
                         bilateral = [];
+                        thisprediction.confidenceLevel.bilateral=[];
                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             obj.progress.Value=obj.progress.Value+size(thisprediction.handles.VTA_Information,2)/(size(thisprediction.handles.VTA_Information,2)*10000);
                             for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
@@ -363,6 +385,7 @@ classdef buttonConnected<handle
                                 % When you take only values which aren't 0 than you get only a worsning or
                                 % improving effekt for the prediction.
                                 
+                                thisprediction.confidenceLevel.bilateral.average(fXLS,sXLS)=thisprediction.confidenceLevel.leftSide.average(1,fXLS)+thisprediction.confidenceLevel.rightSide.average(1,sXLS);
                                 h = histogram(sample,edges);
                                 distanceFromMeanOfMostLikelyEffekt = [1,zscore(h.Values)];   % normaly just the signed_p_map would be enough, but big VTAs would get a hugh weight in the prediction
                                 bilateral(fXLS,sXLS) = distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
@@ -520,7 +543,7 @@ classdef buttonConnected<handle
                 thisprediction.Patient_Information.gender,'_',...
                 num2str(thisprediction.Patient_Information.dateOfBirth(1:10)),'_', ...
                 num2str(thisprediction.Patient_Information.patientID)];
-            save([thisprediction.Temp,filename,'.mat'],'PredictionAndVTA');
+            save([thisprediction.Temp,filename,'.mat'],'PredictionAndVTA','-v7.3');
             cd(currentDirectory);
             
             %save only the results and no other data as .csv file
