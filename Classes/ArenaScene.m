@@ -136,6 +136,20 @@ classdef ArenaScene < handle
                 'Visible','off',...
                 'callback',{@menu_closePredictionWindow});
             
+            obj.handles.panel_showResults=uicontrol('Parent',obj.handles.figure,...
+                'Units','normalized',...
+                'Position',[0.4 0 0.02 1],...
+                'Visible','off',...
+                'Callback',{});
+            
+            obj.handles.closebutton_panel_showResults = uicontrol('parent',obj.handles.figure,...
+                'units','normalized',...
+                'position',[0.9,0.9,0.07,0.1],...
+                'FontSize',18,...
+                'String','X',...
+                'Visible','off',...
+                'callback',{@closebutton_panel_closeShowResults});
+            
             %menubar
             obj.handles.menu.file.main = uimenu(obj.handles.figure,'Text','File');
             
@@ -2547,9 +2561,65 @@ classdef ArenaScene < handle
                 displayDecision=thisScene.handles.box_listSelectResult.UserData(1,displayDecision).Number;
                 if not(isempty(displayDecision))
                     d=predictResults();
-                    d.displayHighestResults(thisScene.Actors(1,displayDecision));
+                    set(thisScene.handles.axes,'PickableParts','none');
+                    set(thisScene.handles.menu.file.main,'Enable','off');
+                    set(thisScene.handles.menu.stusessions.main,'Enable','off');
+                    set(thisScene.handles.menu.view.main,'Enable','off');
+                    set(thisScene.handles.menu.atlas.main,'Enable','off');
+                    set(thisScene.handles.menu.edit.main,'Enable','off');
+                    set(thisScene.handles.menu.transform.main,'Enable','off');
+                    set(thisScene.handles.menu.dynamic.main,'Enable','off');
+                    set(thisScene.handles.btn_toggleleft,'Enable','off','Visible','off');
+                    set(thisScene.handles.btn_toggleright,'Enable','off','Visible','off');
+                    set(thisScene.handles.panelleft,'Visible','off');
+                    set(thisScene.handles.panelright,'Visible','off');
+                    set(thisScene.handles.btn_layeroptions,'Visible','off');
+                    thisScene.handles.axes.Position=[0.01 0.01 0.4 0.95];
+                    thisScene.handles.figure.WindowScrollWheelFcn =[]; 
+                    camtarget([30 1 1])
+                    thisScene.handles.panel_showResults.Visible='on';
+                    thisScene.handles.closebutton_panel_showResults.Visible='on';
+                    d.displayHighestResults(thisScene,displayDecision);
+
                 else
                     error('No Prediction Data was found!');
+                end
+            end
+            
+            function closebutton_panel_closeShowResults(hObject,eventdata)
+                thisScene=ArenaScene.getscenedata(hObject);
+                thisScene.handles.closebutton_panel_showResults.Visible='off';
+                thisScene.handles.panel_showResults.Visible='off';
+                thisScene.handles.axes.Position=[0.01 0.01 0.95 0.95];
+                A_mouse_camera(thisScene.handles.figure);
+                set(thisScene.handles.btn_toggleleft,'Enable','on','Visible','on');
+                set(thisScene.handles.btn_toggleright,'Enable','on','Visible','on');
+                set(thisScene.handles.panelleft,'Visible','on');
+                set(thisScene.handles.panelright,'Visible','on');
+                set(thisScene.handles.btn_layeroptions,'Visible','on');
+                set(thisScene.handles.menu.file.main,'Enable','on');
+                set(thisScene.handles.menu.stusessions.main,'Enable','on');
+                set(thisScene.handles.menu.view.main,'Enable','on');
+                set(thisScene.handles.menu.atlas.main,'Enable','on');
+                set(thisScene.handles.menu.edit.main,'Enable','on');
+                set(thisScene.handles.menu.transform.main,'Enable','on');
+                set(thisScene.handles.menu.dynamic.main,'Enable','on');
+                set(thisScene.handles.axes,'PickableParts','visible');
+                try
+                    for i=1:4
+                        thisScene.handles.barLeft.num2str(i).Visible='off';
+                        thisScene.handles.barTextLeft.num2str(i).Visible='off';
+                    end
+                    delete(thisScene.handles.electrodeImage1);
+                catch
+                end
+                try
+                    for i=1:4
+                        thisScene.handles.barRight.num2str(i).Visible='off';
+                        thisScene.handles.barTextRight.num2str(i).Visible='off';
+                    end
+                    delete(thisScene.handles.electrodeImage2);
+                catch
                 end
             end
             
@@ -2572,7 +2642,7 @@ classdef ArenaScene < handle
                 d=predictResults();
                 d.displayHighestResults(result);
             end
-            
+           
             %--------------------------------------------------------------
     end
         

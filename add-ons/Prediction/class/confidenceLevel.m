@@ -21,7 +21,7 @@ classdef confidenceLevel<handle
             sampleToTransform=VoxelData;
             Tlegacy2mni = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
             
-            if strcmp(heatmap.Name,'DystoniaWuerzburg')
+            if strcmp(heatmap.Name,'DystoniaWuerzburg') || strcmp(heatmap.Name,'heatmapBostonBerlin') || strcmp(heatmap.Name,'heatmapBostonAlone')
             sampleToTransform=sampleToTransform.loadnii('DystoniaMapWürzburg_forDecisionOfQuality.nii',1);
             R=sampleToTransform.R;
             R.XWorldLimits = [-7.5 7.5];
@@ -31,8 +31,9 @@ classdef confidenceLevel<handle
             [sampleToTransform.Voxels,sampleToTransform.R] = imwarp(I,R,T);
             sampleToTransform.Voxels(isnan(sampleToTransform.Voxels)) = 0;
             elseif strcmp(heatmap.Name,'heatmapBostonBerlin')
-                    keyboard;
+                    disp('Once the propper origin map is provided, confidence level can be calculated for this heatmap too');
             elseif strcmp(heatmap.Name,'heatmapBostonAlone')
+                disp('Once the propper origin map is provided, confidence level can be calculated for this heatmap too');
                 keyboard;
             end
             

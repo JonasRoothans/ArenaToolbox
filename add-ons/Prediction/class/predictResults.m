@@ -6,7 +6,8 @@ classdef predictResults<handle
     properties
         handles
         HighestResults
-        developerOptions=0
+        developerOptions1=0
+        devoloperOptions2=0
         treshhold=7;
         topScoreValue=3
     end
@@ -16,7 +17,9 @@ classdef predictResults<handle
             %this needs to be here
         end
         
-        function displayHighestResults(obj,Actor)
+        function displayHighestResults(obj,thisScene,displayDecision)
+            
+            Actor=thisScene.Actors(1,displayDecision);
             
             obj.topScoreValue=3; % If in in the future this an other value is needed, you can add the outcomings here.
             
@@ -34,10 +37,7 @@ classdef predictResults<handle
                 end
             end
             
-            obj.handles.figure=figure('Units','normalized',...
-                'Position',[0.05 0 0.9 0.9],...
-                'Name','Results',...
-                'WindowKeyPressFcn',@kSnapshotResult);
+
             
             obj.HighestResults=[];
             obj.HighestResults.bilateral=[];
@@ -50,7 +50,13 @@ classdef predictResults<handle
             contacts_vector=Actor.PredictInformation.configStructure.contacts_vector;
             amplitudes_vector=Actor.PredictInformation.configStructure.amplitudes_vector;
             
-            if obj.developerOptions==1
+            if obj.developerOptions1==1
+                
+                obj.handles.figure=figure('Units','normalized',...
+                'Position',[0.05 0 0.9 0.9],...
+                'Name','Results',...
+                'WindowKeyPressFcn',@kSnapshotResult);
+            
                 obj.handles.table_bilateral=uitable('Parent',obj.handles.figure,'Units','normalized',...
                     'OuterPosition',[0.05 0.64 0.9 0.3],...
                     'ColumnEditable',[false false],...
@@ -161,8 +167,16 @@ classdef predictResults<handle
                         obj.handles.table_unilateralRight.Data(itopScoreValue,1)=obj.HighestResults.unilateralRight.results(1,itopScoreValue);
                     end
                 end
-            else
+                
+            elseif obj.devoloperOptions2==1
+                
                 %                 %first bilateral
+                
+                 obj.handles.figure=figure('Units','normalized',...
+                'Position',[0.05 0 0.9 0.9],...
+                'Name','Results',...
+                'WindowKeyPressFcn',@kSnapshotResult);
+            
                 if not(isempty(Actor.PredictInformation.Results{1}.bilateral))
                 greaterThanThresholdBilateral=Actor.PredictInformation.confidenceLevel.bilateral.average>obj.treshhold*2;
                 greaterThanThresholdBilateral=Actor.PredictInformation.Results{1,1}.bilateral.*greaterThanThresholdBilateral;
@@ -285,8 +299,93 @@ classdef predictResults<handle
                                 newline,num2str(obj.HighestResults.unilateralRight.results(1,itopScoreValue))];
                         end
                     end
-                  end   
+                  end
+            else
+                img = imread('closeUpElectrode.png');
+                thisScene.handles.barLeft=[];
+                thisScene.handles.barRight=[];
+                thisScene.handles.barTextLeft=[];
+                thisScene.handles.barTextRight=[];
+                if not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.left))
+                    subplot(1,7,5)
+                    img=imresize(img,0.5);
+                    thisScene.handles.electrodeImage1=imshow(img);
+                    set(gca,'Position',[0.43 0.1 0.2 0.7]);
+                    greaterThanThresholdLeft=Actor.PredictInformation.confidenceLevel.leftSide.average>obj.treshhold;
+                    greaterThanThresholdLeft=Actor.PredictInformation.Results{1,1}.unilateral.left.*greaterThanThresholdLeft;
+                end
+                if not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.right))
+                    subplot(1,7,7)
+                    thisScene.handles.electrodeImage2=imshow(img);
+                    set(gca,'Position',[0.68 0.1 0.2 0.7]);
+                    greaterThanThresholdRight=Actor.PredictInformation.confidenceLevel.rightSide.average>obj.treshhold;
+                    greaterThanThresholdRight=Actor.PredictInformation.Results{1,1}.unilateral.right.*greaterThanThresholdRight;
+                end
+                numberOfContactsSettings=Actor.PredictInformation.configStructure.numberOfContactSettings;
+                for i=1:4
+                    %get the highest prediction result per contact
+                    ypos=0.19+(i-1)*0.109;
+                    try
+                        if  not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.left))
+                            maxForContactLeft=maxk(greaterThanThresholdLeft(1+numberOfContactsSettings*(i-1):numberOfContactsSettings*i),1);
+                            maxForContactLeft=unique(maxForContactLeft);
+                            positionOfNumberInVector=find(greaterThanThresholdLeft(1+numberOfContactsSettings*(i-1):numberOfContactsSettings*i)==maxForContactLeft);
+                            valueOfStimulationLeft=amplitudes_vector(1,positionOfNumberInVector(1,1));
+                            if maxForContactLeft<1
+                                xlengthLeft=0.02+maxForContactLeft/8;
+                            else
+                                xlengthLeft=0.02+maxForContactLeft/800;
+                            end
+                            positionLeft=[0.546 ypos xlengthLeft 0.08];
+                            thisScene.handles.barLeft.num2str(i)=uicontrol('parent',thisScene.handles.figure,...
+                                'Style','text',...
+                                'BackgroundColor','g',...
+                                'Units','normalized',...
+                                'Position',positionLeft,...
+                                'String',num2str(maxForContactLeft));
+                            positionLeft=[0.546+xlengthLeft ypos 0.04 0.08];
+                            thisScene.handles.barTextLeft.num2str(i)=uicontrol('parent',thisScene.handles.figure,...
+                                'Style','text',...
+                                'BackgroundColor',[0.4660, 0.6740, 0.1880],...
+                                'Units','normalized',...
+                                'Position',positionLeft,...
+                                'String',[num2str(valueOfStimulationLeft),'mA']);
+                        end
+                    catch
+                    end
+
+                        if not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.right))
+                            maxForContactRight=maxk(greaterThanThresholdRight(1+numberOfContactsSettings*(i-1):numberOfContactsSettings*i),1);
+                            positionOfNumberInVector=find(greaterThanThresholdRight(1+numberOfContactsSettings*(i-1):numberOfContactsSettings*i)==maxForContactRight);
+                            valueOfStimulationRight=amplitudes_vector(1,positionOfNumberInVector(1,1));
+                            maxForContactRight=unique(maxForContactRight);
+                            if maxForContactRight<1
+                                xlengthRight=0.02+maxForContactRight/8;
+                            else
+                                xlengthRight=0.02+maxForContactRight/800;
+                            end
+                            positionRight=[0.798 ypos xlengthRight 0.08];
+                            %construct the reference bar
+                            thisScene.handles.barRight.num2str(i)=uicontrol('parent',thisScene.handles.figure,...
+                                'Style','text',...
+                                'BackgroundColor','g',...
+                                'Units','normalized',...
+                                'Position',positionRight,...
+                                'String',num2str(maxForContactRight));
+                            positionRight=[0.798+xlengthRight ypos 0.04 0.08];
+                            thisScene.handles.barTextRight.num2str(i)=uicontrol('parent',thisScene.handles.figure,...
+                                'Style','text',...
+                                'BackgroundColor',[0.4660, 0.6740, 0.1880],...
+                                'Units','normalized',...
+                                'Position',positionRight,...
+                                'String',[num2str(valueOfStimulationRight),'mA']);
+                        end
+
+                end
+                end
+
             end
+            
             function kSnapshotResult (hObject,eventdata)
                 spaceBarPressed=eventdata.Key;
                 if strcmpi(spaceBarPressed,'space')
@@ -297,8 +396,7 @@ classdef predictResults<handle
                     imwrite(h.cdata,['screenshot',text,name]);
                 end
             end
-            
+                
         end
     end
-end
 

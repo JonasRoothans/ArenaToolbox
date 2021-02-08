@@ -325,7 +325,7 @@ classdef buttonConnected<handle
                         status='%d. left Lead predicted';
                         fig1=figure('Name','Monopolar_Histogramm-Left');
                         % it is always bilateral
-                         unilateral.left = [];
+                        unilateral.left = [];
                         thisprediction.confidenceLevel.sampleToRealMNI(thisprediction.Heatmap,size(thisprediction.handles.VTA_Information,2));
                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             disp(fprintf(status,fXLS));
@@ -394,112 +394,55 @@ classdef buttonConnected<handle
                         delete(fig3);
                     end
                     
-                case 'heatmapBostonBerlin'
+                case {'heatmapBostonBerlin' , 'heatmapBostonAlone'}
                     % as long as there are no linear regression parameter
                     % given, the prediction is just based on the heatmap
                     % alone
                     probabilityMap=thisprediction.Heatmap.Data.Voxels;
                     linearRegressionCoefficients = 1;  % this are the coefficients for the linear regression model
+                    
                     
                     if thisprediction.PositionHemisphere.left==1
                         % unilateral left
                         status='%d. left Lead predicted';
                         unilateral.left = [];
-                        thisprediction.confidenceLevel=confidenceLevel;
-                        thisprediction.confidenceLevel.sampleToRealMNI(thisprediction.Heatmap,thisprediction.PositionHemisphere);
                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             disp(fprintf(status,fXLS));
                             sample=probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);
-                            thisprediction.confidenceLevel.calculationConfidenceLevel(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels,fXLS);                 
                             sample=mean(sample);
                             unilateral.left(fXLS) = sample*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
                         end
+                        sample = probabilityMap(thisprediction.config.FirstLeadrelatedVTA.iVTA>0.5);
+                        sample=mean(sample);
+                        unilateral.leftVTAPrediction= sample*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
                     end
                     
                     if thisprediction.PositionHemisphere.right==1
                         status='%d. right Lead predicted';
                         % unilateral right
                         unilateral.right = [];
-                        thisprediction.confidenceLevel=confidenceLevel;
-                        thisprediction.confidenceLevel.sampleToRealMNI(thisprediction.Heatmap,thisprediction.PositionHemisphere);
                         for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             disp(fprintf(status,sXLS));
                             sample=probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5);
-                            thisprediction.confidenceLevel.calculationConfidenceLevel(thisprediction.handles.VTA_Information(1,sXLS).normalizedVTA.Voxels,sXLS);                 
                             sample=mean(sample);
                             unilateral.right(sXLS) = sample*linearRegressionCoefficients;                        % This fitts the outcomes to the in the filedcase study found values.
                         end
+                        sample = probabilityMap(thisprediction.config.SecondLeadrelatedVTA.iVTA>0.5);
+                        sample=mean(sample);
+                        unilateral.rightVTAPrediction= sample*linearRegressionCoefficients;
                     end
                     
                     if thisprediction.bilateralOn==1
                         status='%d. left Lead and %d. right Lead predicted';
                         bilateral = [];
                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
+                            obj.progress.Value=obj.progress.Value+size(thisprediction.handles.VTA_Information,2)/(size(thisprediction.handles.VTA_Information,2)*10000);
                             for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
-                                
-                                obj.progress.Value=obj.progress.Value+0.001;
-                                
                                 sample=[probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);...
                                     probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5)];
                                 sample=mean(mean(sample));
                                 disp(fprintf(status,fXLS,sXLS));
                                 bilateral(fXLS,sXLS) = sample*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
-                            end
-                        end
-                    end
-                    
-                case 'heatmapBostonAlone'
-                    % as long as there are no linear regression parameter
-                    % given, the prediction is just based on the heatmap
-                    % alone
-                    probabilityMap=thisprediction.Heatmap.Data.Voxels;
-                    linearRegressionCoefficients = 1;  % this are the coefficients for the linear regression model
-                    
-                    status='%d. left Lead predicted';
-                    
-                    if thisprediction.PositionHemisphere.left==1
-                        % unilateral left
-                        unilateral.left = [];
-                        thisprediction.confidenceLevel=confidenceLevel;
-                        thisprediction.confidenceLevel.sampleToRealMNI(thisprediction.Heatmap,thisprediction.PositionHemisphere);
-                        for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
-                            disp(fprintf(status,fXLS));
-                            sample=probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);
-                            thisprediction.confidenceLevel.calculationConfidenceLevel(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels,fXLS);                 
-                            sample=mean(sample);
-                            unilateral.left(fXLS) = sample*linearRegressionCoefficients;                      % This fitts the outcomes to the in the filedcase study found values.
-                        end
-                    end
-                    
-                    if thisprediction.PositionHemisphere.right==1
-                        status='%d. right Lead predicted';
-                        % unilateral right
-                        unilateral.right = [];
-                        thisprediction.confidenceLevel=confidenceLevel;
-                        thisprediction.confidenceLevel.sampleToRealMNI(thisprediction.Heatmap,thisprediction.PositionHemisphere);
-                        for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
-                            sample=probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5);
-                            disp(fprintf(status,sXLS));
-                            sample=probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5);
-                            thisprediction.confidenceLevel.calculationConfidenceLevel(thisprediction.handles.VTA_Information(1,sXLS).normalizedVTA.Voxels,sXLS);                 
-                            sample=mean(sample);
-                            unilateral.right(sXLS) = sample*linearRegressionCoefficients;                          % This fitts the outcomes to the in the filedcase study found values.
-                        end
-                    end
-                    
-                    if thisprediction.bilateralOn==1
-                        status='%d. left Lead and %d. right Lead predicted';
-                        bilateral = [];
-                        for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
-                            
-                            obj.progress.Value=obj.progress.Value+0.001;
-                            
-                            for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
-                                sample=[probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);...
-                                    probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5)];
-                                sample=mean(mean(sample));
-                                disp(fprintf(status,fXLS,sXLS));
-                                bilateral(fXLS,sXLS) = sample*linearRegressionCoefficients;                      % This fitts the outcomes to the in the filedcase study found values.
                             end
                         end
                     end
