@@ -109,8 +109,9 @@ classdef ArenaScene < handle
             
             obj.handles.configcontrols = [];
             
-            %list template spaces
+            %refresh menu
             obj.handles.templates =  menu_refreshTemplatelist(obj,[],'startup');
+            
 
  
             
@@ -184,6 +185,7 @@ classdef ArenaScene < handle
             for iMRItemplate = 1:numel(obj.handles.templates)
                 obj.handles.menu.atlas.MRI.template(iMRItemplate) = uimenu(obj.handles.menu.atlas.MRI.main,'Text',obj.handles.templates(iMRItemplate).name,'callback',{@menu_addMRItemplate,obj.handles.templates(iMRItemplate)});
             end
+            
            
             
             
@@ -215,6 +217,10 @@ classdef ArenaScene < handle
             obj.handles.menu.transform.selectedlayer.mirror = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','mirror (makes copy)','callback',{@menu_mirror});
             obj.handles.menu.transform.selectedlayer.yeb2mni = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','Legacy --> MNI','callback',{@menu_Fake2MNI});
             obj.handles.menu.transform.selectedlayer.move =  uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','Move','callback',{@menu_move});
+            
+            obj.handles.menu.addons.main = uimenu(obj.handles.figure,'Text','Add-ons');
+            menu_refreshAddOnsList(obj,[],'startup');
+            
             
             %-- dynamic
             obj.handles.menu.dynamic.main  = uimenu(obj.handles.figure,'Text','...');
@@ -296,14 +302,69 @@ classdef ArenaScene < handle
                 templateVD.loadnii(template.path);
                 template_actor = templateVD.getslice.see(scene);
                 template_actor.changeName(template.name);
+                
+                %set background to black
+                scene.handles.figure.Color
             end
+            
+            function menu_refreshAddOnsList(hObject,eventdata,custom)
+                if strcmp(custom,'startup')
+                    scene = hObject;
+                else
+                scene = ArenaScene.getscenedata(hObject);
+                end
+                
+                addondir = fullfile(fileparts(fileparts(mfilename('fullpath'))),'add-ons');
+                 if not(isfolder(addondir))
+                    mkdir(addondir)
+                 end
+                 %--- hard refresh when triggered by user
+                 if strcmp(custom,'user') %user triggers a hard refresh
+                     items = fieldnames(scene.handles.menu.addons);
+                     for iItem = 1:numel(items)
+                         switch items{iItem}
+                             case 'main'
+                                 %do nothing
+                             otherwise
+                                 delete(scene.handles.menu.addons.(items{iItem}))
+                         end
+                     end
+                 end
+                 
+                 
+                 %--- loop over subfolders
+                 subfolders = SDK_subfolders(addondir);
+                 for iSubfolder = 1:numel(subfolders)
+                     installationFile = dir(fullfile(addondir,subfolders{iSubfolder},'install_*.m'));
+                     if isempty(installationFile)
+                         disp(['Add-ons: ',subfolders{iSubfolder},' cannot be installed.'])
+                         continue
+                     end
+                     callback = str2func(installationFile(1).name(1:end-2)); %without .m
+                     scene.handles.menu.addons.(subfolders{iSubfolder}) =  uimenu(scene.handles.menu.addons.main,'Text',subfolders{iSubfolder},'callback',{callback});
+                     disp(['Add-ons: ',subfolders{iSubfolder},' is available.'])
+                     addpath(fullfile(addondir,subfolders{iSubfolder}))
+                 end
+                 
+            end
+            
+            
+            function addon_addmenuitem(scene,addon,menuname,callback)
+                keyboard
+            end
+            
             
             function templatelist =  menu_refreshTemplatelist(hObject,eventdata,custom)
                 
-                 templatedir = fullfile(fileparts(fileparts(matlab.desktop.editor.getActiveFilename)),'Elements','templates');
+                 templatedir = fullfile(fileparts(fileparts(mfilename('fullpath'))),'Elements','templates');
                 if not(isfolder(templatedir))
-                    mkdir(templatedir)
+                    scene = ArenaScene.getscenedata(hObject);
+                    
                 end
+                
+                
+                
+                
                 obj.handles.templates = [];
                 templates = dir(fullfile(templatedir,'*.nii'));
                 templatelist = [];
@@ -429,9 +490,11 @@ classdef ArenaScene < handle
             function menu_exporttoblender(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 actorList = scene.Actors;
-                thisActor = actorList(scene.handles.panelright.Value);
-                name = [thisActor.Tag,'.obj'];
-                thisActor.export3d(name);
+                dirname = uigetdir('');
+                for iActor = 1:numel(actorList)
+                    thisActor = actorList(iActor);
+                    thisActor.export3d(dirname);
+                end
                 
                 disp('File saved to current directory')
             end
@@ -1473,6 +1536,9 @@ classdef ArenaScene < handle
                 set(gca, 'XTickLabel', Xlabels)
                 legend(labels_pc(indx_pc))
                 
+                
+                disp(results)
+                
                 if strcmp(q_answer,'stacked')
                     f = figure;b = bar(results,'stacked');
                 else
@@ -1483,7 +1549,7 @@ classdef ArenaScene < handle
                     try
                         b(iB).FaceColor = actors_mesh{indx_mesh(iB)}.Visualisation.settings.colorFace;
                     catch
-                        b(iB).FaceColor = [1 1 1]
+                        b(iB).FaceColor = [1 1 1];
                     end
                 end
                 
@@ -1910,7 +1976,7 @@ classdef ArenaScene < handle
                 [labels,~] = A_validname(labels);
                 
                 %show results
-                similarity = array2table(a,'RowNames',labels,'VariableNames',labels)
+                similarity = array2table(a,'RowNames',labels,'VariableNames',labels);
                 assignin('base','similarity',similarity);
                 disp('saved in workspace as >> similarity')
                 

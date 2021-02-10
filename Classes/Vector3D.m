@@ -63,8 +63,12 @@ classdef Vector3D
         end
         
         %--Arena
-        function [actor,scene] = see(obj)
-            [actor,scene] = PointCloud(obj).see;
+        function [actor,scene] = see(obj,scenename)
+            if nargin==1
+                [actor,scene] = PointCloud(obj).see;
+            elseif nargin==2
+                [actor,scene] = PointCloud(obj).see(scenename);
+            end
         end
         
         %--Booleans
