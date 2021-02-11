@@ -21,43 +21,40 @@ classdef confidenceLevel<handle
             sampleToTransform=VoxelData;
             Tlegacy2mni = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
             
-            if strcmp(heatmap.Name,'DystoniaWuerzburg') || strcmp(heatmap.Name,'heatmapBostonBerlin') || strcmp(heatmap.Name,'heatmapBostonAlone')
-            sampleToTransform=sampleToTransform.loadnii('DystoniaMapWürzburg_forDecisionOfQuality.nii',1);
-            R=sampleToTransform.R;
-            R.XWorldLimits = [-7.5 7.5];
-            R.YWorldLimits = [-7.5 7.5];
-            I=sampleToTransform.Voxels;
-            T=affine3d(Tlegacy2mni);
-            [sampleToTransform.Voxels,sampleToTransform.R] = imwarp(I,R,T);
-            sampleToTransform.Voxels(isnan(sampleToTransform.Voxels)) = 0;
-            elseif strcmp(heatmap.Name,'heatmapBostonBerlin')
-                    disp('Once the propper origin map is provided, confidence level can be calculated for this heatmap too');
-            elseif strcmp(heatmap.Name,'heatmapBostonAlone')
-                disp('Once the propper origin map is provided, confidence level can be calculated for this heatmap too');
-                keyboard;
+            if strcmp(heatmap.Name,'DystoniaWuerzburg')
+                sampleToTransform=sampleToTransform.loadnii('DystoniaMapWürzburg_forDecisionOfQuality.nii',1);
+                R=sampleToTransform.R;
+                R.XWorldLimits = [-7.5 7.5];
+                R.YWorldLimits = [-7.5 7.5];
+                I=sampleToTransform.Voxels;
+                T=affine3d(Tlegacy2mni);
+                [sampleToTransform.Voxels,sampleToTransform.R] = imwarp(I,R,T);
+                sampleToTransform.Voxels(isnan(sampleToTransform.Voxels)) = 0;
+                
+                if obj.side.left==1
+                    if isempty(obj.leftSide)
+                        obj.leftSide.Map=sampleToTransform.Voxels;
+                        obj.leftSide.Level=[];
+                        obj.leftSide.Level.h10=zeros(number,1);
+                        obj.leftSide.Level.h1=zeros(number,1);
+                        obj.leftSide.Level.equal0=zeros(number,1);
+                        obj.side.left=0;
+                    end
+                elseif obj.side.right==1
+                    if isempty(obj.rightSide)
+                        obj.rightSide.Map=sampleToTransform.Voxels;
+                        obj.rightSide.Level=[];
+                        obj.rightSide.Level.h10=zeros(number,1);
+                        obj.rightSide.Level.h1=zeros(number,1);
+                        obj.rightSide.Level.equal0=zeros(number,1);
+                        obj.side.right=0;
+                    end
+                else
+                    error('No hemisphere definition found!')
+                end
             end
             
-            if obj.side.left==1
-                if isempty(obj.leftSide)
-                obj.leftSide.Map=sampleToTransform.Voxels;
-                obj.leftSide.Level=[];
-                obj.leftSide.Level.h10=zeros(number,1);
-                obj.leftSide.Level.h1=zeros(number,1);
-                obj.leftSide.Level.equal0=zeros(number,1);
-                obj.side.left=0;
-                end
-            elseif obj.side.right==1
-                if isempty(obj.rightSide)
-                obj.rightSide.Map=sampleToTransform.Voxels;
-                obj.rightSide.Level=[];
-                obj.rightSide.Level.h10=zeros(number,1);
-                obj.rightSide.Level.h1=zeros(number,1);
-                obj.rightSide.Level.equal0=zeros(number,1);
-                obj.side.right=0;
-                end
-            else
-                error('No hemisphere definition found!')
-            end
+            
         end
         
         function calculationConfidenceLevel(obj,VTA,counter)

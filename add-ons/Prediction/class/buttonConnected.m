@@ -234,10 +234,12 @@ classdef buttonConnected<handle
                     thisprediction.config.FirstLeadrelatedVTA.VTA = lead.loadVTA(thisprediction.config.FirstLeadrelatedVTA.name,thisprediction);
                     [thisprediction.config.FirstLeadrelatedVTA.iVTA,thisprediction.config.FirstLeadrelatedVTA.rVTA] = lead.getVTAInMNISpace(thisprediction.config.FirstLeadrelatedVTA.VTA,thisprediction,...
                             thisprediction.handles.TransformationLegacySpace{1,iLead},atlas{1,iLead}.hemisphere);
-                    else
+                    elseif  thisprediction.PositionHemisphere.right
                     thisprediction.config.SecondLeadrelatedVTA.VTA = lead.loadVTA(thisprediction.config.SecondLeadrelatedVTA.name,thisprediction);
                     [thisprediction.config.SecondLeadrelatedVTA.iVTA,thisprediction.config.SecondLeadrelatedVTA.rVTA] = lead.getVTAInMNISpace(thisprediction.config.SecondLeadrelatedVTA.VTA,thisprediction,...
                             thisprediction.handles.TransformationLegacySpace{1,iLead},atlas{1,iLead}.hemisphere);
+                    else
+                        disp('The VTA for which was provided with the dataset was not recognized!');
                     end
                     for iMonoPolar = 1:numel(lead.config.amplitudes_vector)
                         disp(fprintf(status,iLead,iMonoPolar));
@@ -462,6 +464,10 @@ classdef buttonConnected<handle
             %save data as .mat file, for easier later on processing
             currentDirectory=cd;
             cd(thisprediction.Temp)
+            numberOfContacts=numel(unique(thisprediction.configStructure.contacts_vector));
+            thisprediction.configStructure.numberOfContacts=numberOfContacts;
+            numberOfContactSettings=numel(find(~thisprediction.configStructure.contacts_vector));
+            thisprediction.configStructure.numberOfContactSettings=numberOfContactSettings;
             PredictionAndVTA.target=thisprediction.handles.target;
             PredictionAndVTA.TransformationLegacySpace=thisprediction.handles.TransformationLegacySpace;
             PredictionAndVTA.VTA_Information=thisprediction.handles.VTA_Information;
@@ -493,11 +499,7 @@ classdef buttonConnected<handle
             currentDirectory=cd;
             cd(thisprediction.SavePath)
             filename=filename(2:end);
-            numberOfContacts=numel(unique(thisprediction.configStructure.contacts_vector));
-            thisprediction.configStructure.numberOfContacts=numberOfContacts;
-            numberOfContactSettings=numel(find(~thisprediction.configStructure.contacts_vector));
-            thisprediction.configStructure.numberOfContactSettings=numberOfContactSettings;
-            
+
             writematrix('Tag',[filename,'.xls'],'Range','A1','Sheet',2);
             writematrix('Heatmap Name',[filename,'.xls'],'Range','A2','Sheet',2);
             writematrix('Save Directory of .mat',[filename,'.xls'],'Range','A3','Sheet',2);

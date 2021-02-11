@@ -37,7 +37,7 @@ classdef predictFuture<handle
         PositionHemisphere
         bilateralOn=0
         Heatmap
-        amplitudesParameter=[2,1,7] %an option needs to be designed, to set those values like the user wants to
+        amplitudesParameter=[5,1,7] %an option needs to be designed, to set those values like the user wants to
         proOptions=0
     end
     

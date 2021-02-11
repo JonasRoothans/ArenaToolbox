@@ -141,7 +141,7 @@ classdef leadConnected<handle
             if isempty(thisprediction.config.FirstLeadrelatedVTA.name) && thisprediction.PositionHemisphere.left
                 thisprediction.config.FirstLeadrelatedVTA.name=name;
                 thisprediction.config.FirstLeadrelatedVTA.VTA=[];
-            else
+            else thisprediction.PositionHemisphere.right
                 thisprediction.config.SecondLeadrelatedVTA=[];
                 thisprediction.config.SecondLeadrelatedVTA.name=name;
             end

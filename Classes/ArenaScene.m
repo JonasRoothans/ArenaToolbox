@@ -136,11 +136,12 @@ classdef ArenaScene < handle
                 'Visible','off',...
                 'callback',{@menu_closePredictionWindow});
             
-            obj.handles.panel_showResults=uicontrol('Parent',obj.handles.figure,...
-                'Units','normalized',...
-                'Position',[0.4 0 0.02 1],...
-                'Visible','off',...
-                'Callback',{});
+            obj.handles.panel_showResults=patch('Parent',obj.handles.axes,'XData',[-1000 -1000 1000 1000],...
+                        'YData',[0 0 0 0],...
+                        'ZData',[-1000 1000 1000 -1000],...
+                        'FaceAlpha',0.5,...
+                        'FaceColor',[1 1 1],...
+                        'Visible','off');
             
             obj.handles.closebutton_panel_showResults = uicontrol('parent',obj.handles.figure,...
                 'units','normalized',...
@@ -1759,7 +1760,9 @@ classdef ArenaScene < handle
                     
                     try
                         for i=1:numel(scene.Actors)
-                            if scene.Actors(1,selection).C0(1,1)==scene.Actors(1,i).Data.c0(1,1) && scene.Actors(1,selection).NumberOfLead==scene.Actors(1,i).NumberOfLead
+                            try 
+                                c0=scene.Actors(1,i).Data.c0(1,1);
+                            if scene.Actors(1,selection).C0(1,1)==c0 && scene.Actors(1,selection).NumberOfLead==scene.Actors(1,i).NumberOfLead
                                 if scene.Actors(1,selection).C0(1,1)<0
                                 scene.Actors(1,selection).Tag=[scene.Actors(1,selection).Tag,';',num2str(scene.Actors(1,i).PredictInformation.handles.prediction_Information.unilateral.leftVTAPrediction)];
                                 break;
@@ -1767,6 +1770,8 @@ classdef ArenaScene < handle
                                 scene.Actors(1,selection).Tag=[scene.Actors(1,selection).Tag,';',num2str(scene.Actors(1,i).PredictInformation.handles.prediction_Information.unilateral.rightVTAPrediction)];
                                 break;
                                 end
+                            end
+                            catch
                             end
                         end
                         scene.refreshLayers();
@@ -2525,7 +2530,6 @@ classdef ArenaScene < handle
                 end
                 thisScene.handles.text_box_listSelectResult.Visible ='on';
                 thisScene.handles.menu.dynamic.Electrode.showOldResults.Enable='on';
-                thisScene.handles.box_listSelectResult.Visible='on';
                 thisScene.handles.menu.dynamic.Electrode.close.Enable='on';
                 thisScene.handles.confirmbutton_box_listSelectResult.Visible='on';
                 thisScene.handles.closebutton_box_listSelectResult.Visible='on';
@@ -2547,6 +2551,7 @@ classdef ArenaScene < handle
                     catch
                     end
                 end
+                thisScene.handles.box_listSelectResult.Visible='on';
             end
             
             function confirmbutton_box_listSelectResult(hObject,eventdata)
@@ -2561,7 +2566,6 @@ classdef ArenaScene < handle
                 displayDecision=thisScene.handles.box_listSelectResult.UserData(1,displayDecision).Number;
                 if not(isempty(displayDecision))
                     d=predictResults();
-                    set(thisScene.handles.axes,'PickableParts','none');
                     set(thisScene.handles.menu.file.main,'Enable','off');
                     set(thisScene.handles.menu.stusessions.main,'Enable','off');
                     set(thisScene.handles.menu.view.main,'Enable','off');
@@ -2574,13 +2578,21 @@ classdef ArenaScene < handle
                     set(thisScene.handles.panelleft,'Visible','off');
                     set(thisScene.handles.panelright,'Visible','off');
                     set(thisScene.handles.btn_layeroptions,'Visible','off');
-                    thisScene.handles.axes.Position=[0.01 0.01 0.4 0.95];
-                    thisScene.handles.figure.WindowScrollWheelFcn =[]; 
-                    camtarget([30 1 1])
-                    thisScene.handles.panel_showResults.Visible='on';
+                    set(thisScene.handles.menu.view.camera.orthogonal.coronal,'Text','coronal plane');
+                    ypos=campos;
+                    set(thisScene.handles.figure,'CurrentAxes',thisScene.handles.axes);
+                    campos('manual');
+                    notify(thisScene.handles.menu.view.camera.orthogonal.coronal,'Action');
                     thisScene.handles.closebutton_panel_showResults.Visible='on';
+                    notify(thisScene.handles.closebutton_box_listSelectResult,'Action');
+                    thisScene.handles.figure.WindowScrollWheelFcn =[]; 
+                    thisScene.handles.figure.WindowButtonDownFcn=[];
+                    thisScene.handles.figure.WindowButtonUpFcn=[];
+                    thisScene.handles.figure.WindowKeyPressFcn=[]; 
+                    set(thisScene.handles.panel_showResults,'Visible','on');
+                    set(thisScene.handles.panel_showResults,'UserData',ypos);
+                    set(thisScene.handles.panel_showResults,'YData',[ypos(1,2)-50 ypos(1,2)-50 ypos(1,2)-50 ypos(1,2)-50]);
                     d.displayHighestResults(thisScene,displayDecision);
-
                 else
                     error('No Prediction Data was found!');
                 end
@@ -2589,9 +2601,11 @@ classdef ArenaScene < handle
             function closebutton_panel_closeShowResults(hObject,eventdata)
                 thisScene=ArenaScene.getscenedata(hObject);
                 thisScene.handles.closebutton_panel_showResults.Visible='off';
+                ypos=thisScene.handles.panel_showResults.UserData;
                 thisScene.handles.panel_showResults.Visible='off';
-                thisScene.handles.axes.Position=[0.01 0.01 0.95 0.95];
                 A_mouse_camera(thisScene.handles.figure);
+                set(thisScene.handles.figure,'WindowKeyPressFcn',@keyShortCut);
+                set(thisScene.handles.figure,'WindowButtonMotionFcn',@setcurrentpointlive);
                 set(thisScene.handles.btn_toggleleft,'Enable','on','Visible','on');
                 set(thisScene.handles.btn_toggleright,'Enable','on','Visible','on');
                 set(thisScene.handles.panelleft,'Visible','on');
@@ -2604,23 +2618,25 @@ classdef ArenaScene < handle
                 set(thisScene.handles.menu.edit.main,'Enable','on');
                 set(thisScene.handles.menu.transform.main,'Enable','on');
                 set(thisScene.handles.menu.dynamic.main,'Enable','on');
-                set(thisScene.handles.axes,'PickableParts','visible');
                 try
-                    for i=1:4
-                        thisScene.handles.barLeft.num2str(i).Visible='off';
-                        thisScene.handles.barTextLeft.num2str(i).Visible='off';
-                    end
                     delete(thisScene.handles.electrodeImage1);
+                    for i=1:4
+                        delete(thisScene.handles.barLeft.num2str(i));
+                        delete(thisScene.handles.barTextLeft.num2str(i));
+                    end
                 catch
                 end
                 try
-                    for i=1:4
-                        thisScene.handles.barRight.num2str(i).Visible='off';
-                        thisScene.handles.barTextRight.num2str(i).Visible='off';
-                    end
                     delete(thisScene.handles.electrodeImage2);
+                    for i=1:4
+                        delete(thisScene.handles.barRight.num2str(i));
+                        delete(thisScene.handles.barTextRight.num2str(i));
+                    end
                 catch
                 end
+                set(thisScene.handles.figure,'CurrentAxes',thisScene.handles.axes);
+                campos(thisScene.handles.axes,[ypos(1,1) ypos(1,2) ypos(1,3) ]);
+                notify(thisScene.handles.menu.dynamic.Electrode.results,'Action');
             end
             
             function menu_closePredictionWindow(hObject,eventdata)
