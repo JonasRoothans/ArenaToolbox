@@ -341,7 +341,7 @@ classdef ArenaScene < handle
                          continue
                      end
                      callback = str2func(installationFile(1).name(1:end-2)); %without .m
-                     scene.handles.menu.addons.(subfolders{iSubfolder}) =  uimenu(scene.handles.menu.addons.main,'Text',subfolders{iSubfolder},'callback',{callback});
+                     scene.handles.menu.addons.(subfolders{iSubfolder}).main =  uimenu(scene.handles.menu.addons.main,'Text',subfolders{iSubfolder},'callback',{callback,scene});
                      disp(['Add-ons: ',subfolders{iSubfolder},' is available.'])
                      addpath(fullfile(addondir,subfolders{iSubfolder}))
                  end
@@ -349,9 +349,7 @@ classdef ArenaScene < handle
             end
             
             
-            function addon_addmenuitem(scene,addon,menuname,callback)
-                keyboard
-            end
+           
             
             
             function templatelist =  menu_refreshTemplatelist(hObject,eventdata,custom)
@@ -799,6 +797,50 @@ classdef ArenaScene < handle
                 
             end
             
+            function importExcel(thisScene,filename)
+                table = readtable(filename);
+                try table.amplitude
+                catch
+                    disp('Only excepts "recipe" files')
+                    return
+                end
+                for iRow = 1:length(table.amplitude)
+                    C0 = Vector3D([0 0 0]);
+                    Top = Vector3D([0 0 10]);
+                    Ttolegacy = eval(table.Tlead2MNI{iRow});
+                    C0 = C0.transform(Ttolegacy);
+                    Top = Top.transform(Ttolegacy);
+                    Direction = Top-C0;
+                    Direction = Direction.unit;
+                    cathode = str2num(table.activecontact{iRow});
+                    leadname = [table.id{iRow},'_',table.leadname{iRow}];
+                    
+                    
+                    T = Ttolegacy*[-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
+                    e = Electrode;
+                    c0 = SDK_transform3d([0 0 0],T);
+                    c3 = SDK_transform3d([0 0 6],T);
+
+                
+                e.Direction = Vector3D(c3-c0).unit.getArray';
+                e.C0 = c0;
+                e.Type = table.leadtype{iRow};
+                    
+                    
+                    actor = e.see(thisScene);
+                    actor.Visualisation.settings.cathode = cathode;
+                    %actor.transform(thisScene,'Fake2MNI')
+                    actor.changeName(leadname)
+                    
+                    
+         
+                    
+                    
+                    
+                end
+                
+                
+            end
             
             function import_mat(thisScene,filename)
                 
@@ -946,7 +988,8 @@ classdef ArenaScene < handle
                         '*.obj','3d object files (*.obj)';...
                         '*.swtspt','sweetspots (*.swtspt)';...
                         '*.scn','scenes (*.scn)';...
-                        '*.mat','matlab data (*.mat)'},...
+                        '*.mat','matlab data (*.mat)';....
+                        '*.xls*','recipe(*.xls)'},...
                         'import actors','MultiSelect','on');
                 else
                     [filename,pathname] = uigetfile('*.*',...
@@ -985,6 +1028,9 @@ classdef ArenaScene < handle
                             A_loadsweetspot(scene);
                         case '.dcm'
                             addSuretuneSession(scene,fullfile(pathname,filename{iFile}))
+                        case '.xlsx'
+                            importExcel(scene,fullfile(pathname,filename{iFile}));
+                            
                             
                             
                             
@@ -2848,6 +2894,23 @@ classdef ArenaScene < handle
             end
         end
         
+         function addon_addmenuitem(scene,addon,menuname,callback)
+             if not(isfield(scene.handles.menu.addons.(addon),'external'))
+                 scene.handles.menu.addons.(addon).external = [];
+             end
+             %deactivate install method
+             scene.handles.menu.addons.(addon).main.Callback = '';
+             
+             if not(iscell(callback))
+                 callback = {callback};
+             end
+            
+             callback{end+1} = scene; 
+             
+             %add menu
+             scene.handles.menu.addons.(addon).external(end+1) =  uimenu(scene.handles.menu.addons.(addon).main,'Text',menuname,'callback',callback);
+              
+            end
     end
     
     methods(Static)
