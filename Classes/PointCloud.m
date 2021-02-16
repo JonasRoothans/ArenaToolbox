@@ -60,6 +60,12 @@ classdef PointCloud
         
         end
         
+        function obj = saveToFolder(obj,outdir, tag)
+            pointcloud = obj;
+            save(fullfile(outdir,tag),'pointcloud')
+        end
+        
+        
         function obj = set.Vectors(obj,vectors)
             switch class(vectors)
                 case 'Vector3D'

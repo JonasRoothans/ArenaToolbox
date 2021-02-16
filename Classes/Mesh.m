@@ -121,11 +121,16 @@ classdef Mesh < handle & matlab.mixin.Copyable
             vertface2obj(obj.Vertices,obj.Faces,fullfile(outdir,[tag,'.obj']));
             
             %VoxelData
+            try
             obj.Source.saveToFolder(outdir,tag);
+           
+                
             
             %Binary
             obj.Source.makeBinary(obj.Settings.T).saveToFolder(outdir,[tag,'_binary']);
-            
+             catch
+                disp('Obj has no voxeldata')
+            end
             
             
         end

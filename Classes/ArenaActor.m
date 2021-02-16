@@ -710,13 +710,11 @@ classdef ArenaActor < handle & matlab.mixin.Copyable & dynamicprops
             obj.Scene.refreshLayers();
         end
         
-        function export3d(obj,name)
-            switch class(obj.Data)
-                case 'Mesh'
-                    vertface2obj(obj.Data.Vertices,obj.Data.Faces,name)
-                otherwise
-                    keyboard
-            end
+        function export3d(obj,directoryname)
+            
+           
+            A_writeObjFile(obj,directoryname)
+
         end
         
         function saveToFolder(obj,outdir)
@@ -724,7 +722,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable & dynamicprops
 %             try
             data.saveToFolder(outdir,obj.Tag);
 %             catch
-                warning(['Data of type ',class(data),' cannot be saved yet. Ask Jonas'])
+                %warning(['Data of type ',class(data),' cannot be saved yet. Ask Jonas'])
 %             end
             Done;
             
@@ -755,6 +753,9 @@ classdef ArenaActor < handle & matlab.mixin.Copyable & dynamicprops
                 switch class(obj.Data)
                     case 'PointCloud'
                         v = obj.Data.Vectors.getArray;
+                        if size(v,2)==1
+                            v = v';
+                        end
                         v_transformed = SDK_transform3d(v,T);
                         obj.Data.Vectors = v_transformed;
                         obj.updateActor(scene,obj.Visualisation.settings);

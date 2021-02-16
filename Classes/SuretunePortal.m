@@ -296,7 +296,6 @@ classdef SuretunePortal
                             obj.scene.Actors(1,end).addprop('NumberOfLead') %this adds a dynamic Property to this specific Actor and no other
                             obj.scene.Actors(1,end).NumberOfLead=iStimplan;
                             actor.changeName([this.label,' ',this.stimPlan{iStimplan}.label])
-                            
                             actor_vta = vd.getmesh(0.5).see(obj.scene);
                             actor_vta.PathDirectory=hObject.UserData{2};
                             actor_vta.addprop('NumberOfLead');
@@ -316,6 +315,7 @@ classdef SuretunePortal
                     end
                 end 
             end
+            
             function cb_atlas(hObject,b)
                 this = hObject.UserData{1};
                 [T,reglinkdescription] = universalCallbackRoutine(this);
