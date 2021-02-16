@@ -1025,7 +1025,7 @@ classdef ArenaScene < handle
                         case '.mat'
                             import_mat(thisScene,fullfile(pathname,filename{iFile}))
                         case '.swtspt'
-                            A_loadsweetspot(scene);
+                            A_loadsweetspot(scene,fullfile(pathname,filename{iFile}));
                         case '.dcm'
                             addSuretuneSession(scene,fullfile(pathname,filename{iFile}))
                         case '.xlsx'

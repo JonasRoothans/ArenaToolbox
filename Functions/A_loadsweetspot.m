@@ -1,9 +1,15 @@
-function [actor] = A_loadsweetspot(scene)
+function [actor] = A_loadsweetspot(scene,swtsptfile)
 %A_LOADSWEETSPOT Summary of this function goes here
 %   Detailed explanation goes here
 
-[filename,pathname] = uigetfile('*.swtspt');
-swtspt = load(fullfile(pathname,filename),'-mat');
+if nargin==1
+    [filename,pathname] = uigetfile('*.swtspt');
+    swtspt = load(fullfile(pathname,filename),'-mat');
+    [~,label,~] = fileparts(filename);
+else
+    swtspt = load(swtsptfile,'-mat');
+    [~,label,~] = fileparts(swtsptfile);
+end
 
 [indx] = listdlg('ListString',{swtspt.sweetspot.left.sweetspotArray.Title},...
     'PromptString',swtspt.sweetspot.description,...
@@ -19,7 +25,7 @@ vd.imwarp(Tfake2mni);
 
 mesh = vd.getmesh;
 actor = mesh.see(scene);
-actor.changeName(swtspt.sweetspot.left.sweetspotArray(indx).Title)
+actor.changeName([label,'__',swtspt.sweetspot.left.sweetspotArray(indx).Title])
 
 end
 

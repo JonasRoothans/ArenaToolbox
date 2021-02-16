@@ -84,12 +84,12 @@ classdef ArenaManager < handle
     end
     
     methods (Static)
-        function setup(rootdir)
+        function  success = setup(rootdir)
             %--- leadDBS
             waitfor(msgbox('Arena uses atlases that are available in leadDBS. Please select the lead DBS folder'))
             leadDBSdir = uigetdir('Find leadDBS directory');
             
-            if isempty(leadDBSdir)
+            if not(leadDBSdir)
                 error('aborted by user')
             end
             
@@ -98,7 +98,7 @@ classdef ArenaManager < handle
             waitfor(msgbox('Arena uses nifti tools that are available in the SuretuneSDK. Please select the lead SDK folder'))
             SDKdir = uigetdir('Find SuretuneSDK directory');
             
-            if isempty(SDKdir)
+            if not(SDKdir)
                 error('aborted by user')
             end
             config.SDKdir = SDKdir;
