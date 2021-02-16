@@ -292,7 +292,6 @@ classdef SuretunePortal
                         if not(isempty(obj.scene))
                             actor = e.see(obj.scene);
                             actor.changeName([this.label,' ',this.stimPlan{iStimplan}.label])
-                            
                             actor_vta = vd.getmesh(0.5).see(obj.scene);
                             actor_vta.changeName(['[VTA] ',this.label,' ',this.stimPlan{iStimplan}.label])
                         end
@@ -304,6 +303,7 @@ classdef SuretunePortal
                     end
                 end
             end
+            
             function cb_atlas(hObject,b)
                 this = hObject.UserData;
                 [T,reglinkdescription] = universalCallbackRoutine(this);
