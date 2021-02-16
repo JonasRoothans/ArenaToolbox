@@ -108,6 +108,10 @@ classdef ArenaScene < handle
                 'callback',{@btn_layeroptions});
             
             obj.handles.configcontrols = [];
+
+            %%%very important to define at the start
+            obj.handles.dynamicHeadClasses={'main','modify','analyse','generate'};
+
             
             %refresh menu
             obj.handles.templates =  menu_refreshTemplatelist(obj,[],'startup');
@@ -116,11 +120,13 @@ classdef ArenaScene < handle
  
             
             
-            
-            
+           
             %menubar
             obj.handles.menu.file.main = uimenu(obj.handles.figure,'Text','File');
-            
+            % preparations to separate add on from Arena again
+             obj.handles.menu.addon.main = uimenu(obj.handles.figure,'Text','AddOn');
+             obj.handles.menu.addon.function.main = uimenu(obj.handles.menu.addon.main,'Text','AddOnImplement','Callback',{@install_predictionToolbox},'UserData',obj);
+             
             obj.handles.menu.file.newscene.main = uimenu(obj.handles.menu.file.main,'Text','New empty scene','callback',{@menu_newscene});
             obj.handles.menu.file.savesceneas.main = uimenu(obj.handles.menu.file.main,'Text','Save scene as','callback',{@menu_savesceneas});
             obj.handles.menu.file.savescene.main = uimenu(obj.handles.menu.file.main,'Text','Save scene','callback',{@menu_savescene});
@@ -130,8 +136,7 @@ classdef ArenaScene < handle
             obj.handles.menu.file.export.blender = uimenu(obj.handles.menu.file.export.main,'Text','Blender (*.obj)','callback',{@menu_exporttoblender});
             obj.handles.menu.file.export.handlestoworkspace = uimenu(obj.handles.menu.file.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
             obj.handles.menu.file.export.saveSelection = uimenu(obj.handles.menu.file.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
-            
-            
+                     
             obj.handles.menu.stusessions.main = uimenu(obj.handles.figure,'Text','Suretune sessions','Visible','off','Separator','on');
             obj.handles.menu.stusessions.openwindows = {};
             
@@ -226,9 +231,8 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.main  = uimenu(obj.handles.figure,'Text','...');
             obj.handles.menu.dynamic.modify.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Modify');
             obj.handles.menu.dynamic.analyse.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Analyse');
-            obj.handles.menu.dynamic.generate.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Generate');
-            
-            
+            obj.handles.menu.dynamic.generate.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Generate');            
+          
             obj.handles.menu.dynamic.PointCloud.distribution = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: show distribution','callback',{@menu_pcDistribution},'Enable','off');
             obj.handles.menu.dynamic.PointCloud.inMesh = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: is a point inside a mesh?','callback',{@menu_pointcloudinmesh},'Enable','off');
             obj.handles.menu.dynamic.PointCloud.mergePointClouds = uimenu(obj.handles.menu.dynamic.generate.main,'Text','PointCloud: merge pointclouds','callback',{@menu_mergePointCloud},'Enable','off');
@@ -1927,7 +1931,7 @@ classdef ArenaScene < handle
                 
                 
             end
-            
+
             function menu_seperateClusters(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
@@ -2647,7 +2651,7 @@ classdef ArenaScene < handle
             for iOther = 1:numel(otherclasses)
                 thisOtherClass = otherclasses{iOther};
                 switch thisOtherClass
-                    case {'main','modify','analyse','generate'}
+                    case obj.handles.dynamicHeadClasses
                         continue
                     case thisclass
                         functions = fieldnames(obj.handles.menu.dynamic.(thisOtherClass));
