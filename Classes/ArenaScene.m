@@ -804,23 +804,31 @@ classdef ArenaScene < handle
                     disp('Only excepts "recipe" files')
                     return
                 end
+                mirrortoleft = questdlg('Mirror all electrodes to the left side?','Arena load recipe','Yes','No','Yes');
+                    
                 for iRow = 1:length(table.amplitude)
-                    C0 = Vector3D([0 0 0]);
-                    Top = Vector3D([0 0 10]);
+
                     Ttolegacy = eval(table.Tlead2MNI{iRow});
-                    C0 = C0.transform(Ttolegacy);
-                    Top = Top.transform(Ttolegacy);
-                    Direction = Top-C0;
-                    Direction = Direction.unit;
+
+
                     cathode = str2num(table.activecontact{iRow});
                     leadname = [table.id{iRow},'_',table.leadname{iRow}];
                     
+                    T = Ttolegacy*[-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1]; %to real MNI
+                    [modified,T] = A_rigidT(T);
+
                     
-                    T = Ttolegacy*[-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
                     e = Electrode;
                     c0 = SDK_transform3d([0 0 0],T);
                     c3 = SDK_transform3d([0 0 6],T);
 
+                    
+                    switch mirrortoleft
+                        case 'Yes'
+                            c0(1) = abs(c0(1))*-1;
+                            c3(1) = abs(c3(1))*-1;
+                    end
+                        
                 
                 e.Direction = Vector3D(c3-c0).unit.getArray';
                 e.C0 = c0;
@@ -828,7 +836,7 @@ classdef ArenaScene < handle
                     
                     
                     actor = e.see(thisScene);
-                    actor.Visualisation.settings.cathode = cathode;
+                    actor.changeSetting('cathode',cathode);
                     %actor.transform(thisScene,'Fake2MNI')
                     actor.changeName(leadname)
                     

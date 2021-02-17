@@ -354,7 +354,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             %---- default settings
             if not(isstruct(settings))
                 settings = struct;
-                settings.colorBase = [0.85 0.85 0.85];
+                settings.colorBase = [1 1 1];
                 settings.colorInactive = [0.5 0.5 0.5];
                 settings.colorCathode = [1 0.5 0];
                 settings.colorAnode = [0 0.5 1];
@@ -387,13 +387,13 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     T = A_transformationmatriforleadmesh(data.C0,data.Direction);
                     body = leadmodel.(strucname).body.transform(T);
                     handle(end+1) = patch('Faces',body.Faces,'Vertices',body.Vertices,'FaceColor',settings.colorBase ,'EdgeColor','none','Clipping',0,'SpecularStrength',0,'FaceAlpha',settings.opacity/100);
-                   material(handle(end),[0.8 1 0.2]) 
+                   material(handle(end),'shiny') 
                     handle(end).FaceLighting = 'gouraud';
                     
                     for i = 0:numel(fieldnames(leadmodel.(strucname)))-2
                     ci = leadmodel.(strucname).(['c',num2str(i)]).transform(T);
                     handle(end+1) = patch('Faces',ci.Faces,'Vertices',ci.Vertices,'FaceColor',settings.colorInactive,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
-                    material(handle(end),[0.8,1,1,3,0]) 
+                    material(handle(end),'dull') 
                     handle(end).FaceLighting = 'gouraud';
      
                     end

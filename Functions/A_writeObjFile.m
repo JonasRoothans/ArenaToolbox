@@ -67,8 +67,8 @@ end
 switch class(actor.Data)
     case 'Electrode'
         Vcounter = 0;
-        objectnames = {'body','c0','c1','c2','c3'};
-        materialnames = {'leadbody','leadcontact','leadcontact','leadcontact','leadcontact'};
+        objectnames = {'body','c0','c1','c2','c3','c4','c5','c6','c7'};
+        materialnames = {'leadbody','leadcontact','leadcontact','leadcontact','leadcontact','leadcontact','leadcontact','leadcontact','leadcontact'};
         for iPatch = 1:numel(actor.Visualisation.handle)
             
             Vertices = actor.Visualisation.handle(iPatch).Vertices;
@@ -95,7 +95,7 @@ switch class(actor.Data)
         imwrite(actor.Visualisation.handle.CData,fullfile('textures',[objectname,'.jpg']))
         Vertices = [leftcorner;inbetween1;inbetween2;rightcorner];
         Faces = [1 2 3; 2 4 3];
-        VerticesTexture = [0 0; 1 0; 0 1; 1 1];
+        VerticesTexture = [0 1; 1 1; 0 0; 1 0];
         
         materialname = [objectname,'.001'];
         
@@ -158,7 +158,35 @@ switch class(actor.Data)
         fprintf(fidmtl,'illum 9\n');
 
             
+    case 'Mesh'
+        Vertices = actor.Data.Vertices;
+        Faces = actor.Data.Faces;
+        color = actor.Visualisation.settings.colorFace;
+        alpha = actor.Visualisation.settings.faceOpacity;
+        materialname = strrep(strrep(strrep(actor.Tag,' ',''),']',''),'[','');
         
+        
+        %add to obj
+        fprintf(fid,['o ',materialname,'\n']);
+            for i=1:size(Vertices,1)
+                fprintf(fid,'v %f %f %f\n',Vertices(i,1),Vertices(i,2),Vertices(i,3));
+            end
+            fprintf(fid,['usemtl ',materialname,'\n']);
+            fprintf(fid,'s on\n');
+            for i=1:size(Faces,1)
+                fprintf(fid,'f %d %d %d\n',Faces(i,1),Faces(i,2),Faces(i,3));
+            end
+            
+        %update materials file
+        fprintf(fidmtl,['newmtl ',materialname,'\n']);
+        fprintf(fidmtl,'Ns 135.934392\n');
+        fprintf(fidmtl,'Ka 1.000000 1.000000 1.000000\n');
+        fprintf(fidmtl,['Kd ',num2str(color),'\n']);
+        fprintf(fidmtl,'Ks 0.422700 0.4227000 0.422700\n');
+        fprintf(fidmtl,'Ke 0.000000 0.000000 0.000000\n');
+        fprintf(fidmtl,'Ni 1.450000\n');
+        fprintf(fidmtl,['d ',num2str(alpha),'\n']);
+        fprintf(fidmtl,'illum 9\n');
         
     otherwise
         keyboard
