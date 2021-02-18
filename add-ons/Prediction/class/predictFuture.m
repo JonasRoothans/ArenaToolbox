@@ -37,8 +37,8 @@ classdef predictFuture<handle
         PositionHemisphere
         bilateralOn=0
         Heatmap
-        amplitudesParameter=[5,1,7] %an option needs to be designed, to set those values like the user wants to
-        proOptions=0
+        amplitudesParameter=[1,0.5,9] %an option needs to be designed, to set those values like the user wants to
+        proOptions=0 %it a relict which can enable the first time version of displaying when it gets uncommented
     end
     
     methods
@@ -284,10 +284,10 @@ classdef predictFuture<handle
                 b.progress.Value=0.8;
                 b.saveTheData(thisprediction);
                 b.progress.Message='Data is stored';
-                if thisprediction.proOptions==1
-                    b.progress.Value=0.9;
-                    b.showTheData(thisprediction);
-                end
+%                 if thisprediction.proOptions==1
+%                     b.progress.Value=0.9;
+%                     b.showTheData(thisprediction);
+%                 end
                 b.progress.Value=1;
                 b.progress.Message='Finished';
                 pause(3);

@@ -109,12 +109,14 @@ classdef ArenaScene < handle
             
             obj.handles.configcontrols = [];
 
+            %refresh menu
+            obj.handles.templates =  menu_refreshTemplatelist(obj,[],'startup');
+            
             %%%very important to define at the start
             obj.handles.dynamicHeadClasses={'main','modify','analyse','generate'};
 
             
-            %refresh menu
-            obj.handles.templates =  menu_refreshTemplatelist(obj,[],'startup');
+
             
 
  
@@ -123,10 +125,6 @@ classdef ArenaScene < handle
            
             %menubar
             obj.handles.menu.file.main = uimenu(obj.handles.figure,'Text','File');
-            % preparations to separate add on from Arena again
-             obj.handles.menu.addon.main = uimenu(obj.handles.figure,'Text','AddOn');
-             obj.handles.menu.addon.function.main = uimenu(obj.handles.menu.addon.main,'Text','AddOnImplement','Callback',{@install_predictionToolbox},'UserData',obj);
-             
             obj.handles.menu.file.newscene.main = uimenu(obj.handles.menu.file.main,'Text','New empty scene','callback',{@menu_newscene});
             obj.handles.menu.file.savesceneas.main = uimenu(obj.handles.menu.file.main,'Text','Save scene as','callback',{@menu_savesceneas});
             obj.handles.menu.file.savescene.main = uimenu(obj.handles.menu.file.main,'Text','Save scene','callback',{@menu_savescene});
@@ -359,9 +357,8 @@ classdef ArenaScene < handle
             function templatelist =  menu_refreshTemplatelist(hObject,eventdata,custom)
                 
                  templatedir = fullfile(fileparts(fileparts(mfilename('fullpath'))),'Elements','templates');
-                if not(isfolder(templatedir))
+                if not(isfolder(templatedir)) %at this point there is no UserData...
                     scene = ArenaScene.getscenedata(hObject);
-                    
                 end
                 
                 

@@ -283,7 +283,6 @@ classdef SuretunePortal
                         actor.changeName(this.label)
                     end
                     actor.PathDirectory=hObject.UserData{2};
-                    actor.Data.c0=c0;
                 else
                     for iStimplan = 1:numel(this.stimPlan)
                         %import VTA
@@ -310,7 +309,6 @@ classdef SuretunePortal
                         
                         actor_vta.changeSetting('colorFace',[1 0.5 0]);
                         actor.PathDirectory=hObject.UserData{2};
-                        actor.Data.c0=c0;
                         actor.Data.maxStimPlans=numel(this.stimPlan);
                     end
                 end 

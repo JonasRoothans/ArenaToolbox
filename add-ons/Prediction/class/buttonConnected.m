@@ -72,7 +72,7 @@ classdef buttonConnected<handle
                 end
                 
                 % Check wheter first is left, how it has to be...
-                if thisprediction.config.FirstLead.c0(1,1)>0
+                if thisprediction.config.FirstLead.C0.x>0
                     firstLead=thisprediction.config.FirstLead;
                     thisprediction.config.FirstLead=[];
                     thisprediction.config.FirstLead.maxStimPlans=[];
@@ -130,26 +130,26 @@ classdef buttonConnected<handle
                 thisprediction.PositionHemisphere.right=0;
                 for itherapyPlanNumber=1:2
                     try
-                        c0=thisprediction.config.FirstLead.c0; % If you run this and you only have a right lead...
+                        C0=thisprediction.config.FirstLead.C0.x; % If you run this and you only have a right lead...
                     catch
                         itherapyPlanNumber=2;
                     end
                     if itherapyPlanNumber==1                    % You need always the right number of the stimplan. But in thisSession all therapyPlans are more or less all stimplans there where found in on column.
                         PlanNumber=thisprediction.config.FirstLead.NumberOfLead;
                         try
-                            c0=thisprediction.config.FirstLead.c0(1,1);
+                            C0=thisprediction.config.FirstLead.C0.x;
                         catch
                         end
                     elseif itherapyPlanNumber==2
                         try
                             PlanNumber=thisprediction.config.SecondLead.NumberOfLead;
-                            c0=thisprediction.config.SecondLead.c0(1,1);
+                            C0=thisprediction.config.SecondLead.C0.x;
                         catch
                             continue;
                         end
                     end
                     loop_therapyPlanStorage=thisSession.therapyPlanStorage{PlanNumber};
-                    loop_atlas=lead.getMatchingAtlas(loop_therapyPlanStorage,thisSession,thisprediction,c0);
+                    loop_atlas=lead.getMatchingAtlas(loop_therapyPlanStorage,thisSession,thisprediction,C0);
                     atlas{itherapyPlanNumber}=loop_atlas;
                     %Transformation from electrode space to selected atlas
                     %space
@@ -209,7 +209,7 @@ classdef buttonConnected<handle
                 while iLead~=2
                     iLead=iLead+1;
                     try
-                        c0=thisprediction.config.FirstLead.c0; % If you run this and you only have a right lead...
+                        C0=thisprediction.config.FirstLead.C0.x; % If you run this and you only have a right lead...
                     catch
                         iLead=2;
                     end
@@ -332,7 +332,7 @@ classdef buttonConnected<handle
                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             disp(fprintf(status,fXLS));
                             sample = signed_p_map(and(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0));
-                            thisprediction.confidenceLevel.calculationConfidenceLevel(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels,fXLS);
+                            thisprediction.confidenceLevel.calculationConfidenceLevel(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels,fXLS,heatmap);
                             % When you take only values which aren't 0 than you get only a worsening or
                             % improving effekt for the prediction.
                             
@@ -356,7 +356,7 @@ classdef buttonConnected<handle
                         for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
                             disp(fprintf(status,sXLS));
                             sample = signed_p_map(and(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0));
-                            thisprediction.confidenceLevel.calculationConfidenceLevel(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels,sXLS);
+                            thisprediction.confidenceLevel.calculationConfidenceLevel(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels,sXLS,heatmap);
                             % When you take only values which aren't 0 than you get only a worsening or
                             % improving effekt for the prediction.
                             
@@ -371,30 +371,30 @@ classdef buttonConnected<handle
                         delete(fig2)
                     end
                     
-                    if thisprediction.bilateralOn==1
-                        status='%d. left Lead and %d. right Lead predicted';
-                        fig3=figure('Name','Bilateral_Histogramm');
-                        % it is always bilateral
-                        bilateral = [];
-                        thisprediction.confidenceLevel.bilateral=[];
-                        for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
-                            obj.progress.Value=obj.progress.Value+size(thisprediction.handles.VTA_Information,2)/(size(thisprediction.handles.VTA_Information,2)*10000);
-                            for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
-                                
-                                disp(fprintf(status,fXLS,sXLS));
-                                sample = [signed_p_map(and(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0));...
-                                    signed_p_map(and(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0))];
-                                % When you take only values which aren't 0 than you get only a worsning or
-                                % improving effekt for the prediction.
-                                
-                                thisprediction.confidenceLevel.bilateral.average(fXLS,sXLS)=thisprediction.confidenceLevel.leftSide.average(1,fXLS)+thisprediction.confidenceLevel.rightSide.average(1,sXLS);
-                                h = histogram(sample,edges);
-                                distanceFromMeanOfMostLikelyEffekt = [1,zscore(h.Values)];   % normaly just the signed_p_map would be enough, but big VTAs would get a hugh weight in the prediction
-                                bilateral(fXLS,sXLS) = distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
-                            end
-                        end
-                        delete(fig3);
-                    end
+%                     if thisprediction.bilateralOn==1
+%                         status='%d. left Lead and %d. right Lead predicted';
+%                         fig3=figure('Name','Bilateral_Histogramm');
+%                         % it is always bilateral
+%                         bilateral = [];
+%                         thisprediction.confidenceLevel.bilateral=[];
+%                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
+%                             obj.progress.Value=obj.progress.Value+size(thisprediction.handles.VTA_Information,2)/(size(thisprediction.handles.VTA_Information,2)*10000);
+%                             for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
+%                                 
+%                                 disp(fprintf(status,fXLS,sXLS));
+%                                 sample = [signed_p_map(and(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0));...
+%                                     signed_p_map(and(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0))];
+%                                 % When you take only values which aren't 0 than you get only a worsning or
+%                                 % improving effekt for the prediction.
+%                                 
+%                                 thisprediction.confidenceLevel.bilateral.average(fXLS,sXLS)=thisprediction.confidenceLevel.leftSide.average(1,fXLS)+thisprediction.confidenceLevel.rightSide.average(1,sXLS);
+%                                 h = histogram(sample,edges);
+%                                 distanceFromMeanOfMostLikelyEffekt = [1,zscore(h.Values)];   % normaly just the signed_p_map would be enough, but big VTAs would get a hugh weight in the prediction
+%                                 bilateral(fXLS,sXLS) = distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
+%                             end
+%                         end
+%                         delete(fig3);
+%                     end
                     
                 case {'heatmapBostonBerlin' , 'heatmapBostonAlone'}
                     % as long as there are no linear regression parameter
@@ -434,20 +434,20 @@ classdef buttonConnected<handle
                         unilateral.rightVTAPrediction= sample*linearRegressionCoefficients;
                     end
                     
-                    if thisprediction.bilateralOn==1
-                        status='%d. left Lead and %d. right Lead predicted';
-                        bilateral = [];
-                        for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
-                            obj.progress.Value=obj.progress.Value+size(thisprediction.handles.VTA_Information,2)/(size(thisprediction.handles.VTA_Information,2)*10000);
-                            for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
-                                sample=[probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);...
-                                    probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5)];
-                                sample=mean(mean(sample));
-                                disp(fprintf(status,fXLS,sXLS));
-                                bilateral(fXLS,sXLS) = sample*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
-                            end
-                        end
-                    end
+%                     if thisprediction.bilateralOn==1
+%                         status='%d. left Lead and %d. right Lead predicted';
+%                         bilateral = [];
+%                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
+%                             obj.progress.Value=obj.progress.Value+size(thisprediction.handles.VTA_Information,2)/(size(thisprediction.handles.VTA_Information,2)*10000);
+%                             for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
+%                                 sample=[probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);...
+%                                     probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5)];
+%                                 sample=mean(mean(sample));
+%                                 disp(fprintf(status,fXLS,sXLS));
+%                                 bilateral(fXLS,sXLS) = sample*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
+%                             end
+%                         end
+%                     end
             end
         end
         

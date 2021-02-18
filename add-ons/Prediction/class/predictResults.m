@@ -6,9 +6,8 @@ classdef predictResults<handle
     properties
         handles
         HighestResults
-        developerOptions1=0
         devoloperOptions2=0
-        treshhold=7;
+        treshhold
         topScoreValue=3
     end
     
@@ -59,126 +58,8 @@ classdef predictResults<handle
             dimensionsOfPredictionResults=Actor.PredictInformation.configStructure.numberOfContacts*Actor.PredictInformation.configStructure.numberOfContactSettings;
             contacts_vector=Actor.PredictInformation.configStructure.contacts_vector;
             amplitudes_vector=Actor.PredictInformation.configStructure.amplitudes_vector;
-            
-            if obj.developerOptions1==1
-                
-                obj.handles.figure=figure('Units','normalized',...
-                    'Position',[0.05 0 0.9 0.9],...
-                    'Name','Results',...
-                    'WindowKeyPressFcn',@kSnapshotResult);
-                
-                obj.handles.table_bilateral=uitable('Parent',obj.handles.figure,'Units','normalized',...
-                    'OuterPosition',[0.05 0.64 0.9 0.3],...
-                    'ColumnEditable',[false false],...
-                    'ColumnName','Bilateral',...
-                    'RowName',{},...
-                    'BackgroundColor',[0.9290 0.6940 0.1250],...
-                    'ForegroundColor','blue');
-                
-                
-                obj.handles.table_unilateralLeft=uitable('Parent',fig1,'Units','normalized',...
-                    'OuterPosition',[0.25 0.32 0.5 0.3],...
-                    'ColumnEditable',[false false],...
-                    'ColumnName','Unilateral Left',...
-                    'RowName',{},...
-                    'BackgroundColor',[0.9290 0.6940 0.1250],...
-                    'ForegroundColor','blue');
-                
-                
-                obj.handles.table_unilateralRight=uitable('Parent',fig1,'Units','normalized',...
-                    'OuterPosition',[0.25 0 0.5 0.3],...
-                    'ColumnEditable',[false false],...
-                    'ColumnName','Unilateral Right',...
-                    'RowName',{},...
-                    'BackgroundColor',[0.9290 0.6940 0.1250],...
-                    'ForegroundColor','blue');
-                
-                % The Data is been checked wheter there is some usefull
-                % data or not and then the 5 highest results are choosen to
-                % be displayed.
-                
-                if not(isempty(Actor.PredictInformation.Results{1}.bilateral))
-                    obj.HighestResults.bilateral.results=maxk(Actor.PredictInformation.Results{1,1}.bilateral,obj.topScoreValue);
-                    obj.HighestResults.bilateral.results=reshape(obj.HighestResults.bilateral.results,[1,(obj.topScoreValue*dimensionsOfPredictionResults)]);
-                    obj.HighestResults.bilateral.results=unique(obj.HighestResults.bilateral.results);
-                    obj.HighestResults.bilateral.results=maxk(obj.HighestResults.bilateral.results,obj.topScoreValue);
-                    for itopScoreValue=1:obj.topScoreValue
-                        obj.HighestResults.bilateral.position{itopScoreValue}=ismember(Actor.PredictInformation.Results{1,1}.bilateral,obj.HighestResults.bilateral.results(1,itopScoreValue));
-                        [row,col]=find(obj.HighestResults.bilateral.position{itopScoreValue});
-                        row=unique(row);
-                        col=unique(col);
-                        part='C%s-%smA';
-                        if numel(row)>1 || numel(col)>1
-                            part1=sprintf(part,num2str(contacts_vector(1,row(1,1))),num2str(amplitudes_vector(1,row(1,1))));
-                            part2=sprintf(part,num2str(contacts_vector(1,col(1,1))),num2str(amplitudes_vector(1,col(1,1))));
-                            for i=2:numel(row)
-                                helpPart=sprintf(part,num2str(contacts_vector(1,row(i,1))),num2str(amplitudes_vector(1,row(i,1))));
-                                part1=[part1,' or ',helpPart];
-                            end
-                            part1=[part1,'"l"'];
-                            for i=2:numel(col)
-                                helpPart=sprintf(part,num2str(contacts_vector(1,col(i,1))),num2str(amplitudes_vector(1,col(i,1))));
-                                part2=[part2,' or ',helpPart];
-                            end
-                            part2=[part2,'"r"'];
-                        else
-                            part1=sprintf(part,num2str(contacts_vector(1,row)),num2str(amplitudes_vector(1,row)));
-                            part2=sprintf(part,num2str(contacts_vector(1,col)),num2str(amplitudes_vector(1,col)));
-                        end
-                        obj.handles.table_bilateral.RowName{itopScoreValue}=sprintf([part1,'and',part2]);
-                        obj.handles.table_bilateral.Data(itopScoreValue,1)=obj.HighestResults.bilateral.results(1,itopScoreValue);
-                    end
-                end
-                
-                if not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.left))
-                    obj.HighestResults.unilateralLeft.results=unique(Actor.PredictInformation.Results{1,1}.unilateral.left);
-                    obj.HighestResults.unilateralLeft.results=maxk(obj.HighestResults.unilateralLeft.results,obj.topScoreValue);
-                    for itopScoreValue=1:obj.topScoreValue
-                        obj.HighestResults.unilateralLeft.position{itopScoreValue}=ismember(Actor.PredictInformation.Results{1,1}.unilateral.left,obj.HighestResults.unilateralLeft.results(1,itopScoreValue));
-                        [row,col]=find(obj.HighestResults.unilateralLeft.position{itopScoreValue});
-                        row=unique(row);
-                        col=unique(col);
-                        part='C%s-%smA';
-                        nameing=sprintf(part,num2str(contacts_vector(1,...
-                            col(1,1))),num2str(amplitudes_vector(1,col(1,1))));
-                        if numel(col)>1
-                            for i=2:numel(col)
-                                nameing2=sprintf(part,num2str(contacts_vector(1,...
-                                    col(1,i))),num2str(amplitudes_vector(1,col(1,i))));
-                                nameing=[nameing,' or ', nameing2];
-                                obj.handles.table_unilateralLeft.RowName{itopScoreValue}=nameing;
-                            end
-                        end
-                        obj.handles.table_unilateralLeft.RowName{itopScoreValue}=naming;
-                        obj.handles.table_unilateralLeft.Data(itopScoreValue,1)=obj.HighestResults.unilateralLeft.results(1,itopScoreValue);
-                    end
-                end
-                
-                if not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.right))
-                    obj.HighestResults.unilateralRight.results=unique(Actor.PredictInformation.Results{1,1}.unilateral.right);
-                    obj.HighestResults.unilateralRight.results=maxk(obj.HighestResults.unilateralRight.results,obj.topScoreValue);
-                    for itopScoreValue=1:obj.topScoreValue
-                        obj.HighestResults.unilateralRight.position{itopScoreValue}=ismember(Actor.PredictInformation.Results{1,1}.unilateral.right,obj.HighestResults.unilateralRight.results(1,itopScoreValue));
-                        [row,col]=find(obj.HighestResults.unilateralRight.position{itopScoreValue});
-                        row=unique(row);
-                        col=unique(col);
-                        part='C%s-%smA';
-                        nameing=sprintf(part,num2str(contacts_vector(1,...
-                            col(1,1))),num2str(amplitudes_vector(1,col(1,1))));
-                        if numel(col)>1
-                            for i=2:numel(col)
-                                nameing2=sprintf(part,num2str(contacts_vector(1,col(1,...
-                                    i))),num2str(amplitudes_vector(1,col(1,i))));
-                                nameing=[nameing,' or ', nameing2];
-                                obj.handles.table_unilateralRight.RowName{itopScoreValue}=nameing;
-                            end
-                        end
-                        obj.handles.table_unilateralRight.RowName{itopScoreValue}=naming;
-                        obj.handles.table_unilateralRight.Data(itopScoreValue,1)=obj.HighestResults.unilateralRight.results(1,itopScoreValue);
-                    end
-                end
-                
-            elseif obj.devoloperOptions2==1
+   
+            if obj.devoloperOptions2==1
                 
                 %                 %first bilateral
                 
@@ -316,6 +197,8 @@ classdef predictResults<handle
                 thisScene.handles.barRight=[];
                 thisScene.handles.barTextLeft=[];
                 thisScene.handles.barTextRight=[];
+                load('memoryFileConfidenceLevelOfTrialDystoniaCases.mat');
+                obj.treshhold=averageToSave.twoStanardDeviationMinus;
                 
                 if not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.left))
                     try
@@ -385,7 +268,7 @@ classdef predictResults<handle
                             else
                                 xlengthLeft=0;
                                 valueOfStimulationLeft=[];
-                                disp(['An only negative prediction was done for left contact',num2str(i-1)])
+                                disp(['An only negative or lower than the threshold prediction was done for left contact',num2str(i-1)])
                             end
                             positionLeft=[0.3 ypos xlengthLeft 0.08];
                             if not(isempty(valueOfStimulationLeft))
@@ -396,6 +279,7 @@ classdef predictResults<handle
                                     'Position',positionLeft,...
                                     'FontWeight','bold',...
                                     'FontAngle','italic',...
+                                    'FontSize',18,...
                                     'String',[newline,num2str(maxForContactLeft)]);
                                 positionLeft=[0.3+xlengthLeft ypos 0.04 0.08];
                                 thisScene.handles.barTextLeft.num2str(i)=uicontrol('parent',figure1,...
@@ -405,6 +289,7 @@ classdef predictResults<handle
                                     'Position',positionLeft,...
                                     'FontWeight','bold',...
                                     'FontAngle','italic',...
+                                    'FontSize',18,...
                                     'String',[newline,num2str(valueOfStimulationLeft),'mA']);
                             else
                                 thisScene.handles.barTextLeft.num2str(i)=uicontrol('Visible','off');
@@ -430,7 +315,7 @@ classdef predictResults<handle
                         else
                             xlengthRight=0;
                             valueOfStimulationRight=[];
-                            disp(['An only negative prediction was done for right contact',num2str(i-1)])
+                            disp(['An only negative or lower than the threshold prediction was done for right contact',num2str(i-1)])
                         end
                         positionRight=[0.63 ypos xlengthRight 0.08];
                         %construct the reference bar
@@ -442,6 +327,7 @@ classdef predictResults<handle
                                 'Position',positionRight,...
                                 'FontWeight','bold',...
                                 'FontAngle','italic',...
+                                'FontSize',18,...
                                 'String',[newline,num2str(maxForContactRight)]);
                             positionRight=[0.63+xlengthRight ypos 0.04 0.08];
                             thisScene.handles.barTextRight.num2str(i)=uicontrol('parent',figure1,...
@@ -451,6 +337,7 @@ classdef predictResults<handle
                                 'Position',positionRight,...
                                 'FontWeight','bold',...
                                 'FontAngle','italic',...
+                                'FontSize',18,...
                                 'String',[newline,num2str(valueOfStimulationRight),'mA']);
                         else
                             thisScene.handles.barRight.num2str(i)=uicontrol('Visible','off');

@@ -9,7 +9,6 @@ classdef Electrode < handle & matlab.mixin.Copyable
         Settings
         Source
         maxStimPlans
-        c0
         NumberOfLead
     end
     

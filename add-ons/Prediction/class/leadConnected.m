@@ -39,10 +39,10 @@ classdef leadConnected<handle
 %             if exist(filename,'file')
 %                 result=1;
 %             end
-            cd(currentFolder);
+%             cd(currentFolder);
         end
         
-        function atlas = getMatchingAtlas(obj,therapyPlanStorage,thisSession,thisprediction,c0)
+        function atlas = getMatchingAtlas(obj,therapyPlanStorage,thisSession,thisprediction,C0)
             %copied from VTAextractor.m of findeTheMatchingAtlas
             % finds the atlas which is given in the datafile
             target=thisprediction.handles.target;
@@ -54,11 +54,11 @@ classdef leadConnected<handle
                 %does the target match?
                 if strcmp(lower(thisAtlas.group),lower(target))
                     % is hemisphere matching?
-                        if  c0<0 && strcmp(lower(thisAtlas.hemisphere),'left')
+                        if  C0<0 && strcmp(lower(thisAtlas.hemisphere),'left')
                             atlas=thisAtlas;
                             thisprediction.PositionHemisphere.left=1;
                             break
-                        elseif  c0>0 && strcmp(lower(thisAtlas.hemisphere),'right')
+                        elseif  C0>0 && strcmp(lower(thisAtlas.hemisphere),'right')
                             atlas=thisAtlas;
                             thisprediction.PositionHemisphere.right=1;
                             break
@@ -267,17 +267,17 @@ classdef leadConnected<handle
                                 thisprediction.config.FirstLead.NumberOfLead=fselect;
                                 answer=questdlg('Where was the first lead implanted?','Task','Left','Right','Left');
                                 if strcmp(answer,'Left')
-                                    thisprediction.config.FirstLead.c0=-10; %this needs to be smaller than 0, that is the expression for left
+                                    thisprediction.config.FirstLead.C0.x=-10; %this needs to be smaller than 0, that is the expression for left
                                 elseif strcmp(answer,'Right')
-                                    thisprediction.config.FirstLead.c0=10;
+                                    thisprediction.config.FirstLead.C0.x=10;
                                 end
                                 thisprediction.config.SecondLead.NumberOfLead=sselect;
                                 thisprediction.config.SecondLead.C0 = thisSession.therapyPlanStorage{1,sselect}.lead.distal(1,1);
                                 answer=questdlg('Where was the second lead implanted?','Task','Left','Right','Right');
                                 if strcmp(answer,'Left')
-                                    thisprediction.config.SecondLead.c0=-10; %this needs to be smaller than 0, that is the expression for left
+                                    thisprediction.config.SecondLead.C0.x=-10; %this needs to be smaller than 0, that is the expression for left
                                 elseif strcmp(answer,'Right')
-                                    thisprediction.config.SecondLead.c0=10;
+                                    thisprediction.config.SecondLead.C0.x=10;
                                 end
                                 waitfor(msgbox('Your bilateral prediction data will be stored in the Actor you just selected...'));
                                 obj.config.runWithoutLoadedActor=1;
@@ -293,9 +293,9 @@ classdef leadConnected<handle
                     thisprediction.config.FirstLead.NumberOfLead=fselect;
                     answer=questdlg('Where was your lead implanted?','Task','Left','Right','Left');
                     if strcmp(answer,'Left')
-                    thisprediction.config.FirstLead.c0=-10; %this needs to be smaller than 0, that is the expression for left    
+                    thisprediction.config.FirstLead.C0.x=-10; %this needs to be smaller than 0, that is the expression for left    
                     elseif strcmp(answer,'Right')
-                    thisprediction.config.FirstLead.c0=10;    
+                    thisprediction.config.FirstLead.C0.x=10;    
                     end
                     obj.config.runWithoutLoadedActor=1;
                     return;

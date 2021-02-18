@@ -8,21 +8,14 @@ data.dataleftcell=cellfun(@numel,data.dataleftcell);
 
 datasample=VoxelData(); %general usable
 % define your R values or you already have them in your data
-datasample.R.PixelExtentInWorldX=data.spacing(1,1);
-datasample.R.PixelExtentInWorldY=data.spacing(1,2);
-datasample.R.PixelExtentInWorldZ=data.spacing(1,3);
 
 datasample.Voxels=data.dataleftcell;
 
-WorldLimitX=numel(data.dataleftcell(1:end,1,1))*data.spacing(1,1);
-WorldLimitY=numel(data.dataleftcell(1,1:end,1))*data.spacing(1,2);
-WorldLimitZ=numel(data.dataleftcell(1,1,1:end))*data.spacing(1,3);
-WorldLimitX=[data.originMNIleft(1,1),data.originMNIleft(1,1)+WorldLimitX];
-WorldLimitY=[data.originMNIleft(1,2),data.originMNIleft(1,2)+WorldLimitY];
-WorldLimitZ=[data.originMNIleft(1,3),data.originMNIleft(1,3)+WorldLimitZ];
+datasample.R = imref3d(data.dimensions([2 1 3]),data.spacing(1,1),data.spacing(1,2),data.spacing(1,3));
+datasample.R.XWorldLimits = datasample.R.XWorldLimits+data.originMNIleft(1,1)-data.spacing(1,1);
+datasample.R.YWorldLimits = datasample.R.YWorldLimits+data.originMNIleft(1,2)-data.spacing(1,2);
+datasample.R.ZWorldLimits = datasample.R.ZWorldLimits+data.originMNIleft(1,3)-data.spacing(1,3);
 
-datasample.R=imref3d(data.dimensions,WorldLimitX,WorldLimitY,WorldLimitZ);
-datasample.R=imref3d(data.dimensions,data.spacing(1,1),data.spacing(1,2),data.spacing(1,3));
 [x,y,z] = datasample.R.worldToIntrinsic(0,0,0);
 spacing = [datasample.R.PixelExtentInWorldX,datasample.R.PixelExtentInWorldY,datasample.R.PixelExtentInWorldZ];
 origin = [x y z];

@@ -71,8 +71,8 @@ Scene.handles.menu.dynamic.Mesh.getPredictionValue=uimenu(Scene.handles.menu.dyn
             try
                 for i=1:numel(scene.Actors)
                     try
-                        c0=scene.Actors(1,i).Data.c0(1,1);
-                        if scene.Actors(1,selection).C0(1,1)==c0 && scene.Actors(1,selection).NumberOfLead==scene.Actors(1,i).NumberOfLead
+                        C0=scene.Actors(1,i).Data.C0.x;
+                        if scene.Actors(1,selection).C0(1,1)==C0 && scene.Actors(1,selection).NumberOfLead==scene.Actors(1,i).NumberOfLead
                             if scene.Actors(1,selection).C0(1,1)<0
                                 scene.Actors(1,selection).Tag=[scene.Actors(1,selection).Tag,';',num2str(scene.Actors(1,i).PredictInformation.handles.prediction_Information.unilateral.leftVTAPrediction)];
                                 break;
@@ -233,10 +233,14 @@ Scene.handles.menu.dynamic.Mesh.getPredictionValue=uimenu(Scene.handles.menu.dyn
             notify(thisScene.handles.menu.view.camera.orthogonal.coronal,'Action');
             thisScene.handles.closebutton_panel_showResults.Visible='on';
             notify(thisScene.handles.closebutton_box_listSelectResult,'Action');
+            thisScene.handles.unusableButton=uicontrol('Visible','off','Enable','off');
+            thisScene.handles.unusableButton.Callback=thisScene.handles.figure.WindowKeyPressFcn;
+            thisScene.handles.unusableButton.CreateFcn=thisScene.handles.figure.WindowButtonMotionFcn;
             thisScene.handles.figure.WindowScrollWheelFcn =[];
             thisScene.handles.figure.WindowButtonDownFcn=[];
             thisScene.handles.figure.WindowButtonUpFcn=[];
             thisScene.handles.figure.WindowKeyPressFcn=[];
+            thisScene.handles.figure.WindowButtonMotionFcn=[];  
             set(thisScene.handles.panel_showResults,'Visible','on');
             set(thisScene.handles.panel_showResults,'UserData',ypos);
             set(thisScene.handles.panel_showResults,'YData',[ypos(1,2)-50 ypos(1,2)-50 ypos(1,2)-50 ypos(1,2)-50]);
@@ -252,8 +256,8 @@ Scene.handles.menu.dynamic.Mesh.getPredictionValue=uimenu(Scene.handles.menu.dyn
         ypos=thisScene.handles.panel_showResults.UserData;
         thisScene.handles.panel_showResults.Visible='off';
         A_mouse_camera(thisScene.handles.figure);
-        set(thisScene.handles.figure,'WindowKeyPressFcn',@keyShortCut);
-        set(thisScene.handles.figure,'WindowButtonMotionFcn',@setcurrentpointlive);
+        thisScene.handles.figure.WindowKeyPressFcn=thisScene.handles.unusableButton.Callback;
+        thisScene.handles.figure.WindowButtonMotionFcn=thisScene.handles.unusableButton.CreateFcn;
         set(thisScene.handles.btn_toggleleft,'Enable','on','Visible','on');
         set(thisScene.handles.btn_toggleright,'Enable','on','Visible','on');
         set(thisScene.handles.panelleft,'Visible','on');
