@@ -214,6 +214,7 @@ Scene.handles.menu.dynamic.Mesh.getPredictionValue=uimenu(Scene.handles.menu.dyn
         displayDecision=thisScene.handles.box_listSelectResult.UserData(1,displayDecision).Number;
         if not(isempty(displayDecision))
             d=predictResults();
+            set(thisScene.handles.menu.addons.main,'Enable','off');
             set(thisScene.handles.menu.file.main,'Enable','off');
             set(thisScene.handles.menu.stusessions.main,'Enable','off');
             set(thisScene.handles.menu.view.main,'Enable','off');
@@ -270,6 +271,7 @@ Scene.handles.menu.dynamic.Mesh.getPredictionValue=uimenu(Scene.handles.menu.dyn
         set(thisScene.handles.menu.edit.main,'Enable','on');
         set(thisScene.handles.menu.transform.main,'Enable','on');
         set(thisScene.handles.menu.dynamic.main,'Enable','on');
+        set(thisScene.handles.menu.addons.main,'Enable','on');
         try
             delete(thisScene.handles.electrodeImage1);
             for i=1:4

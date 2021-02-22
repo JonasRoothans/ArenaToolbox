@@ -37,7 +37,7 @@ classdef predictFuture<handle
         PositionHemisphere
         bilateralOn=0
         Heatmap
-        amplitudesParameter=[1,0.5,9] %an option needs to be designed, to set those values like the user wants to
+        amplitudesParameter=[1,0.1,6] %this are the rounded results from the calculation which can be found in the memory file for AmplitudeSettings
         proOptions=0 %it a relict which can enable the first time version of displaying when it gets uncommented
     end
     
