@@ -2924,6 +2924,10 @@ classdef ArenaScene < handle
     methods(Static)
         
         function thisScene = getscenedata(h)
+            if isa(h,'ArenaScene')
+                thisScene = h;
+                return
+            end
             while not(isa(h.UserData,'ArenaScene'))
                 h = h.Parent;
             end
