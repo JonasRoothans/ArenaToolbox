@@ -38,9 +38,33 @@ classdef Mesh < handle & matlab.mixin.Copyable
             else
                 T = varargin{2};
             end
+            
+            %increase resolution:
+            if VoxelData.R.PixelExtentInWorldX>0.5
+                %interpolating
+                Xo = VoxelData.R.XWorldLimits(1)+VoxelData.R.PixelExtentInWorldX/2:VoxelData.R.PixelExtentInWorldX:VoxelData.R.XWorldLimits(2);
+                Yo = VoxelData.R.YWorldLimits(1)+VoxelData.R.PixelExtentInWorldY/2:VoxelData.R.PixelExtentInWorldY:VoxelData.R.YWorldLimits(2);
+                Zo = VoxelData.R.ZWorldLimits(1)+VoxelData.R.PixelExtentInWorldZ/2:VoxelData.R.PixelExtentInWorldZ:VoxelData.R.ZWorldLimits(2);
+                Xq = VoxelData.R.XWorldLimits(1):0.5:VoxelData.R.XWorldLimits(2);
+                Yq = VoxelData.R.YWorldLimits(1):0.5:VoxelData.R.XWorldLimits(2);
+                Zq = VoxelData.R.ZWorldLimits(1):0.5:VoxelData.R.XWorldLimits(2);
+                
+                [Xm,Ym,Zm] = meshgrid(Xo,Yo,Zo);
+                [Xqq,Yqq,Zqq] = meshgrid(Xq,Yq,Zq);
+                disp('Interpolating source data on 0.5mm grid')
+                Vq = interp3(Xm,Ym,Zm,VoxelData.Voxels,Xqq,Yqq,Zqq,'nearest');
+                X = Xqq;
+                Y = Yqq;
+                Z = Zqq;
+                V  = Vq;
+            else
+                [X,Y,Z] = A_imref2meshgrid(VoxelData.R);
+                V = VoxelData.Voxels;
+            end
+                
              disp('Arena Mesh: computing...')
-             [X,Y,Z] = A_imref2meshgrid(VoxelData.R);
-             [obj.Faces, obj.Vertices] = isosurface(X,Y,Z,VoxelData.Voxels,T);
+             
+             [obj.Faces, obj.Vertices] = isosurface(X,Y,Z,V,T);
              obj.Settings.T = T;
         end
         

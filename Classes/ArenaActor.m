@@ -226,6 +226,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 settings.faceOpacity = 50;
                 settings.edgeOpacity = 0;
                 settings.smooth = 1;
+                dynamicComplexity = 0;
             else
                 if not(isstruct(settings)) %mesh has been generated from voxels
                     settings = struct;
@@ -236,6 +237,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     settings.faceOpacity = 50;
                     settings.edgeOpacity = 0;
                     settings.smooth = 1;
+                    dynamicComplexity = 1;
                 end
             end
             try
@@ -267,8 +269,22 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             end
                 
             
+            %Dynamic Complexity
+            if dynamicComplexity
+                complexity = 100/length(handle.Vertices);
+                if complexity>1
+                    complexity = 1;
+                elseif complexity < 0.2
+                    complexity = 0.2;
+                end
+                settings.complexity = complexity *100;
+                reducepatch(handle,complexity);
+            else
+                reducepatch(handle,settings.complexity/100);
+            end
             %apply settings
-            reducepatch(handle,settings.complexity/100);
+            
+            
             handle.FaceColor = settings.colorFace;
             handle.EdgeColor = settings.colorEdge;
             handle.FaceAlpha = settings.faceOpacity/100;
