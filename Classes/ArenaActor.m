@@ -217,6 +217,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         
         function settings = visualizeMesh(obj,settings,data,scene)
             %---- default settings
+            dynamicComplexity = 0;
             if and(isempty(data.Source),not(isstruct(settings))) % mesh has no voxel image as source
                 settings = struct;
                 settings.colorFace = scene.getNewColor(scene);%[0 188 216]/255;
@@ -226,7 +227,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 settings.faceOpacity = 50;
                 settings.edgeOpacity = 0;
                 settings.smooth = 1;
-                dynamicComplexity = 0;
+                
             else
                 if not(isstruct(settings)) %mesh has been generated from voxels
                     settings = struct;
