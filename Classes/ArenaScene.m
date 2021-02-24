@@ -245,6 +245,8 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Mesh.fibers = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: fibers (from 1 seed)','callback',{@menu_showFibers},'Enable','off');
             obj.handles.menu.dynamic.Mesh.fibersBetween = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: fibers (inbetween seeds)','callback',{@menu_showFibers_inbetween},'Enable','off');
             obj.handles.menu.dynamic.Mesh.makeBinarySlice = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: convert to binary slice','callback',{@menu_mesh2binaryslice},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.SpatialCorrelation = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','VoxelData: spatial correlation','callback',{@menu_spatialcorrelation},'Enable','off');
+            obj.handles.menu.dynamic.Slicei.SpatialCorrelation = obj.handles.menu.dynamic.Mesh.SpatialCorrelation;
             
             obj.handles.menu.dynamic.Slicei.multiply = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: multiply images','callback',{@menu_multiplyslices},'Enable','off');
             
@@ -1512,6 +1514,46 @@ classdef ArenaScene < handle
  
             end
             
+            function menu_spatialcorrelation(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                if numel(currentActors)~=2
+                    error('correlation needs two actors')
+                end
+                
+                %if 
+                
+                %check is data contains VoxelData
+                VoxelDatas = {};
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    switch class(thisActor.Data)
+                        case 'Mesh'
+                            if isempty(thisActor.Data.Source)
+                                error('Data does not contain VoxelData information')
+                            end
+                            VoxelDatas{iActor} = thisActor.Data.Source;
+                            
+                        case 'Slicei'
+                            VoxelDatas{iActor} = thisActor.Data.parent;
+                    end
+                end
+                
+                disp(['Pearson correlation: ',num2str(corr(VoxelDatas{1}.Voxels(:),VoxelDatas{2}.Voxels(:)))]);
+                disp(['Spearman correlation: ',num2str(corr(VoxelDatas{1}.Voxels(:),VoxelDatas{2}.Voxels(:),'Type','Spearman'))]);
+
+disp('Pearson checks if it is on a line while spearman checks if they move in a same direction.')
+disp('Therefore pearson is more conservative. If your data is ordinal: do not use pearson but spearman.')
+                
+                
+                
+                    
+                                
+                
+                
+                
+            end
+            
             function menu_mesh2binaryslice(hObject,eventdata)
                  scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
@@ -2657,17 +2699,22 @@ classdef ArenaScene < handle
                 switch thisOtherClass
                     case {'main','modify','analyse','generate'}
                         continue
-                    case thisclass
-                        functions = fieldnames(obj.handles.menu.dynamic.(thisOtherClass));
-                        for iFunction = 1:numel(functions)
-                            thisFunction = functions{iFunction};
-                            obj.handles.menu.dynamic.(thisOtherClass).(thisFunction).Enable = 'on';
-                        end
                     otherwise
                         functions = fieldnames(obj.handles.menu.dynamic.(thisOtherClass));
                         for iFunction = 1:numel(functions)
                             thisFunction = functions{iFunction};
                             obj.handles.menu.dynamic.(thisOtherClass).(thisFunction).Enable = 'off';
+                        end
+                end
+            end
+            for iOther = 1:numel(otherclasses)
+                thisOtherClass = otherclasses{iOther};
+                switch thisOtherClass
+                                case thisclass
+                        functions = fieldnames(obj.handles.menu.dynamic.(thisOtherClass));
+                        for iFunction = 1:numel(functions)
+                            thisFunction = functions{iFunction};
+                            obj.handles.menu.dynamic.(thisOtherClass).(thisFunction).Enable = 'on';
                         end
                 end
             end

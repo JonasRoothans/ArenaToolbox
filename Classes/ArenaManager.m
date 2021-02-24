@@ -19,7 +19,10 @@ classdef ArenaManager < handle
             
             %Add SDK to the path
             load(fullfile(ArenaFolder,'config.mat'));
+            
+            warning('off','all')
             addpath(genpath(config.SDKdir))
+            warning('on','all')
             
             
             
