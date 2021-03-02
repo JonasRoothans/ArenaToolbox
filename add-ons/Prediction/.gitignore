@@ -1,0 +1,16 @@
+# exclude everything like
+*.mat
+*.png
+*.xls
+*.xlsx
+*.asv
+*.DS_Store
+*.DS_Store?
+*._*
+/Temp
+/savePath
+
+# except from
+!memoryFile_AmplitudeSetting_ConfidenceThreshold_TrialDystoniaWürzburg.mat
+!BilateralSweetspot_t_p_average_realMNI.mat
+

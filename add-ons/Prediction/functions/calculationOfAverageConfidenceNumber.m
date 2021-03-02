@@ -45,16 +45,33 @@ end
 %%
 averageToSave.confidenceLevel=average;
 averageToSave.twoStanardDeviationPlus=mean(average)+2*std(average);
+averageToSave.oneStanardDeviationPlus=mean(average)+std(average);
 averageToSave.twoStanardDeviationMinus=mean(average)-2*std(average);
+averageToSave.oneStanardDeviationMinus=mean(average)-std(average);
 
 %% this is the code for the range of the stimulation
+load('Bilateral_GPI_GEN+CER.swtspt','-mat')
 useableAmplitude=[];
-for i=1:numel(sweetspot.raw)
-    if strcmp(sweetspot.raw(1,i).voltage,'False')
+for i=1:numel(sweetspot.raw) %when a level is set to voltage controlled, the clinician selected the wrong method
     useableAmplitude(end+1,1)=sweetspot.raw(1,i).amplitude;
-    end
 end
-averageSave.usableAmplitudeMinus=mean(useableAmplitude)-2*std(useableAmplitude);
-averageSave.usableAmplitudePlus=mean(useableAmplitude)+2*std(useableAmplitude);
 
-save('memoryFileAmplitudeSettingOfTrialDystoniaCases.mat','averageSave');
+% figure;
+% boxplot(useableAmplitude);
+% figure;
+% hist(useableAmplitude)
+
+% figure;
+% scatter(((rand(158,1)-0.5)/4)+1,useableAmplitude);
+% hold on 
+% boxplot(useableAmplitude);
+% 
+% figure;
+% scatter(x,k);
+averageToSave.AmplitudesOriginal=useableAmplitude;
+averageToSave.usableAmplitudeMinusTwoStd=mean(useableAmplitude)-2*std(useableAmplitude);
+averageToSave.usableAmplitudeMinusOneStd=mean(useableAmplitude)-std(useableAmplitude);
+averageToSave.usableAmplitudePlusTwoStd=mean(useableAmplitude)+2*std(useableAmplitude);
+averageToSave.usableAmplitudePlusOneStd=mean(useableAmplitude)+std(useableAmplitude);
+
+save('memoryFile_AmplitudeSetting_ConfidenceThreshold_TrialDystoniaWürzburg.mat','averageToSave');

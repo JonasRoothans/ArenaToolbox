@@ -7,7 +7,8 @@ classdef predictResults<handle
         handles
         HighestResults
         devoloperOptions2=0
-        treshhold
+        treshholdTwoStandard
+        treshholdOneStandard
         topScoreValue=3
     end
     
@@ -197,9 +198,9 @@ classdef predictResults<handle
                 thisScene.handles.barRight=[];
                 thisScene.handles.barTextLeft=[];
                 thisScene.handles.barTextRight=[];
-                load('memoryFileConfidenceLevelOfTrialDystoniaCases.mat');
-                obj.treshhold=averageToSave.twoStanardDeviationMinus;
-                
+                load('memoryFile_AmplitudeSetting_ConfidenceThreshold_TrialDystoniaWürzburg.mat');
+                obj.treshholdTwoStandard=averageToSave.twoStanardDeviationMinus;
+                obj.treshholdOneStandard=averageToSave.oneStanardDeviationMinus;
                 if not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.left))
                     try
                         oldPosition=thisScene.handles.axes.Position;
@@ -217,10 +218,10 @@ classdef predictResults<handle
                     img=imresize(img,0.5);
                     thisScene.handles.electrodeImage1=imshow(img);
                     if not(isempty(Actor.PredictInformation.confidenceLevel))
-                        greaterThanThresholdLeft=Actor.PredictInformation.confidenceLevel.leftSide.average>obj.treshhold;
-                        greaterThanThresholdLeft=Actor.PredictInformation.Results{1,1}.unilateral.left.*greaterThanThresholdLeft;
+                        greaterThanThresholdLeftTwoStd=Actor.PredictInformation.confidenceLevel.leftSide.average>obj.treshholdTwoStandard;
+                        greaterThanThresholdLeftTwoStd=Actor.PredictInformation.Results{1,1}.unilateral.left.*greaterThanThresholdLeftTwoStd;
                     else
-                        greaterThanThresholdLeft=Actor.PredictInformation.Results{1,1}.unilateral.left;
+                        greaterThanThresholdLeftTwoStd=Actor.PredictInformation.Results{1,1}.unilateral.left;
                     end
                 end
                 if not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.right))
@@ -241,10 +242,10 @@ classdef predictResults<handle
                     thisScene.handles.electrodeImage2=imshow(img);
                     
                     if not(isempty(Actor.PredictInformation.confidenceLevel))
-                        greaterThanThresholdRight=Actor.PredictInformation.confidenceLevel.rightSide.average>obj.treshhold;
-                        greaterThanThresholdRight=Actor.PredictInformation.Results{1,1}.unilateral.right.*greaterThanThresholdRight;
+                        greaterThanThresholdRightTwoStd=Actor.PredictInformation.confidenceLevel.rightSide.average>obj.treshholdTwoStandard;
+                        greaterThanThresholdRightTwoStd=Actor.PredictInformation.Results{1,1}.unilateral.right.*greaterThanThresholdRightTwoStd;
                     else
-                        greaterThanThresholdRight=Actor.PredictInformation.Results{1,1}.unilateral.right;
+                        greaterThanThresholdRightTwoStd=Actor.PredictInformation.Results{1,1}.unilateral.right;
                     end
                 end
                 numberOfContactsSettings=Actor.PredictInformation.configStructure.numberOfContactSettings;
@@ -253,8 +254,8 @@ classdef predictResults<handle
                     ypos=0.19+(i-1)*0.109;
                     try
                         if  not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.left))
-                            maxForContactLeft=maxk(greaterThanThresholdLeft(1+numberOfContactsSettings*(i-1):numberOfContactsSettings*i),1);
-                            positionOfNumberInVector=find(greaterThanThresholdLeft(1+numberOfContactsSettings*(i-1):numberOfContactsSettings*i)==maxForContactLeft);
+                            maxForContactLeft=maxk(greaterThanThresholdLeftTwoStd(1+numberOfContactsSettings*(i-1):numberOfContactsSettings*i),1);
+                            positionOfNumberInVector=find(greaterThanThresholdLeftTwoStd(1+numberOfContactsSettings*(i-1):numberOfContactsSettings*i)==maxForContactLeft);
                             maxForContactLeft=unique(maxForContactLeft);
                             if maxForContactLeft==0
                                 valueOfStimulationLeft=[];
@@ -291,6 +292,16 @@ classdef predictResults<handle
                                     'FontAngle','italic',...
                                     'FontSize',18,...
                                     'String',[newline,num2str(valueOfStimulationLeft),'mA']);
+                                if Actor.PredictInformation.confidenceLevel.leftSide.average(positionOfNumberInVector(1,1))<obj.treshholdOneStandard
+                                    thisScene.handles.barLeft.num2str(i).ForegroundColor='r';
+                                end
+                                try
+                                    if valueOfStimulationLeft<averageToSave.usableAmplitudeMinusOneStd || valueOfStimulationLeft>averageToSave.usableAmplitudePlusOneStd
+                                        thisScene.handles.barTextLeft.num2str(i).ForegroundColor='r';
+                                    end
+                                catch
+                                end
+                                    
                             else
                                 thisScene.handles.barTextLeft.num2str(i)=uicontrol('Visible','off');
                                 thisScene.handles.barLeft.num2str(i)=uicontrol('Visible','off');
@@ -300,8 +311,8 @@ classdef predictResults<handle
                     end
                     
                     if not(isempty(Actor.PredictInformation.Results{1, 1}.unilateral.right))
-                        maxForContactRight=maxk(greaterThanThresholdRight(1+numberOfContactsSettings*(i-1):numberOfContactsSettings*i),1);
-                        positionOfNumberInVector=find(greaterThanThresholdRight(1+numberOfContactsSettings*(i-1):numberOfContactsSettings*i)==maxForContactRight);
+                        maxForContactRight=maxk(greaterThanThresholdRightTwoStd(1+numberOfContactsSettings*(i-1):numberOfContactsSettings*i),1);
+                        positionOfNumberInVector=find(greaterThanThresholdRightTwoStd(1+numberOfContactsSettings*(i-1):numberOfContactsSettings*i)==maxForContactRight);
                         maxForContactRight=unique(maxForContactRight);
                         if maxForContactRight==0
                             valueOfStimulationRight=[];
@@ -339,6 +350,15 @@ classdef predictResults<handle
                                 'FontAngle','italic',...
                                 'FontSize',18,...
                                 'String',[newline,num2str(valueOfStimulationRight),'mA']);
+                            if Actor.PredictInformation.confidenceLevel.rightSide.average(positionOfNumberInVector(1,1))<obj.treshholdOneStandard
+                                thisScene.handles.barRight.num2str(i).ForegroundColor='r';
+                            end
+                            try
+                            if valueOfStimulationRight<averageToSave.usableAmplitudeMinusOneStd || valueOfStimulationRight>averageToSave.usableAmplitudePlusOneStd 
+                                thisScene.handles.barTextRight.num2str(i).ForegroundColor='r';
+                            end
+                            catch
+                            end
                         else
                             thisScene.handles.barRight.num2str(i)=uicontrol('Visible','off');
                             thisScene.handles.barTextRight.num2str(i)=uicontrol('Visible','off');
