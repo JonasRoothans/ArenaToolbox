@@ -1,6 +1,9 @@
-classdef predictFuture<handle
-    %This class is the replacement of the old Predict.m file
-    %   It is in construction...
+classdef predictFuture<handle & dynamicprops
+    %This class is the replacement of the old Predict.m file written by
+    %Jonas Roothans
+    %It manages two ways of a prediction walktrough and all possible
+    %functions which are elementary for the basic functionality.
+    %Credits to Tim Wichmann, bachelor student
     
     % If you want to jump to specific part in the hirarchy of the functions
     % please use:
@@ -11,11 +14,13 @@ classdef predictFuture<handle
     %   newPrediction
     %   closePrediction
     %   kSnapshotPrediction
-    %   buttonStartSubprogramm
+    %   runButtom
     % secondary functions
-    %   menuImportfile
-    %   buttonStartPrediction
-    %   menuSavePrediction
+    %   Import
+    %   saveFolder
+    %   changeVTAPoolPath
+    %   BilateralOn
+    %   SoundOn
     
     properties
         Title
@@ -37,8 +42,7 @@ classdef predictFuture<handle
         PositionHemisphere
         bilateralOn=0
         Heatmap
-        amplitudesParameter=[1,0.1,6] %this are the rounded results from the calculation which can be found in the memory file for AmplitudeSettings
-        proOptions=0 %it a relict which can enable the first time version of displaying when it gets uncommented
+        amplitudesParameter=[1.2,0.1,5.6] %this are the rounded results from the calculation which can be found in the memory file for AmplitudeSettings
     end
     
     methods
@@ -134,8 +138,8 @@ classdef predictFuture<handle
             obj.handles.menu.file.BilateralOn.main=uimenu('parent',obj.handles.menu.file.main,...
                 'Text','Bilateral Prediction ','callback',{@BilateralOn});
             
-            % the try and catch is added, because this way the prediction
-            % for a single vta is made possible-> has it's own class
+            % to be able to let the program run in two ways(with and
+            % without preloaded data) this condition check was added
             
             if pathDirectory>0
                 obj.handles.importButton.Visible='off';
@@ -174,10 +178,6 @@ classdef predictFuture<handle
                 obj.handles.importButton.Visible='on';
             end
             
-        
-        
-        
-        
         %% -----
         %Essential function for rudiment working
         function closePrediction(hObject,eventdata)
@@ -221,13 +221,22 @@ classdef predictFuture<handle
         
         function Import(hObject,eventdata)
             thisprediction=predictFuture.getpredictdata(hObject);
-            [filename,pathname]=uigetfile('*.dcm');
+            [filename,pathname]=uigetfile('*.dcm','Multiselect','on');
+            try
             if not(any(filename))
                 warning('You did not select a file!');
                 return
             end
+            catch
+            end
             thisprediction.handles.menu.file.import.main.ForegroundColor=[0 0.4470 0.7410];
-            thisprediction.Data_In=fullfile(pathname,filename);
+            if isa(filename,'cell')
+                thisprediction.addprop('multiselectedFiles');
+                thisprediction.multiselectedFiles=filename;
+                thisprediction.Data_In=pathname;
+            else
+                thisprediction.Data_In=fullfile(pathname,filename);
+            end
             thisprediction.Data_Out.Creation_Date=now;
             thisprediction.handles.target='gpi';
             thisprediction.handles.importButton.Visible='off';
@@ -256,53 +265,72 @@ classdef predictFuture<handle
             thisprediction=predictFuture.getpredictdata(hObject);
             
             if thisprediction.handles.heatmapListbox.Value==1
-                dystoniaWuerzburgMartin(hObject,eventdata);
+                    dystoniaWuerzburgMartin(hObject,eventdata);
             end
-            
-            thisprediction.handles.runButton.Enable='inactive';
-            
+                
             if isempty(thisprediction.Data_In)
                 error('You did not provide the programm with the right data!');
             end
             
-            if ~(strcmp(thisprediction.Data_In(end-3:end),'.dcm'))
-                warning('You selected the wrong filetype as input!!!');
-                return
+            try
+               numberSelectedFiles=numel(thisprediction.multiselectedFiles);
+               pathname=thisprediction.Data_In;
+               target=thisprediction.handles.target;
+               HeatmapName=thisprediction.Heatmap.Name;
+            catch
+                numberSelectedFiles=1;
             end
             
-            b=buttonConnected();
-            waitbarFigurePredictFuture=uifigure;
-            b.progress=uiprogressdlg(waitbarFigurePredictFuture,'Message','VTAs will be prepared!','Value',0.1,'ShowPercentage','on');
-            pause(3);
-            [thisprediction.handles.VTA_Information,thisprediction.Patient_Information,result] =b.VTA_Transformation(thisprediction);
-            if result==0
-                b.progress.Message='Prediction is in progress!';
-                b.progress.Value=0.3;
-                pause(1);
-                [thisprediction.handles.prediction_Information.bilateral,thisprediction.handles.prediction_Information.unilateral]=b.predictionProcess(thisprediction);
-                b.progress.Message='Prediction is finished!';
-                b.progress.Value=0.8;
-                b.saveTheData(thisprediction);
-                b.progress.Message='Data is stored';
-%                 if thisprediction.proOptions==1
-%                     b.progress.Value=0.9;
-%                     b.showTheData(thisprediction);
-%                 end
-                b.progress.Value=1;
-                b.progress.Message='Finished';
-                pause(3);
-                if thisprediction.handles.SoundOn.value
-                    % if you are not around looking on the monitor, then you
-                    % can just hear it is finished
-                    thisprediction.handles.SoundOn.gong=load('gong.mat');
-                    gong = audioplayer(thisprediction.handles.SoundOn.gong.y, thisprediction.handles.SoundOn.gong.Fs);
-                    play(gong);
-                    pause(3);
+            
+            for p=1:numberSelectedFiles
+                if numberSelectedFiles>1
+                    thisprediction.Data_In=fullfile(pathname,thisprediction.multiselectedFiles{p});
+                    thisprediction.config=[];
+                    thisprediction.Heatmap.Name=HeatmapName;
+                    thisprediction.handles.target=target;
                 end
-                delete(waitbarFigurePredictFuture);
-            else
-                thisprediction.Heatmap.Name=0;
-                delete(waitbarFigurePredictFuture);
+                
+                if ~(strcmp(thisprediction.Data_In(end-3:end),'.dcm'))
+                    warning('You selected the wrong filetype as input!!!');
+                    return
+                end
+                
+                thisprediction.handles.runButton.Enable='inactive';
+                
+                b=buttonConnected();
+                waitbarFigurePredictFuture=uifigure;
+                b.progress=uiprogressdlg(waitbarFigurePredictFuture,'Message','VTAs will be prepared!','Value',0.1,'ShowPercentage','on');
+                pause(3);
+                [thisprediction.handles.VTA_Information,thisprediction.Patient_Information,result] =b.VTA_Transformation(thisprediction);
+                if result==0
+                    b.progress.Message='Prediction is in progress!';
+                    b.progress.Value=0.3;
+                    pause(1);
+                    [thisprediction.handles.prediction_Information.bilateral,thisprediction.handles.prediction_Information.unilateral]=b.predictionProcess(thisprediction);
+                    b.progress.Message='Prediction is finished!';
+                    b.progress.Value=0.8;
+                    b.saveTheData(thisprediction);
+                    b.progress.Message='Data is stored';
+                    %                 if thisprediction.proOptions==1
+                    %                     b.progress.Value=0.9;
+                    %                     b.showTheData(thisprediction);
+                    %                 end
+                    b.progress.Value=1;
+                    b.progress.Message='Finished';
+                    pause(3);
+                    if thisprediction.handles.SoundOn.value
+                        % if you are not around looking on the monitor, then you
+                        % can just hear it is finished
+                        thisprediction.handles.SoundOn.gong=load('gong.mat');
+                        gong = audioplayer(thisprediction.handles.SoundOn.gong.y, thisprediction.handles.SoundOn.gong.Fs);
+                        play(gong);
+                        pause(3);
+                    end
+                    delete(waitbarFigurePredictFuture);
+                else
+                    thisprediction.Heatmap.Name=0;
+                    delete(waitbarFigurePredictFuture);
+                end
             end
             delete(findobj('Name','Prediction Enviroment'));
             waitfor(msgbox('Your Prediction is done!'));

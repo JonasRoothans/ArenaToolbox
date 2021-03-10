@@ -1,8 +1,9 @@
 questdlg('You can only import .dcm files!','Import',...
     'Import','Import');
-[filename,pathname]=uigetfile('*.dcm');
+[filename,pathname]=uigetfile('*.dcm','MultiSelect', 'on');
 
-thisprediction.Data_In=fullfile(pathname,filename);
+for num=1:numel(filename)
+thisprediction.Data_In=fullfile(pathname,filename(num));
 
 
 % waitfor(msgbox('Select your VTAPool'));
@@ -15,7 +16,7 @@ thisSession.loadsession(thisprediction.Data_In);
 leadidcs = find(contains(Rtype,'Lead'));
 
 
-for iLead =1: numel(leadidcs)
+iLead=1;
     % Everything which is needed for each single VTA
     thisLead = thisSession.getregisterable(leadidcs(1,iLead));
     thisStimplan=thisLead.stimPlan;
@@ -38,10 +39,16 @@ for iLead =1: numel(leadidcs)
             Rvta.YWorldLimits = Rvta.YWorldLimits+thisStimplan{1}.vta.Medium.volumeInfo.origin(2);
             Rvta.ZWorldLimits = Rvta.ZWorldLimits+thisStimplan{1}.vta.Medium.volumeInfo.origin(3);
             
-            Ivta = thisStimplan{1}.vta.Medium.voxelArray;
+            Ivta = thisStimplan{iStimplan}.vta.Medium.voxelArray;
             
             if ~exist(fullfile(thisprediction.VTAPoolPath,name),'file')
                 save(fullfile(thisprediction.VTAPoolPath,name),'Rvta','Ivta');
             end
     end
+
+
+% for i=1:19
+% difference=(thisStimplan{i}.vta.Medium.voxelArray~=thisStimplan{i+1}.vta.Medium.voxelArray);
+% valueOfDifference(i)=numel(find(difference));
+% end
 end

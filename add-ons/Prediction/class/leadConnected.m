@@ -1,5 +1,6 @@
 classdef leadConnected<handle
-    % All to the lead connected functions go here.
+    % To provide the buttomConnected class with all data pieces it needs
+    % for calculations and so on, this class was created.
     
     properties
         config
@@ -19,10 +20,14 @@ classdef leadConnected<handle
             cd(thisprediction.SavePath);
             result=0;
             if thisprediction.bilateralOn==1
+                try
                 if strcmp(lower(thisprediction.Tag(end-9:end)),'_bilateral')
                 Tag=[thisprediction.Tag(1:end-10),'_Bilateral'];
                 else 
                 Tag=[thisprediction.Tag,'_Bilateral'];
+                end
+                catch
+                    Tag=thisprediction.Tag;
                 end
             else 
                  Tag=thisprediction.Tag;   
@@ -43,7 +48,6 @@ classdef leadConnected<handle
         end
         
         function atlas = getMatchingAtlas(obj,therapyPlanStorage,thisSession,thisprediction,C0)
-            %copied from VTAextractor.m of findeTheMatchingAtlas
             % finds the atlas which is given in the datafile
             target=thisprediction.handles.target;
             [~,types] = thisSession.listregisterables;
@@ -71,7 +75,6 @@ classdef leadConnected<handle
         end
 
         function T_atlas_to_legacySpace= findTtolegacySpace(obj,therapyPlanStorage,target)
-            %copied from VTAextractor.m of findTtoMNI
             % finds the right Transformation from atlas to legacySpace
             hemispheres = {'left','right'};
             for iHemi = 1:2
@@ -88,18 +91,16 @@ classdef leadConnected<handle
             T_atlas_to_legacySpace= T.(atlasname);
         end
 
+        function obj=getConfiguration(obj,thisSession)
         %In this function all possible electrodes and therefor needed settings are
         %created for the Transformation of the VTA themself.
-        
-        function obj=getConfiguration(obj,thisSession)
-        
         valueOfContactLetters=str2num(thisSession.therapyPlanStorage{1,1}.activeRings);
         contacts=numel(valueOfContactLetters);
         contacts = 0:contacts-1;
         amplitudes = obj.amplitudesParameter(1,1):obj.amplitudesParameter(1,2):obj.amplitudesParameter(1,3);
         [contacts2d,amplitudes2d] = meshgrid(contacts,amplitudes); %maybe a new way of getting the same values but without this meshgrid crazyness
-        obj.config.contacts_vector = reshape(contacts2d,1,[]);         %gets the 0123 in row to follow in column
-        obj.config.amplitudes_vector = reshape(amplitudes2d,1,[]);     %gets the 12345 in row to follow in column
+        obj.config.contacts_vector = reshape(contacts2d,1,[]);         %gets numbers in row to follow in column
+        obj.config.amplitudes_vector = reshape(amplitudes2d,1,[]);     %gets numbers in row to follow in column
         valueOfContactLetters(valueOfContactLetters~=0)=0;
         obj.config.activevector=valueOfContactLetters;      
         
@@ -110,9 +111,7 @@ classdef leadConnected<handle
         function ExporttoVTApool(obj,thisprediction,thisStimplan)
             
             % This function was more or less the same in a old Predict.m toolbox to
-            % find. You can still find it in this Version of the toolbox but it will be
-            % deleted in the future, if the idea behinde is also not needed anymore.
-            
+            % find. 
             
             type = thisStimplan{1}.lead.leadType;
             amp = num2str(round(thisStimplan{1}.stimulationValue,1));
@@ -148,7 +147,7 @@ classdef leadConnected<handle
         end
         
         function [Ivta,Rvta] = getVTAInformation(obj,thisStimplan)
-            %This Function collects the Image References and Image Pixel Data.
+            %This function collects the Image References and Image Pixel Data.
             %Rvta: dim, spacing
             Rvta = imref3d(thisStimplan.vta.Medium.volumeInfo.dimensions,...
                 thisStimplan.vta.Medium.volumeInfo.spacing(1),...
@@ -163,6 +162,8 @@ classdef leadConnected<handle
         end
         
         function VTA = loadVTA(obj,data,thisprediction)
+            % The VTA chosen through the specifications in buttomConnected
+            % is searched and loaded.
             if isa(data,'struct')
             name = [data.leadtype,...
                 num2str(data.amplitude),...
@@ -200,12 +201,6 @@ classdef leadConnected<handle
             for iHemisphere = 1:2
                 thisHemisphere = hemispheres{iHemisphere};
                 otherHemisphere = hemispheres{3-iHemisphere};
-                %only continue if destination hemisphere is matching, so:
-                %If only 1 mirror --> only 1 output.
-                %   Is mirror not set to iHemisphere? --> continue
-                %Elseif No mirrror --> 2 outputs possible.
-                %   Is hemisphere not matching? --> continue
-                %When both mirrorings are turned on --> they are identical.
                 
                 switch thisprediction.Heatmap.Name
                     case 'DystoniaWuerzburg'
@@ -214,7 +209,7 @@ classdef leadConnected<handle
                     end
                     Rpsm = thisprediction.Heatmap.T_Data.R;
                     Ipsm = zeros(size(thisprediction.Heatmap.T_Data.Voxels));
-                    % The VTa gets mirrored when the sides doesn't match each other. Also it gets transformed from its own space to the Legacy Space.
+                    % The VTA gets mirrored when the sides doesn't match each other. Also it gets transformed from its own space to the Legacy Space.
                     if  ~strcmp(lower(hemisphere),lower(hemispheres{iHemisphere})) % mirror
                         Tvta = affine3d(round((TransformationLegacySpace* T.(['mni2',otherHemisphere,'gpi'])*T.([thisHemisphere,'gpi2mni'])*Tlegacy2mni),8));
                     else %No need to mirror.
@@ -252,6 +247,10 @@ classdef leadConnected<handle
         end
         
         function getMissingMetaData(obj,thisSession,thisprediction)
+            %When a prediction is run without preloaded data you need this
+            %function to determine on what leads you want to do your
+            %prediction. The question for which side the lead is placed
+            %should be changed to an automatic procedure in later versions.
             for fselect=1:numel(thisSession.therapyPlanStorage)
                 if thisprediction.bilateralOn
                     for sselect=1:numel(thisSession.therapyPlanStorage)
@@ -266,6 +265,7 @@ classdef leadConnected<handle
                                 thisprediction.bilateralOn=1;
                                 thisprediction.config.FirstLead.NumberOfLead=fselect;
                                 answer=questdlg('Where was the first lead implanted?','Task','Left','Right','Left');
+                                thisprediction.config.FirstLead.C0=[];
                                 if strcmp(answer,'Left')
                                     thisprediction.config.FirstLead.C0.x=-10; %this needs to be smaller than 0, that is the expression for left
                                 elseif strcmp(answer,'Right')
@@ -274,6 +274,7 @@ classdef leadConnected<handle
                                 thisprediction.config.SecondLead.NumberOfLead=sselect;
                                 thisprediction.config.SecondLead.C0 = thisSession.therapyPlanStorage{1,sselect}.lead.distal(1,1);
                                 answer=questdlg('Where was the second lead implanted?','Task','Left','Right','Right');
+                                thisprediction.config.SecondLead.C0=[];
                                 if strcmp(answer,'Left')
                                     thisprediction.config.SecondLead.C0.x=-10; %this needs to be smaller than 0, that is the expression for left
                                 elseif strcmp(answer,'Right')

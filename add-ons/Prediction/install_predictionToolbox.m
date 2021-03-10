@@ -47,6 +47,14 @@ Scene.handles.closebutton_panel_showResults = uicontrol('parent',Scene.handles.f
     'Visible','off',...
     'callback',{@closebutton_panel_closeShowResults});
 
+Scene.handles.text_showResults=uicontrol('parent',Scene.handles.figure,...
+    'units','normalized',...
+    'position',[0.8,0.1,0.2,0.05],...
+    'FontSize',12,...
+    'ForegroundColor','r',...
+    'String','All red written is outside of one standard deviation! ',...
+    'Visible','off');
+
 Scene.handles.menu.dynamic.predict.main = uimenu(Scene.handles.menu.dynamic.main ,'Text','Prediction');
 
 Scene.handles.menu.dynamic.Electrode.loadedLeadBasedCalculation = uimenu(Scene.handles.menu.dynamic.predict.main,'Text','Electrode:Open Prediction Enviroment','Callback',{@menu_openPredictionEnviroment},'Enable','off');
@@ -245,6 +253,7 @@ Scene.handles.menu.dynamic.Mesh.getPredictionValue=uimenu(Scene.handles.menu.dyn
             set(thisScene.handles.panel_showResults,'Visible','on');
             set(thisScene.handles.panel_showResults,'UserData',ypos);
             set(thisScene.handles.panel_showResults,'YData',[ypos(1,2)-50 ypos(1,2)-50 ypos(1,2)-50 ypos(1,2)-50]);
+            set(thisScene.handles.text_showResults,'Visible','on');
             d.displayHighestResults(thisScene,displayDecision);
         else
             error('No Prediction Data was found!');
@@ -272,6 +281,7 @@ Scene.handles.menu.dynamic.Mesh.getPredictionValue=uimenu(Scene.handles.menu.dyn
         set(thisScene.handles.menu.transform.main,'Enable','on');
         set(thisScene.handles.menu.dynamic.main,'Enable','on');
         set(thisScene.handles.menu.addons.main,'Enable','on');
+        set(thisScene.handles.text_showResults,'Visible','off');
         try
             delete(thisScene.handles.electrodeImage1);
             for i=1:4
@@ -305,12 +315,23 @@ Scene.handles.menu.dynamic.Mesh.getPredictionValue=uimenu(Scene.handles.menu.dyn
 
     function menu_showOldResults(hObject,eventdata)
         waitfor(msgbox('Please select your old Results from other Prediction!'));
-        [file,pathDirectory]=uigetfile('*.xls','Select old Results');
+        [file,pathDirectory]=uigetfile('*.xls','Select old Results','Multiselect','on');
         c=load('predictionConfig.mat');   %for every .xls data there is a appropriate .mat file which is used for the displaying of old results
+        if isa(file,'cell')
+            numberSelectedFiles=numel(file);
+            selectedFiles=file;
+        else
+            numberSelectedFiles=1;
+        end
+        for p=1:numberSelectedFiles
+            if numberSelectedFiles>1
+                file=selectedFiles{p};
+            end
         file=[file(1:end-4),'.mat'];
         result=load([c.predictionConfig.Temp,'/',file]);
         d=predictResults();
         d.displayHighestResults(result);
+        end
     end
 
         function Scene = getpredictdata(h)

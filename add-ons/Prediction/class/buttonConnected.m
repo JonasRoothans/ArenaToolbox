@@ -1,12 +1,15 @@
 classdef buttonConnected<handle
-    % All to the button connected functions go here.
+    % This class is related to the predictFuture class as a subclass. It
+    % stores all functions which are needed for the prediction preparations
+    % and execution.
+    % Credits to Tim Wichmann, bachelor student
     
     properties
         progress
     end
     
     methods
-        function [Excel_output,Patient_Information,result]=VTA_Transformation(obj,thisprediction,waitbarFigurePredictFuture)
+        function [Excel_output,Patient_Information,result]=VTA_Transformation(obj,thisprediction)
             %--
             %to work on this data, we need the toolbox Suretune SDK and
             %it's own class
@@ -67,7 +70,7 @@ classdef buttonConnected<handle
                 
                 % If you want a prediction on data not shown in Arena, you
                 % need this!
-                if isempty(thisprediction.config)
+                if isempty(thisprediction.config) 
                     lead.getMissingMetaData(thisSession,thisprediction);
                 end
                 
@@ -155,7 +158,7 @@ classdef buttonConnected<handle
                     %space
                     T_vta_to_atlas = thisSession.gettransformfromto(loop_therapyPlanStorage.lead,loop_atlas);
                     T_atlas_to_legacySpace= lead.findTtolegacySpace(loop_therapyPlanStorage,thisprediction.handles.target);
-                    thisprediction.handles.TransformationLegacySpace{itherapyPlanNumber} =...            % this is the euqivalent of XLS.Tlead2MNI.value
+                    thisprediction.handles.TransformationLegacySpace{itherapyPlanNumber} =...            
                         T_vta_to_atlas*T_atlas_to_legacySpace;          %If this value of correctness is not needed it can be shortened with round()
                 end
                 
@@ -166,12 +169,14 @@ classdef buttonConnected<handle
                 
                 Excel_output=[];
                 
-                %for now on you can work with Boston or Medtronic leads and its
-                %configuration data
+                %for now on you can work with Medtronic leads and its
+                %configuration data(Boston will be possible if the sample
+                %VTAs are constructed in Suretune and inserted in the
+                %VTAPoolPath)
                 
                 lead.amplitudesParameter=thisprediction.amplitudesParameter;
                 lead.getConfiguration(thisSession);
-                thisprediction.config.FirstLeadrelatedVTA=[];%otherwise the could will not work with an if statement
+                thisprediction.config.FirstLeadrelatedVTA=[];
                 thisprediction.config.FirstLeadrelatedVTA.name=[];
                 thisprediction.config.FirstLeadrelatedVTA.VTA=[];
                 thisprediction.configStructure=lead.config;
@@ -202,14 +207,14 @@ classdef buttonConnected<handle
                     otherwise
                         disp('You did not select a Heatmap which can be used!');
                 end
-                
                 %For prove of this, just look in the programm folder for
                 %ProoveOfWrongSpace
+                
                 iLead=0;
                 while iLead~=2
                     iLead=iLead+1;
                     try
-                        C0=thisprediction.config.FirstLead.C0.x; % If you run this and you only have a right lead...
+                        C0=thisprediction.config.FirstLead.C0.x; % If you run and you only have a right lead...
                     catch
                         iLead=2;
                     end
@@ -295,7 +300,7 @@ classdef buttonConnected<handle
             %this is essentially the old existing function from predict_ApplyGPiPredictionModel but with some
             %edditings
             
-            edges = -1:0.13333333333:1;                                 % gives the area of the histogram
+            edges = -1:0.13333333333:1; % gives the area of the histogram
             bilateral=[];
             unilateral=[];
             unilateral.left=[];
@@ -326,10 +331,9 @@ classdef buttonConnected<handle
                     if thisprediction.PositionHemisphere.left==1
                         status='%d. left Lead predicted';
                         fig1=figure('Name','Monopolar_Histogramm-Left');
-                        % it is always bilateral
                         unilateral.left = [];
                         thisprediction.confidenceLevel.sampleToRealMNI(thisprediction.Heatmap,size(thisprediction.handles.VTA_Information,2));
-                        for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
+                        for fXLS = 1:size(thisprediction.handles.VTA_Information,2) 
                             disp(fprintf(status,fXLS));
                             sample = signed_p_map(and(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0));
                             thisprediction.confidenceLevel.calculationConfidenceLevel(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels,fXLS,heatmap);
@@ -338,7 +342,7 @@ classdef buttonConnected<handle
                             
                             h = histogram(sample,edges);
                             distanceFromMeanOfMostLikelyEffekt = [1,zscore(h.Values)];   % normaly just the signed_p_map would be enough, but big VTAs would get a hugh weight in the prediction
-                            unilateral.left(fXLS) = distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
+                            unilateral.left(fXLS) = distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients; % This fitts the outcomes to the in the filedcase study found values.
                         end
                         sample = signed_p_map(and(thisprediction.config.FirstLeadrelatedVTA.iVTA>0.5,heatmap.pmap>0));
                         h = histogram(sample,edges);
@@ -350,19 +354,15 @@ classdef buttonConnected<handle
                     if thisprediction.PositionHemisphere.right==1
                         status='%d. right Lead predicted';
                         fig2=figure('Name','Monopolar_Histogramm-Right');
-                        % it is always bilateral
                         unilateral.right = [];
                         thisprediction.confidenceLevel.sampleToRealMNI(thisprediction.Heatmap,size(thisprediction.handles.VTA_Information,2));
-                        for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
+                        for sXLS = 1:size(thisprediction.handles.VTA_Information,2) 
                             disp(fprintf(status,sXLS));
                             sample = signed_p_map(and(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0));
                             thisprediction.confidenceLevel.calculationConfidenceLevel(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels,sXLS,heatmap);
-                            % When you take only values which aren't 0 than you get only a worsening or
-                            % improving effekt for the prediction.
-                            
                             h = histogram(sample,edges);
-                            distanceFromMeanOfMostLikelyEffekt = [1,zscore(h.Values)];   % normaly just the signed_p_map would be enough, but big VTAs would get a hugh weight in the prediction
-                            unilateral.right(sXLS) = distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
+                            distanceFromMeanOfMostLikelyEffekt = [1,zscore(h.Values)];   
+                            unilateral.right(sXLS) = distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;           
                         end
                         sample = signed_p_map(and(thisprediction.config.SecondLeadrelatedVTA.iVTA>0.5,heatmap.pmap>0));
                         h = histogram(sample,edges);
@@ -370,32 +370,7 @@ classdef buttonConnected<handle
                         unilateral.rightVTAPrediction=distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;
                         delete(fig2)
                     end
-                    
-%                     if thisprediction.bilateralOn==1
-%                         status='%d. left Lead and %d. right Lead predicted';
-%                         fig3=figure('Name','Bilateral_Histogramm');
-%                         % it is always bilateral
-%                         bilateral = [];
-%                         thisprediction.confidenceLevel.bilateral=[];
-%                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
-%                             obj.progress.Value=obj.progress.Value+size(thisprediction.handles.VTA_Information,2)/(size(thisprediction.handles.VTA_Information,2)*10000);
-%                             for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
-%                                 
-%                                 disp(fprintf(status,fXLS,sXLS));
-%                                 sample = [signed_p_map(and(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0));...
-%                                     signed_p_map(and(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5,heatmap.pmap>0))];
-%                                 % When you take only values which aren't 0 than you get only a worsning or
-%                                 % improving effekt for the prediction.
-%                                 
-%                                 thisprediction.confidenceLevel.bilateral.average(fXLS,sXLS)=thisprediction.confidenceLevel.leftSide.average(1,fXLS)+thisprediction.confidenceLevel.rightSide.average(1,sXLS);
-%                                 h = histogram(sample,edges);
-%                                 distanceFromMeanOfMostLikelyEffekt = [1,zscore(h.Values)];   % normaly just the signed_p_map would be enough, but big VTAs would get a hugh weight in the prediction
-%                                 bilateral(fXLS,sXLS) = distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
-%                             end
-%                         end
-%                         delete(fig3);
-%                     end
-                    
+                   
                 case {'heatmapBostonBerlin' , 'heatmapBostonAlone'}
                     % as long as there are no linear regression parameter
                     % given, the prediction is just based on the heatmap
@@ -408,15 +383,15 @@ classdef buttonConnected<handle
                         % unilateral left
                         status='%d. left Lead predicted';
                         unilateral.left = [];
-                        for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
+                        for fXLS = 1:size(thisprediction.handles.VTA_Information,2) 
                             disp(fprintf(status,fXLS));
                             sample=probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);
                             sample=mean(sample);
-                            unilateral.left(fXLS) = sample*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
+                            unilateral.left(fXLS) = sample*linearRegressionCoefficients;                 
                         end
                         sample = probabilityMap(thisprediction.config.FirstLeadrelatedVTA.iVTA>0.5);
                         sample=mean(sample);
-                        unilateral.leftVTAPrediction= sample*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
+                        unilateral.leftVTAPrediction= sample*linearRegressionCoefficients;                    
                     end
                     
                     if thisprediction.PositionHemisphere.right==1
@@ -433,21 +408,6 @@ classdef buttonConnected<handle
                         sample=mean(sample);
                         unilateral.rightVTAPrediction= sample*linearRegressionCoefficients;
                     end
-                    
-%                     if thisprediction.bilateralOn==1
-%                         status='%d. left Lead and %d. right Lead predicted';
-%                         bilateral = [];
-%                         for fXLS = 1:size(thisprediction.handles.VTA_Information,2) %first lead
-%                             obj.progress.Value=obj.progress.Value+size(thisprediction.handles.VTA_Information,2)/(size(thisprediction.handles.VTA_Information,2)*10000);
-%                             for sXLS = 1:size(thisprediction.handles.VTA_Information,2) %second lead
-%                                 sample=[probabilityMap(thisprediction.handles.VTA_Information(1,fXLS).normalizedVTA.Voxels>0.5);...
-%                                     probabilityMap(thisprediction.handles.VTA_Information(2,sXLS).normalizedVTA.Voxels>0.5)];
-%                                 sample=mean(mean(sample));
-%                                 disp(fprintf(status,fXLS,sXLS));
-%                                 bilateral(fXLS,sXLS) = sample*linearRegressionCoefficients;                    % This fitts the outcomes to the in the filedcase study found values.
-%                             end
-%                         end
-%                     end
             end
         end
         
@@ -582,228 +542,7 @@ classdef buttonConnected<handle
                         [filename,'.xls'],'Range',[char(66+numberOfContacts*2+i),'2'],'Sheet',startNumber+2);
                 end
             end
-
             cd(currentDirectory);
-        end
-        %%
-        function showTheData(obj,thisprediction)
-            
-            contacts_vector = thisprediction.configStructure.contacts_vector;
-            amplitudes_vector = thisprediction.configStructure.amplitudes_vector;
-            walkthroughs=numel(amplitudes_vector);
-            likeTable=0;
-            likeGraph=1;
-            
-            ticklabels = {};
-            for i = 1:(walkthroughs)
-                ticklabels{i} = ['c = ',num2str(contacts_vector(i)),', amp = ',num2str(amplitudes_vector(i))];
-            end
-            unilateralticklabels(1,:)=flipud(shiftdim(ticklabels));
-            thisprediction.handles.figure=[];
-            if thisprediction.PositionHemisphere.left==1
-                h1=thisprediction.confidenceLevel.leftSide.Level.h1;
-                h10=thisprediction.confidenceLevel.leftSide.Level.h10;
-                equal0=thisprediction.confidenceLevel.leftSide.Level.equal0;
-                thisprediction.handles.figure.left=figure('Name','Prediction Unilateral Left','Units','normalized','Position',[0.4 0.3 0.7 0.7]);
-                showLeftInOtherOrientations=flipud(shiftdim(thisprediction.handles.prediction_Information.unilateral.left)); %this is done, because you do need them in a vertical matrix
-                subplot(1,5,1)
-                picElectrode=imread('electrodePicture.png');
-                imshow(picElectrode);
-                set(gca,'Position',[0.05 0.1 0.1 0.8]);
-                subplot(1,5,2)
-                imagesc(showLeftInOtherOrientations);
-                title(thisprediction.handles.VTA_Information(1,1).leadname);
-                yticks(1:walkthroughs);
-                yticklabels(unilateralticklabels);
-                ytickangle(45);
-                xticklabels(' ');
-                colorbar;
-                if strcmp(thisprediction.Heatmap.Name,'heatmapBostonBerlin')||strcmp(thisprediction.Heatmap.Name,'heatmapBostonAlone')
-                    caxis([0.3 1.2]);
-                else
-                caxis([30 110]);
-                end 
-                set(gca,'Position',[0.25 0.1 0.03 0.8]);
-                if likeGraph==1
-                    xnames={};
-                    for i=1:thisprediction.configStructure.numberOfContactSettings
-                    xnames{1,i}=thisprediction.configStructure.amplitudes_vector(1,i);
-                    end
-                   subplot(3,5,13)
-                   hold on
-                   for i=0:thisprediction.configStructure.numberOfContacts-1
-                       plot(1:thisprediction.configStructure.numberOfContactSettings,...
-                           h10(1+i*thisprediction.configStructure.numberOfContactSettings:(i+1)*thisprediction.configStructure.numberOfContactSettings),'DisplayName',['contact',num2str(i)]);
-                   end
-                   set(gca,'Position',[0.35 0.1 0.6 0.2])
-                   xticks(1:thisprediction.configStructure.numberOfContactSettings);
-                   xticklabels(xnames);
-                   title('Confidence Level more than 10 VTAs per Voxel');
-                   legend;
-                   ylim([-2 inf]);
-                   ylabel('%');
-                   xlabel('mA');
-                   hold off
-                    subplot(3,5,8)
-                    hold on
-                   for i=0:thisprediction.configStructure.numberOfContacts-1
-                       plot(1:thisprediction.configStructure.numberOfContactSettings,...
-                           h1(1+i*thisprediction.configStructure.numberOfContactSettings:(i+1)*thisprediction.configStructure.numberOfContactSettings),'DisplayName',['contact',num2str(i)]);
-                   end
-                   set(gca,'Position',[0.35 0.4 0.6 0.2])
-                   xticks(1:thisprediction.configStructure.numberOfContactSettings);
-                   xticklabels(xnames);
-                   title('Confidence Level more than 1 VTA and less than 10 VTAs per Voxel');
-                   legend;
-                   ylim([-2 inf]);
-                   ylabel('%');
-                   xlabel('mA');
-                   hold off
-                    subplot(3,5,3)
-                    hold on
-                   for i=0:thisprediction.configStructure.numberOfContacts-1
-                       plot(1:thisprediction.configStructure.numberOfContactSettings,...
-                           equal0(1+i*thisprediction.configStructure.numberOfContactSettings:(i+1)*thisprediction.configStructure.numberOfContactSettings),'DisplayName',['contact',num2str(i)]);
-                   end
-                   set(gca,'Position',[0.35 0.76 0.6 0.2])
-                   xticks(1:thisprediction.configStructure.numberOfContactSettings);
-                   xticklabels(xnames);
-                   title('Confidence Level no VTA per Voxel');
-                   legend;
-                   ylim([-2 inf]);
-                   ylabel('%');
-                   xlabel('mA');
-                   hold off
-                elseif likeTable==1
-                t=table(flipud(h10));
-                name={'more than 10'};
-                uitable('Data',t{:,:},'RowName',unilateralticklabels,'ColumnName',name,...
-                    'Units','normalized','Position',[0.29 0.01 0.24 0.9]);
-                t=table(flipud(h1));
-                name={'more 1 less 10'};
-                uitable('Data',t{:,:},'RowName',unilateralticklabels,'ColumnName',name,...
-                    'Units','normalized','Position',[0.52 0.01 0.24 0.9]);
-                t=table(flipud(equal0));
-                name={'equal to zero'};
-                uitable('Data',t{:,:},'RowName',unilateralticklabels,'ColumnName',name,...
-                    'Units','normalized','Position',[0.76 0.01 0.24 0.9]);
-                end
-            end
-            
-            if thisprediction.PositionHemisphere.right==1
-                h1=thisprediction.confidenceLevel.rightSide.Level.h1;
-                h10=thisprediction.confidenceLevel.rightSide.Level.h10;
-                equal0=thisprediction.confidenceLevel.rightSide.Level.equal0;
-                thisprediction.handles.figure.right=figure('Name','Prediction Unilateral Right','Units','normalized','Position',[0.4 0.3 0.7 0.7]);
-                subplot(1,5,1)
-                picElectrode=imread('electrodePicture.png');
-                imshow(picElectrode);
-                set(gca,'Position',[0.03 0.1 0.1 0.8]);
-                subplot(1,5,2)
-                rightside(:,1)=thisprediction.handles.prediction_Information.unilateral.right;
-                imagesc(flipud(rightside));
-                title(thisprediction.handles.VTA_Information(2,1).leadname);
-                yticks(1:walkthroughs);
-                yticklabels(unilateralticklabels);
-                ytickangle(45);
-                xticklabels(' ');
-                colorbar;
-                if strcmp(thisprediction.Heatmap.Name,'heatmapBostonBerlin')||strcmp(thisprediction.Heatmap.Name,'heatmapBostonAlone')
-                    caxis([0.3 1.2]);
-                else
-                caxis([30 110]);
-                end
-                set(gca,'Position',[0.2 0.1 0.03 0.8]);
-                if likeGraph==1
-                     xnames={};
-                    for i=1:thisprediction.configStructure.numberOfContactSettings
-                    xnames{1,i}=thisprediction.configStructure.amplitudes_vector(1,i);
-                    end
-                   subplot(3,5,13)
-                   hold on
-                   for i=0:thisprediction.configStructure.numberOfContacts-1
-                       plot(1:thisprediction.configStructure.numberOfContactSettings,...
-                           h10(1+i*thisprediction.configStructure.numberOfContactSettings:(i+1)*thisprediction.configStructure.numberOfContactSettings),'DisplayName',['contact',num2str(i)]);
-                   end
-                   set(gca,'Position',[0.35 0.1 0.6 0.2])
-                   xticks(1:thisprediction.configStructure.numberOfContactSettings);
-                   xticklabels(xnames);
-                   title('Confidence Level more than 10 VTAs per Voxel');
-                   legend;
-                   ylim([-2 inf]);
-                   ylabel('%');
-                   xlabel('mA');
-                   hold off
-                    subplot(3,5,8)
-                    hold on
-                   for i=0:thisprediction.configStructure.numberOfContacts-1
-                       plot(1:thisprediction.configStructure.numberOfContactSettings,...
-                           h1(1+i*thisprediction.configStructure.numberOfContactSettings:(i+1)*thisprediction.configStructure.numberOfContactSettings),'DisplayName',['contact',num2str(i)]);
-                   end
-                   set(gca,'Position',[0.35 0.4 0.6 0.2])
-                   xticks(1:thisprediction.configStructure.numberOfContactSettings);
-                   xticklabels(xnames);
-                   title('Confidence Level more than 1 VTA and less than 10 VTAs per Voxel');
-                   legend;
-                   ylim([-2 inf]);
-                   ylabel('%');
-                   xlabel('mA');
-                   hold off
-                    subplot(3,5,3)
-                    hold on
-                   for i=0:thisprediction.configStructure.numberOfContacts-1
-                       plot(1:thisprediction.configStructure.numberOfContactSettings,...
-                           equal0(1+i*thisprediction.configStructure.numberOfContactSettings:(i+1)*thisprediction.configStructure.numberOfContactSettings),'DisplayName',['contact',num2str(i)]);
-                   end
-                   set(gca,'Position',[0.35 0.76 0.6 0.2])
-                   xticks(1:thisprediction.configStructure.numberOfContactSettings);
-                   xticklabels(xnames);
-                   title('Confidence Level no VTA per Voxel');
-                   legend;
-                   ylim([-2 inf]);
-                   ylabel('%');
-                   xlabel('mA');
-                   hold off
-                elseif likeTable==1
-                t=table(flipud(h10));
-                name={'more than 10'};
-                uitable('Data',t{:,:},'RowName',unilateralticklabels,'ColumnName',name,...
-                    'Units','normalized','Position',[0.29 0.01 0.24 0.9]);
-                t=table(flipud(h1));
-                name={'more 1 less 10'};
-                uitable('Data',t{:,:},'RowName',unilateralticklabels,'ColumnName',name,...
-                    'Units','normalized','Position',[0.52 0.01 0.24 0.9]);
-                t=table(flipud(equal0));
-                name={'equal to zero'};
-                uitable('Data',t{:,:},'RowName',unilateralticklabels,'ColumnName',name,...
-                    'Units','normalized','Position',[0.76 0.01 0.24 0.9]);
-                end
-            end
-            
-            if thisprediction.bilateralOn==1
-                thisprediction.handles.figure.bilateral=figure('Name','Prediction','Units','normalized','Position',[0.2 0.3 0.7 0.7]);
-                subplot(1,5,1)
-                picElectrode=imread('electrodePicture.png');
-                imshow(picElectrode);
-                set(gca,'Position',[0.02 0.05 0.1 0.8]);
-                subplot(1,5,5)
-                imagesc(thisprediction.handles.prediction_Information.bilateral);
-                ylabel(thisprediction.handles.VTA_Information(1,1).leadname);
-                xlabel(thisprediction.handles.VTA_Information(2,1).leadname);
-                xticks(1:walkthroughs);
-                xticklabels(ticklabels);
-                yticks(1:walkthroughs);
-                yticklabels(ticklabels);
-                xtickangle(45);
-                ytickangle(0);
-                colorbar;
-                if strcmp(thisprediction.Heatmap.Name,'heatmapBostonBerlin')||strcmp(thisprediction.Heatmap.Name,'heatmapBostonAlone')
-                    caxis([0.3 1.2]);
-                else
-                caxis([30 110]);
-                end
-                set(gca,'Position',[0.32 0.15 0.6 0.8]);
-            end
         end
     end
 end
