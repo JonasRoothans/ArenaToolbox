@@ -33,6 +33,7 @@ classdef predictResults<handle
                 if isa(Actor.PredictionAndVTA.prediction_Information,'struct')
                     A=Actor;
                     clear Actor
+                    Actor.Name=A.Name;
                     Actor.PredictInformation.Results{1}=A.PredictionAndVTA.prediction_Information;
                     Actor.PredictInformation.configStructure=A.PredictionAndVTA.configStructure;
                     Actor.Tag=A.PredictionAndVTA.Tag;
@@ -72,7 +73,7 @@ classdef predictResults<handle
                 set(thisScene.handles.axes,'Position',[0.01 0.01 0.2 0.2])
                 figure1=thisScene.handles.figure;
             catch
-                figure1=figure('Units','normalized','Position',[0.01 0.01 0.99 0.99]);
+                figure1=figure('Units','normalized','Position',[0.01 0.01 0.99 0.99],'Name',Actor.Name);
                 uicontrol('parent',figure1,...
                     'units','normalized',...
                     'position',[0.8,0.1,0.2,0.05],...
@@ -120,7 +121,8 @@ classdef predictResults<handle
                         position=[0.3 ypos 0 0.08];
                         positionAmplitude=[0.3 ypos 0.04 0.08];
                         side='leftSide';
-                        creationOfObejcts(thisScene,greaterThanThreshold,bar,barText,position,positionAmplitude,side,i);
+                        creationOfObejcts(thisScene,Actor,greaterThanThreshold,bar,barText,...
+                            position,positionAmplitude,side,i,Actor.PredictInformation.confidenceLevel.leftSide.average);
                     end
                catch
                 end
@@ -131,11 +133,12 @@ classdef predictResults<handle
                         position=[0.63 ypos 0 0.08];
                         positionAmplitude=[0.63 ypos 0.04 0.08];
                         side='rightSide';
-                        creationOfObejcts(thisScene,greaterThanThreshold,bar,barText,position,positionAmplitude,side,i);
+                        creationOfObejcts(thisScene,Actor,greaterThanThreshold,bar,barText,...
+                            position,positionAmplitude,side,i,Actor.PredictInformation.confidenceLevel.rightSide.average);
                     end
             end
             
-            function creationOfObejcts(thisScene,greaterThanThreshold,bar,barText,position,positionAmplitude,side,i)
+            function creationOfObejcts(thisScene,Actor,greaterThanThreshold,bar,barText,position,positionAmplitude,side,i,confidenceLevel)
                 numberOfContactsSettings=Actor.PredictInformation.configStructure.numberOfContactSettings;
                 maxForContact=maxk(greaterThanThreshold(1+numberOfContactsSettings*(i-1):numberOfContactsSettings*i),1);
                 positionOfNumberInVector=find(greaterThanThreshold(1+numberOfContactsSettings*(i-1):numberOfContactsSettings*i)==maxForContact)+numberOfContactsSettings*(i-1);
@@ -176,6 +179,16 @@ classdef predictResults<handle
                         'FontAngle','italic',...
                         'FontSize',18,...
                         'String',[newline,num2str(valueOfStimulation),'mA']);
+                    positionAmplitude(1,1)=positionAmplitude(1,1)+obj.handles.xlength/2;
+                    thisScene.handles.([(barText),'confidence']).num2str(i)=uicontrol('parent',figure1,...
+                        'Style','text',...
+                        'BackgroundColor',[1 1 1],...
+                        'Units','normalized',...
+                        'Position',positionAmplitude,...
+                        'FontWeight','bold',...
+                        'FontAngle','italic',...
+                        'FontSize',12,...
+                        'String',[newline,num2str(round(confidenceLevel(positionOfNumberInVector(1,1)),4)),'AU']);
                     if Actor.PredictInformation.confidenceLevel.(side).average(positionOfNumberInVector(1,1))<obj.treshholdOneStandard
                         thisScene.handles.(bar).num2str(i).ForegroundColor='r';
                     end

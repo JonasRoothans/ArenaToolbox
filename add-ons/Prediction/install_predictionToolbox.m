@@ -329,6 +329,7 @@ Scene.handles.menu.dynamic.Mesh.getPredictionValue=uimenu(Scene.handles.menu.dyn
             end
         file=[file(1:end-4),'.mat'];
         result=load([c.predictionConfig.Temp,'/',file]);
+        result.Name=file;
         d=predictResults();
         d.displayHighestResults(result);
         end

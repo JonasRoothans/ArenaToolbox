@@ -348,6 +348,7 @@ classdef buttonConnected<handle
                         h = histogram(sample,edges);
                         distanceFromMeanOfMostLikelyEffekt = [1,zscore(h.Values)];
                         unilateral.leftVTAPrediction=distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;
+                        thisprediction.confidenceLevel.calculationConfidenceLevel(thisprediction.config.FirstLeadrelatedVTA.iVTA,'left',heatmap);
                         delete(fig1)
                     end
                     
@@ -368,6 +369,7 @@ classdef buttonConnected<handle
                         h = histogram(sample,edges);
                         distanceFromMeanOfMostLikelyEffekt = [1,zscore(h.Values)];
                         unilateral.rightVTAPrediction=distanceFromMeanOfMostLikelyEffekt*linearRegressionCoefficients;
+                        thisprediction.confidenceLevel.calculationConfidenceLevel(thisprediction.config.SecondLeadrelatedVTA.iVTA,'right',heatmap);
                         delete(fig2)
                     end
                    
@@ -486,19 +488,15 @@ classdef buttonConnected<handle
             
            
             try
-                h1_l=thisprediction.confidenceLevel.leftSide.Level.h1;
-                h10_l=thisprediction.confidenceLevel.leftSide.Level.h10;
-                equal0_l=thisprediction.confidenceLevel.leftSide.Level.equal0;
                 leftconfidence=1;
+                leftSide=thisprediction.confidenceLevel.left.average;
             catch
                 leftconfidence=0;
             end
             
             try
-                h1_r=thisprediction.confidenceLevel.rightSide.Level.h1;
-                h10_r=thisprediction.confidenceLevel.rightSide.Level.h10;
-                equal0_r=thisprediction.confidenceLevel.rightSide.Level.equal0;
                 rightconfidence=1;
+                rightSide=thisprediction.confidenceLevel.right.average;
             catch
                 rightconfidence=0;
             end
@@ -507,39 +505,27 @@ classdef buttonConnected<handle
                 
                 writematrix(['Unilateral Left Information contact',num2str(i)],[filename,'.xls'],'Range',['A',num2str(i+1)],'Sheet',1);
                 writematrix(['Unilateral Right Information',num2str(i)],[filename,'.xls'],'Range',['A',num2str(i+1+numberOfContacts)],'Sheet',1);
-
+                writematrix(['left average contact',num2str(i)],[filename,'.xls'],'Range',['A',num2str(i+2)],'Sheet',startNumber+1);
+                writematrix(['right average contact',num2str(i)],[filename,'.xls'],'Range',['A',num2str(i+2)],'Sheet',startNumber+2);
                 
-                writematrix(['left h1 contact',num2str(i)],[filename,'.xls'],'Range',[char(66+i),'1'],'Sheet',startNumber+1);
-                writematrix(['left h10 contact',num2str(i)],[filename,'.xls'],'Range',[char(66+numberOfContacts+i),'1'],'Sheet',startNumber+1);
-                writematrix(['left equal0 contact',num2str(i)],[filename,'.xls'],'Range',[char(66+numberOfContacts*2+i),'1'],'Sheet',startNumber+1);
-                writematrix(['right h1 contact',num2str(i)],[filename,'.xls'],'Range',[char(66+i),'1'],'Sheet',startNumber+2);
-                writematrix(['right h10 contact',num2str(i)],[filename,'.xls'],'Range',[char(66+numberOfContacts+i),'1'],'Sheet',startNumber+2);
-                writematrix(['right equal0 contact',num2str(i)],[filename,'.xls'],'Range',[char(66+numberOfContacts*2+i),'1'],'Sheet',startNumber+2);
                 if leftconfidence==1
                     
                     writematrix(PredictionAndVTA.prediction_Information.unilateral.left(1,...
                         1+(numberOfContactSettings*i):numberOfContactSettings+(numberOfContactSettings*i)),...
                     [filename,'.xls'],'Range',['B',num2str(i+1)],'Sheet',1);
                     
-                    writematrix(h1_l(1+(numberOfContactSettings*i):numberOfContactSettings+(numberOfContactSettings*i),1),...
-                        [filename,'.xls'],'Range',[char(66+i),'2'],'Sheet',startNumber+1);
-                    writematrix(h10_l(1+(numberOfContactSettings*i):numberOfContactSettings+(numberOfContactSettings*i),1),...
-                        [filename,'.xls'],'Range',[char(66+numberOfContacts+i),'2'],'Sheet',startNumber+1);
-                    writematrix(equal0_l(1+(numberOfContactSettings*i):numberOfContactSettings+(numberOfContactSettings*i),1),...
-                        [filename,'.xls'],'Range',[char(66+numberOfContacts*2+i),'2'],'Sheet',startNumber+1);
+                    writematrix(leftSide(1,1+(numberOfContactSettings*i):numberOfContactSettings+(numberOfContactSettings*i)),...
+                        [filename,'.xls'],'Range',['B',num2str(i+2)],'Sheet',startNumber+1);
+                   
                 end
                 if rightconfidence==1
                     
                      writematrix(PredictionAndVTA.prediction_Information.unilateral.right(1,...
                         1+(numberOfContactSettings*i):numberOfContactSettings+(numberOfContactSettings*i)),...
-                    [filename,'.xls'],'Range',['B',num2str(i+1+numberOfContacts)],'Sheet',startNumber+2);
-                
-                    writematrix(h1_r(1+(numberOfContactSettings*i):numberOfContactSettings+(numberOfContactSettings*i),1),...
-                        [filename,'.xls'],'Range',[char(66+i),'2'],'Sheet',5);
-                    writematrix(h10_r(1+(numberOfContactSettings*i):numberOfContactSettings+(numberOfContactSettings*i),1),...
-                        [filename,'.xls'],'Range',[char(66+numberOfContacts+i),'2'],'Sheet',startNumber+2);
-                    writematrix(equal0_r(1+(numberOfContactSettings*i):numberOfContactSettings+(numberOfContactSettings*i),1),...
-                        [filename,'.xls'],'Range',[char(66+numberOfContacts*2+i),'2'],'Sheet',startNumber+2);
+                    [filename,'.xls'],'Range',['B',num2str(i+1+numberOfContacts)],'Sheet',1);
+                    writematrix(rightSide(1,1+(numberOfContactSettings*i):numberOfContactSettings+(numberOfContactSettings*i)),...
+                        [filename,'.xls'],'Range',['B',num2str(i+2)],'Sheet',startNumber+2);
+               
                 end
             end
             cd(currentDirectory);
