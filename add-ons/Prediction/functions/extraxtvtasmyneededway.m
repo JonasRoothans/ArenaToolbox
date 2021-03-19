@@ -8,7 +8,7 @@ thisprediction.Data_In=fullfile(pathname,filename(num));
 
 % waitfor(msgbox('Select your VTAPool'));
 %thisprediction.VTAPoolPath=uigetdir;
-thisprediction.VTAPoolPath='/Users/w/Documents/Praktikum/VTAPool27.01.try';
+thisprediction.VTAPoolPath='/Users/w/Documents/Praktikum/VTAPool90microSec';
 thisSession=Session;
 thisSession.developerFlags.readable = 0; %this value needs to be cleared, that you can work on the data
 thisSession.loadsession(thisprediction.Data_In);
@@ -47,8 +47,8 @@ iLead=1;
     end
 
 
-% for i=1:19
-% difference=(thisStimplan{i}.vta.Medium.voxelArray~=thisStimplan{i+1}.vta.Medium.voxelArray);
-% valueOfDifference(i)=numel(find(difference));
-% end
+for i=1:19
+difference=(thisStimplan{i}.vta.Medium.voxelArray~=thisStimplan{i+1}.vta.Medium.voxelArray);
+valueOfDifference(i)=numel(find(difference));
+end
 end

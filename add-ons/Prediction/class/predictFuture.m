@@ -42,7 +42,7 @@ classdef predictFuture<handle & dynamicprops
         PositionHemisphere
         bilateralOn=0
         Heatmap
-        amplitudesParameter=[1,1,4]%[1.2,0.1,5.6] %this are the rounded results from the calculation which can be found in the memory file for AmplitudeSettings
+        amplitudesParameter=[1.2,0.1,5.6]%[1,1,6] %this are the rounded results from the calculation which can be found in the memory file for AmplitudeSettings
     end
     
     methods

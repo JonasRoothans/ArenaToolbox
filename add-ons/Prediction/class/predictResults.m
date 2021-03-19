@@ -87,7 +87,7 @@ classdef predictResults<handle
                 set(gca,'Position',[0.17 0.1 0.2 0.7]);
                 thisScene.handles.electrodeImage1=imshow(img);
                 if not(isempty(Actor.PredictInformation.confidenceLevel))
-                    greaterThanThresholdLeftTwoStd=Actor.PredictInformation.confidenceLevel.leftSide.average>obj.treshholdTwoStandard;
+                    greaterThanThresholdLeftTwoStd=Actor.PredictInformation.confidenceLevel.left.average>obj.treshholdTwoStandard;
                     greaterThanThresholdLeftTwoStd=Actor.PredictInformation.Results{1,1}.unilateral.left.*greaterThanThresholdLeftTwoStd;
                 else
                     greaterThanThresholdLeftTwoStd=Actor.PredictInformation.Results{1,1}.unilateral.left;
@@ -98,7 +98,7 @@ classdef predictResults<handle
                 set(gca,'Position',[0.5 0.1 0.2 0.7]);
                 thisScene.handles.electrodeImage2=imshow(img);
                 if not(isempty(Actor.PredictInformation.confidenceLevel))
-                    greaterThanThresholdRightTwoStd=Actor.PredictInformation.confidenceLevel.rightSide.average>obj.treshholdTwoStandard;
+                    greaterThanThresholdRightTwoStd=Actor.PredictInformation.confidenceLevel.right.average>obj.treshholdTwoStandard;
                     greaterThanThresholdRightTwoStd=Actor.PredictInformation.Results{1,1}.unilateral.right.*greaterThanThresholdRightTwoStd;
                 else
                     greaterThanThresholdRightTwoStd=Actor.PredictInformation.Results{1,1}.unilateral.right;
@@ -120,9 +120,9 @@ classdef predictResults<handle
                         barText='barTextLeft';
                         position=[0.3 ypos 0 0.08];
                         positionAmplitude=[0.3 ypos 0.04 0.08];
-                        side='leftSide';
+                        side='left';
                         creationOfObejcts(thisScene,Actor,greaterThanThreshold,bar,barText,...
-                            position,positionAmplitude,side,i,Actor.PredictInformation.confidenceLevel.leftSide.average);
+                            position,positionAmplitude,side,i,Actor.PredictInformation.confidenceLevel.left.average);
                     end
                catch
                 end
@@ -132,9 +132,9 @@ classdef predictResults<handle
                         barText='barTextRight';
                         position=[0.63 ypos 0 0.08];
                         positionAmplitude=[0.63 ypos 0.04 0.08];
-                        side='rightSide';
+                        side='right';
                         creationOfObejcts(thisScene,Actor,greaterThanThreshold,bar,barText,...
-                            position,positionAmplitude,side,i,Actor.PredictInformation.confidenceLevel.rightSide.average);
+                            position,positionAmplitude,side,i,Actor.PredictInformation.confidenceLevel.right.average);
                     end
             end
             

@@ -33,7 +33,7 @@ classdef buttonConnected<handle
             %get all configuration data, which is only asked for in the
             %first run
             if not(exist('predictionConfig.mat','file'))
-                waitfor(msgbox('This seems to be your first time running the Prediction Algorythm? Please choose your VTA path!'));
+                waitfor(msgbox('This seems to be your first time running the Prediction Algorythm? Please choose your VTA pool path!'));
                 thisprediction.VTAPoolPath=uigetdir;
                 predictionConfig.VTAPoolPath=thisprediction.VTAPoolPath;
                 waitfor(msgbox(' and a path where you want to save all predictions!'));
@@ -248,7 +248,7 @@ classdef buttonConnected<handle
                     end
                     for iMonoPolar = 1:numel(lead.config.amplitudes_vector)
                         disp(fprintf(status,iLead,iMonoPolar));
-                        data.pulsewidth='150';       %Big question, is it enough or more correctness needed?
+                        data.pulsewidth='90';       %Big question, is it enough or more correctness needed?
                         data.voltage='False';
                         data.leadtype='Medtronic3389';
                         data.groundedcontact='0 0 0 0';
