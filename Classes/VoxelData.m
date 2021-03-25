@@ -251,6 +251,35 @@ classdef VoxelData <handle
 %             end
         end
         
+        
+        function out_obj = changevoxelsizeto(obj,newvoxelsize)
+            currently = [obj.R.PixelExtentInWorldX,obj.R.PixelExtentInWorldY,obj.R.PixelExtentInWorldZ];
+            if numel(newvoxelsize)==1
+                newvoxelsize = repmat(newvoxelsize,1,3);
+            end
+            disp(['Changing voxelsize from: ',num2str(currently),' to: ',num2str(newvoxelsize)])
+            
+            newSize = obj.R.ImageSize .*currently./newvoxelsize;
+ 
+            template = VoxelData;
+            template.R = imref3d(newSize,...
+                obj.R.XWorldLimits,...
+                obj.R.YWorldLimits,...
+                obj.R.ZWorldLimits);
+            
+            upsampled = obj.warpto(template);
+            if nargout == 1
+                obj.Voxels = upsampled.Voxels;
+                obj.R = upsampled.R;
+                out_obj = obj;
+            else
+                out_obj = upsampled;
+            end
+        end
+
+            
+        
+        
         function o3 = and(o1,o2)
             
             img1 = o1.Voxels;
@@ -493,10 +522,10 @@ classdef VoxelData <handle
             
             if nargout==0
                 disp('Transformation is applied on original object')
-                [obj.Voxels,obj.R] = imwarp(obj.Voxels,obj.R,T);
+                [obj.Voxels,obj.R] = imwarp(obj.Voxels,obj.R,T,'cubic');
             else
                  disp('Transformation is applied on new object')
-                [Voxels,R] = imwarp(obj.Voxels,obj.R,T);
+                [Voxels,R] = imwarp(obj.Voxels,obj.R,T,'cubic');
                 newObj = VoxelData(Voxels,R);
             end
         end
