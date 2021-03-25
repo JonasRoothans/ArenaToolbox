@@ -39,8 +39,9 @@ classdef Mesh < handle & matlab.mixin.Copyable
                 T = varargin{2};
             end
             
-            %increase resolution:
-            if VoxelData.R.PixelExtentInWorldX>0.5
+            %increase resolution if resolution is bad, and only few voxels
+            %will be visualized
+            if VoxelData.R.PixelExtentInWorldX>0.5 && sum(VoxelData.Voxels(:)>T)< 50
                 %interpolating
                 Xo = VoxelData.R.XWorldLimits(1)+VoxelData.R.PixelExtentInWorldX/2:VoxelData.R.PixelExtentInWorldX:VoxelData.R.XWorldLimits(2);
                 Yo = VoxelData.R.YWorldLimits(1)+VoxelData.R.PixelExtentInWorldY/2:VoxelData.R.PixelExtentInWorldY:VoxelData.R.YWorldLimits(2);
@@ -104,8 +105,10 @@ classdef Mesh < handle & matlab.mixin.Copyable
             end
             
             if isempty(thisScene);return;end %user cancels
-            thisActor = thisScene.newActor(obj)
-            
+            thisActor = thisScene.newActor(obj);
+            if not(isempty(inputname(1)))
+                thisActor.changeName(inputname(1))
+            end
 %             figure;
 %             p= patch('Faces',obj.Faces,'Vertices',obj.Vertices);
 %             

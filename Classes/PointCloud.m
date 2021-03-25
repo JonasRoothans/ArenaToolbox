@@ -102,6 +102,7 @@ classdef PointCloud
             
             if isempty(thisScene);return;end %user cancels
             thisActor = thisScene.newActor(obj);
+            thisActor.changeName(inputname(1))
             
             varargout{1} = thisActor;
             varargout{2} = thisScene;
