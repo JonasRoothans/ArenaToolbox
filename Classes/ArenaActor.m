@@ -439,8 +439,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             %---- default settings
             if not(isstruct(settings))
                 settings = struct;
-                settings.colorLow = [1 0 0];
-                settings.colorHigh = [0 0 1];
+                settings.colorLow = scene.getNewColor(scene);
+                settings.colorHigh = 1-scene.getNewColor(scene);
                 settings.thickness = 100;
                 settings.opacity = 100;
             end
