@@ -287,7 +287,10 @@ Scene.handles.menu.dynamic.Mesh.getPredictionValue=uimenu(Scene.handles.menu.dyn
             for i=1:4
                 delete(thisScene.handles.barLeft.num2str(i));
                 delete(thisScene.handles.barTextLeft.num2str(i));
+                try
                 delete(thisScene.handles.barTextLeftconfidence.num2str(i));
+                catch 
+                end
             end
         catch
         end
@@ -296,7 +299,10 @@ Scene.handles.menu.dynamic.Mesh.getPredictionValue=uimenu(Scene.handles.menu.dyn
             for i=1:4
                 delete(thisScene.handles.barRight.num2str(i));
                 delete(thisScene.handles.barTextRight.num2str(i));
+                try
                 delete(thisScene.handles.barTextRightconfidence.num2str(i));
+                catch
+                end
             end
         catch
         end

@@ -46,6 +46,7 @@ classdef confidenceLevel<handle
                         obj.right.average=zeros(1,sizeOfArray);
                     end
                 else
+                    delete(findobj('Name','Prediction Enviroment'));
                     error('No hemisphere definition found!')
                 end
             end   

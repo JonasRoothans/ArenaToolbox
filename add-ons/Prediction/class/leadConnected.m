@@ -70,6 +70,7 @@ classdef leadConnected<handle
                 end
             end
             if isempty(atlas)
+                delete(findobj('Name','Prediction Enviroment'));
                 error(['No atlas was found for:', lower(therapyPlanStorage.lead.label),' and ',lower(target),newline,'Please check for mismatched heatmap to data!'])
             end
         end

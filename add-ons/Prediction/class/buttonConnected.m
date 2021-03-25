@@ -20,6 +20,7 @@ classdef buttonConnected<handle
             [~,Rtype] = thisSession.listregisterables;
             leadidcs = find(contains(Rtype,'Lead'));
             if isempty(thisSession.therapyPlanStorage)
+                delete(findobj('Name','Prediction Enviroment'));
                 error('No patient therapy plan found!')
             end
             
@@ -40,6 +41,7 @@ classdef buttonConnected<handle
                 thisprediction.SavePath=uigetdir;
                 predictionConfig.SavePath=thisprediction.SavePath;
                 if not(any(thisprediction.SavePath)) || not(any(thisprediction.VTAPoolPath))
+                    delete(findobj('Name','Prediction Enviroment'));
                     error('You need to select a directory for saving and the pool path!');
                 end
                 folder=what('Prediction');
@@ -271,6 +273,7 @@ classdef buttonConnected<handle
                         try
                             thisVTA = lead.loadVTA(data,thisprediction); %loads what was created with the makerecipeCodeMac
                         catch
+                            delete(findobj('Name','Prediction Enviroment'));
                             error(['No matching VTA was found in the VTA Pool Path!', 'Please make sure you have all possibilities as VTAs!',newline,...
                                 'If you do not understand what is the issue here, please ask Tim!']);
                         end
