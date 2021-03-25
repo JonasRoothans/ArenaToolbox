@@ -440,7 +440,10 @@ classdef buttonConnected<handle
             PredictionAndVTA.Tag=thisprediction.Tag;
             if strcmp(thisprediction.Heatmap.Name,'DystoniaWuerzburg')
             PredictionAndVTA.confidenceLevel=thisprediction.confidenceLevel;
+            else
+                PredictionAndVTA.confidenceLevel={};
             end
+            
             try
                 leadtype=thisprediction.handles.VTA_Information(1,1).monoPolarConfig.leadtype;
             catch
