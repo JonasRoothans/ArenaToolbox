@@ -991,6 +991,25 @@ classdef ArenaScene < handle
                 actor.changeName(layername);
             end
             
+            function import_leadfromnii(scene,v,name)
+                pointlist = v.detectPoints;
+                if pointlist(1).z<pointlist(2).z
+                    c0 = pointlist(1);
+                    c3 = pointlist(2);
+                else
+                    c0=pointlist(2);
+                    c3 = pointlist(1);
+                end
+                diff = (c3-c0);
+                direction = diff.unit;
+                e = Electrode;
+                e.C0 = c0;
+                e.Direction = direction;
+                [actor] = e.see(scene);
+                actor.changeName(name);
+
+            end
+            
             function menu_importAnything(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 if ispc
@@ -1024,10 +1043,24 @@ classdef ArenaScene < handle
                             v = VoxelData;
                             v.loadnii(fullfile(pathname,filename{iFile}));
                             if v.isBinary(80)
+                                
+                             [pointlist] = v.detectPoints();
+                                if length(pointlist)==2
+                                    import_leadfromnii(scene,v,name)
+                                else
+                                
                                 [~,nii_mesh_threshold] = import_nii_mesh(scene,v,name,nii_mesh_threshold);
+                                end
                             else
+                                    %check if it has two dots
+                                [pointlist] = v.detectPoints();
+                                if length(pointlist)==2
+                                    import_leadfromnii(scene,v,name)
+                                else
                                 import_nii_plane(scene,v,name);
+                                end
                             end
+                            
                         case '.obj'
                             import_obj(scene,fullfile(pathname,filename{iFile}))
                         case '.scn'
