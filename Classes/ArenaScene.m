@@ -209,12 +209,12 @@ classdef ArenaScene < handle
             %obj.handles.menu.edit.intersectplane = uimenu(obj.handles.menu.edit.main,'Text','project to plane','callback',{@menu_intersectPlane});
             %obj.handles.menu.edit.pointclouddistribution = uimenu(obj.handles.menu.edit.main,'Text','pointcloud distribution','callback',{@menu_pcDistribution});
             %obj.handles.menu.edit.pointcloudanalysis = uimenu(obj.handles.menu.edit.main,'Text','PointCloud in mesh','callback',{@menu_pointcloudinmesh});
-            
+            obj.handles.menu.edit.duplicate = uimenu(obj.handles.menu.edit.main,'Text','Duplicate layer','callback',{@menu_duplicate});
             
             obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform'); %relocated
             obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
             obj.handles.menu.transform.selectedlayer.lps2ras = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','LPS <> RAS','callback',{@menu_lps2ras});
-            obj.handles.menu.transform.selectedlayer.mirror = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','mirror (makes copy)','callback',{@menu_mirror});
+            obj.handles.menu.transform.selectedlayer.mirror = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','mirror','callback',{@menu_mirror});
             obj.handles.menu.transform.selectedlayer.yeb2mni = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','Legacy --> MNI','callback',{@menu_Fake2MNI});
             obj.handles.menu.transform.selectedlayer.move =  uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','Move','callback',{@menu_move});
             
@@ -544,14 +544,25 @@ classdef ArenaScene < handle
                         copyActor.changeSetting('anode', thisActor.Visualisation.settings.anode);
                         copyActor.changeName([thisActor.Tag])
                         
+                        
                     else
-                        copyActor = thisActor.duplicate(scene);
-                        copyActor.transform(scene,'mirror')
+                        thisActor.transform(scene,'mirror')
                     end
-                    copyActor.changeName(['[mirror]  ',copyActor.Tag])
+                    thisActor.changeName(['[mirror]  ',thisActor.Tag])
                 end
                 
                 
+            end
+            
+            function menu_duplicate(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                actorList = ArenaScene.getSelectedActors(scene);
+                for iActor = 1:numel(actorList)
+                    thisActor = actorList(iActor);
+                    copyActor = thisActor.duplicate(scene);
+                    copyActor.changeName(['copy of  ',copyActor.Tag])
+                    
+                end
             end
             
             function menu_showCOG(hObject,eventdata)
@@ -992,22 +1003,12 @@ classdef ArenaScene < handle
             end
             
             function import_leadfromnii(scene,v,name)
-                pointlist = v.detectPoints;
-                if pointlist(1).z<pointlist(2).z
-                    c0 = pointlist(1);
-                    c3 = pointlist(2);
-                else
-                    c0=pointlist(2);
-                    c3 = pointlist(1);
-                end
-                diff = (c3-c0);
-                direction = diff.unit;
-                e = Electrode;
-                e.C0 = c0;
-                e.Direction = direction;
+                Points = v.detectPoints;
+                [~,order] = sort([Points.z]);% From lowest to highest
+                direction = (Points(order(2))-Points(order(1)));
+                e = Electrode(Points(order(1)),direction.unit);
                 [actor] = e.see(scene);
                 actor.changeName(name);
-
             end
             
             function menu_importAnything(hObject,eventdata)
@@ -2308,6 +2309,25 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 scene.refreshLayers()
             end
             
+            function changeLayerName(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                if numel(currentActors)>1
+                    newname = inputdlg('Change prefix','Arena',[1 40],{''});
+                    for iActor = 1:numel(currentActors)
+                        thisOne = currentActors(iActor);
+                        thisOne.Tag = [newname{1},thisOne.Tag];
+                    end
+                        
+                else
+                    thisActor = currentActors(1);
+                    newname = inputdlg('Change name','Arena',[1 40],{thisActor.Tag});
+                    thisActor.Tag = newname{1};
+                    scene.refreshLayers();
+                end
+                scene.refreshLayers();
+            end
+            
             function btn_layeroptions(hObject,eventdata)
                 scene = hObject.Parent.UserData;
                 actorList = scene.Actors;
@@ -2427,6 +2447,15 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                                             menu_importAnything(src)
                                     end
                                 end
+                            case 'd'
+                                if ~isempty(eventdata.Modifier)
+                                    switch eventdata.Modifier{1}
+                                        case {'command','shift'}
+                                            menu_duplicate(src)
+                                    end
+                                end
+                            case 'return'
+                                changeLayerName(src,eventdata)
                                 
                             case 'o'
                                 menu_camTargetOrigin(src,eventdata)

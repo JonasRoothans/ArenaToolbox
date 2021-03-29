@@ -843,16 +843,23 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         
         function copyobj = duplicate(obj,scene)
             copyobj = copy(obj);
-            if isa(copyobj.Data,'Mesh')
-                copyobj.Data = copyobj.Data.duplicate;
-            elseif isa(copyobj.Data,'Electrode')
-                for iSubPatch = 1:numel(copyobj.Visualisation.handle)
-                    copyobj.Visualisation.handle(iSubPatch) = copy(copyobj.Visualisation.handle(iSubPatch));
-                end
-            elseif isa(copyobj.Data,'Fibers')
-                copyobj.Data = obj.Data.duplicate;
-                copyobj.Data.ActorHandle = copyobj;
-               
+            switch class(copyobj.Data)
+                case 'Mesh'
+                    copyobj.Data = copyobj.Data.duplicate;
+                    copyobj.Visualisation.handle = copy(obj.Visualisation.handle);
+                case 'Electrode'
+                    for iSubPatch = 1:numel(copyobj.Visualisation.handle)
+                        copyobj.Visualisation.handle(iSubPatch) = copy(copyobj.Visualisation.handle(iSubPatch));
+                    end
+                case 'Fibers'
+                    copyobj.Data = obj.Data.duplicate;
+                    copyobj.Data.ActorHandle = copyobj;
+                case 'PointCloud'
+                    copyobj.Visualisation.handle = copy(obj.Visualisation.handle);
+                otherwise
+                    copyobj.Visualisation.handle = copy(obj.Visualisation.handle);
+                    %if it crashes here: make a new case for this class.
+                
             end
             scene.Actors(end+1) = copyobj;
             scene.refreshLayers();
