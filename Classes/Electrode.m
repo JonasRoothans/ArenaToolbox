@@ -6,7 +6,7 @@ classdef Electrode < handle & matlab.mixin.Copyable
         C0 = Vector3D([0 0 0]);
         Direction = Vector3D([0 0 1]);
         Type = 'Medtronic3389'
-        Settings
+        VTA
         Source
     end
     

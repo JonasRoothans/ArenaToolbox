@@ -60,7 +60,8 @@ classdef SuretunePortal
                 'name',['Arena: ',obj.scene.Title,' - ',obj.session.patient.name],...
                 'numbertitle','off',...
                 'resize','off',...
-                'CloseRequestFcn',@closePortal);
+                'CloseRequestFcn',@closePortal,...
+                'Userdata',obj);
             
             buttons = [];
             for iRegisterable = 1:n
@@ -276,6 +277,8 @@ classdef SuretunePortal
                 e.Direction = Vector3D(c3-c0).unit.getArray';
                 e.C0 = c0;
                 e.Type = this.leadType;
+
+                e.Source = hObject.Parent.UserData.session;
                 
                 if numel(this.stimPlan)==0
                     if not(isempty(obj.scene))
@@ -289,11 +292,29 @@ classdef SuretunePortal
                         vd.importSuretuneDataset(this.stimPlan{iStimplan}.vta.Medium);
                         vd.imwarp(T);
                         
+                        
+                        VTAObject = VTA();
+                       
+                        
                         if not(isempty(obj.scene))
                             actor = e.see(obj.scene);
                             actor.changeName([this.label,' ',this.stimPlan{iStimplan}.label])
                             actor_vta = vd.getmesh(0.5).see(obj.scene);
                             actor_vta.changeName(['[VTA] ',this.label,' ',this.stimPlan{iStimplan}.label])
+                            
+                            VTAObject.Electrode = e;
+                            VTAObject.ActorElectrode = actor;
+                            VTAObject.Volume = vd;
+                            VTAObject.ActorVolume = actor_vta;
+                            VTAObject.Source = e.Source;
+                            
+                            if contains(reglinkdescription,'MNI')
+                                VTAObject.Space = Space.MNI2009b;
+                            end
+                            
+                            e.VTA = VTAObject;
+                            
+                          
                         end
                         
                         actor.changeSetting('cathode',str2num(this.stimPlan{iStimplan}.activeRings),'anode', str2num(this.stimPlan{iStimplan}.contactsGrounded));
