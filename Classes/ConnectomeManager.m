@@ -16,7 +16,7 @@ classdef ConnectomeManager < handle
                 if not(exist('config.mat','file'))
                     ArenaManager.setup(ArenaFolder);
                 end
-                obj.setup() %fills up the Connectome-list
+                obj.setup(); %fills up the Connectome-list
         end
             
         

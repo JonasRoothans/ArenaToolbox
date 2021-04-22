@@ -3,7 +3,7 @@ classdef VTA < handle
     %   Detailed explanation goes here
     
     properties
-        TherapyReference
+        Therapy
         Electrode %[electrode]
         Volume %[VoxelData]
         Source  %[Suretune portal]
@@ -27,16 +27,10 @@ classdef VTA < handle
         
         function obj =  prediction(obj)
             %convert VTA to therapy
-            if isempty(obj.TherapyReference)
+            if isempty(obj.Therapy)
                 T = Therapy(obj.Tag);
                 T.connectTo(obj.ActorVolume.Scene)
                 T.addVTA(obj);
-                obj.TherapyReference = T;
-            else
-                T = obj.TherapyReference;
-                
-            end
-                
             
             %run prediction on therapy
             T.executePrediction()
