@@ -1242,7 +1242,52 @@ classdef ArenaScene < handle
             function menu_constructVTA(hObject,eventdata)
                 %this function will make it possible to convert any data
                 %source to a VTA object (for instance nii files)
-                keyboard
+                if numel(obj.Actors)==0
+                    VTAobjects = {};
+                else
+                    classes = arrayfun(@(x) class(x.Data), obj.Actors,'UniformOutput',0);
+                    VTAobjects = strcat(classes,{'  : '},{obj.Actors.Tag});
+                    
+                end
+                VTAobjects{end+1} = '..Load';
+                    
+                [indx] = listdlg('ListString',VTAobjects,'PromptString','Select the VTAs','ListSize',[300 160]);
+                
+                
+                if indx ==length(VTAobjects)
+                    keyboard %need to make this
+                end
+                
+                %checking for senseless combination. 
+                if length(unique(classes(indx)))<length(indx)
+                    error('It looks like you selected a strange combination. Select only one VTA at a time. (may include both mesh and electrode object)')
+                end
+                
+                
+                thisVTA = VTA;
+                for i = indx
+                    switch classes{i}
+                        case 'Electrode'
+                            thisVTA.ActorsElectrode = obj.Actors(i);
+                            thisVTA.Electrode= obj.Actors(i).Data;
+                        case 'Mesh'
+                            thisVTA.ActorVolume = obj.Actors(i);
+                            thisVTA.Volume= obj.Actors(i).Data;
+                    end
+                end
+                
+                %check space
+                thisVTA.Space = Space.dialog('Which space is your VTA in?');
+                if thisVTA.Space == Space.Unknown
+                    waitfor(msgbox('If the space is unknown, prediction models will not be very helpful. :-)'))
+                end
+                
+                % 
+                VTAname = newid({'VTA name: '},'Arena',1,{obj.Actors(indx(1)).Tag});
+                thisVTA.Tag = VTAname{1};
+                thisVTA.connectTo(obj)
+                
+                
             end
             
             function menu_vta_show(hObject,eventdata,vta)

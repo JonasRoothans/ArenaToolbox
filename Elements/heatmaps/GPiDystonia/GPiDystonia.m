@@ -11,42 +11,73 @@ classdef GPiDystonia < Heatmap
     
     methods
         function obj = GPiDystonia()
-            %constructor
+            addpath(mfilename('fullpath')); %adds the path including the sweetspotfiles
         end
         
         function obj = load(obj)
             sweetspot  = load('Final_Bilateral_t_p_average.swtspt','-mat');
             sleft = sweetspot.sweetspot.left;
-            obj.HeatmapModel.tmap = VoxelData(sleft,sweetspotArray(1).Data,sleft.imref);
+            obj.HeatmapModel.tmap = VoxelData(sleft.sweetspotArray(1).Data,sleft.imref);
             obj.HeatmapModel.pmap = VoxelData(sleft.sweetspotArray(2).Data,sleft.imref);
             obj.HeatmapModel.signed_p_map = VoxelData((1-obj.HeatmapModel.pmap.Voxels).*sign(obj.HeatmapModel.tmap.Voxels),sleft.imref);
         end
         
-        function obj = sampleWithVTA(obj,VTA)
+        function prediction = predictionForVTAs(obj,VTAlist)
+            sample = [];
+            for iVTA = 1:numel(VTAlist)
+                thisVTA = VTAlist(iVTA);
+                sample = [sample,obj.sampleWithVTA(thisVTA)];
+            end
+            prediction = obj.predictForSample(sample);
+            
+        end
+        
+        function sample = sampleWithVTA(obj,VTA)
+            %load the model
             if isempty(obj.HeatmapModel)
                 obj.load()
             end
             
-%            %check if mostly within model
-%         allvoxels = heatmap.pmap(Excel(iSimilar).normalizedVTA.Voxels>0.5);
-%         outofmodel = sum(allvoxels==0);
-%         disp(strjoin({num2str(round(outofmodel/numel(allvoxels),3)),Excel(iSimilar).name,Excel(iSimilar).leadname,Excel(iSimilar).stimplanname},' '))
-%         if outofmodel/numel(allvoxels)>0.3
-%             disp(['adding to skiplist: ',num2str(similar)])
-%             skiplist = [skiplist,similar];
-%         end
-%         
-%         
-%         totalSample = [totalSample;sample(:)];
-%     end
-%     h = histogram(totalSample,edges);
-%     X = [1,zscore(h.Values)];  
-%     y = X*b;
-%     
-%     for iSimilar = similar
-%         Excel(iSimilar).prediction = y;
-%     end
+            %get the voxedata
+            VTA_voxelData = VoxelData(VTA.Volume.Source.Voxels > 0.5,VTA.Volume.Source.R);
             
+            %check the space and fix if it's not matching.
+            if VTA.Space~=Space.Legacy
+                VTA_voxelData = fixSpace(VTA.Space,VTA_voxelData);
+            end
+            
+            %warp to heatmap space
+            VTA_voxelData.warpto(obj.HeatmapModel);
+            
+            %sample map to see if it's overlapping enough with the model!
+            allvoxels = obj.HeatmapModel.pmap(VTA_voxelData.Voxels>0.5);
+            outofmodel = sum(allvoxels==0);
+            if outofmodel/numel(allvoxels)>0.3
+                warning(['VTA is partly outside the model! (',num2str(outofmodel/numel(allvoxels)*100),'%)'])
+            end
+            
+            %sample those voxels where VTA and model both are.
+            sample = obj.HeatmapModel.signed_p_map(and(...
+                VTA_voxelData.Voxels>0.5,...
+                obj.HeatmapModel.pmap>0));
+        end
+        
+        function y = predictForSample(obj,sample)
+            h = histogram(sample,obj.edges);
+            X = [1,zscore(h.Values)];
+            y = X*obj.b;
+        end
+    end
+    
+    methods (Static)
+        function out = fixSpace(oldspace,voxeldata)
+            switch oldspace
+                case Space.MNI2009b
+                    T = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
+                    out = voxeldata.imwarp(T);
+                case Space.Unknown
+                case Space.PatientNative
+            end
         end
     end
 end
