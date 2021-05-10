@@ -43,8 +43,13 @@ classdef GPiDystonia < Heatmap & handle
                 obj = obj.load();
             end
             
-            %get the voxedata
-            VTA_voxelData = VoxelData(double(VTA.Volume.Voxels > 0.5),VTA.Volume.R);
+            %get the voxeldata
+            switch class(VTA.Volume)
+                case 'VoxelData'
+                    VTA_voxelData = VoxelData(double(VTA.Volume.Voxels > 0.5),VTA.Volume.R);
+                case 'Mesh'
+                     VTA_voxelData = VoxelData(double(VTA.Volume.Source.Voxels > VTA.Volume.Settings.T),VTA.Volume.Source.R);
+            end
             
             %check the space and fix if it's not matching.
             if VTA.Space~=Space.Legacy

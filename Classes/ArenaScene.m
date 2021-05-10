@@ -1225,7 +1225,8 @@ classdef ArenaScene < handle
                 
             
             function menu_vta_prediction(hObject,eventdata,vta)
-                vta.prediction()
+                p = vta.prediction();
+                p.printInfo()
             end
             
             function menu_vta_review(hObject,eventdata,vta)

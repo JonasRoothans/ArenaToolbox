@@ -10,6 +10,7 @@ classdef VTA < handle
         ActorElectrode %[actor]
         ActorVolume %[actor]
         Space  = Space.Unknown;
+        SuretuneStimplan %[stimplan]
         Tag = 'vta without name'
     end
     
@@ -25,7 +26,7 @@ classdef VTA < handle
             scene.VTAstorage(end+1) = obj;
         end
         
-        function obj =  prediction(obj)
+        function p =  prediction(obj)
             %convert VTA to therapy
             if isempty(obj.TherapyReference)
                 T = Therapy(obj.Tag);
@@ -39,9 +40,27 @@ classdef VTA < handle
                 
             
             %run prediction on therapy
-            T.executePrediction()
+            p= T.executePrediction();
         end
         
+        function printInfo(obj)
+            fprintf('---\nVTA: \t\t %s \n',obj.Tag);
+            if not(isempty(obj.SuretuneStimplan))
+                fprintf('Origin: \t %s\n','Suretune');
+                fprintf('Label: \t\t %s \n',obj.SuretuneStimplan.label);
+                fprintf('Voltage: \t %s \n',obj.SuretuneStimplan.voltageBasedStimulation);
+                fprintf('Amplitude: \t %2.1f \n',obj.SuretuneStimplan.stimulationValue);
+                fprintf('Frequency: \t %d \n',obj.SuretuneStimplan.pulseFrequency);
+                fprintf('Pulsewidth: \t %d \n',obj.SuretuneStimplan.pulseWidth);
+                fprintf('Active: \t %s \n',obj.SuretuneStimplan.activeRings);
+                fprintf('Ground: \t %s \n',obj.SuretuneStimplan.contactsGrounded);
+                fprintf('Lead type: \t %s \n',obj.SuretuneStimplan.lead.leadType);
+                fprintf('Lead label: \t %s \n',obj.SuretuneStimplan.lead.label);
+            end
+            fprintf('Space: \t\t %s \n',obj.Space)
+            
+            
+        end
         
         function obj = review(obj)
             %convert VTA to therapy
