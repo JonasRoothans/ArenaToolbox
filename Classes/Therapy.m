@@ -4,6 +4,7 @@ classdef Therapy < handle
     
     properties
         VTAs = VTA.empty;
+        Predictions = Prediction.empty;
         Tag
     end
     
@@ -30,9 +31,10 @@ classdef Therapy < handle
         end
         
         
-        function obj =  executePrediction(obj)
+        function p =  executePrediction(obj)
             global predictionmanager
             p = predictionmanager.newPrediction(obj);
+            obj.Predictions(end+1) = p;
             
             
         end

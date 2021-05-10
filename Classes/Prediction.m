@@ -4,8 +4,9 @@ classdef Prediction < handle
     
     properties
         Model
-        Output
         Input
+        Output
+        Comments = {};
     end
     
     methods
@@ -16,19 +17,38 @@ classdef Prediction < handle
             obj.Input = Input;
         end
         
-        function obj = runSingleVTAPrediction(obj)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            for iVTA = 1:numel(obj.Input.VTAs)
-                thisVTA = obj.Input.VTAs(iVTA);
-                obj.Ouptut{iVTA} = obj.Model.sampleWithVTA(thisVTA);
-                
-            end
-            keyboard
+        function obj = runVTAPrediction(obj)
+            [obj.Output,obj.Comments] = obj.Model.predictionForVTAs(obj.Input.VTAs);
         end
         
+        function printInfo(obj)
+            fprintf('#########\n')
+            %--vta's
+            n = 0;
+            for iVTA  = obj.Input.VTAs
+                n = n+1;
+                    iVTA.printInfo()
+                    fprintf(2,'%s\n',obj.Comments{n})
+            end
+            %--model
+            fprintf('---\nModel used: \t %s \n',obj.Model.Tag)
+            fprintf('Therapy name:\t %s\n',obj.Input.Tag);
+            %--Prediction
+            fprintf('===>> PredictionOutcome: %4.2f \n \n',obj.Output)
+            
+            
+        end
+                
+        
+        
+       
         function obj = runMultipleVTAPrediction(obj)
-             keyboard
+            %several options here:
+            % - Input is a list of VTAs
+            % - Input is a list of therapys each with one VTA
+            % - Input is one therapy, with a long list of VTAs.
+     
+            warning('This function does not exist yet. -Jonas')
          end
     end
 end

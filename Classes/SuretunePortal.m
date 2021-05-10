@@ -307,6 +307,7 @@ classdef SuretunePortal
                             VTAObject.Volume = vd;
                             VTAObject.ActorVolume = actor_vta;
                             VTAObject.Source = e.Source;
+                            VTAObject.SuretuneStimplan = this.stimPlan{iStimplan};
                             
                             if contains(reglinkdescription,'MNI')
                                 VTAObject.Space = Space.MNI2009b;

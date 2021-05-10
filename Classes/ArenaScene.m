@@ -1170,7 +1170,12 @@ classdef ArenaScene < handle
                     for i = 1:numel(scene.handles.menu.vtas.therapylist)
                         fns = fieldnames(scene.handles.menu.vtas.therapylist(i));
                         for fn = 1:numel(fns)
+                            try
                             delete(scene.handles.menu.vtas.therapylist(i).(fns{fn}))
+                            catch
+                                %it cant delete structures.. but doesn't
+                                %cause trouble. -JR
+                            end
                         end
                     end
                 end
@@ -1193,8 +1198,18 @@ classdef ArenaScene < handle
                 for i = 1:numel(scene.Therapystorage)
                     n = length(scene.handles.menu.vtas.therapylist)+1;
                     scene.handles.menu.vtas.therapylist(n).main = uimenu(scene.handles.menu.vtas.main,'Text',scene.Therapystorage(i).Tag);%,'callback',{@menu_vta,scene.VTAstorage(i)});
-                     scene.handles.menu.vtas.therapylist(n).edit = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','prediction (bilateral)','callback',{@menu_therapy_prediction,scene.Therapystorage(i)});
-                     scene.handles.menu.vtas.therapylist(n).edit = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','Monopolar review (bilateral)','callback',{@menu_therapy_review,scene.Therapystorage(i)});
+                     scene.handles.menu.vtas.therapylist(n).predictions = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','run prediction (bilateral)','callback',{@menu_therapy_prediction,scene.Therapystorage(i)});
+                     scene.handles.menu.vtas.therapylist(n).monopolar = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','run monopolar review (bilateral)','callback',{@menu_therapy_review,scene.Therapystorage(i)});
+                     for iPrediction = 1:numel(scene.Therapystorage(n).Predictions)
+                         if iPrediction==1
+                         scene.handles.menu.vtas.therapylist(n).predictionlist.main = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','Show details for prediction:');
+                         end
+                         p = scene.Therapystorage(n).Predictions(iPrediction);
+                         buttontext = [p.Model.Tag,': ',num2str(p.Output)];
+                         scene.handles.menu.vtas.therapylist(n).predictionlist.p(iPrediction) = uimenu(scene.handles.menu.vtas.therapylist(n).predictionlist.main,'Text',buttontext,'callback',{@menu_therapy_showinfo,p});
+                     end
+                 
+
                      
                 end
                 if i>0
@@ -1203,6 +1218,11 @@ classdef ArenaScene < handle
                 
                 
             end
+            
+            function menu_therapy_showinfo(hObject,eventdata,prediction)
+                prediction.printInfo()
+            end
+                
             
             function menu_vta_prediction(hObject,eventdata,vta)
                 vta.prediction()
@@ -1213,8 +1233,9 @@ classdef ArenaScene < handle
             end
             
             function menu_therapy_prediction(hObject,eventdata,therapy)
-                therapy.executePrediction()
-                keyboard
+                p= therapy.executePrediction();
+                p.printInfo()
+                
             end
             
             function menu_therapy_review(hObject,eventdata,therapy)

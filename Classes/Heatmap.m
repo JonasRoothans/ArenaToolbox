@@ -1,5 +1,5 @@
 
-classdef Heatmap
+classdef Heatmap < handle
     %HEATMAP Summary of this class goes here
     %   Detailed explanation goes here
     

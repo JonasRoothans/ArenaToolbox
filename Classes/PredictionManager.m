@@ -30,12 +30,12 @@ classdef PredictionManager < handle
                
         end
         
-        function obj = newPrediction(obj,therapy, heatmap)
+        function p = newPrediction(obj,therapy, heatmap)
             if nargin==2
                 heatmap = obj.selectHeatmap();
             end
             p = Prediction(therapy,heatmap);
-            p.runSingleVTAPrediction();
+            p.runVTAPrediction();
             obj.Predictions(end+1) = p;
         end
         
