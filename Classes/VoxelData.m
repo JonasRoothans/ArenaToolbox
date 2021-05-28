@@ -251,6 +251,26 @@ classdef VoxelData <handle
 %             end
         end
         
+        function [x,y,z] = getMeshgrid(obj)
+            [x_coords,y_coords,z_coords]= obj.getlinspace;
+            [x,y,z] = meshgrid(x_coords,y_coords,z_coords);
+
+        end
+        
+        function value = getValueAt(obj,coordinate)
+            [X,Y,Z] = obj.getMeshgrid();
+            
+            if isa(coordinate,'Vector3D')    
+                value = interp3(X,Y,Z,obj.Voxels,coordinate.x,coordinate.y,coordinate.z);
+            elseif isa(coordinate,'PointCloud')
+                value = [];
+                for iVector = 1:numel(coordinate.Vectors)
+                    thisVector = coordinate.Vectors(iVector);
+                    value(iVector) = interp3(X,Y,Z,obj.Voxels,thisVector.x,thisVector.y,thisVector.z);
+                end
+                    
+            end
+        end
         
         function out_obj = changevoxelsizeto(obj,newvoxelsize)
             currently = [obj.R.PixelExtentInWorldX,obj.R.PixelExtentInWorldY,obj.R.PixelExtentInWorldZ];

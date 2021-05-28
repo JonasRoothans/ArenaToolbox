@@ -21,6 +21,20 @@ classdef Electrode < handle & matlab.mixin.Copyable
             end
         end
         
+        function VTAObject = makeVTA(obj,vtaname)
+            global arena
+             VTA_raw = load(fullfile(arena.Settings.VTApool,vtaname));
+             VTA_vd = VoxelData(VTA_raw.Ivta,VTA_raw.Rvta);
+             
+             T = A_transformationmatriforleadmesh(obj.C0,obj.Direction);
+             VTA_vd.imwarp(T);      
+             
+            VTAObject = VTA();                                                 %#ok<CPROPLC>
+            VTAObject.Electrode = obj;
+            VTAObject.Volume = VTA_vd;
+            
+        end
+        
         function [thisActor,thisScene] = see(obj, sceneobj)
             global arena
             if nargin==1

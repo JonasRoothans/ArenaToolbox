@@ -489,7 +489,8 @@ classdef ArenaScene < handle
                     Scene.gitref = '';
                 end
                 [filename,pathname] = uiputfile('*.scn');
-                save(fullfile(pathname,filename),'Scene');
+                disp('Saving a scene can take up to several minutes!')
+                save(fullfile(pathname,filename),'Scene','-v7.3');
                 Scene.SceneLocation = fullfile(pathname,filename);
                 disp('Scene saved')
                 
@@ -1188,6 +1189,7 @@ classdef ArenaScene < handle
                     scene.handles.menu.vtas.list(n).main = uimenu(scene.handles.menu.vtas.main,'Text',scene.VTAstorage(i).Tag);%,'callback',{@menu_vta,scene.VTAstorage(i)});
                     scene.handles.menu.vtas.list(n).edit = uimenu(scene.handles.menu.vtas.list(n).main,'Text','prediction (unilateral)','callback',{@menu_vta_prediction,scene.VTAstorage(i)});
                     scene.handles.menu.vtas.list(n).show = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Monopolar review (unilateral)','callback',{@menu_vta_review,scene.VTAstorage(i)});
+                    scene.handles.menu.vtas.list(n).delete = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Delete VTA','callback',{@menu_vta_delete,scene.VTAstorage(i)});
                 end
                 if i>0
                     scene.handles.menu.vtas.list(1).main.Separator = 'on';
@@ -1198,8 +1200,13 @@ classdef ArenaScene < handle
                 for i = 1:numel(scene.Therapystorage)
                     n = length(scene.handles.menu.vtas.therapylist)+1;
                     scene.handles.menu.vtas.therapylist(n).main = uimenu(scene.handles.menu.vtas.main,'Text',scene.Therapystorage(i).Tag);%,'callback',{@menu_vta,scene.VTAstorage(i)});
-                     scene.handles.menu.vtas.therapylist(n).predictions = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','run prediction (bilateral)','callback',{@menu_therapy_prediction,scene.Therapystorage(i)});
-                     scene.handles.menu.vtas.therapylist(n).monopolar = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','run monopolar review (bilateral)','callback',{@menu_therapy_review,scene.Therapystorage(i)});
+                    if numel(scene.Therapystorage(i).VTAs)>1
+                        unibi = 'bi';
+                    else
+                        unibi = 'uni';
+                    end
+                     scene.handles.menu.vtas.therapylist(n).predictions = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text',['run prediction (',unibi,'lateral)'],'callback',{@menu_therapy_prediction,scene.Therapystorage(i)});
+                     scene.handles.menu.vtas.therapylist(n).monopolar = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text',['run monopolar review (',unibi,'lateral)'],'callback',{@menu_therapy_review,scene.Therapystorage(i)});
                      for iPrediction = 1:numel(scene.Therapystorage(n).Predictions)
                          if iPrediction==1
                          scene.handles.menu.vtas.therapylist(n).predictionlist.main = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','Show details for prediction:');
@@ -1227,6 +1234,12 @@ classdef ArenaScene < handle
             function menu_vta_prediction(hObject,eventdata,vta)
                 p = vta.prediction();
                 p.printInfo()
+            end
+            
+            function menu_vta_delete(hObject,eventdata,vta)
+                indx = find(obj.VTAstorage==vta);
+                obj.VTAstorage(indx(1)) = [];
+                
             end
             
             function menu_vta_review(hObject,eventdata,vta)
@@ -1269,16 +1282,24 @@ classdef ArenaScene < handle
                 else
                     classes = arrayfun(@(x) class(x.Data), obj.Actors,'UniformOutput',0);
                     VTAobjects = strcat(classes,{'  : '},{obj.Actors.Tag});
-                    
                 end
                 VTAobjects{end+1} = '..Load';
                     
                 [indx] = listdlg('ListString',VTAobjects,'PromptString','Select the VTAs','ListSize',[300 160]);
                 
                 
+                %load new actors
                 if indx ==length(VTAobjects)
-                    keyboard %need to make this
+                    nActors = length(obj.Actors);
+                    menu_importAnything(hObject,eventdata)
+                    if nActors > length(obj.Actors)
+                        indx = nActors+1:length(obj.Actors);
+                    end
+                   
+                    classes = arrayfun(@(x) class(x.Data), obj.Actors,'UniformOutput',0);
                 end
+                
+            
                 
                 %checking for senseless combination. 
                 if length(unique(classes(indx)))<length(indx)

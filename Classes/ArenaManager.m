@@ -6,6 +6,10 @@ classdef ArenaManager < handle
         Scenes = ArenaScene.empty;
     end
     
+    properties(Hidden)
+        Settings
+    end
+    
     methods
         function [obj, thisScene] = ArenaManager()
             %ARENAMANAGER Construct an instance of this class
@@ -19,6 +23,8 @@ classdef ArenaManager < handle
             
             %Add SDK to the path
             load(fullfile(ArenaFolder,'config.mat'));
+            obj.Settings = config;
+            
             
             warning('off','all')
             addpath(genpath(config.SDKdir))
@@ -105,6 +111,15 @@ classdef ArenaManager < handle
                 error('aborted by user')
             end
             config.SDKdir = SDKdir;
+            
+            %---- Sweetspotstation
+            waitfor(msgbox('Arena uses a "VTAPOOL" to store VTAs for predictions etc. Please select or create the folder'))
+            VTAdir = uigetdir('Find the VTApool directory');
+            
+            if not(VTAdir)
+                error('aborted by user')
+            end
+            config.VTApool = VTAdir;
             
             %---- save config file
             save(fullfile(rootdir,'config.mat'),'config')

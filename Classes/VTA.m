@@ -22,6 +22,8 @@ classdef VTA < handle
            
         end
         
+       
+        
         function obj = connectTo(obj,scene)
             scene.VTAstorage(end+1) = obj;
         end
@@ -63,13 +65,17 @@ classdef VTA < handle
         end
         
         function obj = review(obj)
+         if isempty(obj.TherapyReference)
             %convert VTA to therapy
             T = Therapy(obj.Tag);
-            T.VTA = obj;
-            T.connectTo(obj.ActorVolume.Scene)
-            
-            %run review on therapy
-            T.review()
+            T.addVTA(obj);
+            T.connectTo(obj.ActorVolume.Scene);
+            obj.TherapyReference = T;
+         else
+            T = obj.TherapyReference;
+                
+        end
+            T.executeReview()
         end
         
     end

@@ -41,7 +41,7 @@ classdef Mesh < handle & matlab.mixin.Copyable
             
             %increase resolution if resolution is bad, and only few voxels
             %will be visualized
-            if VoxelData.R.PixelExtentInWorldX>0.5 && sum(VoxelData.Voxels(:)>T)< 50
+            if VoxelData.R.PixelExtentInWorldX>0.5 && sum(VoxelData.Voxels(:)>T)< 70
                 %interpolating
                 Xo = VoxelData.R.XWorldLimits(1)+VoxelData.R.PixelExtentInWorldX/2:VoxelData.R.PixelExtentInWorldX:VoxelData.R.XWorldLimits(2);
                 Yo = VoxelData.R.YWorldLimits(1)+VoxelData.R.PixelExtentInWorldY/2:VoxelData.R.PixelExtentInWorldY:VoxelData.R.YWorldLimits(2);

@@ -6,6 +6,7 @@ classdef Prediction < handle
         Model
         Input
         Output
+        Confidence
         Comments = {};
     end
     
@@ -18,7 +19,7 @@ classdef Prediction < handle
         end
         
         function obj = runVTAPrediction(obj)
-            [obj.Output,obj.Comments] = obj.Model.predictionForVTAs(obj.Input.VTAs);
+            [obj.Output,obj.Confidence,obj.Comments] = obj.Model.predictionForVTAs(obj.Input.VTAs);
         end
         
         function printInfo(obj)
@@ -34,7 +35,8 @@ classdef Prediction < handle
             fprintf('---\nModel used: \t %s \n',obj.Model.Tag)
             fprintf('Therapy name:\t %s\n',obj.Input.Tag);
             %--Prediction
-            fprintf('===>> PredictionOutcome: %4.2f \n \n',obj.Output)
+            fprintf('===>> Prediction Outcome: %4.2f \n',obj.Output)
+            fprintf('===>> Prediction Confidence: %4.2f \n \n',obj.Confidence)
             
             
         end
