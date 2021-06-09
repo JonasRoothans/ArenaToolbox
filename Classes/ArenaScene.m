@@ -1253,7 +1253,8 @@ classdef ArenaScene < handle
             end
             
             function menu_therapy_review(hObject,eventdata,therapy)
-                therapy.executeReview()
+                therapyObject = therapy.executeReview();
+                assignin('base','T',therapyObject);
             end
             
             function menu_constructTherapy(hObject,eventdata)

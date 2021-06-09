@@ -11,7 +11,7 @@ classdef GPiDystonia < Heatmap & handle
     
     methods
         function obj = GPiDystonia()
-            addpath(mfilename('fullpath')); %adds the path including the sweetspotfiles
+            addpath(fileparts(mfilename('fullpath'))); %adds the path including the sweetspotfiles
         end
         
         function obj = load(obj)
@@ -22,21 +22,23 @@ classdef GPiDystonia < Heatmap & handle
             obj.HeatmapModel.signed_p_map = VoxelData((1-obj.HeatmapModel.pmap.Voxels).*sign(obj.HeatmapModel.tmap.Voxels),sleft.imref);
         end
         
-        function [prediction,comments] = predictionForVTAs(obj,VTAlist)
+        function [prediction, confidence comments] = predictionForVTAs(obj,VTAlist)
             sample = [];
             comments = {};
+            confidence = [];
             for iVTA = 1:numel(VTAlist)
                 lastwarn('');
                 thisVTA = VTAlist(iVTA);
-                [newSample] = obj.sampleWithVTA(thisVTA);
+                [newSample,newConfidence] = obj.sampleWithVTA(thisVTA);
                 sample = [sample,newSample'];
+                confidence(iVTA) = newConfidence;
                 comments{iVTA} = lastwarn;
             end
             prediction = obj.predictForSample(sample);
             
         end
         
-        function [sample] = sampleWithVTA(obj,VTA)
+        function [sample,confidence] = sampleWithVTA(obj,VTA)
             comment = '';
             %load the model
             if isempty(obj.HeatmapModel)
@@ -71,6 +73,7 @@ classdef GPiDystonia < Heatmap & handle
                 warning(['VTA (',VTA.Tag,') is partly outside the model! (',num2str(outofmodel/numel(allvoxels)*100),'%)']);
                 
             end
+            confidence = 1-outofmodel/numel(allvoxels);
             
             %sample those voxels where VTA and model both are.
             sample = obj.HeatmapModel.signed_p_map.Voxels(and(...
@@ -84,6 +87,8 @@ classdef GPiDystonia < Heatmap & handle
             y = X*obj.b;
             delete(h)
         end
+        
+
     end
     
     methods (Static)
@@ -99,7 +104,7 @@ classdef GPiDystonia < Heatmap & handle
         
         function VTA_voxelData = mirror(VTA_voxelData)
             T = load('Tapproved.mat');
-            Tvta = T.mni2leftgpi*T.rightgpi2mni;
+            Tvta = T.mni2rightgpi*T.leftgpi2mni;
             VTA_voxelData = VTA_voxelData.imwarp(Tvta);
         end
         
