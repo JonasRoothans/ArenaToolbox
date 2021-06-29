@@ -142,6 +142,29 @@ classdef PointCloud
 
         end
         
+        function distances = distanceTo(obj,point)
+            array = obj.Vectors.getArray;
+            if isa(point,'PointCloud')
+                if length(point.Vectors)==length(obj.Vectors)
+                    reference = point.Vectors.getArray;
+                elseif length(point.Vectors)==1
+                    reference = repmat(point.Vectors.getArray',length(array),1);
+                else
+                    error('Dimenioins should match or it should be 1 Vector3D')
+                    
+                end
+            elseif isa(point,'Vector3D')
+               reference = repmat(point.getArray',length(array),1);
+            else 
+                 error('input should be a Vector3D')
+            end
+            
+            
+            difference = array - reference;
+            pc = PointCloud(difference);
+            distances  = pc.Vectors.norm;
+        end
+        
         function obj = transform(obj,T)
             obj.Vectors = obj.Vectors.transform(T);
         end

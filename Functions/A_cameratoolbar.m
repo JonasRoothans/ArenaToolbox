@@ -124,6 +124,10 @@ figure.InvertHardcopy = 'off';
 
 [fn,pn] = uiputfile([scene.Title,strrep(datestr(datetime),':','-'),'.png']);
 
+if fn==0
+    return
+end
+
 scene.handles.panelleft.Visible = 'off';
 scene.handles.panelright.Visible = 'off';
 scene.handles.btn_toggleleft.Visible = 'off';

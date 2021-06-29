@@ -307,11 +307,13 @@ classdef SuretunePortal
                             VTAObject.Volume = vd;
                             VTAObject.ActorVolume = actor_vta;
                             VTAObject.Source = e.Source;
+                            VTAObject.SuretuneStimplan = this.stimPlan{iStimplan};
                             
                             if contains(reglinkdescription,'MNI')
                                 VTAObject.Space = Space.MNI2009b;
                             end
-                            
+                            VTAObject.Tag = [this.session.patient.name,' ',this.label,' ',this.stimPlan{iStimplan}.label];
+                            VTAObject.connectTo(obj.scene)
                             e.VTA = VTAObject;
                             
                           

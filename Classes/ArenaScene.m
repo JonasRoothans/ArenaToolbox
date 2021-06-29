@@ -5,6 +5,8 @@ classdef ArenaScene < handle
     properties
         Title
         Actors = ArenaActor.empty;
+        VTAstorage = VTA.empty;
+        Therapystorage = Therapy.empty;
         handles
         SceneLocation = '';
     end
@@ -19,19 +21,32 @@ classdef ArenaScene < handle
         function obj = ArenaScene()
             %ARENAWINDOW Construct an instance of this class
             %   Detailed explanation goes here
+            
+            global predictionmanager 
+                if not(isa(predictionmanager,'PredictionManager'))
+                    [predictionmanager] = PredictionManager();
+                end
+                
+                global connectomes
+                if not(isa(connectomes,'ConnectomeManager'))
+                    connectomes = ConnectomeManager;
+                end
+                
+                
         end
         
         %this function contains also contains all callbacks as subfunctions
         function obj = create(obj,OPTIONALname)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            
+           
             debugmode = 0;
             
             if debugmode
                 userinput = {'debug mode'};
             else
                 if nargin==1
+ 
                     userinput = newid({'new scene name: '},'Arena',1,{'test'});
                 elseif nargin==2
                     userinput = {OPTIONALname};
@@ -125,6 +140,7 @@ classdef ArenaScene < handle
             obj.handles.menu.file.savesceneas.main = uimenu(obj.handles.menu.file.main,'Text','Save scene as','callback',{@menu_savesceneas});
             obj.handles.menu.file.savescene.main = uimenu(obj.handles.menu.file.main,'Text','Save scene','callback',{@menu_savescene});
             obj.handles.menu.file.import.main = uimenu(obj.handles.menu.file.main,'Text','Import actor [cmd+i]','callback',{@menu_importAnything},'Enable','on','Separator','on');
+            obj.handles.menu.file.import.fromworkspace = uimenu(obj.handles.menu.file.main,'Text','Import actor from workspace [cmd+shift+i]','callback',{@menu_importfromworkspace});            
             obj.handles.menu.file.export.main = uimenu(obj.handles.menu.file.main,'Text','Export');
             obj.handles.menu.file.export.wiggle = uimenu(obj.handles.menu.file.export.main,'Text','wiggle (*.mp4)','callback',{@menu_wiggle});
             obj.handles.menu.file.export.blender = uimenu(obj.handles.menu.file.export.main,'Text','Blender (*.obj)','callback',{@menu_exporttoblender});
@@ -134,6 +150,13 @@ classdef ArenaScene < handle
             
             obj.handles.menu.stusessions.main = uimenu(obj.handles.figure,'Text','Suretune sessions','Visible','off','Separator','on');
             obj.handles.menu.stusessions.openwindows = {};
+            
+            obj.handles.menu.vtas.main = uimenu(obj.handles.figure,'Text','VTAs','Visible','on','Separator','on','callback',{@menu_updateVTAlist});
+            obj.handles.menu.vtas.constructvta = uimenu(obj.handles.menu.vtas.main,'Text','+assign a VTA based on existing layers','callback',{@menu_constructVTA});
+            obj.handles.menu.vtas.constructvta = uimenu(obj.handles.menu.vtas.main,'Text','+create Åström VTA','callback',{@menu_generateVTA});
+            obj.handles.menu.vtas.constructtherapy = uimenu(obj.handles.menu.vtas.main,'Text','+construct (bilateral) therapy','callback',{@menu_constructTherapy});
+            obj.handles.menu.vtas.list = gobjects;
+            obj.handles.menu.vtas.therapylist = gobjects;
             
             obj.handles.menu.view.main = uimenu(obj.handles.figure,'Text','View');
             obj.handles.menu.view.camera.main = uimenu(obj.handles.menu.view.main,'Text','Camera');
@@ -181,7 +204,7 @@ classdef ArenaScene < handle
             obj.handles.menu.atlas.suretune.gpi = uimenu(obj.handles.menu.atlas.suretune.main ,'Text','GPi','callback',{@menu_legacyatlas});
             obj.handles.menu.atlas.suretune.other = uimenu(obj.handles.menu.atlas.suretune.main ,'Text','Other','callback',{@menu_legacyatlas});
             obj.handles.menu.atlas.MRI.main = uimenu(obj.handles.menu.atlas.main,'Text','MRI template');
-             obj.handles.menu.atlas.MRI.update = uimenu(obj.handles.menu.atlas.MRI.main,'Text','[Refresh list]','callback',{@menu_refreshTemplatelist,'user'});
+            obj.handles.menu.atlas.MRI.update = uimenu(obj.handles.menu.atlas.MRI.main,'Text','[Refresh list]','callback',{@menu_refreshTemplatelist,'user'});
             for iMRItemplate = 1:numel(obj.handles.templates)
                 obj.handles.menu.atlas.MRI.template(iMRItemplate) = uimenu(obj.handles.menu.atlas.MRI.main,'Text',obj.handles.templates(iMRItemplate).name,'callback',{@menu_addMRItemplate,obj.handles.templates(iMRItemplate)});
             end
@@ -204,8 +227,8 @@ classdef ArenaScene < handle
             
             
             obj.handles.menu.edit.analysis.sampleheatmap = uimenu(obj.handles.menu.edit.analysis.main,'Text','sample selection with ... ','callback',{@menu_sampleHeatmap});
-            obj.handles.menu.edit.smooth = uimenu(obj.handles.menu.edit.main,'Text','Smooth VoxelData','callback',{@menu_smoothVoxelData});
-            obj.handles.menu.edit.seperate = uimenu(obj.handles.menu.edit.main,'Text','separate clusters','callback',{@menu_seperateClusters});
+            
+            
             %obj.handles.menu.edit.intersectplane = uimenu(obj.handles.menu.edit.main,'Text','project to plane','callback',{@menu_intersectPlane});
             %obj.handles.menu.edit.pointclouddistribution = uimenu(obj.handles.menu.edit.main,'Text','pointcloud distribution','callback',{@menu_pcDistribution});
             %obj.handles.menu.edit.pointcloudanalysis = uimenu(obj.handles.menu.edit.main,'Text','PointCloud in mesh','callback',{@menu_pointcloudinmesh});
@@ -246,6 +269,9 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Mesh.fibersBetween = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: fibers (inbetween seeds)','callback',{@menu_showFibers_inbetween},'Enable','off');
             obj.handles.menu.dynamic.Mesh.makeBinarySlice = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: convert to binary slice','callback',{@menu_mesh2binaryslice},'Enable','off');
             obj.handles.menu.dynamic.Mesh.SpatialCorrelation = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','VoxelData: spatial correlation','callback',{@menu_spatialcorrelation},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.seperate = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: separate clusters','callback',{@menu_seperateClusters},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: source data','callback',{@menu_smoothVoxelData},'Enable','off');
+            
             obj.handles.menu.dynamic.Slicei.SpatialCorrelation = obj.handles.menu.dynamic.Mesh.SpatialCorrelation;
             
             obj.handles.menu.dynamic.Slicei.multiply = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: multiply images','callback',{@menu_multiplyslices},'Enable','off');
@@ -301,7 +327,7 @@ classdef ArenaScene < handle
             function menu_addMRItemplate(hObject,eventdata,template)
                 scene = ArenaScene.getscenedata(hObject);
                 templateVD = VoxelData;
-                templateVD.loadnii(template.path);
+                templateVD.loadnii(template.path,true); %noreslice = true
                 template_actor = templateVD.getslice.see(scene);
                 template_actor.changeName(template.name);
                 
@@ -464,7 +490,8 @@ classdef ArenaScene < handle
                     Scene.gitref = '';
                 end
                 [filename,pathname] = uiputfile('*.scn');
-                save(fullfile(pathname,filename),'Scene');
+                disp('Saving a scene can take up to several minutes!')
+                save(fullfile(pathname,filename),'Scene','-v7.3');
                 Scene.SceneLocation = fullfile(pathname,filename);
                 disp('Scene saved')
                 
@@ -895,7 +922,7 @@ classdef ArenaScene < handle
             
             
             
-            function menu_importscatterfromworkspace(hObject,eventdata)
+            function menu_importfromworkspace(hObject,eventdata)
                 thisScene =  ArenaScene.getscenedata(hObject);
                 names = {};
                 data = {};
@@ -910,16 +937,43 @@ classdef ArenaScene < handle
                         case 'double'
                             if any(size(thisVariable)==3)
                                 names{end+1} = basevariables(iVariable).name;
-                                data{end+1} = thisVariable;
+                                data{end+1} = PointCloud(thisVariable);
                             end
+                        case 'ArenaScene'
+                            continue
+                        otherwise   
+                            names{end+1} = basevariables(iVariable).name;
+                            data{end+1} = thisVariable;
+                    
                     end
                 end
                 
+                if isempty(names)
+                    waitfor(msgbox('No usuable workspace variables could be found!'))
+                    return
+                end
+                
                 [indx] = listdlg('ListString',names);
-                for thisindex = indx
-                    pc = PointCloud(data{thisindex});
-                    [actor,scene] = pc.see(thisScene);
-                    actor.changeName(names{thisindex})
+                for index = indx
+                   this = data{index};
+                   switch class(data{index})
+                       case 'VoxelData'
+                           if this.isBinary(80)
+                               actor = this.getmesh.see(thisScene);
+                           else
+                               actor = this.getslice.see(thisScene);
+                           end
+                       otherwise
+                           try
+                               actor = this.see(thisScene);
+                           catch
+                               disp(['Don''t know how to load ',names{index}])
+                               continue
+                           end
+                   end
+                        actor.changeName(names{index})
+                    
+                    
                 end
                 
             end
@@ -1100,6 +1154,268 @@ classdef ArenaScene < handle
                 obj.handles.menu.stusessions.main.Visible = 'on';
             end
             
+            function menu_updateVTAlist(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                 %delete all menu items
+                 
+                if isfield(scene.handles.menu.vtas.list,'main')
+                    for i = 1:numel(scene.handles.menu.vtas.list)
+                        fns = fieldnames(scene.handles.menu.vtas.list(i));
+                        for fn = 1:numel(fns)
+                            delete(scene.handles.menu.vtas.list(i).(fns{fn}))
+                        end
+                    end
+                end
+                scene.handles.menu.vtas.list = [];
+                
+                if isfield(scene.handles.menu.vtas.therapylist,'main')
+                    for i = 1:numel(scene.handles.menu.vtas.therapylist)
+                        fns = fieldnames(scene.handles.menu.vtas.therapylist(i));
+                        for fn = 1:numel(fns)
+                            try
+                            delete(scene.handles.menu.vtas.therapylist(i).(fns{fn}))
+                            catch
+                                %it cant delete structures.. but doesn't
+                                %cause trouble. -JR
+                            end
+                        end
+                    end
+                end
+                scene.handles.menu.vtas.therapylist = [];
+                
+                %rebuild all VTA items
+                i =0;
+                for i = 1:numel(scene.VTAstorage)
+                    n = length(scene.handles.menu.vtas.list)+1;
+                    scene.handles.menu.vtas.list(n).main = uimenu(scene.handles.menu.vtas.main,'Text',scene.VTAstorage(i).Tag);%,'callback',{@menu_vta,scene.VTAstorage(i)});
+                    scene.handles.menu.vtas.list(n).edit = uimenu(scene.handles.menu.vtas.list(n).main,'Text','prediction (unilateral)','callback',{@menu_vta_prediction,scene.VTAstorage(i)});
+                    scene.handles.menu.vtas.list(n).review = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Monopolar review (unilateral)','callback',{@menu_vta_review,scene.VTAstorage(i)});
+                    scene.handles.menu.vtas.list(n).show = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Show in Scene','callback',{@menu_vta_show,scene.VTAstorage(i)});
+                    scene.handles.menu.vtas.list(n).delete = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Delete VTA','callback',{@menu_vta_delete,scene.VTAstorage(i)});
+                end
+                if i>0
+                    scene.handles.menu.vtas.list(1).main.Separator = 'on';
+                end
+                
+                %rebuild all Therapy items
+                i = 0;
+                for i = 1:numel(scene.Therapystorage)
+                    n = length(scene.handles.menu.vtas.therapylist)+1;
+                    scene.handles.menu.vtas.therapylist(n).main = uimenu(scene.handles.menu.vtas.main,'Text',scene.Therapystorage(i).Tag);%,'callback',{@menu_vta,scene.VTAstorage(i)});
+                    if numel(scene.Therapystorage(i).VTAs)>1
+                        unibi = 'bi';
+                    else
+                        unibi = 'uni';
+                    end
+                    %show buttons for prediction
+                     scene.handles.menu.vtas.therapylist(n).predictions = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text',['run prediction (',unibi,'lateral)'],'callback',{@menu_therapy_prediction,scene.Therapystorage(i)});
+                     for iPrediction = 1:numel(scene.Therapystorage(n).Predictions)
+                         if iPrediction==1
+                         scene.handles.menu.vtas.therapylist(n).predictionlist.main = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','Show details for prediction:');
+                         end
+                         p = scene.Therapystorage(n).Predictions(iPrediction);
+                         buttontext = [p.Model.Tag,': ',num2str(p.Output)];
+                         scene.handles.menu.vtas.therapylist(n).predictionlist.p(iPrediction) = uimenu(scene.handles.menu.vtas.therapylist(n).predictionlist.main,'Text',buttontext,'callback',{@menu_therapy_showinfo,p});
+                     end
+                     
+                     %show buttons for review
+                     scene.handles.menu.vtas.therapylist(n).monopolar = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text',['run monopolar review (',unibi,'lateral)'],'callback',{@menu_therapy_review,scene.Therapystorage(i)});
+                     for iReview = 1:numel(scene.Therapystorage(n).ReviewOutcome)
+                         if iReview==1
+                             scene.handles.menu.vtas.therapylist(n).reviewlistlist.main = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','Show details for Review:');
+                         end
+                         p = scene.Therapystorage(n).ReviewOutcome(iReview);
+                         buttontext = [p.Model.Tag,': ',num2str(p.Output), '  (Conf: ',num2str(round(p.Confidence*100)),'%)'];
+                         scene.handles.menu.vtas.therapylist(n).reviewlistlist.p(iPrediction) = uimenu(scene.handles.menu.vtas.therapylist(n).reviewlistlist.main,'Text',buttontext,'callback',{@menu_therapy_see,p});
+                     end
+
+                     
+                end
+                if i>0
+                    scene.handles.menu.vtas.therapylist(1).main.Separator = 'on';
+                end
+                
+                
+            end
+            
+            function menu_therapy_showinfo(hObject,eventdata,prediction)
+                prediction.printInfo()
+            end
+            
+            function menu_therapy_see(hObject,eventdata,prediction)
+                for iVTA = 1:length(prediction.Input.VTAs)
+                    actor = prediction.Input.VTAs(iVTA).see(obj);
+                    actor.changeName(hObject.Text)
+                end
+                
+            end
+                
+            
+            function menu_vta_prediction(hObject,eventdata,vta)
+                p = vta.prediction();
+                p.printInfo()
+            end
+            
+            function menu_vta_show(hObject,eventdata,vta)
+                vta.see(obj);
+            end
+            
+            function menu_vta_delete(hObject,eventdata,vta)
+                indx = find(obj.VTAstorage==vta);
+                obj.VTAstorage(indx(1)) = [];
+                
+            end
+            
+            function menu_vta_review(hObject,eventdata,vta)
+                vta.review()
+            end
+            
+            function menu_therapy_prediction(hObject,eventdata,therapy)
+                p= therapy.executePrediction();
+                p.printInfo()
+                
+            end
+            
+            function menu_therapy_review(hObject,eventdata,therapy)
+                therapyObject = therapy.executeReview();
+                assignin('base','T',therapyObject);
+            end
+            
+            function menu_constructTherapy(hObject,eventdata)
+                %select VTAs
+                VTAnames = {obj.VTAstorage.Tag};
+                if isempty(VTAnames)
+                    return
+                end
+                [indx] = listdlg('ListString',VTAnames,'PromptString','Select the VTAs');
+                
+                %choose name
+                nameparts = strsplit(VTAnames{indx(1)},' ');
+                
+                %Build therapy object
+                therapyname = newid({'Therapy name: '},'Arena',1,nameparts(1));
+                T = Therapy(therapyname{1});
+                T.addVTA(obj.VTAstorage(indx))
+                T.connectTo(obj)
+            end
+            
+            function menu_generateVTA(hObject,eventdata)
+                %ask for electrode
+                if numel(obj.Actors)==0
+                    return
+                else
+                    classes = arrayfun(@(x) class(x.Data), obj.Actors,'UniformOutput',0);
+                    VTAobjects = strcat(classes,{'  : '},{obj.Actors.Tag});
+                    layerids = 1:length(classes);
+                    onlyLead = contains(classes,'Electrode');
+                    VTAobjects = VTAobjects(onlyLead);
+                    layerids  = layerids(onlyLead);
+                end
+                
+                if sum(onlyLead)==0
+                    return
+                end
+
+                [indx] = listdlg('ListString',VTAobjects,'PromptString','Select the Electrode','ListSize',[300 160],'SelectionMode','single');
+                
+                E_actor = obj.Actors(layerids(indx));
+                E = E_actor.Data;
+
+                
+                %ask for settings:
+                vtasettings = inputdlg({'Cathodes [c0 c1 c2 c3]',...
+                'Anodes [c0 c1 c2 c3]',...
+                'Amplitude (mA)',...
+                'PulseWidth (us)'},...
+                'Settings',...
+                1,...
+                {'1 0 0 0','0 0 0 0','1','90'});
+            
+                vtaname = VTA.constructVTAname('Medtronic3389',str2double(vtasettings{3}),str2double(vtasettings{4}),vtasettings{1},vtasettings{2},'False');
+                try
+                VTAObject = makeVTA(E,vtaname);
+                catch
+                    disp('VTA not available in pool')
+                end
+                
+                %Ask for Space
+                VTAObject.Space = Space.dialog('In which space is this electrode Currently?');
+               
+                VTAObject.Tag = [E_actor.Tag,' C',num2str(find(str2num(vtasettings{1}))-1),' ',vtasettings{3},'mA (',vtasettings{4},'us)'];
+                VTAObject.connectTo(obj)
+                VTAObject.ActorElectrode = E_actor;
+                VTAObject.see(obj)
+                   
+            
+            
+                
+            end
+            
+            function menu_constructVTA(hObject,eventdata)
+                %this function will make it possible to convert any data
+                %source to a VTA object (for instance nii files)
+                if numel(obj.Actors)==0
+                    VTAobjects = {};
+                else
+                    classes = arrayfun(@(x) class(x.Data), obj.Actors,'UniformOutput',0);
+                    VTAobjects = strcat(classes,{'  : '},{obj.Actors.Tag});
+                end
+                VTAobjects{end+1} = '..Load';
+                    
+                [indx] = listdlg('ListString',VTAobjects,'PromptString','Select the VTAs','ListSize',[300 160]);
+                
+                
+                %load new actors
+                if indx ==length(VTAobjects)
+                    nActors = length(obj.Actors);
+                    menu_importAnything(hObject,eventdata)
+                    if nActors > length(obj.Actors)
+                        indx = nActors+1:length(obj.Actors);
+                    end
+                   
+                    classes = arrayfun(@(x) class(x.Data), obj.Actors,'UniformOutput',0);
+                end
+                
+            
+                
+                %checking for senseless combination. 
+                if length(unique(classes(indx)))<length(indx)
+                    error('It looks like you selected a strange combination. Select only one VTA at a time. (may include both mesh and electrode object)')
+                end
+                
+                
+                thisVTA = VTA;
+                for i = indx
+                    switch classes{i}
+                        case 'Electrode'
+                            thisVTA.ActorElectrode = obj.Actors(i);
+                            thisVTA.Electrode= obj.Actors(i).Data;
+                        case 'Mesh'
+                            thisVTA.ActorVolume = obj.Actors(i);
+                            thisVTA.Volume= obj.Actors(i).Data;
+                    end
+                end
+                
+                %check space
+                thisVTA.Space = Space.dialog('Which space is your VTA in?');
+                if thisVTA.Space == Space.Unknown
+                    waitfor(msgbox('If the space is unknown, prediction models will not be very helpful. :-)'))
+                end
+                
+                % 
+                VTAname = newid({'VTA name: '},'Arena',1,{obj.Actors(indx(1)).Tag});
+                thisVTA.Tag = VTAname{1};
+                thisVTA.connectTo(obj)
+                
+                
+            end
+
+            
+                
+            function menu_vta(hObject,eventdata,vta)
+                keyboard
+            end
+            
             function suretuneportal_callback(hObject,eventdata)
                 figure(hObject.UserData.handles.f); %pop-up the portal
             end
@@ -1124,9 +1440,30 @@ classdef ArenaScene < handle
             end
             
             function menu_edit_count2mesh(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                actorNames = {currentActors.Tag};
+                shortestName = min(cellfun(@length, actorNames));
+                
                 
                 vd = ArenaScene.countMesh(hObject);
-                vd.getmesh.see(ArenaScene.getscenedata(hObject))
+                actor = vd.getmesh.see(ArenaScene.getscenedata(hObject));
+                
+                %change name
+                incommon = '';
+                for iLetter = 1:shortestName
+                    
+                    letter = unique(cellfun(@(x) x(iLetter),actorNames));
+                    if length(letter)==1
+                        incommon = [incommon,letter];
+                    else
+                        break
+                    end
+                end
+                actor.changeName(incommon)
+                changeLayerName(hObject,eventdata)
+                
+   
             end
             
             function menu_camTargetActor(hObject,eventdata)
@@ -1977,9 +2314,6 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 end
                 
                 global connectomes
-                if not(isa(connectomes,'ConnectomeManager'))
-                    connectomes = ConnectomeManager;
-                end
                 thisConnectome = connectomes.selectConnectome;
                 
                 for iActor = 1:numel(currentActors)
@@ -2002,9 +2336,6 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 end
                 
                 global connectomes
-                if not(isa(connectomes,'ConnectomeManager'))
-                    connectomes = ConnectomeManager;
-                end
                 thisConnectome = connectomes.selectConnectome;
                 
                 Fibers = thisConnectome.getFibersConnectingMeshes({currentActors(1).Data,currentActors(2).Data},100,scene);
@@ -2037,13 +2368,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                                 actor = regions{order(iCluster)}.getmesh(0.5).see(scene);
                                 actor.changeName([num2str(sorted(iCluster)),'_',thisActor.Tag])
                             end
-                            
-                            
-                            
-                            
-                            
-                            
-                            
+                             
                     end
                 end
                 
@@ -2441,11 +2766,16 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                                     show_shortcuts(src);
                                 end
                             case 'i'
-                                if ~isempty(eventdata.Modifier)
+                                if numel(eventdata.Modifier)==1
+                          
                                     switch eventdata.Modifier{1}
                                         case {'command','shift'}
                                             menu_importAnything(src)
                                     end
+                                    
+                                elseif numel(eventdata.Modifier)==2
+                                    menu_importfromworkspace(src)
+                                    
                                 end
                             case 'd'
                                 if ~isempty(eventdata.Modifier)
@@ -2629,6 +2959,12 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                                 thisActor.Visibility('hide');
                             end
                         end
+                    case 'hideall'
+                        for iActor = 1:numel(scene.Actors)
+                            thisActor = scene.Actors(iActor);
+                            thisActor.Visibility('hide');
+                        end
+                        
                 end
                 scene.refreshLayers();
                 
@@ -2745,7 +3081,6 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
             
         end
         
-        
         function updateMenu(obj)
             try
                 thisclass = class(obj.Actors(obj.handles.panelright.Value(1)).Data);
@@ -2782,7 +3117,6 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
             end
             
         end
-        
         
         function selectlayer(obj,index)
             if nargin==1
@@ -3086,6 +3420,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 classes{i} = class(actorlist(i).Data);
             end
         end
+        
         
         function vd = countMesh(hObject)
             scene = ArenaScene.getscenedata(hObject);
