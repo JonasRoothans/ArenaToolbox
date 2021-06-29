@@ -70,7 +70,11 @@ classdef VTA < handle
             %convert VTA to therapy
             T = Therapy(obj.Tag);
             T.addVTA(obj);
-            T.connectTo(obj.ActorVolume.Scene);
+            try
+                T.connectTo(obj.ActorVolume.Scene);
+            catch
+                T.connectTo(obj.ActorElectrode.Scene);
+            end
             obj.TherapyReference = T;
          else
             T = obj.TherapyReference;
@@ -79,6 +83,25 @@ classdef VTA < handle
             T.executeReview()
         end
         
+        function actor = see(obj,scene)
+            actor = obj.Volume.getmesh(0.5).see(scene);
+            actor.changeName(obj.Tag)
+        end
+        
+    end
+    
+    
+    
+    methods (Static)
+        function name = constructVTAname(leadtype,amplitude,pulsewidth,activevector,groundedcontact,voltagecontrolled)
+                name = [leadtype,...
+                    num2str(amplitude),...
+                    num2str(voltagecontrolled),...
+                    num2str(pulsewidth),...
+                    'c',strrep(num2str(activevector),'  ',' '),...
+                    'a',strrep(num2str(groundedcontact),'  ',' '),...
+                    '.mat'];
+            end
     end
 end
 

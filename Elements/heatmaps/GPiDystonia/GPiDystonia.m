@@ -108,6 +108,22 @@ classdef GPiDystonia < Heatmap & handle
             VTA_voxelData = VTA_voxelData.imwarp(Tvta);
         end
         
+        function filterSettings = definePostProcessingSettings()
+            
+            userinput = inputdlg({'Minimal confidence of the heatmap [0-1]',...
+                'Amplitude optimization based on  n = ',...
+                'Maximal accepted amplitude deviation (sigma)'},...
+                'Post processing',...
+                1,...
+                {'0.5','5','1'});
+            filterSettings.minConfidence = str2num(userinput{1});
+            filterSettings.n = str2num(userinput{2});
+            filterSettings.sigma = str2num(userinput{3});
+            
+            
+        end
+        
+        
     end
 end
 

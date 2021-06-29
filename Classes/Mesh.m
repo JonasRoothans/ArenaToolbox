@@ -122,16 +122,6 @@ classdef Mesh < handle & matlab.mixin.Copyable
             if not(isempty(inputname(1)))
                 thisActor.changeName(inputname(1))
             end
-%             figure;
-%             p= patch('Faces',obj.Faces,'Vertices',obj.Vertices);
-%             
-%             p.FaceColor = [0.3 0.6 0.8];
-%             p.EdgeColor = 'none';
-%             daspect([1 1 1])
-%             view(3);
-%             axis tight
-%             camlight
-%             lighting gouraud
         end
         
         function cog = getCOG(obj)

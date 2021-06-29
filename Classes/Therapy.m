@@ -5,6 +5,7 @@ classdef Therapy < handle
     properties
         VTAs = VTA.empty;
         Predictions = Prediction.empty;
+        ReviewOutcome = Prediction.empty;
         ReviewData
         Tag
     end
@@ -118,16 +119,7 @@ classdef Therapy < handle
             end
             
             %Ask for postprocessing filter settings
-            userinput = inputdlg({'Minimal confidence of the heatmap [0-1]',...
-                'Amplitude optimization based on  n = ',...
-                'Maximal accepted amplitude deviation (sigma)'},...
-                'Post processing',...
-                1,...
-                {'0.5','5','1'});
-            filterSettings.minConfidence = str2num(userinput{1});
-            filterSettings.n = str2num(userinput{2});
-            filterSettings.sigma = str2num(userinput{3});
-            
+            PostSettings = heatmap.definePostProcessingSettings();
             
             
             %define VTAnames
@@ -211,38 +203,46 @@ classdef Therapy < handle
             [sorted,order] = sort(vertcat(predictionList.Output),'descend');
             ReviewData.predictionList = predictionList;
             ReviewData.order = order;
-            ReviewData.filterSettings = filterSettings;
-            
-            %save(fullfile(currentDir,'therapy'),'ReviewData');
-            
-            %             %calculate power consumption
-            powerConsumption = [];
-            for iPair = 1:length(order)
-                sum_of_amplitudes = 0;
-                for iVTA = 1:numel(ReviewData.predictionList(iPair).Input.VTAs)
-                    sum_of_amplitudes  =  sum_of_amplitudes+ ReviewData.predictionList(iPair).Input.VTAs(iVTA).Settings.amplitude;
-                end
-                powerConsumption(iPair) = sum_of_amplitudes/iVTA;
-            end
-            
-            
-            power_sorted = powerConsumption(order);
-            
-            %             %-- confidence check
-            leastconfidence = min(vertcat(ReviewData.predictionList(:).Confidence)');
-            passedConfidenceTest = leastconfidence > ReviewData.filterSettings.minConfidence;
-            %
-            %             %-- outlier amplitudes
-            power_filtered_and_sorted = power_sorted(passedConfidenceTest);
-            mu_power = mean(power_filtered_and_sorted(1:ReviewData.filterSettings.n));
-            sigma_power = std(power_filtered_and_sorted(1:ReviewData.filterSettings.n));
-            amp_cutoff = mu_power+sigma_power*ReviewData.filterSettings.sigma;
-            passedAmpTest = power_sorted<amp_cutoff;
-            
-            if sigma_power==0 %if all amps are equal, all should pass.
-                passedAmpTest = true(1,length(passedAmpTest));
-            end
-            
+            ReviewData.filterSettings = PostSettings;
+%             
+%             %save(fullfile(currentDir,'therapy'),'ReviewData');
+%             
+%             %             %calculate power consumption
+%             powerConsumption = [];
+%             for iPair = 1:length(order)
+%                 sum_of_amplitudes = 0;
+%                 for iVTA = 1:numel(ReviewData.predictionList(iPair).Input.VTAs)
+%                     sum_of_amplitudes  =  sum_of_amplitudes+ ReviewData.predictionList(iPair).Input.VTAs(iVTA).Settings.amplitude;
+%                 end
+%                 powerConsumption(iPair) = sum_of_amplitudes/iVTA;
+%             end
+%             
+%             
+%             power_sorted = powerConsumption(order);
+%             
+%             %             %-- confidence check
+%             leastconfidence = min(vertcat(ReviewData.predictionList(:).Confidence)');
+%             if length(leastconfidence)==1
+%                 passedConfidenceTest = vertcat(ReviewData.predictionList(:).Confidence)' > ReviewData.filterSettings.minConfidence;
+%             else
+%                 passedConfidenceTest = leastconfidence > ReviewData.filterSettings.minConfidence;
+%             end
+%             %
+%             %             %-- outlier amplitudes
+%             power_filtered_and_sorted = power_sorted(passedConfidenceTest);
+%             
+%             if length(power_filtered_and_sorted)<ReviewData.filterSettings.n
+%                 ReviewData.filterSettings.n = length(power_filtered_and_sorted);
+%             end
+%             mu_power = mean(power_filtered_and_sorted(1:ReviewData.filterSettings.n));
+%             sigma_power = std(power_filtered_and_sorted(1:ReviewData.filterSettings.n));
+%             amp_cutoff = mu_power+sigma_power*ReviewData.filterSettings.sigma;
+%             passedAmpTest = power_sorted<amp_cutoff;
+%             
+%             if sigma_power==0 %if all amps are equal, all should pass.
+%                 passedAmpTest = true(1,length(passedAmpTest));
+%             end
+%             
             %open file
             fileID = fopen(fullfile(currentDir,'RankedScores.txt'),'w');
             clc
@@ -286,9 +286,7 @@ classdef Therapy < handle
                     
                     conf_e1 = predictionList(item).Confidence(1);
                     
-                    %
-                    confidenceTest = passedConfidenceTest(iShortlist);
-                    ampTest = passedAmpTest(iShortlist);
+                    
                     
                     
                     printtext(fileID,'%i.\t %2.1f \t C%i - %2.1f mA\t (%2.2f) \n',iShortlist,Improv, c_e1,a_e1,conf_e1);
@@ -297,6 +295,15 @@ classdef Therapy < handle
             end
             
             fclose(fileID);
+            
+            %Store best therapy
+        
+     
+            obj.ReviewOutcome(end+1) = predictionList(order(1));
+            obj.ReviewOutcome(end+1) = predictionList(order(2));
+            obj.ReviewOutcome(end+1) = predictionList(order(3));
+            
+            
             
             function printtext(fid,varargin)
                 fprintf(fid,varargin{:});
@@ -323,7 +330,7 @@ classdef Therapy < handle
                                     groundedcontact = [0 0 0 0];
                                     
                                     
-                                    VTAnames{i} = constructVTAname(...
+                                    VTAnames{i} = VTA.constructVTAname(...
                                         thisLeadType,...
                                         thisAmplitude,...
                                         thisPulseWidth,...
@@ -346,17 +353,17 @@ classdef Therapy < handle
             end
             
             
-            function name = constructVTAname(leadtype,amplitude,pulsewidth,activevector,groundedcontact,voltagecontrolled)
-                
-                name = [leadtype,...
-                    num2str(amplitude),...
-                    num2str(voltagecontrolled),...
-                    num2str(pulsewidth),...
-                    'c',strrep(num2str(activevector),'  ',' '),...
-                    'a',strrep(num2str(groundedcontact),'  ',' '),...
-                    '.mat'];
-            end
-            
+%             function name = constructVTAname(leadtype,amplitude,pulsewidth,activevector,groundedcontact,voltagecontrolled)
+%                 
+%                 name = [leadtype,...
+%                     num2str(amplitude),...
+%                     num2str(voltagecontrolled),...
+%                     num2str(pulsewidth),...
+%                     'c',strrep(num2str(activevector),'  ',' '),...
+%                     'a',strrep(num2str(groundedcontact),'  ',' '),...
+%                     '.mat'];
+%             end
+%             
             
         end
         

@@ -18,8 +18,8 @@ classdef PredictionManager < handle
             subfolders = A_getsubfolders(heatmapdir);
             
             for iSubFolder = 1:numel(subfolders)
-                addpath(fullfile(subfolders.folder,subfolders.name))
-                eval(['m = ',subfolders.name,';'])
+                addpath(fullfile(subfolders(iSubFolder).folder,subfolders(iSubFolder).name))
+                eval(['m = ',subfolders(iSubFolder).name,';'])
                 if isa(m,'Heatmap')
                     obj.Heatmaps{end+1} = m;
                 else

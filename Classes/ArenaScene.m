@@ -152,7 +152,8 @@ classdef ArenaScene < handle
             obj.handles.menu.stusessions.openwindows = {};
             
             obj.handles.menu.vtas.main = uimenu(obj.handles.figure,'Text','VTAs','Visible','on','Separator','on','callback',{@menu_updateVTAlist});
-            obj.handles.menu.vtas.constructvta = uimenu(obj.handles.menu.vtas.main,'Text','+assign VTA','callback',{@menu_constructVTA});
+            obj.handles.menu.vtas.constructvta = uimenu(obj.handles.menu.vtas.main,'Text','+assign a VTA based on existing layers','callback',{@menu_constructVTA});
+            obj.handles.menu.vtas.constructvta = uimenu(obj.handles.menu.vtas.main,'Text','+create Åström VTA','callback',{@menu_generateVTA});
             obj.handles.menu.vtas.constructtherapy = uimenu(obj.handles.menu.vtas.main,'Text','+construct (bilateral) therapy','callback',{@menu_constructTherapy});
             obj.handles.menu.vtas.list = gobjects;
             obj.handles.menu.vtas.therapylist = gobjects;
@@ -1188,7 +1189,8 @@ classdef ArenaScene < handle
                     n = length(scene.handles.menu.vtas.list)+1;
                     scene.handles.menu.vtas.list(n).main = uimenu(scene.handles.menu.vtas.main,'Text',scene.VTAstorage(i).Tag);%,'callback',{@menu_vta,scene.VTAstorage(i)});
                     scene.handles.menu.vtas.list(n).edit = uimenu(scene.handles.menu.vtas.list(n).main,'Text','prediction (unilateral)','callback',{@menu_vta_prediction,scene.VTAstorage(i)});
-                    scene.handles.menu.vtas.list(n).show = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Monopolar review (unilateral)','callback',{@menu_vta_review,scene.VTAstorage(i)});
+                    scene.handles.menu.vtas.list(n).review = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Monopolar review (unilateral)','callback',{@menu_vta_review,scene.VTAstorage(i)});
+                    scene.handles.menu.vtas.list(n).show = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Show in Scene','callback',{@menu_vta_show,scene.VTAstorage(i)});
                     scene.handles.menu.vtas.list(n).delete = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Delete VTA','callback',{@menu_vta_delete,scene.VTAstorage(i)});
                 end
                 if i>0
@@ -1205,8 +1207,8 @@ classdef ArenaScene < handle
                     else
                         unibi = 'uni';
                     end
+                    %show buttons for prediction
                      scene.handles.menu.vtas.therapylist(n).predictions = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text',['run prediction (',unibi,'lateral)'],'callback',{@menu_therapy_prediction,scene.Therapystorage(i)});
-                     scene.handles.menu.vtas.therapylist(n).monopolar = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text',['run monopolar review (',unibi,'lateral)'],'callback',{@menu_therapy_review,scene.Therapystorage(i)});
                      for iPrediction = 1:numel(scene.Therapystorage(n).Predictions)
                          if iPrediction==1
                          scene.handles.menu.vtas.therapylist(n).predictionlist.main = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','Show details for prediction:');
@@ -1215,7 +1217,17 @@ classdef ArenaScene < handle
                          buttontext = [p.Model.Tag,': ',num2str(p.Output)];
                          scene.handles.menu.vtas.therapylist(n).predictionlist.p(iPrediction) = uimenu(scene.handles.menu.vtas.therapylist(n).predictionlist.main,'Text',buttontext,'callback',{@menu_therapy_showinfo,p});
                      end
-                 
+                     
+                     %show buttons for review
+                     scene.handles.menu.vtas.therapylist(n).monopolar = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text',['run monopolar review (',unibi,'lateral)'],'callback',{@menu_therapy_review,scene.Therapystorage(i)});
+                     for iReview = 1:numel(scene.Therapystorage(n).ReviewOutcome)
+                         if iReview==1
+                             scene.handles.menu.vtas.therapylist(n).reviewlistlist.main = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','Show details for Review:');
+                         end
+                         p = scene.Therapystorage(n).ReviewOutcome(iReview);
+                         buttontext = [p.Model.Tag,': ',num2str(p.Output), '  (Conf: ',num2str(round(p.Confidence*100)),'%)'];
+                         scene.handles.menu.vtas.therapylist(n).reviewlistlist.p(iPrediction) = uimenu(scene.handles.menu.vtas.therapylist(n).reviewlistlist.main,'Text',buttontext,'callback',{@menu_therapy_see,p});
+                     end
 
                      
                 end
@@ -1229,11 +1241,23 @@ classdef ArenaScene < handle
             function menu_therapy_showinfo(hObject,eventdata,prediction)
                 prediction.printInfo()
             end
+            
+            function menu_therapy_see(hObject,eventdata,prediction)
+                for iVTA = 1:length(prediction.Input.VTAs)
+                    actor = prediction.Input.VTAs(iVTA).see(obj);
+                    actor.changeName(hObject.Text)
+                end
+                
+            end
                 
             
             function menu_vta_prediction(hObject,eventdata,vta)
                 p = vta.prediction();
                 p.printInfo()
+            end
+            
+            function menu_vta_show(hObject,eventdata,vta)
+                vta.see(obj);
             end
             
             function menu_vta_delete(hObject,eventdata,vta)
@@ -1275,6 +1299,58 @@ classdef ArenaScene < handle
                 T.connectTo(obj)
             end
             
+            function menu_generateVTA(hObject,eventdata)
+                %ask for electrode
+                if numel(obj.Actors)==0
+                    return
+                else
+                    classes = arrayfun(@(x) class(x.Data), obj.Actors,'UniformOutput',0);
+                    VTAobjects = strcat(classes,{'  : '},{obj.Actors.Tag});
+                    layerids = 1:length(classes);
+                    onlyLead = contains(classes,'Electrode');
+                    VTAobjects = VTAobjects(onlyLead);
+                    layerids  = layerids(onlyLead);
+                end
+                
+                if sum(onlyLead)==0
+                    return
+                end
+
+                [indx] = listdlg('ListString',VTAobjects,'PromptString','Select the Electrode','ListSize',[300 160],'SelectionMode','single');
+                
+                E_actor = obj.Actors(layerids(indx));
+                E = E_actor.Data;
+
+                
+                %ask for settings:
+                vtasettings = inputdlg({'Cathodes [c0 c1 c2 c3]',...
+                'Anodes [c0 c1 c2 c3]',...
+                'Amplitude (mA)',...
+                'PulseWidth (us)'},...
+                'Settings',...
+                1,...
+                {'1 0 0 0','0 0 0 0','1','90'});
+            
+                vtaname = VTA.constructVTAname('Medtronic3389',str2double(vtasettings{3}),str2double(vtasettings{4}),vtasettings{1},vtasettings{2},'False');
+                try
+                VTAObject = makeVTA(E,vtaname);
+                catch
+                    disp('VTA not available in pool')
+                end
+                
+                %Ask for Space
+                VTAObject.Space = Space.dialog('In which space is this electrode Currently?');
+               
+                VTAObject.Tag = [E_actor.Tag,' C',num2str(find(str2num(vtasettings{1}))-1),' ',vtasettings{3},'mA (',vtasettings{4},'us)'];
+                VTAObject.connectTo(obj)
+                VTAObject.ActorElectrode = E_actor;
+                VTAObject.see(obj)
+                   
+            
+            
+                
+            end
+            
             function menu_constructVTA(hObject,eventdata)
                 %this function will make it possible to convert any data
                 %source to a VTA object (for instance nii files)
@@ -1312,7 +1388,7 @@ classdef ArenaScene < handle
                 for i = indx
                     switch classes{i}
                         case 'Electrode'
-                            thisVTA.ActorsElectrode = obj.Actors(i);
+                            thisVTA.ActorElectrode = obj.Actors(i);
                             thisVTA.Electrode= obj.Actors(i).Data;
                         case 'Mesh'
                             thisVTA.ActorVolume = obj.Actors(i);
@@ -1333,10 +1409,7 @@ classdef ArenaScene < handle
                 
                 
             end
-            
-            function menu_vta_show(hObject,eventdata,vta)
-                keyboard
-            end
+
             
                 
             function menu_vta(hObject,eventdata,vta)
