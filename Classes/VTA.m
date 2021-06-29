@@ -12,6 +12,7 @@ classdef VTA < handle
         Space  = Space.Unknown;
         SuretuneStimplan %[stimplan]
         Tag = 'vta without name'
+        Settings 
     end
     
     

@@ -101,7 +101,7 @@ classdef Therapy < handle
                     pulsewidths = {60};
                     amplitudes = num2cell(2.5);
                     contacts = num2cell(1:4);
-              case '60 us - just 2 and 4 mA- MDT3389'
+                case '60 us - just 2 and 4 mA- MDT3389'
                     leadtype = {'Medtronic3389'};
                     voltagecontrolled = {'False'};
                     pulsewidths = {60};
@@ -144,13 +144,13 @@ classdef Therapy < handle
             
             %Loop over pairs
             output = [];
+            predictionList = Prediction.empty;
             comments = {};
-            h_wb = waitbar(0,'doing magic...');
             
             for iPair = 1:length(pairs)
-                waitbar(iPair/length(pairs),h_wb);
                 thisPair = pairs(iPair,:);
                 if length(thisPair)==2
+                    
                     electrode1 = obj.VTAs(1).Electrode;
                     electrode2 = obj.VTAs(2).Electrode;
                     
@@ -159,27 +159,39 @@ classdef Therapy < handle
                     
                     vta1 = electrode1.makeVTA(vtaname1);
                     vta1.Space = obj.VTAs(1).Space;
+                    vta1.Settings = settings(thisPair(1));
                     
                     vta2 = electrode2.makeVTA(vtaname2);
                     vta2.Space = obj.VTAs(2).Space;
+                    vta2.Settings = settings(thisPair(2));
                     
                     newTherapy = Therapy;
                     newTherapy.addVTA(vta1);
                     newTherapy.addVTA(vta2);
                     
                     p = newTherapy.executePrediction(heatmap);
-                    output(thisPair(1),thisPair(2)) = p.Output;
-                    confidence{thisPair(1),thisPair(2)} = p.Confidence;
-                    comments{thisPair(1),thisPair(2)} = p.Comments;
                     
-                    Xoutput(iPair) = p.Output;
-                    Xconfidence{iPair} = p.Confidence;
-                    Xcomments{iPair} = p.Comments;
+                    predictionList(iPair) = p;
                     
                     
-                else
+                else %unilateral
+                    electrode1 = obj.VTAs(1).Electrode;
+                    
+                    vtaname1 = VTAnames{thisPair(1)};
+                    
+                    vta1 = electrode1.makeVTA(vtaname1);
+                    vta1.Space = obj.VTAs(1).Space;
+                    vta1.Settings = settings(thisPair(1));
+                    
+                    newTherapy = Therapy;
+                    newTherapy.addVTA(vta1);
+                    
+                    p = newTherapy.executePrediction(heatmap);
+                    predictionList(iPair) = p;
+                    
                 end
             end
+            
             
             %make export directory
             p = mfilename('fullpath');
@@ -193,37 +205,34 @@ classdef Therapy < handle
                 counter = counter+1;
             end
             
-            %save data
-            ReviewData.output = output;
-            ReviewData.comments = comments;
-            ReviewData.VTAnames = VTAnames;
-            ReviewData.settings = settings;
-            ReviewData.confidence = confidence;
-            ReviewData.pairs = pairs;
-            ReviewData.filterSettings = filterSettings;
-            obj.ReviewData = ReviewData;
-            
-            save(fullfile(currentDir,'therapy'),'ReviewData');
-            
-            %calculate power consumption
-            for iPair = 1:length(ReviewData.pairs)
-                thisPair = ReviewData.pairs(iPair,:);
-                powerConsumption(thisPair(1),thisPair(2)) = ReviewData.settings(thisPair(1)).amplitude + ReviewData.settings(thisPair(2)).amplitude;
-                
-            end
             
             %order and filter the suggestions
             %-- sort on improvement
-            [sorted,order] = sort(ReviewData.output(:),'descend');
-            [Xsorted,Xorder] = sort(Xoutput(:),'descend');
+            [sorted,order] = sort(vertcat(predictionList.Output),'descend');
+            ReviewData.predictionList = predictionList;
+            ReviewData.order = order;
+            ReviewData.filterSettings = filterSettings;
+            
+            %save(fullfile(currentDir,'therapy'),'ReviewData');
+            
+            %             %calculate power consumption
+            powerConsumption = [];
+            for iPair = 1:length(order)
+                sum_of_amplitudes = 0;
+                for iVTA = 1:numel(ReviewData.predictionList(iPair).Input.VTAs)
+                    sum_of_amplitudes  =  sum_of_amplitudes+ ReviewData.predictionList(iPair).Input.VTAs(iVTA).Settings.amplitude;
+                end
+                powerConsumption(iPair) = sum_of_amplitudes/iVTA;
+            end
+            
+            
             power_sorted = powerConsumption(order);
-            confidence_sorted = ReviewData.confidence(order);
             
-            %-- confidence check
-            leastconfidence = cellfun(@min,confidence_sorted);
+            %             %-- confidence check
+            leastconfidence = min(vertcat(ReviewData.predictionList(:).Confidence)');
             passedConfidenceTest = leastconfidence > ReviewData.filterSettings.minConfidence;
-            
-            %-- outlier amplitudes
+            %
+            %             %-- outlier amplitudes
             power_filtered_and_sorted = power_sorted(passedConfidenceTest);
             mu_power = mean(power_filtered_and_sorted(1:ReviewData.filterSettings.n));
             sigma_power = std(power_filtered_and_sorted(1:ReviewData.filterSettings.n));
@@ -234,44 +243,57 @@ classdef Therapy < handle
                 passedAmpTest = true(1,length(passedAmpTest));
             end
             
-            
-            
-            
-            
+            %open file
             fileID = fopen(fullfile(currentDir,'RankedScores.txt'),'w');
-  
             clc
-            printtext(fileID,'\t\t\t%s\t%s\n',obj.VTAs(1).ActorElectrode.Tag,obj.VTAs(2).ActorElectrode.Tag);
-            printtext(fileID,'-------------------------------------------\n')
-            for iShortlist = 1:length(order)
-                thisPair = ReviewData.pairs(order(iShortlist),:);
-                Improv = sorted(iShortlist);
-                c_e1 = ReviewData.settings(thisPair(1)).activecontact;
-                c_e2 = ReviewData.settings(thisPair(2)).activecontact;
-                a_e1 = ReviewData.settings(thisPair(1)).amplitude;
-                a_e2 = ReviewData.settings(thisPair(2)).amplitude;
-                %conf = ReviewData.confidence{thisPair(1),thisPair(2)}; %<< confidence seems to be mixed up
-                
-                 conf = ReviewData.confidence{thisPair(2),thisPair(1)};
-                
-                conf_e1 = conf(1);
-                conf_e2 = conf(2);
-                
-                confidenceTest = passedConfidenceTest(iShortlist);
-                ampTest = passedAmpTest(iShortlist);
-                
-                if not(and(confidenceTest, ampTest))
-                    printtext(fileID, '__.\t %2.1f \t C%i - %2.1f mA\t C%i - %2.1f mA \t (%2.2f / %2.2f) \n',Improv, c_e1,a_e1,c_e2,a_e2,conf_e1,conf_e2);
-                    
-                else
+            showVTA = 1;
+            
+            if length(thisPair)==2
+                printtext(fileID,'\t\t\t%s\t%s\n',obj.VTAs(1).ActorElectrode.Tag,obj.VTAs(2).ActorElectrode.Tag);
+                printtext(fileID,'-------------------------------------------\n')
+                for iShortlist = 1:length(order)
+                    item = order(iShortlist);
+                    Improv = predictionList(item).Output;
+                    c_e1 = predictionList(item).Input.VTAs(1).Settings.activecontact;
+                    c_e2 = predictionList(item).Input.VTAs(2).Settings.activecontact;
+                    a_e1 = predictionList(item).Input.VTAs(1).Settings.amplitude;
+                    a_e2 = predictionList(item).Input.VTAs(2).Settings.amplitude;
+                    conf_e1 = predictionList(item).Confidence(1);
+                    conf_e2 = predictionList(item).Confidence(2);
+                   
                     printtext(fileID,'%i.\t %2.1f \t C%i - %2.1f mA\t C%i - %2.1f mA \t (%2.2f / %2.2f) \n',iShortlist,Improv, c_e1,a_e1,c_e2,a_e2,conf_e1,conf_e2);
                     
+                    %visualise the best
+                    if not(showVTA)
+                        scene = obj.VTAs(1).ActorElectrode.Scene;
+                        vta1 = predictionList(item).Input.VTAs(1).Volume.getmesh(0.5).see(scene);
+                        vta1.changeName('Best');
+                        vta2 = predictionList(item).Input.VTAs(2).Volume.getmesh(0.5).see(scene);
+                        vta2.changeName('Best');
+                        showVTA = 0;
+                    end
+                        
+                       
                 end
-                
-                if iShortlist < 11
-                    scatter(a_e1+a_e2,Improv)
+            else
+                for iShortlist = 1:length(order)
+                    %                 thisPair = ReviewData.pairs(order(iShortlist),:);
+                    item = order(iShortlist);
+                    Improv = predictionList(item).Output;
+                    c_e1 = predictionList(item).Input.VTAs(1).Settings.activecontact;
+                    
+                    a_e1 = predictionList(item).Input.VTAs(1).Settings.amplitude;
+                    
+                    conf_e1 = predictionList(item).Confidence(1);
+                    
+                    %
+                    confidenceTest = passedConfidenceTest(iShortlist);
+                    ampTest = passedAmpTest(iShortlist);
+                    
+                    
+                    printtext(fileID,'%i.\t %2.1f \t C%i - %2.1f mA\t (%2.2f) \n',iShortlist,Improv, c_e1,a_e1,conf_e1);
+                    
                 end
-                
             end
             
             fclose(fileID);
@@ -299,8 +321,6 @@ classdef Therapy < handle
                                     activecontact = [0 0 0 0];
                                     activecontact(thisContact) = 1;
                                     groundedcontact = [0 0 0 0];
-                                    
-                                    
                                     
                                     
                                     VTAnames{i} = constructVTAname(...

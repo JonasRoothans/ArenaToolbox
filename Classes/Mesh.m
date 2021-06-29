@@ -39,6 +39,8 @@ classdef Mesh < handle & matlab.mixin.Copyable
                 T = varargin{2};
             end
             
+            
+            
             %increase resolution if resolution is bad, and only few voxels
             %will be visualized
             if VoxelData.R.PixelExtentInWorldX>0.5 && sum(VoxelData.Voxels(:)>T)< 70
@@ -53,11 +55,19 @@ classdef Mesh < handle & matlab.mixin.Copyable
                 [Xm,Ym,Zm] = meshgrid(Xo,Yo,Zo);
                 [Xqq,Yqq,Zqq] = meshgrid(Xq,Yq,Zq);
                 disp('Interpolating source data on 0.5mm grid')
-                Vq = interp3(Xm,Ym,Zm,VoxelData.Voxels,Xqq,Yqq,Zqq,'nearest');
-                X = Xqq;
-                Y = Yqq;
-                Z = Zqq;
-                V  = Vq;
+                Vin = VoxelData.Voxels;
+                Vin(isnan(Vin)) = 0.0;
+                try
+                    Vq = interp3(Xm,Ym,Zm,Vin,Xqq,Yqq,Zqq,'nearest');
+                    X = Xqq;
+                    Y = Yqq;
+                    Z = Zqq;
+                    V  = Vq;
+                catch
+                    [X,Y,Z] = A_imref2meshgrid(VoxelData.R);
+                    V = VoxelData.Voxels;
+                end
+                    
             else
                 [X,Y,Z] = A_imref2meshgrid(VoxelData.R);
                 V = VoxelData.Voxels;
@@ -77,6 +87,9 @@ classdef Mesh < handle & matlab.mixin.Copyable
             
         function T = uithreshold(obj,Voxels)
             histf = figure;histogram(Voxels(:),50);  
+            title({'Please place the vertical line at your preferred cut-off value.','This will define the look of the 3D shape'} )
+            xlabel('Gray value (black --> white)');
+            ylabel('Number of voxels with this value (log scale!')
             set(gca, 'YScale', 'log')
             try
                 figure(histf)
