@@ -13,10 +13,22 @@ classdef VoxelData <handle
             %VOXELDATA Construct an instance of this class
             %   Detailed explanation goes here
             if nargin==1
-                if isfile(varargin{1})
-                    obj = obj.loadnii(varargin{1});
+                if ischar(varargin{1})
+                    if isfile(varargin{1})
+                        obj = obj.loadnii(varargin{1});
+                    else
+                        warning(['input (',varargin{1},') is not a valid filename.. (it has to include .nii)'])
+
+                    end
+%   work now, you bloody script. from now-infinity fuck the police. ~Flo.
                 else
-                    warning(['input (',varargin{1},') is not a valid filename.. (it has to include .nii)'])
+                    if and(isnumeric(varargin{1}),length(size(varargin{1}))==3)
+                        %make an imref that centers the volume
+                        obj.Voxels = varargin{1};
+                        obj.R = imref3d(size(varargin{1}));
+                        obj.originToCenter()
+                        
+                    end
                     
                 end
             elseif nargin==2
@@ -24,6 +36,81 @@ classdef VoxelData <handle
                 obj.R = varargin{2};
             end
         end
+        
+        function obj = originToCenter(obj)
+            obj.R.XWorldLimits = obj.R.XWorldLimits - mean(obj.R.XWorldLimits);
+            obj.R.YWorldLimits = obj.R.YWorldLimits - mean(obj.R.YWorldLimits);
+            obj.R.ZWorldLimits = obj.R.ZWorldLimits - mean(obj.R.ZWorldLimits);
+        end
+        
+        
+        function objout = setVoxelSizeTo(obj,mm)
+            
+            switch class(mm)
+                case 'Vector3D'
+                    mmx = mm.x;
+                    mmy = mm.y;
+                    mmz = mm.z;
+                case 'double'
+                   if length(mm)==1
+                       mmx = mm;
+                       mmy = mm;
+                       mmz = mm;
+                   elseif length(mm)==3
+                       mmx = mm(1);
+                       mmy = mm(2);
+                       mmz = mm(3);
+                   else 
+                       error('VoxelSize should be 1x1, or 1x3 or a Vector3D')
+                   end
+                   
+            end
+            
+            newR = imref3d(obj.R.ImageSize,mmx,mmy,mmz);
+            newVoxelData = VoxelData(obj.Voxels,newR);
+            
+            %re-align centers
+            move = newVoxelData.getCenter - obj.getCenter;
+            newVoxelData.R.XWorldLimits = newVoxelData.R.XWorldLimits - move.x;
+            newVoxelData.R.YWorldLimits = newVoxelData.R.YWorldLimits - move.y;
+            newVoxelData.R.ZWorldLimits = newVoxelData.R.ZWorldLimits - move.z;
+            
+            if nargout==1
+                objout = newVoxelData;
+            elseif nargout==0
+                obj.Voxels = newVoxelData.Voxels;
+                obj.R = newVoxelData.R;
+                objout = obj;
+            end
+            
+        end
+        
+        function objout = move(obj,v3D)
+            %does not overwrite the obj, unless no output is requested.
+                newVoxelData = VoxelData;
+                newVoxelData.Voxels = obj.Voxels;
+                newVoxelData.R = obj.R;
+                
+                %move the imref
+             newVoxelData.R.XWorldLimits = newVoxelData.R.XWorldLimits + v3D.x;
+             newVoxelData.R.YWorldLimits = newVoxelData.R.YWorldLimits + v3D.y;
+             newVoxelData.R.ZWorldLimits = newVoxelData.R.ZWorldLimits + v3D.z;
+             
+             if nargout==1
+                 objout = newVoxelData;
+             else
+                 obj.Voxels = newVoxelData.Voxels;
+                 obj.R = newVoxelData.R;
+                 objout = newVoxelData;
+             end
+        end
+        
+        function center = getCenter(obj)
+            center = Vector3D(mean(obj.R.XWorldLimits),...
+                mean(obj.R.YWorldLimits),...
+                mean(obj.R.ZWorldLimits));
+        end
+        
         
         function savenii(obj,filename)
             
@@ -481,7 +568,7 @@ classdef VoxelData <handle
             
         
         function see(obj)
-            disp('This funnction does not exist. Use [].getmesh.see instead')
+            obj.getmesh().see;
         end
         
         function Points = detectPoints(obj)
@@ -611,7 +698,7 @@ classdef VoxelData <handle
             v = obj.Voxels;
             
             if not(islogical(v))
-                v_bw = v > 0;
+                v_bw = v > 0.5;
             else
                 v_bw = v;
             end

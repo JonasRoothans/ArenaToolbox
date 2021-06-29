@@ -326,7 +326,7 @@ classdef ArenaScene < handle
             function menu_addMRItemplate(hObject,eventdata,template)
                 scene = ArenaScene.getscenedata(hObject);
                 templateVD = VoxelData;
-                templateVD.loadnii(template.path);
+                templateVD.loadnii(template.path,true); %noreslice = true
                 template_actor = templateVD.getslice.see(scene);
                 template_actor.changeName(template.name);
                 
@@ -1367,9 +1367,30 @@ classdef ArenaScene < handle
             end
             
             function menu_edit_count2mesh(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                actorNames = {currentActors.Tag};
+                shortestName = min(cellfun(@length, actorNames));
+                
                 
                 vd = ArenaScene.countMesh(hObject);
-                vd.getmesh.see(ArenaScene.getscenedata(hObject))
+                actor = vd.getmesh.see(ArenaScene.getscenedata(hObject));
+                
+                %change name
+                incommon = '';
+                for iLetter = 1:shortestName
+                    
+                    letter = unique(cellfun(@(x) x(iLetter),actorNames));
+                    if length(letter)==1
+                        incommon = [incommon,letter];
+                    else
+                        break
+                    end
+                end
+                actor.changeName(incommon)
+                changeLayerName(hObject,eventdata)
+                
+   
             end
             
             function menu_camTargetActor(hObject,eventdata)
