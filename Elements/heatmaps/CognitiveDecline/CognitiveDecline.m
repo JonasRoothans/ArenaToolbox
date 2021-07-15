@@ -73,6 +73,8 @@ classdef CognitiveDecline < Heatmap & handle
         end
         
         function y = predictForSample(obj,sample)
+            y = mean(sample);
+            return
             if mean(sample) < 0
                 y = 0;
             elseif mean(sample) < 0.15
@@ -105,6 +107,14 @@ classdef CognitiveDecline < Heatmap & handle
         
         function settings = definePostProcessingSettings()
             settings = nan;
+        end
+        
+         function performReviewPostProcessing(tag,predictionList,filterSettings,pairs)
+            
+           
+            Heatmap.printPredictionList(tag,predictionList,pairs);
+            
+            
         end
         
         

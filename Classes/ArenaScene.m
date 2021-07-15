@@ -90,6 +90,9 @@ classdef ArenaScene < handle
                 'callback',{@panelright_callback},...
                 'max',100);
             
+
+
+            
             obj.handles.btn_toggleleft = uicontrol('style','togglebutton',...
                 'units','normalized',...
                 'position', [xpadding,ypadding,0.4,buttonheight],...
@@ -879,20 +882,44 @@ classdef ArenaScene < handle
                     actor.changeSetting('cathode',cathode);
                     %actor.transform(thisScene,'Fake2MNI')
                     actor.changeName(leadname)
-                    
-                    
-         
-                    
-                    
-                    
                 end
-                
+            end
+            
+            function import_vtk(thisScene,filename)
+                disp('loading a VTK with a custom script. (debug: ArenaScene / import_vtk)')
+                fid = fopen(filename);
+                tline = fgetl(fid);
+                V = [];
+                Fib = {};
+                %read the file:
+                    while ischar(tline)
+                       nums = str2num(tline);
+                            if length(nums)==3 %3D coordinate
+                                   V(end+1,:) = nums;
+                            elseif length(nums)==0 %Text
+                                    disp(tline)
+                            elseif length(nums)==nums(1)+1 %Fiber
+                                    Fib{end+1} = nums(2:end)+1;
+                            end
+                            tline = fgetl(fid);
+                    end
+                    fclose(fid);
+                    %show the fibers
+                    f = Fibers;
+                    for i = 1:numel(Fib)
+                        points = V(Fib{i},:);
+                        pc = PointCloud(points);
+                        f.addVTKfiber(pc,i);
+                    end
+                    actor = f.see(thisScene);
+                    [pn,fn] = fileparts(filename);
+                    actor.changeName(fn);
+
                 
             end
             
             function import_mat(thisScene,filename)
-                
-                
+
                 loaded = load(filename);
                 names = {};
                 data = {};
@@ -1121,14 +1148,15 @@ classdef ArenaScene < handle
                         case '.scn'
                             import_scn(scene,fullfile(pathname,filename{iFile}))
                         case '.mat'
-                            import_mat(thisScene,fullfile(pathname,filename{iFile}))
+                            import_mat(scene,fullfile(pathname,filename{iFile}))
                         case '.swtspt'
                             A_loadsweetspot(scene,fullfile(pathname,filename{iFile}));
                         case '.dcm'
                             addSuretuneSession(scene,fullfile(pathname,filename{iFile}))
                         case '.xlsx'
                             importExcel(scene,fullfile(pathname,filename{iFile}));
-                            
+                        case '.vtk'
+                            import_vtk(scene,fullfile(pathname,filename{iFile}))
                             
                             
                             
@@ -1335,7 +1363,8 @@ classdef ArenaScene < handle
                 try
                 VTAObject = makeVTA(E,vtaname);
                 catch
-                    disp('VTA not available in pool')
+                    warning('VTA not available in pool')
+                    return
                 end
                 
                 %Ask for Space
@@ -2760,6 +2789,41 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                                 original_target = camtarget;
                                 viewline = original_pos - original_target;
                                 campos(original_target + viewline / 0.9);
+                            case 'leftarrow'
+                               STEPSIZE = pi/60;
+                                original_pos = campos;
+                                original_target = camtarget;
+   
+                                viewline = Vector3D(original_target - original_pos);
+         
+                                radAxi = viewline.getAxiAngle;
+                                newDirection = Vector3D.setAxiAngle(STEPSIZE+radAxi).getArray';
+ 
+                                viewline.z  = 0;
+                                distance = viewline.norm;
+                                
+                                new_position = original_target + newDirection*distance;
+                                new_position(3) = original_pos(3);
+                                campos(new_position);
+                         
+                                
+                            case 'rightarrow'
+                               STEPSIZE = -pi/60;
+                                original_pos = campos;
+                                original_target = camtarget;
+                                
+                                viewline = Vector3D(original_target - original_pos);
+         
+                                radAxi = viewline.getAxiAngle;
+                                newDirection = Vector3D.setAxiAngle(STEPSIZE+radAxi).getArray';
+ 
+                                viewline.z  = 0;
+                                distance = viewline.norm;
+                                
+                                new_position = original_target + newDirection*distance;
+                                new_position(3) = original_pos(3);
+                                campos(new_position);
+                        
                                 
                             case 's'
                                 if numel(eventdata.Modifier)>2

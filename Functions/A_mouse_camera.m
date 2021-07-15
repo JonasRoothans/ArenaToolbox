@@ -31,6 +31,21 @@ end
 
     function [] = zoom_fcn(hfig, evt)
         
+       
+        
+        %check if mouse is hovering the listbox
+        if strcmp(hfig.UserData.handles.panelright.Visible,'on')
+            listboxpos = hfig.UserData.handles.panelright.Position;
+            currpt = get(hfig,'CurrentPoint');
+            Xinside = currpt(1)>listboxpos(1) && currpt(1) < listboxpos(1)+listboxpos(3);
+            Yinside = currpt(2)>listboxpos(2) && currpt(2) < listboxpos(2)+listboxpos(4);
+            if Xinside && Yinside
+                %don't zoom
+                return
+            end
+        end
+
+        
         currentPos = Vector3D(campos);
         currentTarget = Vector3D(camtarget);
         difference = currentPos-currentTarget;
@@ -40,12 +55,14 @@ end
         if evt.VerticalScrollCount > 0
             newpos = currentPos+direction*distance*zoomFactor_jr;
             campos([newpos.x,newpos.y,newpos.z])
-           % camzoom(1 + evt.VerticalScrollCount / zoomFactor)
+            % camzoom(1 + evt.VerticalScrollCount / zoomFactor)
         else
             %camzoom(1 / (1 + abs(evt.VerticalScrollCount) / zoomFactor))
             newpos = currentPos-direction*distance*zoomFactor_jr;
             campos([newpos.x,newpos.y,newpos.z])
         end
+     
+        
     end
 
 

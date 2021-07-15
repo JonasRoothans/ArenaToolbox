@@ -25,6 +25,54 @@ classdef Fibers < handle & matlab.mixin.Copyable
 %                 end
         end
             
+        function cog = getCOG(obj)
+            cog = obj.Vertices(1).getCOG;
+        end
+        
+        function obj = addVTKfiber(obj,vertices,fiberindex)
+            %
+                n = numel(obj.Vertices)+1;
+                obj.Vertices(n) = vertices;
+                obj.Indices(n) = fiberindex;
+        end
+        
+        
+        function obj = drawVTKfibers(obj,actor,scene)
+            axes(scene.handles.axes)
+            obj.ActorHandle = actor;
+            
+            try startHere = length(obj.ActorHandle.Visualisation.handle)+1;
+            catch
+                startHere = 1;
+            end
+                
+            
+            for iFiber = startHere:obj.ActorHandle.Visualisation.settings.numberOfFibers
+                vertices = obj.Vertices(iFiber).Vectors.getArray;
+                h = streamtube({vertices}, 0.5,[1 3]);
+                
+                %color
+                color = PointCloud(abs(diff(vertices,1))).Vectors.unit;
+                color = [color;color(end,:)];
+                
+                
+                colorArray = color.getArray;
+                
+                streamFaceColors = [];
+                streamFaceColors(:,:,1) = repmat(colorArray(:,1),1, 3+1);
+                streamFaceColors(:,:,2) = repmat(colorArray(:,2),1, 3+1);
+                streamFaceColors(:,:,3) = repmat(colorArray(:,3),1, 3+1);
+                
+                
+                
+                set(h, 'FaceColor', 'interp', 'CData', streamFaceColors, 'CDataMapping', 'direct', 'EdgeColor', 'none', 'FaceAlpha', obj.ActorHandle.Visualisation.settings.faceOpacity/100);
+                %fv = surf2patch(h);
+                %obj.Handles(n) = h;
+                obj.ActorHandle.Visualisation.handle(iFiber) = h;
+                
+            end
+        end
+        
         function obj = drawNewFiberInScene(obj,vertices,fiberindex,scene)
                         vizsettings = obj.ActorHandle.Visualisation.settings; %as set in arena
                         axes(scene.handles.axes)
