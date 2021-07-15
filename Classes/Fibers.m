@@ -71,6 +71,14 @@ classdef Fibers < handle & matlab.mixin.Copyable
                 obj.ActorHandle.Visualisation.handle(iFiber) = h;
                 
             end
+            
+            for iFiber = length(obj.ActorHandle.Visualisation.handle):-1:obj.ActorHandle.Visualisation.settings.numberOfFibers+1
+                    delete(obj.ActorHandle.Visualisation.handle(iFiber));
+                    obj.ActorHandle.Visualisation.handle(iFiber) = [];
+                %                 delete(obj.Visualisation.handle(settings.numberOfFibers+1:end))
+%                    obj.Visualisation.handle(settings.numberOfFibers+1:end) = [];
+            end
+            
         end
         
         function obj = drawNewFiberInScene(obj,vertices,fiberindex,scene)
@@ -153,7 +161,7 @@ classdef Fibers < handle & matlab.mixin.Copyable
         
         
         
-        function [thisActor,thisScene] = see(obj, sceneobj)
+        function [thisActor,thisScene] = see(obj, sceneobj, OPTIONALfibercount)
             global arena
             if nargin==1
                 if isempty(arena)
@@ -167,7 +175,13 @@ classdef Fibers < handle & matlab.mixin.Copyable
             end
             
             if isempty(thisScene);return;end %user cancels
-            thisActor = thisScene.newActor(obj);
+            
+            if nargin<3
+                thisActor = thisScene.newActor(obj);
+            else
+                thisActor = thisScene.newActor(obj,OPTIONALfibercount);
+            end
+                
             
 %             figure;
 %             p= patch('Faces',obj.Faces,'Vertices',obj.Vertices);

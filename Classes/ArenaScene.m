@@ -906,12 +906,22 @@ classdef ArenaScene < handle
                     fclose(fid);
                     %show the fibers
                     f = Fibers;
+                    
+                    %dialog box
+                    prompt = {['You are loading a VTK file with ',num2str(numel(Fib)),' elements. How many do you want to visualize?'] };
+                    dlgtitle = 'Arena VTK loader';
+                    definput = {num2str(min([100, numel(Fib)]))};
+                    dims = [1 40];
+                    opts.Interpreter = 'tex';
+                    answer = inputdlg(prompt,dlgtitle,dims,definput,opts);
+
                     for i = 1:numel(Fib)
                         points = V(Fib{i},:);
                         pc = PointCloud(points);
                         f.addVTKfiber(pc,i);
                     end
-                    actor = f.see(thisScene);
+                    
+                    actor = f.see(thisScene,str2num(answer{1}));
                     [pn,fn] = fileparts(filename);
                     actor.changeName(fn);
 
