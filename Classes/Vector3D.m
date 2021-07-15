@@ -5,13 +5,13 @@ classdef Vector3D
         x
         y
         z
-         
+        
     end
     
     properties (Hidden)
         description = '';
     end
-   
+    
     
     methods
         function obj = Vector3D(varargin)
@@ -32,11 +32,11 @@ classdef Vector3D
         
         function out = unit(obj)
             if length(obj) ==1
-            v = obj.getArray();
-            l = norm(v);
-            v = v/l;
-            
-            out = Vector3D(v);
+                v = obj.getArray();
+                l = norm(v);
+                v = v/l;
+                
+                out = Vector3D(v);
             else
                 out = obj;
                 for i = 1:numel(obj)
@@ -79,7 +79,7 @@ classdef Vector3D
         end
         
         function bool = iszero(obj)
-           bool = all(obj.getArray==0);
+            bool = all(obj.getArray==0);
         end
         
         function bool = eq(o1,o2)
@@ -96,7 +96,7 @@ classdef Vector3D
         end
         
         
-      
+        
         
         
         %---basic operations
@@ -146,14 +146,14 @@ classdef Vector3D
         
         function out = rotate(obj,x, y, z)
             
-             Rx = [1 0 0; 0 cos(x) -sin(x); 0 sin(x) cos(x)];
-             Ry = [cos(y) 0 sin(y); 0 1 0; -sin(y) 0 cos(y)];
-             Rz = [cos(z) -sin(z) 0; sin(z) cos(z) 0; 0 0 1];
-             
-             R= Rx*Ry*Rz;
-             R(4,4) = 1;
-             out = obj.transform(R);
-             
+            Rx = [1 0 0; 0 cos(x) -sin(x); 0 sin(x) cos(x)];
+            Ry = [cos(y) 0 sin(y); 0 1 0; -sin(y) 0 cos(y)];
+            Rz = [cos(z) -sin(z) 0; sin(z) cos(z) 0; 0 0 1];
+            
+            R= Rx*Ry*Rz;
+            R(4,4) = 1;
+            out = obj.transform(R);
+            
             
         end
         
@@ -176,48 +176,100 @@ classdef Vector3D
                 error('Transformation matrix required')
             end
             if ~(round(T(1:3,4),5)==[0;0;0])
-               if (round(T(4,1:3),5)==[0,0,0]) 
-                   warning('T was probably transposed. This is automatically repaired.')
-                   T = T';
-               else
-                   disp(T)
-                   error ('Invalid transformation matrix.')
-               end
+                if (round(T(4,1:3),5)==[0,0,0])
+                    warning('T was probably transposed. This is automatically repaired.')
+                    T = T';
+                else
+                    disp(T)
+                    error ('Invalid transformation matrix.')
+                end
             end
-
-                % Add 1 to v3d
-                if numel(o1)==1
-                    v3d = [o1.getArray',1];
-                else
-                    v3d = [o1.getArray,ones(numel(o1),1)];
-                end
-
-                % Perform tranformation
-                transformed = v3d*T;
-
-                % create new Vector3D
-                if numel(o1)==1
-                    out = Vector3D(transformed(1:3));
-                else
-                    temp = PointCloud(transformed(:,1:3));
-                    out = temp.Vectors;
-                end
-                
+            
+            % Add 1 to v3d
+            if numel(o1)==1
+                v3d = [o1.getArray',1];
+            else
+                v3d = [o1.getArray,ones(numel(o1),1)];
+            end
+            
+            % Perform tranformation
+            transformed = v3d*T;
+            
+            % create new Vector3D
+            if numel(o1)==1
+                out = Vector3D(transformed(1:3));
+            else
+                temp = PointCloud(transformed(:,1:3));
+                out = temp.Vectors;
+            end
+            
+        end
+        
+        function rad = getAxiAngle(obj)
+            rad = atan(obj.x/obj.y);
+            if obj.y>0
+                rad = rad+pi;
+            end
         end
         
         
-            
+        
+        function rad = getSagAngle(obj)
+            rad = atan(obj.y/obj.z);
+            if obj.z>0
+                rad = rad+pi;
+            end
+        end
+        
+        
+        
+        function rad = getCorAngle(obj)
+            rad = atan(obj.z/obj.x);
+            if obj.x>0
+                rad = rad+pi;
+            end
+        end
+        
+        
+        
         
     end
     
-     methods(Static)
-%-- list operations
+    methods(Static)
+        %-- list operations
         function list = makelist(array)
             list = zeros(size(array,1),1);
             for i = 1:size(array,1)
                 list(i) = Vector3D(array(i,:));
             end
         end
-   end
+        
+        function obj = setAxiAngle(rad)
+            obj = Vector3D;
+            obj.x = sin(rad);
+            obj.y = cos(rad);
+            obj.z = 0;
+            
+                
+        end
+        
+        function obj = setSagAngle(rad)
+            obj = Vector3D;
+            obj.x = 0;
+            obj.y = sin(rad);
+            obj.z = cos(rad);
+            
+        end
+        
+        function obj = setCorAngle(rad)
+            obj = Vector3D;
+            obj.x = cos(rad);
+            obj.y = 0;
+            obj.z = sin(rad);
+            
+        end
+        
+        
+    end
 end
-
+    

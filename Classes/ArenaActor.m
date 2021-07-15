@@ -472,18 +472,56 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         function settings = visualizeFibers(obj,settings,data,scene)
             axes(scene.handles.axes)
             
-            %---- default settings
+               if isempty(data.Connectome) %in case of VTK fibers
+                   switch class(settings)
+                       case 'double'
+                           %default VTK 
+                           faceOpacity = 3;
+                           colorByDirection = true;
+                           colorFace = scene.getNewColor(scene);
+                           
+                           if ~isnan(settings)
+                               nFibers = settings;
+                           else
+                               nFibers = length(data.Vertices);
+                               
+                           end
+                           
+                       case 'struct'
+%                            obj.Visualisation.settings = settings;
+                           nFibers = settings.numberOfFibers;
+                           faceOpacity = settings.faceOpacity;
+                           colorByDirection = settings.colorByDirection;
+                           colorFace = settings.colorFace;
+                   end
+                   
+                   
+                    
+                    obj.Visualisation.settings.colorFace = colorFace;
+                    obj.Visualisation.settings.colorByDirection = colorByDirection;
+                    obj.Visualisation.settings.faceOpacity = faceOpacity;
+                    obj.Visualisation.settings.numberOfFibers = nFibers;
+                    data.drawVTKfibers(obj,scene)
+                    
+                    settings = obj.Visualisation.settings; %required for output
+                    %update
+                    updateCC(obj,scene)
+                    return
+               end
+                
+            %---- default settings for connectome
             if not(isstruct(settings)) % mesh has no voxel image as source
+  
                 settings = struct;
                 settings.colorFace = scene.getNewColor(scene);%[0 188 216]/255;
                 settings.numberOfFibers = 100;
                 settings.faceOpacity = 50;
                 settings.colorByDirection = true;
-                 
-                
+
                 obj.Visualisation.settings = settings;
                 
-                
+             
+
             else 
             
             
@@ -492,17 +530,24 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
            if settings.numberOfFibers ~= numel(obj.Visualisation.handle)
                if settings.numberOfFibers < numel(obj.Visualisation.handle)
                    
-                   obj.Data.Vertices(settings.numberOfFibers+1:end) = [];
-                   obj.Data.Indices(settings.numberOfFibers+1:end) = [];
+                   if ~isempty(data.Connectome)
+                       obj.Data.Vertices(settings.numberOfFibers+1:end) = [];
+                       obj.Data.Indices(settings.numberOfFibers+1:end) = [];
+                   end
                    delete(obj.Visualisation.handle(settings.numberOfFibers+1:end))
                    obj.Visualisation.handle(settings.numberOfFibers+1:end) = [];
                    
                else
-                   getFibersPassingThroughMesh(obj.Data.Connectome,...
-                       obj.Data.IncludeSeed,...
-                       settings.numberOfFibers,...
-                       scene,...
-                       obj.Data)
+                   if isempty(data.Connectome) %in case of VTK fibers
+                       obj.Visualisation.settings.numberOfFibers = settings.numberOfFibers;
+                       data.drawVTKfibers(obj,scene)
+                   else
+                       getFibersPassingThroughMesh(obj.Data.Connectome,...
+                           obj.Data.IncludeSeed,...
+                           settings.numberOfFibers,...
+                           scene,...
+                           obj.Data)
+                   end
                end
            end
            
@@ -514,8 +559,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
            end
            
            % update styling settings if changed:
-%             if or(settings.colorFace ~= obj.Visualisation.settings.colorFace,...
-%                     settings.colorByDirection ~=obj.Visualisation.settings.colorByDirection)
+             if or(settings.colorFace ~= obj.Visualisation.settings.colorFace,...
+                     settings.colorByDirection ~=obj.Visualisation.settings.colorByDirection)
 %                 %apply settings
                 for iH = 1:numel(obj.Visualisation.handle)
                     if settings.colorByDirection
@@ -539,28 +584,29 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     obj.Visualisation.handle(iH).CData = CData;
 
                 end
-            %end
+            end
             
             
             %mirrored
             %regenerate the first fiber and see if the vertices are the
             %same
-            idcs_cumsum = cumsum(obj.Data.Connectome.Data.idx);
-            iFib = data.Indices(1);
-            try
-            start = idcs_cumsum(iFib-1)+1;
-            catch
-                start = 1;
+            if not(isempty(obj.Data.Connectome)) %doesn't work on vtk
+                idcs_cumsum = cumsum(obj.Data.Connectome.Data.idx);
+                iFib = data.Indices(1);
+                try
+                start = idcs_cumsum(iFib-1)+1;
+                catch
+                    start = 1;
+                end
+
+                FirstVertex = obj.Data.Connectome.Data.fibers(start,1);
+
+
+
+                if not(FirstVertex==obj.Data.Vertices(1).Vectors(1).x)
+                    obj.Data.redraw(scene,obj);
+                end
             end
-           
-            FirstVertex = obj.Data.Connectome.Data.fibers(start,1);
-            
-            
-            
-            if not(FirstVertex==obj.Data.Vertices(1).Vectors(1).x)
-                obj.Data.redraw(scene,obj);
-            end
-            
                 
             
             
@@ -693,6 +739,10 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         
         %TO DO: THIS SWITCH SHOULD BE AVOIDED.
         %INSTEAD: DO OBJ.DATA.VISUALIZE() AND PUT THE METHOD IN THE DATACLASS
+        
+        %Important: The first property you add to Settings must be COLOR!
+        %Because this will be used for the layer indication
+      
         function settings = visualize(obj,settings,data,scene)
             switch class(data)
                 case 'PointCloud'

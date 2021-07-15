@@ -188,6 +188,34 @@ switch class(actor.Data)
         fprintf(fidmtl,['d ',num2str(alpha),'\n']);
         fprintf(fidmtl,'illum 9\n');
         
+    case 'Fibers'
+        nVertex = 0;
+        newVertex = 0;
+        for iFiber = 1:length(actor.Visualisation.handle)
+            nVertex = nVertex+newVertex;
+            newVertex = 0;
+            fvc = surf2patch(actor.Visualisation.handle(iFiber));
+            
+                    Vertices = fvc.vertices;
+                    Faces = fvc.faces;
+        color = fvc.facevertexcdata;
+        alpha = 1;
+        materialname = ['fiber',num2str(iFiber)];
+        
+        
+        %add to obj
+        fprintf(fid,['o ',materialname,'\n']);
+            for i=1:size(Vertices,1)
+                fprintf(fid,'v %f %f %f\n',Vertices(i,1),Vertices(i,2),Vertices(i,3));
+                newVertex = newVertex+1;
+            end
+            fprintf(fid,'s on\n');
+            for i=1:size(Faces,1)
+                fprintf(fid,'f %d %d %d %d\n',Faces(i,1)+nVertex,Faces(i,2)+nVertex,Faces(i,3)+nVertex, Faces(i,4)+nVertex);
+            end
+            
+            
+        end
     otherwise
         keyboard
 end

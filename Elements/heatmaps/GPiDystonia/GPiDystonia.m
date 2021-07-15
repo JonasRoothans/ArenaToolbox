@@ -22,7 +22,7 @@ classdef GPiDystonia < Heatmap & handle
             obj.HeatmapModel.signed_p_map = VoxelData((1-obj.HeatmapModel.pmap.Voxels).*sign(obj.HeatmapModel.tmap.Voxels),sleft.imref);
         end
         
-        function [prediction, confidence comments] = predictionForVTAs(obj,VTAlist)
+        function [prediction, confidence, comments] = predictionForVTAs(obj,VTAlist)
             sample = [];
             comments = {};
             confidence = [];
@@ -109,18 +109,70 @@ classdef GPiDystonia < Heatmap & handle
         end
         
         function filterSettings = definePostProcessingSettings()
+            filterSettings = nan;
+            if 0 %temporarily switched off
+                userinput = inputdlg({'Minimal confidence of the heatmap [0-1]',...
+                    'Amplitude optimization based on  n = ',...
+                    'Maximal accepted amplitude deviation (sigma)'},...
+                    'Post processing',...
+                    1,...
+                    {'0.5','5','1'});
+                filterSettings.minConfidence = str2num(userinput{1});
+                filterSettings.n = str2num(userinput{2});
+                filterSettings.sigma = str2num(userinput{3});
+            end
+        end
+        
+        function performReviewPostProcessing(tag,predictionList,filterSettings,pairs)
             
-            userinput = inputdlg({'Minimal confidence of the heatmap [0-1]',...
-                'Amplitude optimization based on  n = ',...
-                'Maximal accepted amplitude deviation (sigma)'},...
-                'Post processing',...
-                1,...
-                {'0.5','5','1'});
-            filterSettings.minConfidence = str2num(userinput{1});
-            filterSettings.n = str2num(userinput{2});
-            filterSettings.sigma = str2num(userinput{3});
+            blackOrRed = GPiDystonia.filterPredictions(predictionList,filterSettings);
+            Heatmap.printPredictionList(tag,predictionList,pairs,blackOrRed);
             
             
+        end
+        
+        function blackOrRed = filterPredictions(predictionList,filterSettings)
+            if isnan(filterSettings)
+                blackOrRed = ones(size(predictionList));
+                return
+            end
+            [sorted,order] = sort(vertcat(predictionList.Output),'descend');
+            powerConsumption = [];
+            
+            for iPair = 1:length(predictionList)
+                sum_of_amplitudes = 0;
+                for iVTA = 1:numel(predictionList(iPair).Input.VTAs)
+                    sum_of_amplitudes  =  sum_of_amplitudes+ predictionList(iPair).Input.VTAs(iVTA).Settings.amplitude;
+                end
+                powerConsumption(iPair) = sum_of_amplitudes/iVTA;
+            end
+            
+            
+            power_sorted = powerConsumption(order);
+            
+            %             %-- confidence check
+            leastconfidence = min(vertcat(predictionList(:).Confidence)');
+            if length(leastconfidence)==1
+                passedConfidenceTest = vertcat(predictionList(:).Confidence)' > filterSettings.minConfidence;
+            else
+                passedConfidenceTest = leastconfidence > filterSettings.minConfidence;
+            end
+            %
+            %             %-- outlier amplitudes
+            power_filtered_and_sorted = power_sorted(passedConfidenceTest);
+            
+            if length(power_filtered_and_sorted)<filterSettings.n
+                filterSettings.n = length(power_filtered_and_sorted);
+            end
+            mu_power = mean(power_filtered_and_sorted(1:filterSettings.n));
+            sigma_power = std(power_filtered_and_sorted(1:filterSettings.n));
+            amp_cutoff = mu_power+sigma_power*filterSettings.sigma;
+            passedAmpTest = power_sorted<amp_cutoff;
+            
+            if sigma_power==0 %if all amps are equal, all should pass.
+                passedAmpTest = true(1,length(passedAmpTest));
+            end
+%             
         end
         
         
