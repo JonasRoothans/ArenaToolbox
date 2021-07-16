@@ -27,7 +27,7 @@ classdef ArenaScene < handle
                     [predictionmanager] = PredictionManager();
                 end
                 
-                global connectomes
+            global connectomes
                 if not(isa(connectomes,'ConnectomeManager'))
                     connectomes = ConnectomeManager;
                 end

@@ -16,7 +16,7 @@ classdef ConnectomeManager < handle
                 if not(exist('config.mat','file'))
                     ArenaManager.setup(ArenaFolder);
                 end
-                obj.setup(); %fills up the Connectome-list
+                
         end
             
         
@@ -39,6 +39,7 @@ classdef ConnectomeManager < handle
        
         
         function c = selectConnectome(obj,index)
+            obj.setup(); %fills up the Connectome-list
             %loop over connectomes, and list all the names
             if nargin ==2
                 c = obj.Connectomes(index).cache;
@@ -103,6 +104,7 @@ classdef ConnectomeManager < handle
                 if isfield(config,'connectomePathList')
                     obj.addPathList(config.connectomePathList);
                 else
+                    
                     waitfor(msgbox('Please find your connectome'))
                     
                     
