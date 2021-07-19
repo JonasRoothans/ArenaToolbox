@@ -351,11 +351,10 @@ classdef VoxelData <handle
                 value = interp3(X,Y,Z,obj.Voxels,coordinate.x,coordinate.y,coordinate.z);
             elseif isa(coordinate,'PointCloud')
                 value = [];
-                for iVector = 1:numel(coordinate.Vectors)
-                    thisVector = coordinate.Vectors(iVector);
-                    value(iVector) = interp3(X,Y,Z,obj.Voxels,thisVector.x,thisVector.y,thisVector.z);
-                end
-                    
+                
+                allVectors = coordinate.Vectors.getArray;
+                value = interp3(X,Y,Z,obj.Voxels,allVectors(:,1),allVectors(:,2),allVectors(:,3));
+  
             end
         end
         

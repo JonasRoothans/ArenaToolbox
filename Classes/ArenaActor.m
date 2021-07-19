@@ -478,7 +478,10 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                            %default VTK 
                            faceOpacity = 3;
                            colorByDirection = true;
+                           colorByWeight = false;
+                           colorSolid = false;
                            colorFace = scene.getNewColor(scene);
+                           colorFace2 = [1 1 1];
                            
                            if ~isnan(settings)
                                nFibers = settings;
@@ -492,13 +495,19 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                            nFibers = settings.numberOfFibers;
                            faceOpacity = settings.faceOpacity;
                            colorByDirection = settings.colorByDirection;
+                           colorByWeight = settings.colorByWeight;
+                           colorSolid = settings.colorSolid;
                            colorFace = settings.colorFace;
+                           colorFace2 = settings.colorFace2;
                    end
                    
                    
                     
                     obj.Visualisation.settings.colorFace = colorFace;
+                    obj.Visualisation.settings.colorFace2 = colorFace2;
                     obj.Visualisation.settings.colorByDirection = colorByDirection;
+                    obj.Visualisation.settings.colorByWeight= colorByWeight;
+                    obj.Visualisation.settings.colorSolid = colorSolid;
                     obj.Visualisation.settings.faceOpacity = faceOpacity;
                     obj.Visualisation.settings.numberOfFibers = nFibers;
                     data.drawVTKfibers(obj,scene)
@@ -514,6 +523,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
   
                 settings = struct;
                 settings.colorFace = scene.getNewColor(scene);%[0 188 216]/255;
+                settings.colorFace = settings.colorFace2;
                 settings.numberOfFibers = 100;
                 settings.faceOpacity = 50;
                 settings.colorByDirection = true;
@@ -696,10 +706,12 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     scene.newconfigcontrol(obj,'button','mesh','mesh')
                     %scene.newconfigcontrol(obj,'checkbox',settings.clipDark,'clipDark');
                 case 'Fibers'
-                    scene.newconfigcontrol(obj,'color',settings.colorFace,'colorFace');
+                    scene.newconfigcontrol(obj,'color',{settings.colorFace,settings.colorFace2},{'colorFace','colorFace2'});
                     scene.newconfigcontrol(obj,'edit',settings.numberOfFibers,'numberOfFibers');
                     scene.newconfigcontrol(obj,'edit',settings.faceOpacity,'faceOpacity');
-                    scene.newconfigcontrol(obj,'checkbox',settings.colorByDirection,'colorByDirection');
+                    %scene.newconfigcontrol(obj,'checkbox',settings.colorByDirection,'colorByDirection');
+                    scene.newconfigcontrol(obj,'radio',{settings.colorByDirection,settings.colorByWeight,settings.colorSolid},{'colorByDirection','colorByWeight','colorSolid'});
+                    
                 case 'Contour'
                     scene.newconfigcontrol(obj,'color',{settings.colorFace,settings.colorEdge},{'colorFace','colorEdge'})
                     scene.newconfigcontrol(obj,'edit',settings.faceOpacity,'faceOpacity')

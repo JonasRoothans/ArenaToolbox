@@ -279,6 +279,8 @@ classdef ArenaScene < handle
             
             obj.handles.menu.dynamic.Slicei.multiply = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: multiply images','callback',{@menu_multiplyslices},'Enable','off');
             
+            obj.handles.menu.dynamic.Fibers.interferenceWithMap = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: interference with map','callback',{@menu_fiberMapInterference},'Enable','off');
+            
             %obj.handles.cameratoolbar = cameratoolbar(obj.handles.figure,'Show');
             obj.handles.cameratoolbar = A_cameratoolbar(obj.handles.figure);
             obj.handles.light = camlight('headlight');
@@ -2338,6 +2340,60 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 
             end
             
+            function menu_fiberMapInterference(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                %get map
+                labels = {scene.Actors.Tag};
+                [indx,tf] = listdlg('PromptString',{'Select one map'},'ListString',labels);
+                if isa(scene.Actors(indx).Data,'Mesh')
+                    map = scene.Actors(indx).Data.Source;
+                elseif isa(scene.Actors(indx).Data,'Slicei')
+                    map = scene.Actors(indx).Data.parent;
+                else
+                    return
+                end
+                
+                %get method
+                options = {'Min value','Max value','Average Value','Sum'};
+                [indx,tf] = listdlg('PromptString',{'Select method'},'ListString',options);
+                
+                %loop. First join all the fibers. For quick processing
+                Vectors = Vector3D.empty;
+                FiberIndices = [];
+                weights = [];
+                for iFiber = 1:numel(currentActors.Data.Vertices)
+                    FiberIndices(iFiber) = length(Vectors)+1;
+                    Vectors = [Vectors;currentActors.Data.Vertices(iFiber).Vectors];
+                end
+                FiberIndices(iFiber+1) = length(Vectors)+1;
+                 
+                %sample the map
+                mapvalue = map.getValueAt(PointCloud(Vectors));
+                
+                for iFiber = 1:numel(currentActors.Data.Vertices)
+                    weights = mapvalue(FiberIndices(iFiber):FiberIndices(iFiber+1)-1);
+                    switch options{indx}
+                        case 'Min value'
+                            currentActors.Data.Weight(iFiber) = min(weights);
+                        case 'Max value'
+                            currentActors.Data.Weight(iFiber) = max(weights);
+                        case 'Average Value'
+                            currentActors.Data.Weight(iFiber) = mean(weights);
+                        case 'Sum'
+                            currentActors.Data.Weight(iFiber) = sum(weights);
+                    end
+                end
+
+                
+                currentActors.changeSetting('colorByWeight',true)
+                
+
+                
+            end
+                
+            
             function menu_showFibers(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
@@ -2749,6 +2805,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 settings = [];
                 for i = 1:numel(scene.handles.configcontrols)
                     h = get(scene.handles.configcontrols(i));
+                    try
                     switch h.Style
                         case 'text'
                             continue
@@ -2765,8 +2822,13 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                             settings.(h.Tag) = h.Value;
                         case 'popupmenu'
                             settings.(h.Tag) = h.String{h.Value};
+                        case 'radiobutton'
+                            settings.(h.Tag) = h.Value;
                         otherwise
                             keyboard
+                    end
+                    catch
+                        %radioboxes do not have "style" and are skipped
                     end
                     
                 end
@@ -3242,6 +3304,11 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
             editwidth = 0.1;
             popupwidth = 0.5;
             popupheight = 0.1;
+            radiogroupwidth = 0.9;
+            radiogroupheight = 0.15;
+            radiobuttonwidth =  100;
+            radiobuttonheight=  20;
+            
             
             
             n = numel(obj.handles.configcontrols)+1;
@@ -3371,6 +3438,25 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                         
                     end
                     obj.configcontrolpos = top+ypadding+editheight;
+                case 'radio'
+                    obj.handles.configcontrols(end+1) = uibuttongroup('Parent',obj.handles.panelleft,...
+                        'units','normalized',...
+                        'position',[left+xpadding,1-ypadding-checkboxheight-top,radiogroupwidth,radiogroupheight]);
+                    
+                    radiopanel = obj.handles.configcontrols(end);
+                    set(radiopanel,'Clipping','off')
+                    
+                        left = 10;
+                    for i = 1:numel(value)
+                        
+                        obj.handles.configcontrols(end+1) = uicontrol('style','radiobutton',...
+                            'Parent',radiopanel,... 
+                            'Position',[left,5,radiobuttonwidth,radiobuttonheight],...
+                            'String',tag{i},...
+                            'Tag',tag{i},...
+                            'Value',value{i});
+                        left = left+radiobuttonwidth;
+                    end
                     
                 otherwise
                     keyboard

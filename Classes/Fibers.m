@@ -4,6 +4,7 @@ classdef Fibers < handle & matlab.mixin.Copyable
     properties
         Vertices = PointCloud.empty
         Indices = [];
+        Weight = [];
         IncludeSeed = Mesh.empty
         Connectome
         Settings
@@ -41,22 +42,50 @@ classdef Fibers < handle & matlab.mixin.Copyable
             axes(scene.handles.axes)
             obj.ActorHandle = actor;
             
-            try startHere = length(obj.ActorHandle.Visualisation.handle)+1;
+            %delete all
+            try
+            delete(obj.ActorHandle.Visualisation.handle(:));
+            obj.ActorHandle.Visualisation.handle(:) = [];
             catch
-                startHere = 1;
+                %no fibers were drawn yet
             end
+            
+
+                startHere = 1;
+    
                 
             
             for iFiber = startHere:obj.ActorHandle.Visualisation.settings.numberOfFibers
                 vertices = obj.Vertices(iFiber).Vectors.getArray;
                 h = streamtube({vertices}, 0.5,[1 3]);
                 
-                %color
-                color = PointCloud(abs(diff(vertices,1))).Vectors.unit;
-                color = [color;color(end,:)];
+                if obj.ActorHandle.Visualisation.settings.colorByDirection
+                    color = PointCloud(abs(diff(vertices,1))).Vectors.unit;
+                    color = [color;color(end,:)];
+                    colorArray = color.getArray;
+                elseif obj.ActorHandle.Visualisation.settings.colorByWeight && not(isempty(obj.Weight))
+                   colorvalue = (obj.Weight(iFiber) - min(obj.Weight))/(max(obj.Weight)-min(obj.Weight));
+                   low = colorvalue;
+                   high = 1-low;
+                   
+                   lowRGB = obj.ActorHandle.Visualisation.settings.colorFace;
+                   highRGB = obj.ActorHandle.Visualisation.settings.colorFace2;
+                   CData = ones(size(h.XData,1),3);
+                   CData(:,1) = CData(:,1)*low*lowRGB(1)+CData(:,1)*high*highRGB(1);
+                   CData(:,2) = CData(:,2)*low*lowRGB(2)+CData(:,2)*high*highRGB(2);
+                   CData(:,3) = CData(:,3)*low*lowRGB(3)+CData(:,3)*high*highRGB(3);
+                   colorArray = CData;
+                    
+                    else
+                        CData = ones(size(h.XData,1),3);
+                        CData(:,1) = CData(:,1)*obj.ActorHandle.Visualisation.settings.colorFace(1);
+                        CData(:,2) = CData(:,2)*obj.ActorHandle.Visualisation.settings.colorFace(2);
+                        CData(:,3) = CData(:,3)*obj.ActorHandle.Visualisation.settings.colorFace(3);
+                        colorArray = CData;
+                end
                 
                 
-                colorArray = color.getArray;
+                
                 
                 streamFaceColors = [];
                 streamFaceColors(:,:,1) = repmat(colorArray(:,1),1, 3+1);
@@ -72,12 +101,6 @@ classdef Fibers < handle & matlab.mixin.Copyable
                 
             end
             
-            for iFiber = length(obj.ActorHandle.Visualisation.handle):-1:obj.ActorHandle.Visualisation.settings.numberOfFibers+1
-                    delete(obj.ActorHandle.Visualisation.handle(iFiber));
-                    obj.ActorHandle.Visualisation.handle(iFiber) = [];
-                %                 delete(obj.Visualisation.handle(settings.numberOfFibers+1:end))
-%                    obj.Visualisation.handle(settings.numberOfFibers+1:end) = [];
-            end
             
         end
         
