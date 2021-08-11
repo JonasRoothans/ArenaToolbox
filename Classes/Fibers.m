@@ -1,4 +1,4 @@
-classdef Fibers < handle & matlab.mixin.Copyable
+classdef Fibers < handle & matlab.mixin.Copyable & ArenaActorRendering
     %MESH Contains Faces and Vertices. Can be initialised with VoxelData
     
     properties
@@ -9,6 +9,14 @@ classdef Fibers < handle & matlab.mixin.Copyable
         Connectome
         Settings
         ActorHandle
+    end
+    
+    %Default visualisation Settings
+    properties (Hidden)
+        FIBERTHICKNESS = 0.5
+        FIBERCIRCUMFERRENCE = [1, 3] %scale, nvertices
+        MATERIALSHADING = [0.8,	0.8,	0.0,	10,		1.0];
+        
     end
     
    
@@ -30,12 +38,7 @@ classdef Fibers < handle & matlab.mixin.Copyable
             cog = obj.Vertices(1).getCOG;
         end
         
-        function obj = addVTKfiber(obj,vertices,fiberindex)
-            %
-                n = numel(obj.Vertices)+1;
-                obj.Vertices(n) = vertices;
-                obj.Indices(n) = fiberindex;
-        end
+
         
         
         function obj = drawVTKfibers(obj,actor,scene)
@@ -49,15 +52,11 @@ classdef Fibers < handle & matlab.mixin.Copyable
             catch
                 %no fibers were drawn yet
             end
-            
 
-                startHere = 1;
-    
                 
-            
-            for iFiber = startHere:obj.ActorHandle.Visualisation.settings.numberOfFibers
+            for iFiber = 1:obj.ActorHandle.Visualisation.settings.numberOfFibers
                 vertices = obj.Vertices(iFiber).Vectors.getArray;
-                h = streamtube({vertices}, 0.5,[1 3]);
+                h = streamtube({vertices}, obj.FIBERTHICKNESS,obj.FIBERCIRCUMFERRENCE);
                 
                 if obj.ActorHandle.Visualisation.settings.colorByDirection
                     color = PointCloud(abs(diff(vertices,1))).Vectors.unit;
@@ -65,8 +64,8 @@ classdef Fibers < handle & matlab.mixin.Copyable
                     colorArray = color.getArray;
                 elseif obj.ActorHandle.Visualisation.settings.colorByWeight && not(isempty(obj.Weight))
                    colorvalue = (obj.Weight(iFiber) - min(obj.Weight))/(max(obj.Weight)-min(obj.Weight));
-                   low = colorvalue;
-                   high = 1-low;
+                   high = colorvalue;
+                   low = 1-high;
                    
                    lowRGB = obj.ActorHandle.Visualisation.settings.colorFace;
                    highRGB = obj.ActorHandle.Visualisation.settings.colorFace2;
@@ -84,9 +83,6 @@ classdef Fibers < handle & matlab.mixin.Copyable
                         colorArray = CData;
                 end
                 
-                
-                
-                
                 streamFaceColors = [];
                 streamFaceColors(:,:,1) = repmat(colorArray(:,1),1, 3+1);
                 streamFaceColors(:,:,2) = repmat(colorArray(:,2),1, 3+1);
@@ -95,8 +91,7 @@ classdef Fibers < handle & matlab.mixin.Copyable
                 
                 
                 set(h, 'FaceColor', 'interp', 'CData', streamFaceColors, 'CDataMapping', 'direct', 'EdgeColor', 'none', 'FaceAlpha', obj.ActorHandle.Visualisation.settings.faceOpacity/100);
-                %fv = surf2patch(h);
-                %obj.Handles(n) = h;
+                material(h,obj.MATERIALSHADING) 
                 obj.ActorHandle.Visualisation.handle(iFiber) = h;
                 
             end
@@ -104,50 +99,16 @@ classdef Fibers < handle & matlab.mixin.Copyable
             
         end
         
-        function obj = drawNewFiberInScene(obj,vertices,fiberindex,scene)
-                        vizsettings = obj.ActorHandle.Visualisation.settings; %as set in arena
-                        axes(scene.handles.axes)
-                        n = numel(obj.Vertices)+1;
-                        obj.Vertices(n) = PointCloud(vertices);
-                        obj.Indices(n) = fiberindex;
-                        
-                        h = streamtube({vertices}, 0.5,[1 3]); 
-                        if vizsettings.colorByDirection
-                            color = PointCloud(abs(diff(vertices,1))).Vectors.unit;
-                            color = [color;color(end,:)];
-
-                            
-                            colorArray = color.getArray;
-
-                            streamFaceColors = [];
-                            streamFaceColors(:,:,1) = repmat(colorArray(:,1),1, 3+1);
-                            streamFaceColors(:,:,2) = repmat(colorArray(:,2),1, 3+1);
-                            streamFaceColors(:,:,3) = repmat(colorArray(:,3),1, 3+1);
-                        else
-                            
-                        CData = ones(size(h.XData,1),size(h.XData,2),3);
-                        CData(:,:,1) = CData(:,:,1)*vizsettings.colorFace(1);
-                        CData(:,:,2) = CData(:,:,2)*vizsettings.colorFace(2);
-                        CData(:,:,3) = CData(:,:,3)*vizsettings.colorFace(3);
-                            streamFaceColors = CData;
-                        end
-                        set(h, 'FaceColor', 'interp', 'CData', streamFaceColors, 'CDataMapping', 'direct', 'EdgeColor', 'none', 'FaceAlpha', vizsettings.faceOpacity/100);
-                        %fv = surf2patch(h);
-                        %obj.Handles(n) = h;
-                        obj.ActorHandle.Visualisation.handle(n) = h;
-                        drawnow
-            
+        function obj = addFiber(obj,vertices,fiberindex)
+                    n = numel(obj.Vertices)+1;
+                    obj.Vertices(n) = PointCloud(vertices);
+                    obj.Indices(n) = fiberindex;
         end
+
+            
+            
         
-%         
-%         function obj = getFibersPassingThroughMesh(obj,varargin)
-%             %METHOD1 Summary of this method goes here
-%             %   Detailed explanation goes here
-%             varargin = varargin{1}; %get rid of double nesting
-%             VoxelData= varargin{1};
-% 
-%               
-%         end
+
         
         function copyobj = duplicate(obj)
             copyobj = copy(obj);

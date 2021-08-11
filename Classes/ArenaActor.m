@@ -20,14 +20,13 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         end
         
         function obj = create(obj,data,scene,OPTIONALvisualisation)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
             obj.Data = data;
             try
                 obj.Scene(end+1) = scene;
             catch
                 %wont work if it's not a scene; but a cropmenu
             end
+            
             if nargin==4
                 settings = OPTIONALvisualisation;
             else
@@ -523,10 +522,12 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
   
                 settings = struct;
                 settings.colorFace = scene.getNewColor(scene);%[0 188 216]/255;
-                settings.colorFace = settings.colorFace2;
+                settings.colorFace2 = [1 1 1];
                 settings.numberOfFibers = 100;
                 settings.faceOpacity = 50;
                 settings.colorByDirection = true;
+                settings.colorByWeight = false;
+                settings.colorSolid = false;
 
                 obj.Visualisation.settings = settings;
                 
@@ -569,8 +570,13 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
            end
            
            % update styling settings if changed:
-             if or(settings.colorFace ~= obj.Visualisation.settings.colorFace,...
-                     settings.colorByDirection ~=obj.Visualisation.settings.colorByDirection)
+           always_update_color = 1;
+             if any([settings.colorFace ~= obj.Visualisation.settings.colorFace,...
+                     settings.colorFace2 ~=obj.Visualisation.settings.colorFace2,...
+                     settings.colorByDirection ~=obj.Visualisation.settings.colorByDirection,...
+                     settings.colorByWeight ~=obj.Visualisation.settings.colorByWeight,...
+                     settings.colorSolid ~=obj.Visualisation.settings.colorSolid,...
+                     always_update_color])
 %                 %apply settings
                 for iH = 1:numel(obj.Visualisation.handle)
                     if settings.colorByDirection
@@ -584,7 +590,21 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                                 CData(:,:,1) = repmat(colorArray(:,1),1, size(obj.Visualisation.handle(iH).CData,2));
                                 CData(:,:,2) = repmat(colorArray(:,2),1, size(obj.Visualisation.handle(iH).CData,2));
                                 CData(:,:,3) = repmat(colorArray(:,3),1, size(obj.Visualisation.handle(iH).CData,2));
-
+                    elseif settings.colorByWeight
+                        
+                  colorvalue = (obj.Data.Weight(iH) - min(obj.Data.Weight))/(max(obj.Data.Weight)-min(obj.Data.Weight));
+                   low = colorvalue;
+                   high = 1-low;
+                   
+                   lowRGB = settings.colorFace;
+                   highRGB = settings.colorFace2;
+                  
+                        
+                    CData = ones(size(obj.Visualisation.handle(iH).CData));
+                    CData(:,:,1) = CData(:,:,1)*lowRGB(1)*low + CData(:,:,1)*highRGB(1)*high ;
+                    CData(:,:,2) = CData(:,:,2)*lowRGB(2)*low + CData(:,:,2)*highRGB(2)*high ;
+                    CData(:,:,3) = CData(:,:,3)*lowRGB(3)*low + CData(:,:,3)*highRGB(3)*high ;
+                        
                     else
                     CData = ones(size(obj.Visualisation.handle(iH).CData));
                     CData(:,:,1) = CData(:,:,1)*settings.colorFace(1);
@@ -743,6 +763,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 end
             end
             
+            %
             
             visualize(obj,settings,obj.Data,scene);
             
@@ -756,6 +777,10 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         %Because this will be used for the layer indication
       
         function settings = visualize(obj,settings,data,scene)
+            visualize(data,obj,settings,scene) %refers to the visualize method in the class. (Google: Function Precedence Order MATLAB)
+            return
+            
+            
             switch class(data)
                 case 'PointCloud'
                     settings = visualizePointCloud(obj,settings,data,scene);

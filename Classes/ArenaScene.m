@@ -919,8 +919,8 @@ classdef ArenaScene < handle
 
                     for i = 1:numel(Fib)
                         points = V(Fib{i},:);
-                        pc = PointCloud(points);
-                        f.addVTKfiber(pc,i);
+                        pc = points;
+                        f.addFiber(pc,i);
                     end
                     
                     actor = f.see(thisScene,str2num(answer{1}));
@@ -1138,13 +1138,13 @@ classdef ArenaScene < handle
                             v.loadnii(fullfile(pathname,filename{iFile}));
                             if v.isBinary(80)
                                 
-                             [pointlist] = v.detectPoints();
-                                if length(pointlist)==2
-                                    import_leadfromnii(scene,v,name)
-                                else
+%                              [pointlist] = v.detectPoints();
+%                                 if length(pointlist)==2
+%                                     import_leadfromnii(scene,v,name)
+%                                 else
                                 
                                 [~,nii_mesh_threshold] = import_nii_mesh(scene,v,name,nii_mesh_threshold);
-                                end
+                                %end
                             else
                                     %check if it has two dots
                                 [pointlist] = v.detectPoints();
@@ -2343,51 +2343,84 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
             function menu_fiberMapInterference(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
-                
+
+                %--> to do: only suggest meshes or slices.
                 %get map
                 labels = {scene.Actors.Tag};
                 [indx,tf] = listdlg('PromptString',{'Select one map'},'ListString',labels);
+                
+
                 if isa(scene.Actors(indx).Data,'Mesh')
-                    map = scene.Actors(indx).Data.Source;
+                    if isempty(scene.Actors(indx).Data.Source)
+                        samplingMethod = 'Check if fiber hits mesh';
+                        map = [];
+                        mesh = scene.Actors(indx).Data;
+                    else
+                        samplingMethod = 'undecided';
+                        map = scene.Actors(indx).Data.Source;
+                        mesh = scene.Actors(indx).Data;
+                    end
                 elseif isa(scene.Actors(indx).Data,'Slicei')
+                    samplingMethod = 'only voxelbased';
                     map = scene.Actors(indx).Data.parent;
+                    mesh = [];
                 else
                     return
                 end
                 
                 %get method
-                options = {'Min value','Max value','Average Value','Sum'};
-                [indx,tf] = listdlg('PromptString',{'Select method'},'ListString',options);
+                switch samplingMethod
+                    case 'Check if fiber hits mesh'
+                        %clear no more options to choose
+                    case 'undecided'
+                        options = {'Min value','Max value','Average Value','Sum','Check if fiber hits mesh'};
+                        [indx,tf] = listdlg('PromptString',{'Select method'},'ListString',options);
+                        samplingMethod = options{indx};
+                    case 'only voxelbased'
+                        options = {'Min value','Max value','Average Value','Sum'};
+                        [indx,tf] = listdlg('PromptString',{'Select method'},'ListString',options);
+                        samplingMethod = options{indx};
+                end
+        
                 
                 %loop. First join all the fibers. For quick processing
-                Vectors = Vector3D.empty;
-                FiberIndices = [];
+                nVectorsPerFiber = arrayfun(@(x) length(x.Vectors),currentActors.Data.Vertices);
+                Vectors = Vector3D.empty(sum(nVectorsPerFiber),0); %empty allocation
+                FiberIndices = [0,cumsum(nVectorsPerFiber)]+1;
                 weights = [];
+                fibIndex = 1;
                 for iFiber = 1:numel(currentActors.Data.Vertices)
-                    FiberIndices(iFiber) = length(Vectors)+1;
-                    Vectors = [Vectors;currentActors.Data.Vertices(iFiber).Vectors];
+                    Vectors(FiberIndices(iFiber):FiberIndices(iFiber+1)-1) = currentActors.Data.Vertices(iFiber).Vectors;
                 end
                 FiberIndices(iFiber+1) = length(Vectors)+1;
                  
+                
                 %sample the map
-                mapvalue = map.getValueAt(PointCloud(Vectors));
+                switch samplingMethod
+                    case 'Check if fiber hits mesh'
+                        mapvalue = mesh.isInside(Vectors);
+                    otherwise
+                        mapvalue = map.getValueAt(PointCloud(Vectors));
+                end
                 
                 for iFiber = 1:numel(currentActors.Data.Vertices)
                     weights = mapvalue(FiberIndices(iFiber):FiberIndices(iFiber+1)-1);
-                    switch options{indx}
+                    switch samplingMethod
                         case 'Min value'
                             currentActors.Data.Weight(iFiber) = min(weights);
-                        case 'Max value'
+                        case {'Max value','Check if fiber hits mesh'}
                             currentActors.Data.Weight(iFiber) = max(weights);
                         case 'Average Value'
                             currentActors.Data.Weight(iFiber) = mean(weights);
                         case 'Sum'
                             currentActors.Data.Weight(iFiber) = sum(weights);
+                        
                     end
                 end
 
                 
-                currentActors.changeSetting('colorByWeight',true)
+                currentActors.changeSetting('colorByWeight',true);
+                Done;
                 
 
                 
@@ -2413,10 +2446,14 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 
                 for iActor = 1:numel(currentActors)
                     home;
+                    tic
                     thisActor = currentActors(iActor);
                     thisFiber = thisConnectome.getFibersPassingThroughMesh(thisActor.Data,N_FIBERS,scene);
-                    thisFiber.ActorHandle.changeSetting('colorByDirection',0,'colorFace',thisActor.Visualisation.settings.colorFace,'numberOfFibers',N_FIBERS);
-                    thisFiber.ActorHandle.changeName([thisActor.Tag,'_fiber']);
+                    thisFiber.visualize()
+                    %thisFiber.ActorHandle.changeSetting('colorByDirection',0,'colorFace',thisActor.Visualisation.settings.colorFace,'colorFace2',thisActor.Visualisation.settings.colorFace2,'numberOfFibers',N_FIBERS);
+                    thisFiber.ActorHandle.changeSetting('numberOfFibers',N_FIBERS);
+                    thisFiber.ActorHandle.changeName(['Fibers_through_',thisActor.Tag]);
+                    toc
                 end
                 
             end
@@ -2425,6 +2462,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
             function menu_showFibers_inbetween(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
+                N_FIBERS = 100;
                 
                 if length(currentActors)~= 2
                     return
@@ -2433,7 +2471,10 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 global connectomes
                 thisConnectome = connectomes.selectConnectome;
                 
-                Fibers = thisConnectome.getFibersConnectingMeshes({currentActors(1).Data,currentActors(2).Data},100,scene);
+                Fibers = thisConnectome.getFibersConnectingMeshes({currentActors(1).Data,currentActors(2).Data},N_FIBERS,scene);
+                Fibers.visualize()
+                Fibers.ActorHandle.changeSetting('numberOfFibers',N_FIBERS);
+                Fibers.ActorHandle.changeName(['Fibers connecting ',currentActors(1).Tag(1:min([10,length(currentActors(1).Tag)])), ' and ',currentActors(2).Tag(1:min([10,length(currentActors(2).Tag)]))])
                 
                 
             end
@@ -2841,7 +2882,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 
                 switch eventdata.EventName
                     case 'WindowMousePress'
-                        %disp('click')
+                        disp('click')
                     otherwise
                         scene = ArenaScene.getscenedata(src);
                         %disp(eventdata.Key)
@@ -3193,6 +3234,10 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
             for i = 1:numel(obj.Actors)
                 properties = fieldnames(obj.Actors(i).Visualisation.settings);
                 rgbColour = obj.Actors(i).Visualisation.settings.(properties{1})*255;
+                if isfield(obj.Actors(i).Visualisation.settings,'colorFace2')
+                    rgbColour = obj.Actors(i).Visualisation.settings.colorFace2*255;
+                end
+                    
                 hexStr = reshape( dec2hex( round(rgbColour), 2 )',1, 6);
                 
                 if obj.Actors(i).Visible

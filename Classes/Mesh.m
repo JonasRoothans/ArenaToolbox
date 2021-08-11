@@ -1,4 +1,4 @@
-classdef Mesh < handle & matlab.mixin.Copyable
+classdef Mesh < handle & matlab.mixin.Copyable & ArenaActorRendering
     %MESH Contains Faces and Vertices. Can be initialised with VoxelData
     
     properties
@@ -130,6 +130,21 @@ classdef Mesh < handle & matlab.mixin.Copyable
             catch
             cog = Vector3D([nan nan nan]);
             end
+        end
+        
+        function bool = isInside(obj,points)
+            switch class(points)
+                case 'PointCloud'
+                    points = points.Vectors;
+                case 'Vector3D'
+                    points = points.getArray;
+            end
+            polyhedron.faces = obj.Faces;
+            polyhedron.vertices = obj.Vertices;
+            
+            bool = inpolyhedron(polyhedron, points,'flipnormals', true);
+            
+            
         end
         
         function saveToFolder(obj,outdir,tag)

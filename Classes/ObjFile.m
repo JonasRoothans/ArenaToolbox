@@ -1,4 +1,4 @@
-classdef ObjFile < handle
+classdef ObjFile < handle & ArenaActorRendering
     %ObjFile contains Faces and Vertices. Can be initialised with *.obj
     
     properties

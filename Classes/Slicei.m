@@ -1,4 +1,4 @@
-classdef Slicei < handle
+classdef Slicei < handle & ArenaActorRendering
     %SLICEI Summary of this class goes here
     %   Detailed explanation goes here
     

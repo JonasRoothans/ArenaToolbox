@@ -1,4 +1,4 @@
-classdef PointCloud
+classdef PointCloud < ArenaActorRendering
     %POINTCLOUD Contains Vectors [Vector3D list] and Weights [scaler]  
     
     properties
