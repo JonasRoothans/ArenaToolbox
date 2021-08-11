@@ -102,6 +102,39 @@ classdef Mesh < handle & matlab.mixin.Copyable
             
         end
         
+        function newVD = convertToVoxelsInTemplate(obj,template)
+                [gridX,gridY,gridZ] = template.getlinspace;
+                fv.faces = obj.Faces;
+                fv.vertices = obj.Vertices;
+                
+                minMesh = min(obj.Vertices);
+                maxMesh = max(obj.Vertices);
+                
+                gridXtest = find(and(gridX>minMesh(1),gridX<maxMesh(1)));
+                gridYtest = find(and(gridY>minMesh(2),gridY<maxMesh(2)));
+                gridZtest = find(and(gridZ>minMesh(3),gridZ<maxMesh(3)));
+                
+                gridXvalues = gridX(gridXtest);
+                gridYvalues = gridY(gridYtest);
+                gridZvalues = gridZ(gridZtest);
+                
+                
+                [testTheseX,testTheseY,testTheseZ] = meshgrid(gridXvalues,gridYvalues,gridZvalues);
+                white = inpolyhedron(fv, [testTheseX(:),testTheseY(:),testTheseZ(:)],'flipnormals', false);
+                
+                newVoxelInfo = zeros(size(template.Voxels));
+                newVoxelInfo(gridYtest,gridXtest,gridZtest) = reshape(white,size(testTheseX));
+                
+               
+                
+                
+                newVD = VoxelData(newVoxelInfo,template.R);
+
+        
+                
+                
+        end
+        
         
         
         function [thisActor,thisScene] = see(obj, sceneobj)

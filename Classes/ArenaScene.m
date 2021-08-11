@@ -2165,19 +2165,24 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 
                 %make a copy of that Voxeldata
                 temp = scene.Actors(nr(indx)).Data.parent;
+               
                 
-                vd = VoxelData(zeros(size(temp.Voxels)),temp.R);
-                [x,y,z] = vd.getMeshgrid;
+                balls = makeBallMesh(currentActors.Data,str2num(blobsize{1}));
                 
+                for iball = 1:numel(balls)
+                    
+                    thisBall = balls{iball};
+                    if iball ==1
+                       sumVDs = thisBall.convertToVoxelsInTemplate(temp);
+                    else
+                        sumVDs = sumVDs+thisBall.convertToVoxelsInTemplate(temp);
+                    end
+                end
                 
-                disp('preparing distance matrix')
-                distances = pdist2([x(:),y(:),z(:)],currentActors.Data.Vectors.getArray,'euclidean');
-                smallest_distance = min(distances')';
                 
 
-                
-                vd.Voxels = reshape(smallest_distance,size(vd.Voxels));
-                vd.getmesh(str2num(blobsize{1})).see(scene)
+      
+                actor = sumVDs.getmesh.see(scene);
                 
                 
                 

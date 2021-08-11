@@ -131,6 +131,23 @@ classdef PointCloud
             COG = Vector3D(mean(obj.Vectors.getArray));
         end
         
+        function balls = makeBallMesh(obj,radius)
+            balls = {};
+            for iVector = 1:numel(obj.Vectors)
+                thisVector = obj.Vectors(iVector);
+                [x,y,z] = sphere;
+                x = x*radius+thisVector.x;
+                y = y*radius+thisVector.y;
+                z = z*radius+thisVector.z; 
+                hSurface = surface(x,y,z);
+                p = surf2patch(hSurface,'triangles');
+                delete(hSurface);
+                balls{iVector} = Mesh(p.faces,p.vertices);
+                
+            end
+            
+        end
+        
         %--- mathematical things
         function vectorOut = getWeightedAverage(obj)
             multiplied = Vector3D.empty;
