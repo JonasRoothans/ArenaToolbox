@@ -1,4 +1,4 @@
-classdef VectorCloud
+classdef VectorCloud < ArenaActorRendering
     %VECTORCLOUD contains Vector3Dlist: Base, Direction, Tertiary + Weights
     %list],..
     %   Detailed explanation goes here

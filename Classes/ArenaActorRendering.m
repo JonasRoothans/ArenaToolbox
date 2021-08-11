@@ -8,6 +8,8 @@ classdef ArenaActorRendering < handle
         MATERIAL_ObjFile = [0.8 1 0.2];
         MATERIAL_Mesh =    [0.8 1 0.2];
         MATERIAL_Fiber =   [0.8 0.8 0.2];
+        MATERIAL_Electrode_body = [1 0.5 0.2];
+        MATERIAL_Electrode_contact = [1 0.5 0.2];
     end
     
     
@@ -60,6 +62,24 @@ classdef ArenaActorRendering < handle
                     settings.slice = 0;
                     settings.plane = 'axial';
                     settings.faceOpacity = 90;
+                case 'Electrode'
+                    settings = struct;
+                    settings.colorBase = [1 1 1];
+                    settings.colorInactive = [0.5 0.5 0.5];
+                    settings.colorCathode = [1 0.5 0];
+                    settings.colorAnode = [0 0.5 1];
+                    settings.cathode = [0 0 0 0];
+                    settings.anode = [0 0 0 0];
+                    settings.opacity = 100;
+                    settings.type = obj.Type;
+                case 'VectorCloud'
+                    settings = struct;
+                    settings.color1 = [0.85 0.85 0.85];
+                    settings.color2 = [0.5 0.5 0.5];
+                    settings.color3 = [0 0 1];
+                    settings.scale = 5;
+                    settings.leadoverlay = 0;
+                    settings.opacity = 100;
                     
                 otherwise
                     keyboard
@@ -75,13 +95,13 @@ classdef ArenaActorRendering < handle
             
             switch class(obj)
                 case 'Contour'
-                    visualizeContour()
+                    visualizeContour() %done, not tested
                 case 'Electrode'
-                    visualizeElectrode()
+                    visualizeElectrode() % done
                 case 'Fibers'
-                    visualizeFibers()
+                    visualizeFibers() %done
                 case 'Mesh'
-                    visualizeMesh()
+                    visualizeMesh() %done
                 case 'ObjFile'
                     visualizeObjFile()
                 case 'PointCloud'
@@ -97,11 +117,76 @@ classdef ArenaActorRendering < handle
             %nested visualize functions
             
             function visualizeContour()
-                keyboard
+                %---- default settings
+                
+                %create the handle
+                handle = obj.patch;
+                
+                %apply settings
+                handle.FaceColor = settings.colorFace;
+                handle.EdgeColor = settings.colorEdge;
+                handle.FaceAlpha = settings.faceOpacity/100;
+                handle.EdgeAlpha = settings.edgeOpacity/100;
+                actor.Visualisation.handle = handle;
+                actor.Visualisation.settings = settings;
+                
+                %update
+                updateCC(actor,scene)
+                
             end
             
             function visualizeElectrode()
-                keyboard
+                
+                if strcmp(settings.type,'Medtronic3389')
+                    leadmodel = load('Arena_mdt3389.mat');
+                    strucname = 'mdt3389';
+                elseif strcmp(settings.type,'Medtronic3387')
+                    leadmodel = load('Arena_mdt3387.mat');
+                    strucname = 'mdt3387';
+                elseif strcmp(settings.type,'Medtronic3391')
+                    leadmodel = load('Arena_mdt3391.mat');
+                    strucname = 'mdt3391';
+                elseif strcmp(settings.type,'BostonScientific')
+                    leadmodel = load('Arena_BostonScientific.mat');
+                    strucname = 'BostonScientific';
+                else
+                    error('leadtype is currently not yet supported!')
+                end
+                
+                handle = gobjects(0);
+                
+                T = A_transformationmatriforleadmesh(obj.C0,obj.Direction);
+                body = leadmodel.(strucname).body.transform(T);
+                handle(end+1) = patch('Faces',body.Faces,'Vertices',body.Vertices,'FaceColor',settings.colorBase ,'EdgeColor','none','Clipping',0,'SpecularStrength',0,'FaceAlpha',settings.opacity/100);
+                material(handle(end),obj.MATERIAL_Electrode_body)
+                handle(end).FaceLighting = 'gouraud';
+                
+                for i = 0:numel(fieldnames(leadmodel.(strucname)))-2
+                    ci = leadmodel.(strucname).(['c',num2str(i)]).transform(T);
+                    handle(end+1) = patch('Faces',ci.Faces,'Vertices',ci.Vertices,'FaceColor',settings.colorInactive,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
+                    material(handle(end),obj.MATERIAL_Electrode_contact)
+                    handle(end).FaceLighting = 'gouraud';
+                    
+                end
+                
+                for i = 1:numel(settings.cathode)
+                    if settings.cathode(i)
+                        handle(1+i).FaceColor = settings.colorCathode;
+                    end
+                end
+                for i = 1:numel(settings.anode)
+                    if settings.anode(i)
+                        handle(1+i).FaceColor = settings.colorAnode;
+                    end
+                end
+                
+                
+                
+                actor.Visualisation.handle = handle;
+                actor.Visualisation.settings = settings;
+                
+                updateCC(actor,scene)
+                
             end
             
             function  visualizeFibers()
@@ -124,7 +209,7 @@ classdef ArenaActorRendering < handle
                 else
                     visualizeFibers_fromConnectome();
                 end
-
+                
                 %update actor
                 actor.Visualisation.settings = settings;
                 
@@ -171,8 +256,8 @@ classdef ArenaActorRendering < handle
                             for n = nFibersVisualised+1:numel(obj.Vertices)
                                 obj = drawNewFiberInScene(obj,n);
                             end
-
-
+                            
+                            
                         end
                     end
                     
@@ -199,8 +284,8 @@ classdef ArenaActorRendering < handle
                 end
                 function visualizeFibers_fromFile()
                     try
-                    delete(obj.ActorHandle.Visualisation.handle(:));
-                    obj.ActorHandle.Visualisation.handle(:) = [];
+                        delete(obj.ActorHandle.Visualisation.handle(:));
+                        obj.ActorHandle.Visualisation.handle(:) = [];
                     catch
                         %no fibers were drawn yet
                     end
@@ -209,11 +294,11 @@ classdef ArenaActorRendering < handle
                         drawNewFiberInScene(obj,iFiber)
                     end
                     
-                     colorFiber(obj.ActorHandle)
-                
-
-                end
+                    colorFiber(obj.ActorHandle)
                     
+                    
+                end
+                
                 
             end
             
@@ -253,21 +338,21 @@ classdef ArenaActorRendering < handle
                             settings.colorSolid = 1;
                             settings.colorByWeight = 0;
                         else
-      
-                        colorvalue = (obj.Weight(iH) - min(obj.Weight))/(max(obj.Weight)-min(obj.Weight));
-                        low = colorvalue;
-                        high = 1-low;
-                        
-                        lowRGB = settings.colorFace;
-                        highRGB = settings.colorFace2;
-                        
-                        arraysize = size(actor.Visualisation.handle(iH).CData);
-                        CData_template = ones(arraysize(1:2));
-                        
-                        CData = ones(size(actor.Visualisation.handle(iH).CData));
-                        CData(:,:,1) = CData_template*lowRGB(1)*low + CData_template*highRGB(1)*high ;
-                        CData(:,:,2) = CData_template*lowRGB(2)*low + CData_template*highRGB(2)*high ;
-                        CData(:,:,3) = CData_template*lowRGB(3)*low + CData_template*highRGB(3)*high ;
+                            
+                            colorvalue = (obj.Weight(iH) - min(obj.Weight))/(max(obj.Weight)-min(obj.Weight));
+                            low = colorvalue;
+                            high = 1-low;
+                            
+                            lowRGB = settings.colorFace;
+                            highRGB = settings.colorFace2;
+                            
+                            arraysize = size(actor.Visualisation.handle(iH).CData);
+                            CData_template = ones(arraysize(1:2));
+                            
+                            CData = ones(size(actor.Visualisation.handle(iH).CData));
+                            CData(:,:,1) = CData_template*lowRGB(1)*low + CData_template*highRGB(1)*high ;
+                            CData(:,:,2) = CData_template*lowRGB(2)*low + CData_template*highRGB(2)*high ;
+                            CData(:,:,3) = CData_template*lowRGB(3)*low + CData_template*highRGB(3)*high ;
                         end
                     end
                     if settings.colorSolid
@@ -301,7 +386,7 @@ classdef ArenaActorRendering < handle
                         settings.threshold = obj.Settings.T;
                     end
                 end
-                   
+                
                 
                 %get axes
                 axes(scene.handles.axes)
@@ -491,18 +576,59 @@ classdef ArenaActorRendering < handle
             end %done
             
             function visualizeVectorCloud()
-                keyboard
+                
+                
+                
+                if settings.leadoverlay ==0
+                    handle = [];
+                    for i = 1:numel(obj.Base)
+                        
+                        primaryend = obj.Base(i).getArray() + settings.scale*data.Direction(i).getArray();
+                        h.primary = mArrow3(obj.Base(i).getArray(),primaryend, 'facealpha', settings.opacity, 'color', settings.color1, 'stemWidth', settings.scale*0.02,'Visible','on','Clipping','off');
+                        alpha(h.primary,settings.opacity/100)
+                        handle(end+1) = h.primary;
+                    end
+                    
+                    
+                else
+                    
+                    load('Arena_mdt3389.mat');
+                    
+                    handle = [];
+                    for i = 1:numel(data.Base)
+                        T = A_transformationmatriforleadmesh(obj.Base(i),obj.Direction(i));
+                        body = mdt3389.body.transform(T);
+                        c0 = mdt3389.c0.transform(T);
+                        c1 = mdt3389.c1.transform(T);
+                        c2 = mdt3389.c2.transform(T);
+                        c3 = mdt3389.c3.transform(T);
+                        
+                        
+                        handle(end+1) = patch('Faces',body.Faces,'Vertices',body.Vertices,'FaceColor',settings.color1 ,'EdgeColor','none','Clipping',0,'SpecularStrength',0,'FaceAlpha',settings.opacity/100);
+                        %handle(end).FaceLighting = 'gouraud';
+                        handle(end+1) = patch('Faces',c0.Faces,'Vertices',c0.Vertices,'FaceColor',settings.color2,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
+                        %handle(end).FaceLighting = 'gouraud';
+                        handle(end+1) = patch('Faces',c1.Faces,'Vertices',c1.Vertices,'FaceColor',settings.color2,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
+                        %handle(end).FaceLighting = 'gouraud';
+                        handle(end+1) = patch('Faces',c2.Faces,'Vertices',c2.Vertices,'FaceColor',settings.color2,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
+                        %handle(end).FaceLighting = 'gouraud';
+                        handle(end+1) = patch('Faces',c3.Faces,'Vertices',c3.Vertices,'FaceColor',settings.color2,'EdgeColor','none','Clipping',0,'SpecularStrength',1,'FaceAlpha',settings.opacity/100);
+                        %handle(end).FaceLighting = 'gouraud';
+                        
+                        
+                    end
+                end
             end
             
             function [settings,loadDefaultSettings] = loadDefaultSettingsWhenNoSettingsAreProvided(settings)
                 
                 
                 loadDefaultSettings = 1;
-                    if isstruct(settings)
-                        loadDefaultSettings = 0;
-                        return
-                    end
-      
+                if isstruct(settings)
+                    loadDefaultSettings = 0;
+                    return
+                end
+                
                 
                 if isprop(obj,'ActorHandle')
                     if not(isempty(obj.ActorHandle))
