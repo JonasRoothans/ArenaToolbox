@@ -1,4 +1,4 @@
-classdef Contour
+classdef Contour < ArenaActorRendering
     %PATCH Summary of this class goes here
     %   Detailed explanation goes here
     

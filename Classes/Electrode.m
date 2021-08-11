@@ -1,4 +1,4 @@
-classdef Electrode < handle & matlab.mixin.Copyable
+classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
     %ELECTRODE Summary of this class goes here
     %   Detailed explanation goes here
     
