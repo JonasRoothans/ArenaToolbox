@@ -259,6 +259,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.PointCloud.inMesh = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: is a point inside a mesh?','callback',{@menu_pointcloudinmesh},'Enable','off');
             obj.handles.menu.dynamic.PointCloud.mergePointClouds = uimenu(obj.handles.menu.dynamic.generate.main,'Text','PointCloud: merge pointclouds','callback',{@menu_mergePointCloud},'Enable','off');
             obj.handles.menu.dynamic.PointCloud.twoSampleTTest = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: two sample t-test','callback',{@menu_pc2samplettest},'Enable','off');
+            obj.handles.menu.dynamic.PointCloud.burnIn = uimenu(obj.handles.menu.dynamic.generate.main,'Text','PointCloud: burn in to template','callback',{@menu_burnPointCloudIntoVoxelData},'Enable','off');
             
             obj.handles.menu.dynamic.Mesh.count2mesh  = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: count overlap and show as mesh','callback',{@menu_edit_count2mesh},'Enable','off');
             obj.handles.menu.dynamic.Mesh.count2plane = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: count overlap and show as plane','callback',{@menu_edit_count2plane},'Enable','off');
@@ -2137,6 +2138,46 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                         colorcounter = colorcounter+1;
                     end
                 end
+                
+                
+                
+            end
+            
+            function menu_burnPointCloudIntoVoxelData(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                actorNames = {scene.Actors.Tag};
+                sliceiNames = {};
+                nr = [];
+                for i = 1:numel(actorNames)
+                    switch class(scene.Actors(i).Data)
+                        case 'Slicei'
+                            sliceiNames{end+1} = actorNames{i};
+                            nr(end+1) = i;
+                    end
+                end
+                
+                %select template
+                [indx,tf] = listdlg('PromptString','Select Template to project to','ListString',sliceiNames);
+                
+                blobsize = newid({'Size of the blobs (mm): '},'Arena',1,{'4'});
+                
+                %make a copy of that Voxeldata
+                temp = scene.Actors(nr(indx)).Data.parent;
+                
+                vd = VoxelData(zeros(size(temp.Voxels)),temp.R);
+                [x,y,z] = vd.getMeshgrid;
+                
+                
+                disp('preparing distance matrix')
+                distances = pdist2([x(:),y(:),z(:)],currentActors.Data.Vectors.getArray,'euclidean');
+                smallest_distance = min(distances')';
+                
+
+                
+                vd.Voxels = reshape(smallest_distance,size(vd.Voxels));
+                vd.getmesh(str2num(blobsize{1})).see(scene)
                 
                 
                 
