@@ -849,8 +849,21 @@ classdef ArenaScene < handle
                     disp('Only excepts "recipe" files')
                     return
                 end
+                
+                electrodeorcontact = questdlg('Visualize the electrode or the active contact?','Arena load recipe','Full electrode','Active contacts','Active contacts');
                 mirrortoleft = questdlg('Mirror all electrodes to the left side?','Arena load recipe','Yes','No','Yes');
-                    
+                
+                switch electrodeorcontact
+                    case 'Active contacts'
+                        [indx] = listdlg('PromptString','Weight based on:','ListString',[table.Properties.VariableNames(21:end),{'no weight'}]);
+                        try
+                            weightlabel = table.Properties.VariableNames{20+indx};
+                        catch
+                            weightlabel = nan;
+                        end
+                end
+                  
+                ActiveContacts_pc = PointCloud;
                 for iRow = 1:length(table.amplitude)
 
                     Ttolegacy = eval(table.Tlead2MNI{iRow});
@@ -862,6 +875,7 @@ classdef ArenaScene < handle
                     T = Ttolegacy*[-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1]; %to real MNI
                     [modified,T] = A_rigidT(T);
 
+                    
                     
                     e = Electrode;
                     c0 = SDK_transform3d([0 0 0],T);
@@ -879,11 +893,26 @@ classdef ArenaScene < handle
                 e.C0 = c0;
                 e.Type = table.leadtype{iRow};
                     
-                    
-                    actor = e.see(thisScene);
-                    actor.changeSetting('cathode',cathode);
-                    %actor.transform(thisScene,'Fake2MNI')
-                    actor.changeName(leadname)
+                    switch electrodeorcontact
+                        case 'Full electrode'
+                            actor = e.see(thisScene);
+                            actor.changeSetting('cathode',cathode);
+                            %actor.transform(thisScene,'Fake2MNI')
+                            actor.changeName(leadname)
+                        case 'Active contacts'
+                           
+                           if isnan(weightlabel)
+                               weight  = 1;
+                           else
+                               weight = table.(weightlabel)(iRow);
+                           end
+                           ActiveContacts_pc.addVectors(e.getLocationOfAC(cathode),weight);
+                    end
+                end
+                
+                switch electrodeorcontact
+                    case 'Active contacts'
+                         ActiveContacts_pc.see(thisScene);
                 end
             end
             
@@ -1930,7 +1959,7 @@ classdef ArenaScene < handle
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
                 if numel(currentActors)~=2
-                    error('correlation needs two actors')
+                    error('correlation needs two actors to be selected in the layer panel!')
                 end
                 
                 %if 
@@ -1950,9 +1979,17 @@ classdef ArenaScene < handle
                             VoxelDatas{iActor} = thisActor.Data.parent;
                     end
                 end
+                 v1  = VoxelDatas{1}.Voxels(:);
+                 v2 = VoxelDatas{2}.Voxels(:);
+                 nans = or(isnan(v1),isnan(v2));
+                 v1(nans)=[];
+                 v2(nans)= [];
+                 if any(nans)
+                    disp(['NaNs were removed from analysis (',num2str(round(mean(nans)*100),3),'%)'])
+                 end
                 
-                disp(['Pearson correlation: ',num2str(corr(VoxelDatas{1}.Voxels(:),VoxelDatas{2}.Voxels(:)))]);
-                disp(['Spearman correlation: ',num2str(corr(VoxelDatas{1}.Voxels(:),VoxelDatas{2}.Voxels(:),'Type','Spearman'))]);
+                disp(['Pearson correlation: ',num2str(corr(v1,v2))]);
+                disp(['Spearman correlation: ',num2str(corr(v1,v2,'Type','Spearman'))]);
 
 disp('Pearson checks if it is on a line while spearman checks if they move in a same direction.')
 disp('Therefore pearson is more conservative. If your data is ordinal: do not use pearson but spearman.')
