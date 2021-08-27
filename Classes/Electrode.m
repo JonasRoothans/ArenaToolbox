@@ -70,6 +70,19 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
         function cog = getCOG(obj)
             cog = obj.C0;
         end
+        
+        function AC_location = getLocationOfAC(obj,AC)
+            switch obj.Type
+                case 'Medtronic3389'
+                    distance = 2;
+                case 'Medtronic3387'
+                    distance = 3;
+                otherwise
+                    keyboard
+            end
+            
+            AC_location = obj.C0 + obj.Direction * mean(find(AC)-1) * distance;
+        end
        
     end
 end

@@ -583,7 +583,7 @@ classdef ArenaActorRendering < handle
                     handle = [];
                     for i = 1:numel(obj.Base)
                         
-                        primaryend = obj.Base(i).getArray() + settings.scale*data.Direction(i).getArray();
+                         primaryend = obj.Base(i).getArray() + settings.scale*obj.Direction(i).getArray();
                         h.primary = mArrow3(obj.Base(i).getArray(),primaryend, 'facealpha', settings.opacity, 'color', settings.color1, 'stemWidth', settings.scale*0.02,'Visible','on','Clipping','off');
                         alpha(h.primary,settings.opacity/100)
                         handle(end+1) = h.primary;

@@ -17,7 +17,7 @@ else
     verbose = 1;
 end
 
-if nargin==3
+if nargin<=3
     discriminative_statistic = 'mean';
 end
 
@@ -84,7 +84,7 @@ for iP = 1:p
     end
 end
 
-pValue = sum(tslist>test_statistic) / p
+pValue = sum(tslist>=test_statistic) / p
 signedP = (1-pValue) * p_sign
 if verbose
     disp(['precision: ',num2str(1/p)])
