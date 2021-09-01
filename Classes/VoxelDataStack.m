@@ -148,7 +148,7 @@ classdef VoxelDataStack < handle
             
             if nargout==1
                 binaryObj = VoxelDataStack;
-                binaryObj.New(obj.Voxels>T,obj.R,obj.Weights);
+                binaryObj(obj.Voxels>T,obj.R,obj.Weights);
             else
                 obj.Voxels = obj.Voxels>T;
             end
