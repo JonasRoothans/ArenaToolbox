@@ -6,7 +6,13 @@ classdef VoxelDataStack < handle
         Voxels %4D
         R
         Weights
-        Label
+        
+    end
+    
+    properties(Hidden)
+        Recipe
+        LayerLabels
+        ScoreLabel
     end
     
     methods
@@ -23,7 +29,7 @@ classdef VoxelDataStack < handle
 
         end
         
-        function obj = new(obj,reference,n_files)
+        function obj = newEmpty(obj,reference,n_files)
             if nargin==1
                 n_files = 1;
             end
@@ -32,6 +38,84 @@ classdef VoxelDataStack < handle
             obj.Voxels = zeros([size(reference.Voxels),n_files],'int8');
             obj.Weights = ones(1,n_files);
         end
+        
+        
+        
+        function obj = loadStudyData(obj,datadir,recipe,templatefile)
+            if nargin==1
+                waitfor(msgbox('Find the parent folder with data'))
+                datadir = uigetdir('','Locate the parent folder of your data');
+                waitfor(msgbox('Find the recipe'))
+                [filename,foldername] = uigetfile('*.xlsx','Locate the recipe');
+                recipe = fullfile(foldername,filename);
+                waitfor(msgbox('Find a nii that serves as template space'))
+                [filename,foldername] = uigetfile('*.nii','Get template file');
+                templatefile = fullfile(foldername,filename);
+                
+            end
+            
+            %load excel sheet with scores. Names should match the folders.
+            recipe = readtable(recipe);
+            obj.Recipe = recipe;
+            scoreTag = getScoreTag(recipe);
+            scores = obj.Recipe.(scoreTag);
+            
+            %load template. This will define the voxelsize etc.
+            ref = VoxelData(templatefile);
+            
+            %get subfolders
+            subfolders = A_getsubfolders(datadir);
+            
+            %set up Stack
+            obj.newEmpty(ref,numel(subfolders));
+            obj.ScoreLabel = scoreTag;
+            
+            %Loop over the folders. All files in a folder will be merged.
+            for iFolder = 1:numel(subfolders)
+                thisFolder = fullfile(datadir,subfolders(iFolder).name);
+                files = A_getfiles(thisFolder);
+                for iFile = 1:numel(files)
+                    thisFile = fullfile(thisFolder,files(iFile).name);
+                    vd = VoxelData(thisFile);
+                    if any(isnan(vd.Voxels(:)))
+                        vd.Voxels(isnan(vd.Voxels)) = 0;
+                    end
+                    
+                    %Mirror to the left.
+                    cog = vd.getcog;
+                    if cog.x>1
+                        vd.mirror;
+                    end
+                    
+                    %Add subfolders together
+                    if iFile==1
+                        together = vd.warpto(ref).makeBinary(0.5);
+                    else
+                        together = together+vd.warpto(ref).makeBinary(0.5);
+                    end
+                    
+                end
+                obj.InsertVoxelDataAt(together,iFolder);
+                
+                %get the weight
+                index_of_UID = find(contains(recipe.UID,subfolders(iFolder).name));
+                obj.Weights(iFolder) = scores(index_of_UID);
+                obj.LayerLabels{iFolder} = thisFolder;
+            end
+
+
+            function score_tag = getScoreTag(recipe)
+            if length(recipe.Properties.VariableNames)==2
+                score_tag = recipe.Properties.VariableNames{2};
+            else
+                indx = listdlg('Liststring',recipe.Properties.VariableNames(2:end));
+                score_tag = recipe.Properties.VariableNames{1+indx};
+            end
+            end
+        end
+            
+          
+            
         
         
         function obj = InsertVoxelDataAt(obj,vd,index)
@@ -71,38 +155,71 @@ classdef VoxelDataStack < handle
             
         end
         
-        function convertToHeatmap(obj,filename,description)
+        function convertToLOOHeatmaps(obj,filename,description,startingFrom)
+            if nargin==3
+                startingFrom = 1;
+            end
+            
+            for iLOO = startingFrom:numel(obj.Weights)
+                Vloo = obj.Voxels;
+                Vloo(:,:,:,iLOO) = [];
+                Wloo = obj.Weights;
+                Wloo(iLOO) = [];
+                Rloo = obj.R;
+                LOOstack = VoxelDataStack(Vloo,Rloo,Wloo);
+                
+                [parent,sub,fn] = fileparts(obj.LayerLabels{iLOO});
+                LOOstack.convertToHeatmap(sub,description,false,filename)
+                clear LOOstack
+            end
+            
+        end
+        
+        function convertToHeatmap(obj,filename,description,savememory,LOOdir)
+            global arena
+            if not(isfield(arena.Settings,'rootdir'))
+                error('Your settings file is outdated. Please remove config.mat and restart MATLAB for a new setup')
+            end
+            
+            if nargin<3
+                error('Include the heatmapname and a short description!')
+            end
+            
+            if nargin<4
+                savememory = true;
+            end
+            
+            if nargin==5
+                LOOmode = true;
+            end
+
             [tmap,pmap,signedpmap] = obj.ttest();
-
+            heatmap.tmap = tmap;
+            heatmap.pmap = pmap;
+            heatmap.signedpmap = signedpmap;
+            heatmap.raw.recipe = obj.Recipe;
+            heatmap.raw.files = obj.LayerLabels;
+            heatmap.description = description;
+            
+            %save
             
             
-            sweetspotArray(1).Title = ['StudT_tmap_',filename];
-            sweetspotArray(2).Title = ['StudT_pmap_',filename];
-            sweetspotArray(3).Title = ['StudT_signedpmap_',filename];
+        
             
-            sweetspotArray(1).Settings.label = obj.Label;
-            sweetspotArray(2).Settings.label = obj.Label;
-            sweetspotArray(3).Settings.label = obj.Label;
+            if LOOmode
+                outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput',LOOdir);
+                [~, ~] = mkdir(outputdir)
+            else
+                outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput');
+            end
+            save(fullfile(outputdir,[filename,'.heatmap']),'-struct','heatmap')
             
-            sweetspotArray(1).Data = tmap.Voxels;
-            sweetspotArray(2).Data = pmap.Voxels;
-            sweetspotArray(3).Data = signedpmap.Voxels;
+            if savememory
+                %save memory file
+                memory = obj;
+                save(fullfile(outputdir,['memory_',filename,'.heatmap']),'memory')
+            end
             
-            
-            sweetspot.description = description;
-            sweetspot.title = filename;
-            sweetspot.right.sweetspotArray = [];
-            sweetspot.right.imref = NaN;
-            sweetspot.right.parent = '';
-            sweetspot.left.sweetspotArray = sweetspotArray;
-            sweetspot.left.imref = obj.R;
-            sweetspot.left.parent = '';
-            sweetspot.raw = obj.Weights;
-            
-            save([filename,'.swtspt'],'sweetspot')
-
-            
-            %WIP
         end
         
         
@@ -118,7 +235,7 @@ classdef VoxelDataStack < handle
                     p = 1;
                     t = 0;
                 else
-                [~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)),obj.Weights(not(serialized(i,:))));
+                [~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
                   t = stat.tstat;
                 end
                 t_voxels(i) = t;

@@ -121,7 +121,11 @@ classdef ArenaManager < handle
             end
             config.VTApool = VTAdir;
             
+            
+            
+            
             %---- save config file
+            config.rootdir = rootdir;
             save(fullfile(rootdir,'config.mat'),'config')
         end
         
