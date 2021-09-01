@@ -155,6 +155,11 @@ classdef VoxelDataStack < handle
             
         end
         
+        function vd = getVoxelDataAtPosition(obj,index)
+            Voxels = obj.Voxels(:,:,:,index);
+            vd = VoxelData(Voxels,obj.R);
+        end
+        
         function convertToLOOHeatmaps(obj,filename,description,startingFrom)
             if nargin==3
                 startingFrom = 1;
@@ -191,6 +196,8 @@ classdef VoxelDataStack < handle
             
             if nargin==5
                 LOOmode = true;
+            else
+                LOOmode = false;
             end
 
             [tmap,pmap,signedpmap] = obj.ttest();
@@ -217,7 +224,7 @@ classdef VoxelDataStack < handle
             if savememory
                 %save memory file
                 memory = obj;
-                save(fullfile(outputdir,['memory_',filename,'.heatmap']),'memory')
+                save(fullfile(outputdir,['memory_',filename,'.heatmap']),'memory','-v7.3')
             end
             
         end
