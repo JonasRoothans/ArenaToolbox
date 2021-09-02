@@ -91,7 +91,7 @@ classdef VoxelDataStack < handle
                     if iFile==1
                         together = vd.warpto(ref).makeBinary(0.5);
                     else
-                        together = together+vd.warpto(ref).makeBinary(0.5);
+                        together = together+vd.warpto(ref).makeBinary(0.5); %yes adding booleans will make them integers
                     end
                     
                 end
@@ -242,7 +242,17 @@ classdef VoxelDataStack < handle
                     p = 1;
                     t = 0;
                 else
-                [~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
+                    %with value 1
+                    sampleA = obj.Weights(serialized(i,:)>=1);
+                    %with value 2
+                    sampleA = [sampleA,obj.Weights(serialized(i,:)>=2)];
+                    
+                    %with value 0
+                    sampleB = obj.Weights(serialized(i,:)==0);
+
+                    
+                    
+                [~,p,~,stat] = ttest2(sampleA,sampleB);
                   t = stat.tstat;
                 end
                 t_voxels(i) = t;
@@ -255,7 +265,7 @@ classdef VoxelDataStack < handle
             tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
             pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
             signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
-            Done;
+            %Done;
         end
         
         function [tmap,pmap,signedpmap] = ttest_fuckedup(obj)
