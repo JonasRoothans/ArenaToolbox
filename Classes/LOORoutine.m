@@ -4,11 +4,13 @@ classdef LOORoutine < handle
         HeatmapFolder
         MemoryFile
         LOOmdl
+        LOOCVmdl
     end
     
     properties (Hidden)
         CleanHistograms
         LoadedMemory
+        LOOCVpredictions
     end
     
     
@@ -22,8 +24,8 @@ classdef LOORoutine < handle
         end
         
         function setMemoryFile(obj)
-             [filename,foldername] = uigetfile('*.heatmap');
-             obj.MemoryFile = fullfile(foldername,filename);
+            [filename,foldername] = uigetfile('*.heatmap');
+            obj.MemoryFile = fullfile(foldername,filename);
         end
         
         
@@ -38,7 +40,7 @@ classdef LOORoutine < handle
             filenames = obj.LoadedMemory.LayerLabels;
             f = figure;
             for iFilename = 1:length(filenames)
-                    
+                
                 thisFilename = filenames{iFilename};
                 [folder,file,extension] = fileparts(thisFilename);
                 disp(file)
@@ -56,7 +58,7 @@ classdef LOORoutine < handle
                 %analyse bite
                 edges = -1:0.13333333333:1; % define the bins
                 h = histogram(sample,edges);
-                obj.CleanHistograms(iFilename,1:numel(edges)-1) = zscore(h.Values); 
+                obj.CleanHistograms(iFilename,1:numel(edges)-1) = zscore(h.Values);
                 delete(h)
                 
             end
@@ -72,9 +74,34 @@ classdef LOORoutine < handle
             end
             
             
+            for i = 1:numel(obj.LoadedMemory.Weights)
+                %getsubsets
+                subX = obj.CleanHistograms;
+                subX(i,:) = [];
+                subY = obj.LoadedMemory.Weights;
+                subY(i) = [];
+                
+                %train
+                X = [ones(size(subX,1),1),subX];
+                [b] = regress(subY,X);
+                
+                
+                %predict
+                LOO_x = [1,obj.CleanHistograms(i,:)];
+                Prediction = LOO_x*b;
+                
+                %save
+                obj.LOOCVpredictions(i) = Prediction;
+                
+            end
+            %evaluate prediction
+            obj.LOOCVmdl = fitlm(obj.LOOCVpredictions,obj.LoadedMemory.Weights);
+            
+            
+            
         end
         
- 
+        
     end
     
     methods(Hidden)
