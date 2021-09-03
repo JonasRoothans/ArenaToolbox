@@ -65,7 +65,7 @@ classdef LOORoutine < handle
             close(f)
             
             obj.LOOmdl = fitlm(obj.CleanHistograms,obj.LoadedMemory.Weights); %Here it calculates the b (by fitting a linear model = multivariatelinearregression)
-            figure;obj.LOOMdl.plot
+            figure;obj.LOOmdl.plot
         end
         
         function LOOCV(obj)
@@ -83,7 +83,7 @@ classdef LOORoutine < handle
                 
                 %train
                 X = [ones(size(subX,1),1),subX];
-                [b] = regress(subY,X);
+                [b] = regress(subY',X);
                 
                 
                 %predict
@@ -96,6 +96,8 @@ classdef LOORoutine < handle
             end
             %evaluate prediction
             obj.LOOCVmdl = fitlm(obj.LOOCVpredictions,obj.LoadedMemory.Weights);
+            obj.LOOCVmdl
+            figure; obj.LOOCVmdl.plot
             
             
             
