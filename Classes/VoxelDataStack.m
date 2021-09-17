@@ -41,10 +41,8 @@ classdef VoxelDataStack < handle
         
         
         
-        function obj = loadStudyData(obj,datadir,recipe,templatefile)
+        function obj = loadStudyData(obj,recipe,templatefile)
             if nargin==1
-                waitfor(msgbox('Find the parent folder with data'))
-                datadir = uigetdir('','Locate the parent folder of your data');
                 waitfor(msgbox('Find the recipe'))
                 [filename,foldername] = uigetfile('*.xlsx','Locate the recipe');
                 recipe = fullfile(foldername,filename);
@@ -63,14 +61,12 @@ classdef VoxelDataStack < handle
             %load template. This will define the voxelsize etc.
             ref = VoxelData(templatefile);
             
-            %get subfolders
-            subfolders = A_getsubfolders(datadir);
-            
             %set up Stack
-            obj.newEmpty(ref,numel(subfolders));
+            obj.newEmpty(ref,length(obj.Recipe.fullpath));
             obj.ScoreLabel = scoreTag;
             
             %Loop over the folders. All files in a folder will be merged.
+            subfolders.name = 1;
             for iFolder = 1:numel(subfolders)
                 thisFolder = fullfile(datadir,subfolders(iFolder).name);
                 files = A_getfiles(thisFolder);
@@ -108,7 +104,7 @@ classdef VoxelDataStack < handle
             if length(recipe.Properties.VariableNames)==2
                 score_tag = recipe.Properties.VariableNames{2};
             else
-                indx = listdlg('Liststring',recipe.Properties.VariableNames(2:end));
+                indx = listdlg('Liststring',recipe.Properties.VariableNames(3:end));
                 score_tag = recipe.Properties.VariableNames{1+indx};
             end
             end

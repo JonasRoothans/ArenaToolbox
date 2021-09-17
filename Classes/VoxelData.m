@@ -190,6 +190,9 @@ classdef VoxelData <handle
             cropped = CroppedVoxelData(obj.Voxels,obj.R,leftdown,rightup,obj);
         end
         
+        function newVD = copy(obj)
+            newVD = VoxelData(obj.Voxels,obj.R);
+        end
         
         function [obj,filename] = loadnii(obj,niifile,noreslice)
 
@@ -428,6 +431,10 @@ classdef VoxelData <handle
             o3 = VoxelData(img1+img2,o1.R);
         end
         
+        function maxvalue = max(obj)
+            maxvalue = max(obj.Voxels(:));
+        end
+        
         function vd_out = abs(vd)
             if nargout==1
                 vd_out = VoxelData(abs(vd.Voxels),vd.R);
@@ -484,6 +491,25 @@ classdef VoxelData <handle
              y_coords = linspace(firstY,lastY,length(v_y));
              z_coords = linspace(firstZ,lastZ,length(v_z));
         end
+        
+        
+        function imclose(obj,width)
+            se = strel('disk',width);
+            obj.Voxels = imclose(obj.Voxels,se);
+            
+        end
+        
+        function imerode(obj,width)
+            se = strel('sphere',width);
+            obj.Voxels = imerode(obj.Voxels,se);
+        end
+            
+        function imdilate(obj,width)
+            se = strel('sphere',width);
+            obj.Voxels = imdilate(obj.Voxels,se);
+        end
+            
+        
         
         function [fwhm,f] = getDensityDistribution(obj)
             v = obj.Voxels;

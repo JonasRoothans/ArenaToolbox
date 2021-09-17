@@ -375,7 +375,7 @@ classdef ArenaScene < handle
                          continue
                      end
                      callback = str2func(installationFile(1).name(1:end-2)); %without .m
-                     scene.handles.menu.addons.(subfolders{iSubfolder}).main =  uimenu(scene.handles.menu.addons.main,'Text',subfolders{iSubfolder},'callback',{callback,scene});
+                     scene.handles.menu.addons.(subfolders{iSubfolder}).main =  uimenu(scene.handles.menu.addons.main,'Text',['add: ',subfolders{iSubfolder}],'callback',{callback,scene});
                      disp(['Add-ons: ',subfolders{iSubfolder},' is available.'])
                      addpath(fullfile(addondir,subfolders{iSubfolder}))
                  end
