@@ -431,10 +431,18 @@ classdef VoxelData <handle
             o3 = VoxelData(img1+img2,o1.R);
         end
         
+
         function maxvalue = max(obj)
             maxvalue = max(obj.Voxels(:));
         end
-        
+
+        function o3=combineBinary(o1,o2);
+            img1 = o1.Voxels;
+            img2 = o2.Voxels;
+            
+            o3=VoxelData(double(nanmax(img1,img2)),o1.R);
+        end
+
         function vd_out = abs(vd)
             if nargout==1
                 vd_out = VoxelData(abs(vd.Voxels),vd.R);
