@@ -28,7 +28,5 @@ disp('heatmap is saved to harddisk and is available in workspace as ''heatmap'''
 
 
 
-keyboard
-
 end
 
