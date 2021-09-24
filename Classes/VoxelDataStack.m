@@ -240,7 +240,14 @@ classdef VoxelDataStack < handle
             else
                 outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput');
             end
-            save(fullfile(outputdir,[filename,'.heatmap']),'-struct','heatmap')
+            
+            publicProperties = properties(heatmap); % convert from class heatmap to struct to be able to save without changing properties
+            exportheatmap = struct();
+            for iField = 1:numel(publicProperties)
+                exportheatmap.(publicProperties{iField}) = heatmap.(publicProperties{iField});
+            end
+            
+            save(fullfile(outputdir,[filename,'.heatmap']),'-struct','exportheatmap')
             
             if savememory
                 %save memory file
