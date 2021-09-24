@@ -219,12 +219,14 @@ classdef VoxelDataStack < handle
                 LOOmode = false;
             end
 
+            raw.recipe = obj.Recipe;
+            raw.files = obj.Layerlabels;
             [tmap,pmap,signedpmap] = obj.ttest();
+            heatmap = Heatmap();
             heatmap.tmap = tmap;
             heatmap.pmap = pmap;
             heatmap.signedpmap = signedpmap;
-            heatmap.raw.recipe = obj.Recipe;
-            heatmap.raw.files = obj.LayerLabels;
+            heatmap.raw = raw;
             heatmap.description = description;
             
             %save
