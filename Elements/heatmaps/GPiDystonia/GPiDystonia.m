@@ -1,4 +1,4 @@
-classdef GPiDystonia < Heatmap & handle
+classdef GPiDystonia < HeatmapModelSupport & handle
     %GPIDYSTONA Summary of this class goes here
     %   Detailed explanation goes here
     

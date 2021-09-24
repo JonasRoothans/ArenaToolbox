@@ -1,5 +1,5 @@
 
-classdef Heatmap < handle
+classdef HeatmapModelSupport < handle
     %HEATMAP Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -8,7 +8,7 @@ classdef Heatmap < handle
     end
     
     methods
-        function obj = Heatmap()
+        function obj = HeatmapModelSupport()
             %HEATMAP Construct an instance of this class
             %   Detailed explanation goes here
             

@@ -11,6 +11,7 @@ classdef VoxelDataStack < handle
     
     properties(Hidden)
         Recipe
+        RecipePath
         LayerLabels
         ScoreLabel
     end
@@ -41,7 +42,7 @@ classdef VoxelDataStack < handle
         
         
         
-        function obj = loadStudyData(obj,recipe,templatefile)
+        function obj = loadStudyDataFromRecipe(obj,recipe,templatefile)
             if nargin==1
                 waitfor(msgbox('Find the recipe'))
                 [filename,foldername] = uigetfile('*.xlsx','Locate the recipe');
@@ -53,6 +54,7 @@ classdef VoxelDataStack < handle
             end
             
             %load excel sheet with scores. Names should match the folders.
+            obj.RecipePath=recipe;
             recipe = readtable(recipe);
             obj.Recipe = recipe;
             scoreTag = getScoreTag(recipe);
@@ -65,13 +67,19 @@ classdef VoxelDataStack < handle
             obj.newEmpty(ref,length(obj.Recipe.fullpath));
             obj.ScoreLabel = scoreTag;
             
+            %subfolder or one folder?
+            data_is_in_subfolders = any(ismember(recipe.Properties.VariableNames,'folderID'));
+            
+            
+            
             %Loop over the folders. All files in a folder will be merged.
             subfolders.name = 1;
-            for iFolder = 1:numel(subfolders)
-                thisFolder = fullfile(datadir,subfolders(iFolder).name);
-                files = A_getfiles(thisFolder);
-                for iFile = 1:numel(files)
-                    thisFile = fullfile(thisFolder,files(iFile).name);
+            for i = 1:height(obj.Recipe)
+                
+                if data_is_in_subfolders
+                    files = A_getfiles(obj.Recipe.fullpath{i});
+                    for iFile = 1:numel(files)
+                    thisFile = fullfile(obj.Recipe.fullpath{i},files(iFile).name);
                     vd = VoxelData(thisFile);
                     if any(isnan(vd.Voxels(:)))
                         vd.Voxels(isnan(vd.Voxels)) = 0;
@@ -79,7 +87,7 @@ classdef VoxelDataStack < handle
                     
                     %Mirror to the left.
                     cog = vd.getcog;
-                    if cog.x>1
+                    if cog.x>1 && obj.Recipe.Move_or_keep_left(i)
                         vd.mirror;
                     end
                     
@@ -90,21 +98,36 @@ classdef VoxelDataStack < handle
                         together = together+vd.warpto(ref).makeBinary(0.5);
                     end
                     
+                    end
+                    obj.InsertVoxelDataAt(together,i);
+                    id = obj.Recipe.folderID(i);
+                else
+                    vd = VoxelData(obj.Recipe.fullpath{i});
+                    if any(isnan(vd.Voxels(:)))
+                        vd.Voxels(isnan(vd.Voxels)) = 0;
+                    end
+                    
+                    %Mirror to the left.
+                    cog = vd.getcog;
+                    if cog.x>1 && obj.Recipe.Move_or_keep_left(i)
+                        vd.mirror;
+                    end
+                    obj.InsertVoxelDataAt(vd,i);
+                    id = obj.Recipe.fileID(i);
                 end
-                obj.InsertVoxelDataAt(together,iFolder);
-                
+
                 %get the weight
-                index_of_UID = find(contains(recipe.UID,subfolders(iFolder).name));
-                obj.Weights(iFolder) = scores(index_of_UID);
-                obj.LayerLabels{iFolder} = thisFolder;
+                
+                obj.Weights(i) = scores(i);
+                obj.LayerLabels{i} = id;
             end
 
 
             function score_tag = getScoreTag(recipe)
-            if length(recipe.Properties.VariableNames)==2
-                score_tag = recipe.Properties.VariableNames{2};
+            if length(recipe.Properties.VariableNames)==4
+                score_tag = recipe.Properties.VariableNames{4};
             else
-                indx = listdlg('Liststring',recipe.Properties.VariableNames(3:end));
+                indx = listdlg('Liststring',recipe.Properties.VariableNames(4:end));
                 score_tag = recipe.Properties.VariableNames{1+indx};
             end
             end
@@ -176,7 +199,7 @@ classdef VoxelDataStack < handle
             
         end
         
-        function convertToHeatmap(obj,filename,description,savememory,LOOdir)
+        function heatmap = convertToHeatmap(obj,filename,description,savememory,LOOdir)
             global arena
             if not(isfield(arena.Settings,'rootdir'))
                 error('Your settings file is outdated. Please remove config.mat and restart MATLAB for a new setup')
@@ -187,7 +210,7 @@ classdef VoxelDataStack < handle
             end
             
             if nargin<4
-                savememory = true;
+                savememory = false;
             end
             
             if nargin==5
@@ -211,7 +234,7 @@ classdef VoxelDataStack < handle
             
             if LOOmode
                 outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput',LOOdir);
-                [~, ~] = mkdir(outputdir)
+                [~, ~] = mkdir(outputdir);
             else
                 outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput');
             end
