@@ -220,7 +220,7 @@ classdef VoxelDataStack < handle
             end
 
             raw.recipe = obj.Recipe;
-            raw.files = obj.Layerlabels;
+            raw.files = obj.LayerLabels;
             [tmap,pmap,signedpmap] = obj.ttest();
             heatmap = Heatmap();
             heatmap.tmap = tmap;
