@@ -20,7 +20,7 @@ classdef PredictionManager < handle
             for iSubFolder = 1:numel(subfolders)
                 addpath(fullfile(subfolders(iSubFolder).folder,subfolders(iSubFolder).name))
                 eval(['m = ',subfolders(iSubFolder).name,';'])
-                if isa(m,'Heatmap')
+                if isa(m,'HeatmapModelSupport')
                     obj.Heatmaps{end+1} = m;
                 else
                         disp([subfolders.name,' does not appear to be a Heatmap. Make sure the class inherits "Heatmap"'])

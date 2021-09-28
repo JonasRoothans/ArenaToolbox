@@ -1,4 +1,4 @@
-classdef CognitiveDecline < Heatmap & handle
+classdef CognitiveDecline < HeatmapModelSupport & handle
     %GPIDYSTONA Summary of this class goes here
     %   Detailed explanation goes here
     

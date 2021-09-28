@@ -46,9 +46,15 @@ classdef VoxelDataStack < handle
             if nargin==1
                 waitfor(msgbox('Find the recipe'))
                 [filename,foldername] = uigetfile('*.xlsx','Locate the recipe');
+                if filename==0
+                    return
+                end
                 recipe = fullfile(foldername,filename);
                 waitfor(msgbox('Find a nii that serves as template space'))
                 [filename,foldername] = uigetfile('*.nii','Get template file');
+                if filename==0
+                    return
+                end
                 templatefile = fullfile(foldername,filename);
                 
             end
@@ -375,8 +381,19 @@ classdef VoxelDataStack < handle
                  end
                  
             end
-
+           
+        end
+            function copyObj = copy(obj)
+                copyObj = VoxelDataStack;
+                copyObj.Voxels = obj.Voxels;
+                copyObj.R = obj.R;
+                copyObj.Weights = obj.Weights;
+                copyObj.Recipe = obj.Recipe;
+                copyObj.RecipePath = obj.RecipePath;
+                copyObj.LayerLabels = obj.LayerLabels;
+                copyObj.ScoreLabel = obj.ScoreLabel;
             end
+
         end
     end
 
