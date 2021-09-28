@@ -223,11 +223,12 @@ classdef VoxelDataStack < handle
             raw.files = obj.LayerLabels;
             [tmap,pmap,signedpmap] = obj.ttest();
             heatmap = Heatmap();
-            heatmap.tmap = tmap;
-            heatmap.pmap = pmap;
-            heatmap.signedpmap = signedpmap;
-            heatmap.raw = raw;
-            heatmap.description = description;
+            heatmap.Tmap = tmap;
+            heatmap.Pmap = pmap;
+            heatmap.Signedpmap = signedpmap;
+            heatmap.Raw = raw;
+            heatmap.Description = description;
+            heatmap.VoxelDataStack = obj;
             
             %save
             

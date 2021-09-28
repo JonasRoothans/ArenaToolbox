@@ -1,15 +1,16 @@
 classdef Heatmap < handle
     
     properties
-        tmap
-        pmap
-        signedpmap
-        amap
-        cmap
-        rmap
-        fzmap
-        raw
-        description
+        Tmap
+        Pmap
+        Signedpmap
+        Amap
+        Cmap
+        Rmap
+        Fzmap
+        Raw
+        Description
+        VoxelDataStack
     end
     
     methods
@@ -19,16 +20,16 @@ classdef Heatmap < handle
         
         
         function fz = makeFzMap(obj)
-            if not(isempty(obj.fzmap))
-                fz = obj.fzmap;
+            if not(isempty(obj.Fzmap))
+                fz = obj.Fzmap;
                 return
             end
-            if isempty(obj.rmap)
+            if isempty(obj.Rmap)
                 error('requires an rmap')
             end
             
-            fzVoxels = atanh(obj.rmap.Voxels);
-            obj.fzmap = VoxelData(fzVoxels,obj.rmap.R);
+            fzVoxels = atanh(obj.Rmap.Voxels);
+            obj.Fzmap = VoxelData(fzVoxels,obj.Rmap.R);
         end
       
         
