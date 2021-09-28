@@ -199,6 +199,8 @@ classdef ArenaScene < handle
             obj.handles.menu.view.bgcolor.black = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','Black','callback',{@menu_setbackgroundcolor});
             obj.handles.menu.view.bgcolor.custom = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','Custom','callback',{@menu_setbackgroundcolor});
             
+            obj.handles.menu.view.dynamictransparanncy.main = uimenu(obj.handles.menu.view.main,'Text','Dynamic slice transparancy','Checked',1,'callback',{@menu_setdynamictransparancy})
+            
             
             obj.handles.menu.atlas.main = uimenu(obj.handles.figure,'Text','Atlas');
             obj.handles.menu.atlas.lead.main = uimenu(obj.handles.menu.atlas.main,'Text','from leadDBS (MNI)','callback',{@menu_atlasleaddbs});
@@ -681,6 +683,16 @@ classdef ArenaScene < handle
                         color =uisetcolor();
                 end
                 set(thisScene.handles.figure,'Color',color)
+                
+            end
+            
+            function menu_setdynamictransparancy(hObject,eventdata)
+                switch hObject.Checked
+                    case 'on'
+                        hObject.Checked = 'off';
+                    case 'off'
+                        hObject.Checked = 'on';
+                end
                 
             end
             
@@ -1199,6 +1211,8 @@ classdef ArenaScene < handle
                             importExcel(scene,fullfile(pathname,filename{iFile}));
                         case '.vtk'
                             import_vtk(scene,fullfile(pathname,filename{iFile}))
+                        case '.heatmap'
+                            A_loadheatmap(scene,fullfile(pathname,filename{iFile}));
                             
                             
                             
