@@ -123,13 +123,16 @@ classdef Slicei < handle & ArenaActorRendering
             
             
             %function disabled
-             if strcmp(scene.handles.menu.view.dynamictransparanncy.main.Checked,'on') && obj.clipDark;
+             if strcmp(scene.handles.menu.view.dynamictransparanncy.main.Checked,'on') && obj.clipDark
                 %obj.handle.FaceColor = obj.cmap(end,:);
                 obj.handle.FaceAlpha = 'interp';
                 obj.handle.AlphaDataMapping = 'none';
-                obj.handle.AlphaData = double(abs(grayscale_sliceim));
+                absvalues = double(abs(grayscale_sliceim));
+                absvalues(absvalues>1)=1;
+                scaledvalues = absvalues*obj.opacity;
+                obj.handle.AlphaData = scaledvalues;
              else
-                 obj.handle.FaceAlpha = 1;
+                 obj.handle.FaceAlpha = obj.opacity;
                  obj.handle.AlphaDataMapping  = 'scaled';
                  obj.handle.AlphaData = 1;
                  
