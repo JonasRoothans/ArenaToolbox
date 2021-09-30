@@ -7,6 +7,11 @@ classdef VoxelData <handle
         R
     end
     
+    properties (Hidden)
+        SourceFile
+        Tag
+    end
+    
     
     methods
         function obj = VoxelData(varargin)
@@ -252,7 +257,9 @@ classdef VoxelData <handle
             Ref.ZWorldLimits = Ref.ZWorldLimits+transform(3,4)-voxelsize(3);
             
             obj.R = Ref;
-            
+            obj.SourceFile = niifile;
+            [~,filename] = fileparts(niifile);
+            obj.Tag = filename;
         end
         
         function [bool, percentage_nonbinary] = isBinary(obj,slack)
@@ -596,7 +603,66 @@ classdef VoxelData <handle
            
            
         end
+        
+        
+        function normalizeToMNI(obj,otherFiles)
+
+            %make tempdir
+            mkdir(fullfile(tempdir,'SPMfiles'))
+            other = {};
             
+            %write obj
+            if not(isempty(obj.Tag))
+                filename = fullfile(tempdir,'SPMfiles',obj.Tag);
+            else
+                filename = fullfile(tempdir,'template.nii');
+            end
+            obj.savenii(filename)
+            
+            other{end+1} = [filename,',1'];
+            sourceDir = [filemame',1'];
+            
+            if nargin==2
+                
+                for i = length(otherFiles)
+                    if isa(otherFiles(i),'VoxelDaa')
+                        if not(isempty(otherFiles(i).Tag))
+                            filename = fullfile(tempdir,'SPMfiles',otherFiles(i).Tag);
+                        else
+                            filename = fullfile(tempdir,[num2str(i),'.nii']);
+                        end
+                        otherFiles(i).warpto(obj).savenii(filename)
+                        other{end+1} = [filename,',1'];
+                    end
+                end
+            end
+            
+            global arena
+            lead_MNI_dir = [arena.Settings,'templates/space/MNI_ICBM_2009b_NLIN_ASYM/TPM.nii'];
+            
+            %make matlab batch
+            matlabbatch{1}.spm.spatial.normalise.estwrite.subj.vol ={sourceDir};
+            matlabbatch{1}.spm.spatial.normalise.estwrite.subj.resample = otherDir;
+            matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.biasreg = 0.0001;
+            matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.biasfwhm = 60;
+            matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.tpm = {lead_MNI_dir};
+            %matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.tpm = {fullfile(SPMdir,'Tpm/TPM.nii')};
+            matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.affreg = 'mni';
+            matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.reg = [0 0.001 0.5 0.05 0.2];
+            matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.fwhm = 0;
+            matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.samp = 3;
+            matlabbatch{1}.spm.spatial.normalise.estwrite.woptions.bb = [-78 -112 -70 78 76 85];
+            matlabbatch{1}.spm.spatial.normalise.estwrite.woptions.vox = [1 1 1];
+            matlabbatch{1}.spm.spatial.normalise.estwrite.woptions.interp = 4;
+            matlabbatch{1}.spm.spatial.normalise.estwrite.woptions.prefix = 'temp_';
+
+
+             spm_jobman('run', matlabbatch);
+            
+            
+                    
+            
+        end
             
             
         

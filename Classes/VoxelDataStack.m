@@ -41,6 +41,30 @@ classdef VoxelDataStack < handle
         end
         
         
+        function obj = loadDataFromFolder(obj,folder)
+            if nargin==1
+                waitfor(msgbox('Find the folder with nii files'))
+                [folder] = uigetdir('*.nii','Get the folder with nii files');
+                if folder==0
+                    return
+                end
+            end
+            
+            files = A_getfiles(fullfile(folder,'*.nii'));
+            obj.RecipePath = folder;
+            for iFile = 1:numel(files)
+                if iFile==1
+                    vd_template = VoxelData(fullfile(folder,files(iFile).name));
+                    vd = vd_template;
+                    obj.R = vd.R;
+                else
+                    vd = VoxelData(fullfile(folder,files(iFile).name)).warpto(vd_template);
+                end
+                obj.InsertVoxelDataAt(vd,iFile)
+                
+            end
+            
+        end
         
         function obj = loadStudyDataFromRecipe(obj,recipe,templatefile)
             if nargin==1
@@ -145,10 +169,11 @@ classdef VoxelDataStack < handle
         
         function obj = InsertVoxelDataAt(obj,vd,index)
             sizeStack = size(obj.Voxels);
+            if index>1
             if any(not(size(vd.Voxels)==sizeStack(1:3)))
                 vd = vd.warpto.obj;
             end
-            
+            end
             obj.Voxels(:,:,:,index) = vd.Voxels;
         end
         
@@ -205,6 +230,31 @@ classdef VoxelDataStack < handle
             
         end
         
+        function heatmap = convertToHeatmapBasedOnVoxelValues(obj,filename,description)
+            global arena
+            if not(isfield(arena.Settings,'rootdir'))
+                error('Your settings file is outdated. Please remove config.mat and restart MATLAB for a new setup')
+            end
+            
+            if nargin<3
+                error('Include the heatmapname and a short description!')
+            end
+            
+            raw.recipe = [];
+            raw.files = obj.LayerLabels;
+            [tmap,pmap,signedpmap] = obj.ttest();
+            heatmap = Heatmap();
+            heatmap.Tmap = tmap;
+            heatmap.Pmap = pmap;
+            heatmap.Signedpmap = signedpmap;
+            heatmap.Raw = raw;
+            heatmap.Description = description;
+            heatmap.VoxelDataStack = obj;
+            
+            
+            
+        end
+        
         function heatmap = convertToHeatmap(obj,filename,description,savememory,LOOdir)
             global arena
             if not(isfield(arena.Settings,'rootdir'))
@@ -227,7 +277,7 @@ classdef VoxelDataStack < handle
 
             raw.recipe = obj.Recipe;
             raw.files = obj.LayerLabels;
-            [tmap,pmap,signedpmap] = obj.ttest();
+            [tmap,pmap,signedpmap] = obj.ttest2();
             heatmap = Heatmap();
             heatmap.Tmap = tmap;
             heatmap.Pmap = pmap;
@@ -264,8 +314,24 @@ classdef VoxelDataStack < handle
             
         end
         
-        
+ 
         function [tmap,pmap,signedpmap] = ttest(obj)
+            
+          serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
+            
+                [~,p_voxels,~,stat] = ttest(serialized');
+                  t_voxels = stat.tstat;
+                  
+            stacksize = size(obj.Voxels);
+            outputsize = stacksize(1:3);      
+            signed_p_voxels = (1-p_voxels).*sign(t_voxels);
+            tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
+            pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
+            signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
+            Done;
+        end
+        
+        function [tmap,pmap,signedpmap] = ttest2(obj)
             
           serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
           t_voxels = zeros([length(serialized),1]);
