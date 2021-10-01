@@ -1022,6 +1022,11 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 case 'mesh'
                     actor = obj.Data.parent.getmesh.see(obj.Scene);
                     actor.changeName(obj.Tag)
+                otherwise
+                    num = str2num(value);
+                    if not(isempty(num))
+                        feval(obj.Scene.handles.btn_updateActor.Callback,obj.Scene.handles.btn_updateActor,[])
+                    end
             end
                     
         end

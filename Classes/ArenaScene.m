@@ -199,7 +199,7 @@ classdef ArenaScene < handle
             obj.handles.menu.view.bgcolor.black = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','Black','callback',{@menu_setbackgroundcolor});
             obj.handles.menu.view.bgcolor.custom = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','Custom','callback',{@menu_setbackgroundcolor});
             
-            obj.handles.menu.view.dynamictransparanncy.main = uimenu(obj.handles.menu.view.main,'Text','Dynamic slice transparancy','Checked',1,'callback',{@menu_setdynamictransparancy})
+            obj.handles.menu.view.dynamictransparanncy.main = uimenu(obj.handles.menu.view.main,'Text','Dynamic slice transparancy','Checked',0,'callback',{@menu_setdynamictransparancy})
             
             
             obj.handles.menu.atlas.main = uimenu(obj.handles.figure,'Text','Atlas');
@@ -3059,8 +3059,21 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                                     end
                                 end
                             case 'return'
-                                changeLayerName(src,eventdata)
                                 
+                                %check if mouse is hovering the listbox
+                                if strcmp(obj.handles.panelright.Visible,'on')
+                                    listboxpos = obj.handles.panelright.Position;
+                                    currpt = get(obj.handles.figure,'CurrentPoint');
+                                    Xinside = currpt(1)>listboxpos(1) && currpt(1) < listboxpos(1)+listboxpos(3);
+                                    Yinside = currpt(2)>listboxpos(2) && currpt(2) < listboxpos(2)+listboxpos(4);
+                                    if Xinside && Yinside
+                                        if not(isempty(obj.Actors))
+                                            changeLayerName(src,eventdata)
+                                        end
+                                    end
+                                end
+                                
+                                                                 
                             case 'o'
                                 menu_camTargetOrigin(src,eventdata)
                                 
@@ -3524,6 +3537,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                             'units','normalized',...
                             'position',[left+xpadding/2,1-ypadding-editheight-top,editwidth,editheight],...
                             'String',num2str(value{i}),...
+                            'Callback',@cc_callback,...
                             'Tag',tag{i});
                         
                         left = left+xpadding/2+editwidth;
@@ -3548,6 +3562,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                             'units','normalized',...
                             'position',[left+xpadding/2,1-ypadding-editheight-top,editwidth,editheight],...
                             'String',num2str(value{i}),...
+                            'Callback',@cc_callback,...
                             'Tag',tag{i});
                         
                         left = left+xpadding/2+editwidth;
