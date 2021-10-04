@@ -277,6 +277,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Mesh.SpatialCorrelation = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','VoxelData: spatial correlation','callback',{@menu_spatialcorrelation},'Enable','off');
             obj.handles.menu.dynamic.Mesh.seperate = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: separate clusters','callback',{@menu_seperateClusters},'Enable','off');
             obj.handles.menu.dynamic.Mesh.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: source data','callback',{@menu_smoothVoxelData},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.takeBite = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: take a sample from slice or mesh','callback',{@menu_takeSample},'Enable','off');
             
             obj.handles.menu.dynamic.Slicei.SpatialCorrelation = obj.handles.menu.dynamic.Mesh.SpatialCorrelation;
             
@@ -2606,6 +2607,32 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 end
                 
             end
+            
+            function menu_takeSample(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                selection = listdlg('ListString',{scene.Actors.Tag},'PromptString','Select source to take a bit from:',...
+                           'SelectionMode','single');
+                if isempty(selection)
+                    return
+                end
+                switch  class(scene.Actors(selection).Data)      
+                    case 'Slicei'
+                        mapVD = scene.Actors(selection).Data.parent;
+                    case 'Mesh'
+                        mapVD = scene.Actors(selection).Data.Soure;
+                        if isempty(mapVD)
+                            error('This mesh does not contain VoxelData')
+                        end
+                end
+                disp('aligning mesh to voxeldata...')
+                ROI = currentActors.Data.convertToVoxelsInTemplate(mapVD);
+                sample = mapVD.Voxels(ROI.Voxels>0.5);
+                assignin('base','sample',sample)
+                Done;
+                disp('sample is available in workspace as ''sample''')
+            end
+            
             
             function menu_smoothVoxelData(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
