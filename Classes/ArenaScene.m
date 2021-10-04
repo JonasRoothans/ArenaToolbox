@@ -2510,7 +2510,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                         case 'Average Value'
                             currentActors.Data.Weight(iFiber) = mean(weights);
                         case 'Sum'
-                            currentActors.Data.Weight(iFiber) = sum(weights);
+                            currentActors.Data.Weight(iFiber) = nansum(weights);
                         
                     end
                 end
