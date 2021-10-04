@@ -250,7 +250,7 @@ classdef VoxelDataStack < handle
             heatmap.Raw = raw;
             heatmap.Description = description;
             heatmap.VoxelDataStack = obj;
-            heatmap.Amap = VoxelData(mean(obj.Voxels,4),heatmap.Tmap.R);
+            heatmap.Amap = VoxelData(nanmean(obj.Voxels,4),heatmap.Tmap.R);
             
             
             
