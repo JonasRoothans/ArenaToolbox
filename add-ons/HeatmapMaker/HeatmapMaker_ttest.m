@@ -33,6 +33,7 @@ heatmap.save(fullfile(folder,nameSuggestion,'output',nameSuggestion))
 heatmap.Signedpmap.savenii(fullfile(folder,nameSuggestion,'output','signedpmap.nii'))
 heatmap.Tmap.savenii(fullfile(folder,nameSuggestion,'output','Tmap.nii'))
 heatmap.Pmap.savenii(fullfile(folder,nameSuggestion,'output','Pmap.nii'))
+heatmap.Amap.savenii(fullfile(folder,nameSuggestion,'output','Amap.nii'))
 
 assignin('base','heatmap',heatmap)
 disp('heatmap is saved to harddisk and is available in workspace as ''heatmap''')
