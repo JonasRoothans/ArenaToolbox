@@ -67,6 +67,14 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
             obj.Direction = Direction.unit;
         end
         
+        function PointOnLead(obj,POL)
+            if ~isa(POL,'Vector3D')
+                POL = Vector3D(POL);
+            end
+            directionvector = POL-obj.C0;
+            obj.Direction = directionvector.unit();
+        end
+        
         function cog = getCOG(obj)
             cog = obj.C0;
         end

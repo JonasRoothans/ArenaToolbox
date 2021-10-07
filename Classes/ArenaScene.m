@@ -157,6 +157,7 @@ classdef ArenaScene < handle
             obj.handles.menu.vtas.main = uimenu(obj.handles.figure,'Text','VTAs','Visible','on','Separator','on','callback',{@menu_updateVTAlist});
             obj.handles.menu.vtas.constructvta = uimenu(obj.handles.menu.vtas.main,'Text','+assign a VTA based on existing layers','callback',{@menu_constructVTA});
             obj.handles.menu.vtas.constructvta = uimenu(obj.handles.menu.vtas.main,'Text','+create Åström VTA','callback',{@menu_generateVTA});
+            obj.handles.menu.vtas.constructvta = uimenu(obj.handles.menu.vtas.main,'Text','+place electrode','callback',{@menu_placeElectrode});
             obj.handles.menu.vtas.constructtherapy = uimenu(obj.handles.menu.vtas.main,'Text','+construct (bilateral) therapy','callback',{@menu_constructTherapy});
             obj.handles.menu.vtas.list = gobjects;
             obj.handles.menu.vtas.therapylist = gobjects;
@@ -1384,9 +1385,25 @@ classdef ArenaScene < handle
                 T.connectTo(obj)
             end
             
+            function menu_placeElectrode(hObject,eventdata)
+                msgbox('Please follow instructions in the MATLAB command window')
+                new_lead = Electrode;
+                assignin('base','new_lead',new_lead)
+                assignin('base','scene',obj)
+                home;
+                disp('Specify the tip of the lead (C0), and either the direction or a point on the lead.')
+                disp('use: ')
+                disp('- new_lead.C0 = .... ')
+                disp('- new_lead.Direction = .... ')
+                disp('- new_lead.PointOnLead = .... ')
+                disp('Show in your scene using: new_lead.see(scene)')
+            end
+                
+            
             function menu_generateVTA(hObject,eventdata)
                 %ask for electrode
                 if numel(obj.Actors)==0
+                    disp('requires a "Electrode" actor')
                     return
                 else
                     classes = arrayfun(@(x) class(x.Data), obj.Actors,'UniformOutput',0);
