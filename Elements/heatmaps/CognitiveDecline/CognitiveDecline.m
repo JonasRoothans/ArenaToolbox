@@ -112,7 +112,7 @@ classdef CognitiveDecline < HeatmapModelSupport & handle
          function performReviewPostProcessing(tag,predictionList,filterSettings,pairs)
             
            
-            Heatmap.printPredictionList(tag,predictionList,pairs);
+            HeatmapModelSupport.printPredictionList(tag,predictionList,pairs);
             
             
         end

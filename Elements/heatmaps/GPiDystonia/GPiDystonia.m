@@ -126,7 +126,7 @@ classdef GPiDystonia < HeatmapModelSupport & handle
         function performReviewPostProcessing(tag,predictionList,filterSettings,pairs)
             
             blackOrRed = GPiDystonia.filterPredictions(predictionList,filterSettings);
-            Heatmap.printPredictionList(tag,predictionList,pairs,blackOrRed);
+            HeatmapModelSupport.printPredictionList(tag,predictionList,pairs,blackOrRed);
             
             
         end
