@@ -64,7 +64,7 @@ classdef ArenaActorRendering < handle
                     settings.faceOpacity = 90;
                 case 'Electrode'
                     settings = struct;
-                    settings.colorBase = [1 1 1];
+                    settings.colorBase = [0.9 0.9 0.9];
                     settings.colorInactive = [0.5 0.5 0.5];
                     settings.colorCathode = [1 0.5 0];
                     settings.colorAnode = [0 0.5 1];
@@ -157,6 +157,7 @@ classdef ArenaActorRendering < handle
                 
                 T = A_transformationmatriforleadmesh(obj.C0,obj.Direction);
                 body = leadmodel.(strucname).body.transform(T);
+                figure(scene.handles.figure) %set active figure to scene
                 handle(end+1) = patch('Faces',body.Faces,'Vertices',body.Vertices,'FaceColor',settings.colorBase ,'EdgeColor','none','Clipping',0,'SpecularStrength',0,'FaceAlpha',settings.opacity/100);
                 material(handle(end),obj.MATERIAL_Electrode_body)
                 handle(end).FaceLighting = 'gouraud';
