@@ -3706,22 +3706,29 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
             end
         end
         
-         function addon_addmenuitem(scene,addon,menuname,callback)
+         function h = addon_addmenuitem(scene,addon,menuname,callback,parent)
+             if nargin<5
+                 parent = scene.handles.menu.addons.(addon).main;
+             end
+                
              if not(isfield(scene.handles.menu.addons.(addon),'external'))
                  scene.handles.menu.addons.(addon).external = [];
              end
              %deactivate install method
              scene.handles.menu.addons.(addon).main.Callback = '';
-             
-             if not(iscell(callback))
-                 callback = {callback};
-             end
-            
-             callback{end+1} = scene; 
-             
+
              %add menu
-             scene.handles.menu.addons.(addon).external(end+1) =  uimenu(scene.handles.menu.addons.(addon).main,'Text',menuname,'callback',callback);
-              
+             if nargin>3
+                 if not(iscell(callback))
+                     callback = {callback};
+                 end
+                 callback{end+1} = scene; 
+                scene.handles.menu.addons.(addon).external(end+1) =  uimenu(parent,'Text',menuname,'callback',callback);
+             else
+                 scene.handles.menu.addons.(addon).external(end+1) =  uimenu(parent,'Text',menuname);
+             end
+                 
+              h = scene.handles.menu.addons.(addon).external(end);
             end
     end
     

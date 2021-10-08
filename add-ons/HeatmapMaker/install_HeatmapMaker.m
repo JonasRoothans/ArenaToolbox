@@ -1,9 +1,15 @@
 function install_HeatmapMaker(menuhandle,eventdata,scene)
 
 
-scene.addon_addmenuitem('HeatmapMaker','1. Make recipe template from nii',str2func('@HeatmapMaker_makerecipe'))
-scene.addon_addmenuitem('HeatmapMaker','2. Cook a heatmap',str2func('@HeatmapMaker_cook'))
-scene.addon_addmenuitem('HeatmapMaker','-> Voxel-value driven heatmap based on nii files in folder',str2func('@HeatmapMaker_ttest'))
+menuWithRecipe = scene.addon_addmenuitem('HeatmapMaker','Recipe based pipeline');
+scene.addon_addmenuitem('HeatmapMaker','1. Make recipe template from nii',str2func('@HeatmapMaker_makerecipe'),menuWithRecipe)
+scene.addon_addmenuitem('HeatmapMaker','2. Cook a heatmap',str2func('@HeatmapMaker_cook'),menuWithRecipe)
+scene.addon_addmenuitem('HeatmapMaker','3a. Dirty Regression',str2func('@HeatmapMaker_dirty'),menuWithRecipe)
+scene.addon_addmenuitem('HeatmapMaker','3b. Leave One Out Cross Validation',str2func('@HeatmapMaker_LOOCV'),menuWithRecipe)
+
+
+basedOnVoxelValue = scene.addon_addmenuitem('HeatmapMaker','Voxel value based pipeline');
+scene.addon_addmenuitem('HeatmapMaker','Heatmap from nii files in 1 folder',str2func('@HeatmapMaker_ttest'),basedOnVoxelValue)
 menuhandle.Text = menuhandle.Text(6:end);
 disp('Docking complete')
 

@@ -20,6 +20,29 @@ classdef Heatmap < handle
         end
         
         
+        function loadHeatmap(obj,hmpath)
+            if nargin==1
+                [filename,pathname] = uigetfile('*.heatmap','load heatmap file');
+                hmpath = fullfile(pathname,filename);
+            end
+            
+             hm = load(hmpath,'-mat');
+
+            props = properties(hm.hm);
+            for iprop = 1:numel(props)
+                thisProp = props{iprop};
+                if isprop(obj,thisProp)
+                    if not(isempty(obj.(thisProp)))
+                        warning(['overwriting ',thisProp]);
+                    end
+                    obj.(thisProp) = hm.hm.(thisProp);
+                end
+              
+            end
+            
+            
+        end
+        
         function fz = makeFzMap(obj)
             if not(isempty(obj.Fzmap))
                 fz = obj.Fzmap;
@@ -87,8 +110,8 @@ classdef Heatmap < handle
             
             %write memory
             if save_memory
-                vds  = obj.VoxelDataStack;
-                save(fullfile(folder,['memory_',file,'.mat']),vds)
+                out.VoxelDataStack = obj.VoxelDataStack;
+                save(fullfile(folder,[file,'_wVDS.heatmap']),'-struct','out')
             end
             
             Done;
