@@ -41,6 +41,25 @@ classdef VoxelDataStack < handle
         end
         
         
+        function saveAs4Dnii(obj,filename)
+            if nargin==2
+                [outfolder,file,ext] = fileparts(filename);
+                outfile = [file,'.nii'];
+            else
+                [outfile,outfolder] = uiputfile(fullfile(obj.RecipePath,'*.nii'));
+            end
+            
+            [x,y,z] = obj.R.worldToIntrinsic(0,0,0);
+            spacing = [obj.R.PixelExtentInWorldX,obj.R.PixelExtentInWorldY,obj.R.PixelExtentInWorldZ];
+            origin = [x y z];
+            datatype = 16;%64;
+            nii = make_nii(double(permute(obj.Voxels,[2 1 3 4])), spacing, origin, datatype);
+            save_nii(nii,fullfile(outfolder,outfile));
+            
+            
+            
+        end
+        
         function obj = loadDataFromFolder(obj,folder)
             if nargin==1
                 waitfor(msgbox('Find the folder with nii files'))
