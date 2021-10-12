@@ -155,9 +155,9 @@ classdef ArenaScene < handle
             obj.handles.menu.stusessions.openwindows = {};
             
             obj.handles.menu.vtas.main = uimenu(obj.handles.figure,'Text','VTAs','Visible','on','Separator','on','callback',{@menu_updateVTAlist});
-            obj.handles.menu.vtas.constructvta = uimenu(obj.handles.menu.vtas.main,'Text','+assign a VTA based on existing layers','callback',{@menu_constructVTA});
+            obj.handles.menu.vtas.assignVTA = uimenu(obj.handles.menu.vtas.main,'Text','+assign a VTA based on existing layers','callback',{@menu_constructVTA});
             obj.handles.menu.vtas.constructvta = uimenu(obj.handles.menu.vtas.main,'Text','+create Åström VTA','callback',{@menu_generateVTA});
-            obj.handles.menu.vtas.constructvta = uimenu(obj.handles.menu.vtas.main,'Text','+place electrode','callback',{@menu_placeElectrode});
+            obj.handles.menu.vtas.placeElectrode = uimenu(obj.handles.menu.vtas.main,'Text','+place electrode','callback',{@menu_placeElectrode});
             obj.handles.menu.vtas.constructtherapy = uimenu(obj.handles.menu.vtas.main,'Text','+construct (bilateral) therapy','callback',{@menu_constructTherapy});
             obj.handles.menu.vtas.list = gobjects;
             obj.handles.menu.vtas.therapylist = gobjects;
@@ -540,6 +540,9 @@ classdef ArenaScene < handle
                 scene = ArenaScene.getscenedata(hObject);
                 assignin('base','scene',scene);
                 assignin('base','actors',scene.Actors);
+                for i = 1:numel(scene.Actors)
+                    fprintf('%d. (%s) %s\n',i,class(scene.Actors(i).Data),scene.Actors(i).Tag)
+                end
                 disp('handles saved to workspace: scene, actors')
             end
             
@@ -1437,6 +1440,7 @@ classdef ArenaScene < handle
                 try
                 VTAObject = makeVTA(E,vtaname);
                 catch
+                    warning ('on','all');
                     warning('VTA not available in pool')
                     return
                 end
