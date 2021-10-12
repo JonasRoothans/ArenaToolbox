@@ -3,13 +3,44 @@ function [actor] = A_loadheatmap(scene,heatmapfile)
 %   Detailed explanation goes here
 
 if nargin==1
-    [filename,pathname] = uigetfile('*.swtspt');
-    load(fullfile(pathname,filename),'-mat');
+    [filename,pathname] = uigetfile('*.swtspt;*.heatmap');
+    if ismember(filename,'swtspt')
+    hm=load(fullfile(pathname,filename),'-mat');
+    else hm=Heatmap;
+        hm.loadHeatmap(fullfile(pathname,filename));
+    end
 else
-    load(heatmapfile,'-mat');
+    try 
+        hm=Heatmap;
+        hm.loadHeatmap(heatmapfile);
+    catch
+    hm=load(heatmapfile,'-mat');
+    end
+    
+end
+try
+label = hm.Tag;
+catch
+    warning('it looks you are runing an old heatmap, please enter required information')
+    label=inputdlg('please enter label');
+    try 
+        hm.Description=hm.description
+    catch
+    hm.Description=inputdlg('please enter description');
+    end
+    warning(' buidling heatmap with missing properies')
+    shell=Heatmap;
+    props=properties(shell)
+    for iprop=1:numel(props)
+        if find(ismember(lower(props{iprop}),fieldnames(hm)))
+            shell.(props{iprop})=hm.(lower(props{iprop}))
+        end
+    end
+    hm=shell;
+    hm.Tag=label{:};
 end
 
-label = hm.Tag;
+
 
 props = properties(hm);
 options = {};
