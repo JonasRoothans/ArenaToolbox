@@ -952,6 +952,16 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             scene.refreshLayers();
         end
         
+        function newActor = obj2mesh(obj,scene)
+            if class(obj.Data) == 'ObjFile'
+                mesh = Mesh()
+                mesh.Faces = obj.Data.Faces
+                mesh.Vertices = obj.Data.Vertices
+                mesh.see(scene)
+                scene.Actors(end).changeName(['Mesh from ',obj.Tag])
+            end
+        end
+        
         function delete(obj,scene)
             if nargin==1
                 scene = obj.Scene;
