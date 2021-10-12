@@ -239,6 +239,10 @@ classdef ArenaScene < handle
             %obj.handles.menu.edit.pointclouddistribution = uimenu(obj.handles.menu.edit.main,'Text','pointcloud distribution','callback',{@menu_pcDistribution});
             %obj.handles.menu.edit.pointcloudanalysis = uimenu(obj.handles.menu.edit.main,'Text','PointCloud in mesh','callback',{@menu_pointcloudinmesh});
             obj.handles.menu.edit.duplicate = uimenu(obj.handles.menu.edit.main,'Text','Duplicate layer','callback',{@menu_duplicate});
+            %obj.handles.menu.edit.obj2mesh = uimenu(obj.handles.menu.edit.main,'Text','Turn Object to Mesh','callback',{@menu_obj2mesh});
+            
+            
+            
             
             obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform'); %relocated
             obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
@@ -256,6 +260,9 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.modify.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Modify');
             obj.handles.menu.dynamic.analyse.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Analyse');
             obj.handles.menu.dynamic.generate.main = uimenu(obj.handles.menu.dynamic.main ,'Text','Generate');
+            
+            
+            obj.handles.menu.dynamic.ObjFile.obj2mesh = uimenu(obj.handles.menu.dynamic.generate.main,'Text','ObjFile: convert to Mesh','callback',{@menu_obj2mesh},'Enable','off');
             
             
             obj.handles.menu.dynamic.PointCloud.distribution = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: show distribution','callback',{@menu_pcDistribution},'Enable','off');
@@ -602,6 +609,15 @@ classdef ArenaScene < handle
                     copyActor = thisActor.duplicate(scene);
                     copyActor.changeName(['copy of  ',copyActor.Tag])
                     
+                end
+            end
+            
+            function menu_obj2mesh(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                actorList = ArenaScene.getSelectedActors(scene);
+                for iActor = 1:numel(actorList)
+                    thisActor = actorList(iActor);
+                    mesh = thisActor.obj2mesh(scene);
                 end
             end
             
@@ -3446,7 +3462,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
             for iOther = 1:numel(otherclasses)
                 thisOtherClass = otherclasses{iOther};
                 switch thisOtherClass
-                                case thisclass
+                    case thisclass
                         functions = fieldnames(obj.handles.menu.dynamic.(thisOtherClass));
                         for iFunction = 1:numel(functions)
                             thisFunction = functions{iFunction};
