@@ -27,16 +27,15 @@ classdef Heatmap < handle
             end
             
              hm = load(hmpath,'-mat');
-            
 
-            props = properties(obj);
+            props = properties(hm.hm);
             for iprop = 1:numel(props)
                 thisProp = props{iprop};
                 if isprop(obj,thisProp)
                     if not(isempty(obj.(thisProp)))
                         warning(['overwriting ',thisProp]);
                     end
-                    obj.(thisProp) = hm.(thisProp);
+                    obj.(thisProp) = hm.hm.(thisProp);
                 end
               
             end
