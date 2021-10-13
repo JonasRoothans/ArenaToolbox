@@ -56,7 +56,7 @@ classdef ArenaScene < handle
             
             obj.handles = [];
             obj.handles.figure = figure('units','normalized',...
-                'outerposition',[0 0.05 1 0.9],...
+                'outerposition',[0.7 0.05 0.3 1],...
                 'menubar','none',...
                 'name',obj.Title,...
                 'numbertitle','off',...
@@ -239,7 +239,6 @@ classdef ArenaScene < handle
             %obj.handles.menu.edit.pointclouddistribution = uimenu(obj.handles.menu.edit.main,'Text','pointcloud distribution','callback',{@menu_pcDistribution});
             %obj.handles.menu.edit.pointcloudanalysis = uimenu(obj.handles.menu.edit.main,'Text','PointCloud in mesh','callback',{@menu_pointcloudinmesh});
             obj.handles.menu.edit.duplicate = uimenu(obj.handles.menu.edit.main,'Text','Duplicate layer','callback',{@menu_duplicate});
-            %obj.handles.menu.edit.obj2mesh = uimenu(obj.handles.menu.edit.main,'Text','Turn Object to Mesh','callback',{@menu_obj2mesh});
             
             
             
@@ -614,7 +613,7 @@ classdef ArenaScene < handle
                 actorList = ArenaScene.getSelectedActors(scene);
                 for iActor = 1:numel(actorList)
                     thisActor = actorList(iActor);
-                    mesh = thisActor.obj2mesh(scene);
+                    thisActor.obj2mesh(scene);
                 end
             end
             

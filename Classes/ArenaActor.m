@@ -952,7 +952,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             scene.refreshLayers();
         end
         
-        function newActor = obj2mesh(obj,scene)
+        function obj2mesh(obj,scene)
             if class(obj.Data) == 'ObjFile'
                 mesh = Mesh()
                 mesh.Faces = obj.Data.Faces
