@@ -1,12 +1,34 @@
-classdef regressionData < handle
+classdef RegressionRoutine < handle
     
     properties
-        heatmap
-        imageData
-        similarityCoefficient
+        Heatmap
+        VoxelDataStack
+        Samplingsetting
     end
     
     methods
+         function obj = RegressionRoutine(Heatmap,VoxelDataStack,Samplingsetting)
+            if nargin>0
+                obj.Heatmap = Heatmap;
+            end
+            if nargin>1
+                obj.VoxelDataStack = VoxelDataStack;
+            end
+            if nargin>2
+                obj.Samplingsetting = Samplingsetting;
+            end
+         end
+         
+        
+        
+         
+        
+        
+        
+        
+        
+        
+        
         function obj=regressionData(heatmap,imageData,Coefficient) %imagedata must be a VoxelDataStack
            
             if nargin>0
