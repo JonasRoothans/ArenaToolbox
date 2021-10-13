@@ -806,7 +806,11 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         end
         
         function changeName(obj,name)
+            if iscell(name)
+                obj.Tag=strjoin(name); % if name is made of multiple separate parts(cells)
+            else
             obj.Tag = name;
+            end
             obj.Scene.refreshLayers();
         end
         
