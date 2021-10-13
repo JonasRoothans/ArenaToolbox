@@ -110,6 +110,13 @@ classdef PointCloud < ArenaActorRendering
             
         end
         
+        function getStats(obj)
+            disp(['Length: ',num2str(length(obj.Vectors))]);
+            disp(['     X: ',num2str(mean([obj.Vectors.x])),' +/- ',num2str(std([obj.Vectors.x]))])
+            disp(['     Y: ',num2str(mean([obj.Vectors.y])),' +/- ',num2str(std([obj.Vectors.y]))])
+            disp(['     Z: ',num2str(mean([obj.Vectors.z])),' +/- ',num2str(std([obj.Vectors.z]))])
+        end
+        
         function newPC = select(obj,idcs)
             if length(idcs)==length(obj.Weights)
                 if not(islogical(idcs))
