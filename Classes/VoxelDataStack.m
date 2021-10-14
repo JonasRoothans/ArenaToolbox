@@ -324,7 +324,7 @@ classdef VoxelDataStack < handle
                 exportheatmap.(publicProperties{iField}) = heatmap.(publicProperties{iField});
             end
             
-            save(fullfile(outputdir,[filename,'.heatmap']),'-struct','exportheatmap')
+            save(fullfile(outputdir,[filename,'.heatmap']),'-struct','exportheatmap','-v7.3')
             
             if savememory
                 %save memory file
