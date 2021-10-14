@@ -1,6 +1,5 @@
 function FiberInterference(menuhandle,eventdata,scene)
-    hit_list = [];
-    fiber_list = {};
+
 
 
     % Ask which Mesh to use, only allow Meshes
@@ -15,12 +14,10 @@ function FiberInterference(menuhandle,eventdata,scene)
     end
     [indx,tf] = listdlg('PromptString',{'Select the Mesh'},'ListString',labels);
     interfering_mesh = scene.Actors(actor_idx(indx));
-    
-    
         %dialog box
     prompt = {sprintf('You are calculating the interference of \n  %s \nwith all loaded Fibers. Please enter the corresponding clinical outcome(%%): ',interfering_mesh.Tag)};
     dlgtitle = 'Mesh vs all laoded Fibers';
-    definput = {num2str(min([-100, 100]))};
+    definput = {num2str(max([-100, 100]))};
     dims = [1 80];
     opts.Interpreter = 'tex';
     clinical_outcome = inputdlg(prompt,dlgtitle,dims,definput,opts);
@@ -56,6 +53,10 @@ function FiberInterference(menuhandle,eventdata,scene)
         weight_thresh = inputdlg(prompt,dlgtitle,dims,definput,opts);
         weight_thresh = str2num(weight_thresh{1});
  %calculate interference for every loaded tract
+ 
+    hit_list = [clinical_outcome];
+    fiber_list = {"Clinical_Outcome"};
+    
     for iActor = 1:numel(scene.Actors)
     thisActor = scene.Actors(iActor);
         if  strcmp(class(thisActor.Data),'Fibers')
@@ -107,17 +108,17 @@ function FiberInterference(menuhandle,eventdata,scene)
                     fprintf("%.2f of %.0f fibers from %s hit at at least %i points\n",sum(interfering_fibers.Data.Weight>weight_thresh), numel(interfering_fibers.Data.Vertices),interfering_fibers.Tag,weight_thresh)
                     percentage_hit =  sum(interfering_fibers.Data.Weight>weight_thresh)/numel(interfering_fibers.Data.Vertices);
             end
-            hit_list(end +1,:) = [percentage_hit*100, clinical_outcome];
+            hit_list(end +1,:) = [percentage_hit*100];
             fiber_list{end +1} = interfering_fibers.Tag;
         end
     end
-    histo = figure('Name','Clinical Outcome vs Fibers hit');
-    b = bar(hit_list);
-    set(b, {'DisplayName'}, {'Fibers Hit', 'Clinical Outcome'}')
-    ylim([0 100])
-    legend()
+    fig = figure('Name',sprintf('Clinical Outcome vs Fibers hit for %s',interfering_mesh.Tag));
+    cmap = cat(1,[0 0 0], summer(length(hit_list)-1)) %Clinical Outcome Black, everything eles colored: other colorblind friendly options hsv, jet?
+    b = bar(hit_list,'facecolor','flat');
+    b.CData = cmap
     set(gca,'XTickLabel',fiber_list);
-    ylabel('Percentage of clinical improvement and damaged fibers (%)');
+    ylim([0 105])
+    ylabel('Percentage of clinical improvement and fibers overlapping with the lesion (%)');
 end
  
     

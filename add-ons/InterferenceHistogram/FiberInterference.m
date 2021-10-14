@@ -119,13 +119,13 @@ function FiberInterference(menuhandle,eventdata,scene)
         hit_list(end +1,:) = [percentage_hit*100, clinical_outcome(mesh_idx)];
         mesh_list{end +1} = interfering_mesh.Tag;
     end
-    histo = figure('Name','Clinical Outcome vs Fibers hit');
+    histo = figure('Name',sprintf('Clinical Outcome vs Fibers hit for %s',interfering_fibers.Tag));
     b = bar(hit_list);
     set(b, {'DisplayName'}, {'Fibers Hit', 'Clinical Outcome'}')
     ylim([0 100])
     legend()
     set(gca,'XTickLabel',mesh_list);
-    ylabel('Percentage of clinical improvement and damaged fibers (%)');
+    ylabel('Percentage of clinical improvement and fibers overlapping with the lesion (%)');
 end
  
     
