@@ -110,7 +110,7 @@ classdef Heatmap < handle
             
             %write memory
             if save_memory
-                out.VoxelDataStack = obj.VoxelDataStack;
+                out.hm.VoxelDataStack = obj.VoxelDataStack;
                 save(fullfile(folder,[file,'_wVDS.heatmap']),'-struct','out')
             end
             
