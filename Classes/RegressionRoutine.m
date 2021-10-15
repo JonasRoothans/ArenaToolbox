@@ -76,7 +76,7 @@ classdef RegressionRoutine < handle
                        delete(h)
                        else
                            warning('Tmap not found, using Signedpmap only; precision may be affected by interpolation')
-                           bite=obj.Heatmap.Signedpmap.Voxels(and(SubjectProfile>0.5,obj.HeatmapData.Signedpmap.Voxels~=0));
+                           bite=obj.Heatmap.Signedpmap.Voxels(and(SubjectProfile>0.5,obj.Heatmap.Signedpmap.Voxels~=0));
                        
                        %analyse bite
                        edges = -1:0.13333333333:1; % define the bins
