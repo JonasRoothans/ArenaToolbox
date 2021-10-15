@@ -34,47 +34,15 @@ classdef RegressionRoutine < handle
          end
          
          function obj=loadRegressionData(obj)
-             
-             WarpStatus=0;
-            
+
              if isempty(obj.Heatmap)
                  waitfor(msgbox('Find a file that serves as a heatmap'))
-                 [filename,foldername] = uigetfile('*.nii;*.swtspt;*.heatmap','Get heatmap file');
-                 pattern=[".swtspt",".heatmap"];
-                if contains(filename,'*.nii')
-                     obj.Heatmap.Signedpmap=VoxelData(fullfile(foldername,filename));
-                elseif contains(filename,pattern)
-                    
-                    try
-                     obj.Heatmap=Heatmap;
-                     obj.Heatmap.loadHeatmap(fullfile(foldername,filename));
-                     WarpStatus=1;
-                    catch
-                       warning('loading old swtspot file, data may be incompatible, loading default signedp')
-                       hm=load(fullfile(foldername,filename),'-mat');
-                       try
-                           obj.Heatmap.Signedpmap=hm.signedpmap;
-                       catch
-                           keyboard
-                       end
-                    end
-                    if WarpStatus==0
-                        waitfor(msgbox('Find a nii that serves as template space'))
-                        [filename,foldername] = uigetfile('*.nii','Get template file');
-                        if filename==0
-                            return
-                        end
-                        braintemplate = fullfile(foldername,filename);
-                        obj.Heatmap.Signedmap=warpto(braintemplate);
-                    end
-                        
-                       
-                end
-            
+                 obj.Heatmap = Heatmap; %#ok 
+                 obj.Heatmap.loadHeatmap();
              end
              if isempty(obj.VoxelDataStack.Voxels)
                 
-                answer = questdlg('do you have a recipe file?')
+                answer = questdlg('do you have a recipe file?');
                 switch answer
                     case 'Yes'
                         obj.VoxelDataStack.loadStudyDataFromRecipe()
@@ -88,7 +56,6 @@ classdef RegressionRoutine < handle
 
                      
         function  obj=execute(obj)
-          templatemap=VoxelData;
           setting=obj.SamplingSetting;
           f=figure;
           

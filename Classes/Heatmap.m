@@ -19,29 +19,7 @@ classdef Heatmap < handle
 
         end
         
-        
-        function loadHeatmap(obj,hmpath)
-            if nargin==1
-                [filename,pathname] = uigetfile('*.heatmap','load heatmap file');
-                hmpath = fullfile(pathname,filename);
-            end
-            
-             hm = load(hmpath,'-mat');
 
-            props = properties(hm.hm);
-            for iprop = 1:numel(props)
-                thisProp = props{iprop};
-                if isprop(obj,thisProp)
-                    if not(isempty(obj.(thisProp)))
-                        warning(['overwriting ',thisProp]);
-                    end
-                    obj.(thisProp) = hm.hm.(thisProp);
-                end
-              
-            end
-            
-            
-        end
         
         function fz = makeFzMap(obj)
             if not(isempty(obj.Fzmap))
@@ -76,6 +54,58 @@ classdef Heatmap < handle
                 end
             end
           
+        end
+        
+        function loadHeatmap(obj,hmpath)
+            if nargin==1
+                [filename,foldername] = uigetfile('*.nii;*.swtspt;*.heatmap','Get heatmap file');
+                hmpath = fullfile(foldername,filename);
+            end
+            
+            [~,~,ext] = fileparts(hmpath);
+            switch ext
+                case '.nii'
+                    vd = VoxelData(hmpath);
+                    [maps,mapsWithContents] = obj.getMapOverview();
+                    val = listdlg('ListString',mapsWithContents,'PromptString','What kind of map is this?');
+                    obj.(maps{val}) = vd;
+                case '.swtspt'
+                    error('Currently Heatmap is not yet backwards compatible. But if this is required. Let me know. -Jonas')
+                case '.heatmap'
+                    hm = load(hmpath,'-mat');
+                    if isfield(hm,'hm')
+                        hm = hm.hm;
+                    end
+                    props = properties(hm);
+                    for iprop = 1:numel(props)
+                        thisProp = props{iprop};
+                        if isprop(obj,thisProp)
+                            if not(isempty(obj.(thisProp)))
+                                warning(['overwriting ',thisProp]);
+                            end
+                            obj.(thisProp) = hm.(thisProp);
+                        end
+                    end
+            end
+            
+        end
+        
+        function [maps,mapsWithContents] = getMapOverview(obj)
+            maps = {};
+            mapsWithContents = {};
+            props = properties(obj);
+            for p = 1:length(props)
+                if contains(props{p},'map')
+                    maps{end+1} = props{p};
+                    sz = size(obj.(props{p}));
+                    if prod(sz)==0
+                        sz_string = '__________';
+                    else
+                        sz_string = '[1 volume]';
+                    end
+                    mapsWithContents{end+1} = [sz_string,': ',props{p}];
+                end
+            end
         end
         
         function save(obj,filename, memory)
