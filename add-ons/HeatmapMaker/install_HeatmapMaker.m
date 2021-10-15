@@ -10,6 +10,12 @@ scene.addon_addmenuitem('HeatmapMaker','3b. Leave One Out Cross Validation',str2
 
 basedOnVoxelValue = scene.addon_addmenuitem('HeatmapMaker','Voxel value based pipeline');
 scene.addon_addmenuitem('HeatmapMaker','Heatmap from nii files in 1 folder',str2func('@HeatmapMaker_ttest'),basedOnVoxelValue)
+
+other = scene.addon_addmenuitem('HeatmapMaker','Other');
+scene.addon_addmenuitem('HeatmapMaker','Repair recipe',str2func('@HeatmapMaker_repairRecipe'),other)
+
+
+
 menuhandle.Text = menuhandle.Text(6:end);
 disp('Docking complete')
 
