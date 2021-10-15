@@ -1,10 +1,11 @@
-function [mdl] = sweetspotstation_makerecipe(menu,eventdata,scene)
+function [mdl] = sweetspotstation_dirty(menu,eventdata,scene)
 %SWEETSPOTSTATION_MAKERECIPE Summary of this function goes here
 %   Detailed explanation goes here
 
 
 
 HM = Heatmap;
+waitfor(msgbox('Load a heatmap. Ideally one that contains source data (*_wVDS.heatmap)'))
 HM.loadHeatmap;
 
 if isempty(HM.VoxelDataStack)

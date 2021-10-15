@@ -1,8 +1,8 @@
 classdef RegressionRoutine < handle
     
     properties
-        HeatmapData
-        ImageDataStack
+        Heatmap
+        VoxelDataStack
         SamplingSetting
     end
     
@@ -19,13 +19,13 @@ classdef RegressionRoutine < handle
     methods
          function obj = RegressionRoutine(HeatmapData,ImageDataStack,Samplingsetting)
             if nargin>0
-                obj.HeatmapData = HeatmapData;
+                obj.Heatmap = HeatmapData;
             end
             if nargin>1
-                obj.ImageDataStack = ImageDataStack;
-            else
-                obj.ImageDataStack=VoxelDataStack;
-            end
+                obj.VoxelDataStack = ImageDataStack;
+%             else
+%                 obj.ImageDataStack=VoxelDataStack;
+             end
             if nargin>2
                 obj.SamplingSetting = SamplingSetting;
             else 
@@ -37,23 +37,23 @@ classdef RegressionRoutine < handle
              
              WarpStatus=0;
             
-             if isempty(obj.HeatmapData)
+             if isempty(obj.Heatmap)
                  waitfor(msgbox('Find a file that serves as a heatmap'))
                  [filename,foldername] = uigetfile('*.nii;*.swtspt;*.heatmap','Get heatmap file');
                  pattern=[".swtspt",".heatmap"];
                 if contains(filename,'*.nii')
-                     obj.HeatmapData.Signedpmap=VoxelData(fullfile(foldername,filename));
+                     obj.Heatmap.Signedpmap=VoxelData(fullfile(foldername,filename));
                 elseif contains(filename,pattern)
                     
                     try
-                     obj.HeatmapData=Heatmap;
-                     obj.HeatmapData.loadHeatmap(fullfile(foldername,filename));
+                     obj.Heatmap=Heatmap;
+                     obj.Heatmap.loadHeatmap(fullfile(foldername,filename));
                      WarpStatus=1;
                     catch
                        warning('loading old swtspot file, data may be incompatible, loading default signedp')
                        hm=load(fullfile(foldername,filename),'-mat');
                        try
-                           obj.HeatmapData.Signedpmap=hm.signedpmap;
+                           obj.Heatmap.Signedpmap=hm.signedpmap;
                        catch
                            keyboard
                        end
@@ -65,21 +65,21 @@ classdef RegressionRoutine < handle
                             return
                         end
                         braintemplate = fullfile(foldername,filename);
-                        obj.HeatmapData.Signedmap=warpto(braintemplate);
+                        obj.Heatmap.Signedmap=warpto(braintemplate);
                     end
                         
                        
                 end
             
              end
-             if isempty(obj.ImageDataStack.Voxels)
+             if isempty(obj.VoxelDataStack.Voxels)
                 
                 answer = questdlg('do you have a recipe file?')
                 switch answer
                     case 'Yes'
-                        obj.ImageDataStack.loadStudyDataFromRecipe()
+                        obj.VoxelDataStack.loadStudyDataFromRecipe()
                     case 'No'
-                        obj.ImageDataStack.loadDataFromFolder()
+                        obj.VoxelDataStack.loadDataFromFolder()
                 end
              end
 	      
@@ -93,14 +93,14 @@ classdef RegressionRoutine < handle
           f=figure;
           
             
-           for n=1:numel(obj.ImageDataStack.Weights)
-               SubjectProfile=obj.ImageDataStack.Voxels(:,:,:,n);
+           for n=1:numel(obj.VoxelDataStack.Weights)
+               SubjectProfile=obj.VoxelDataStack.Voxels(:,:,:,n);
                
                
                switch setting
                    case'15bins'
-                       if ~isempty(fieldnames(obj.HeatmapData.Tmap));
-                       bite=obj.HeatmapData.Signedpmap.Voxels(and(SubjectProfile>0.5,obj.HeatmapData.Tmap.Voxels~=0));
+                       if ~isempty(fieldnames(obj.Heatmap.Tmap))
+                       bite=obj.Heatmap.Signedpmap.Voxels(and(SubjectProfile>0.5,obj.Heatmap.Tmap.Voxels~=0));
                        
                        %analyse bite
                        edges = -1:0.13333333333:1; % define the bins
@@ -109,7 +109,7 @@ classdef RegressionRoutine < handle
                        delete(h)
                        else
                            warning('Tmap not found, using Signedpmap only; precision may be affected by interpolation')
-                           bite=obj.HeatmapData.Signedpmap.Voxels(and(SubjectProfile>0.5,obj.HeatmapData.Signedpmap.Voxels~=0));
+                           bite=obj.Heatmap.Signedpmap.Voxels(and(SubjectProfile>0.5,obj.HeatmapData.Signedpmap.Voxels~=0));
                        
                        %analyse bite
                        edges = -1:0.13333333333:1; % define the bins
@@ -129,7 +129,7 @@ classdef RegressionRoutine < handle
               
            end
             close(f)
-            obj.DirtyregressModel = fitlm(obj.DirtyHistograms,obj.ImageDataStack.Weights); %Here it calculates the b (by fitting a linear model = multivariatelinearregression)
+            obj.DirtyregressModel = fitlm(obj.DirtyHistograms,obj.VoxelDataStack.Weights); %Here it calculates the b (by fitting a linear model = multivariatelinearregression)
             figure;obj.DirtyregressModel.plot
         end
                        
