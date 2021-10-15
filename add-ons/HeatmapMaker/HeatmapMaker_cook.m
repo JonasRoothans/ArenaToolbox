@@ -27,7 +27,7 @@ disp('Converting stack to heatmap.. this may take some minutes')
 heatmap = Stack.convertToHeatmap(title,description);
 heatmap.Tag = nameSuggestion;
 mkdir(fullfile(folder,nameSuggestion,'output'));
-heatmap.save(fullfile(folder,nameSuggestion,'output',nameSuggestion),'memory')
+heatmap.save(fullfile(folder,nameSuggestion,'output',title),'memory')
 disp('saving....')
 heatmap.Signedpmap.savenii(fullfile(folder,nameSuggestion,'output','signedpmap.nii'))
 
