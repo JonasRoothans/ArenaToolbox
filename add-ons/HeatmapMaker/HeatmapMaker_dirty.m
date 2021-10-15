@@ -17,7 +17,7 @@ end
 R = RegressionRoutine();
 R.Heatmap = HM;
 R.VoxelDataStack = HM.VoxelDataStack;
-R.SamplingSettings = '15bin';
+R.SamplingSetting = '15bins';
 mdl = R.execute();
 
 
