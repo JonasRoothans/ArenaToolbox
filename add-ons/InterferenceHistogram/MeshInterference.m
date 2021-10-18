@@ -1,10 +1,9 @@
-function FiberInterference(menuhandle,eventdata,scene)
-
-
+function MeshInterference(menuhandle,eventdata,scene)
 
     % Ask which Mesh to use, only allow Meshes
     labels= {};
     actor_idx = [];
+    cmap = [];
     for iActor = 1:numel(scene.Actors)
         thisActor = scene.Actors(iActor);
         if  strcmp(class(thisActor.Data),'Mesh')
@@ -52,10 +51,11 @@ function FiberInterference(menuhandle,eventdata,scene)
         opts.Interpreter = 'tex';
         weight_thresh = inputdlg(prompt,dlgtitle,dims,definput,opts);
         weight_thresh = str2num(weight_thresh{1});
- %calculate interference for every loaded tract
- 
-    hit_list = [clinical_outcome];
-    fiber_list = {"Clinical_Outcome"};
+    end 
+    
+ %calculate interference for every loaded tract    
+    hit_list = [];
+    fiber_list = {};
     
     for iActor = 1:numel(scene.Actors)
     thisActor = scene.Actors(iActor);
@@ -110,15 +110,19 @@ function FiberInterference(menuhandle,eventdata,scene)
             end
             hit_list(end +1,:) = [percentage_hit*100];
             fiber_list{end +1} = interfering_fibers.Tag;
+            cmap(end+1,:) = interfering_fibers.Visualisation.settings.colorFace
         end
     end
     fig = figure('Name',sprintf('Clinical Outcome vs Fibers hit for %s',interfering_mesh.Tag));
-    cmap = cat(1,[0 0 0], summer(length(hit_list)-1)) %Clinical Outcome Black, everything eles colored: other colorblind friendly options hsv, jet?
     b = bar(hit_list,'facecolor','flat');
     b.CData = cmap
-    set(gca,'XTickLabel',fiber_list);
+    title(strcat("Improvement of clinical outcome: ",num2str(clinical_outcome),"%"))
+    ax = gca
+    set(ax,'XTickLabel',fiber_list);
+    ax.FontSize =16
+    xtickangle(40)
     ylim([0 105])
-    ylabel('Percentage of clinical improvement and fibers overlapping with the lesion (%)');
+    ylabel('Percentage of fibers interfering with the lesion (%)');
 end
  
     
