@@ -12,6 +12,7 @@ classdef ArenaScene < handle
     end
     
     properties (Hidden=true)
+        CallFromOutside
         configcontrolpos % stores the bounding box of the uicontrols
         colorTheme
         gitref
@@ -306,6 +307,12 @@ classdef ArenaScene < handle
             lighting gouraud
             camproj('perspective')
             view(30,30)
+            
+            %Open-up functions to call from outside!
+            obj.CallFromOutside.import_vtk  = @import_vtk;
+            
+            %... add more
+            
             
             function obj = createcoordinatesystem(obj)
                 %Coordinate system
