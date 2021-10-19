@@ -47,12 +47,17 @@ classdef ArenaScene < handle
                 userinput = {'debug mode'};
             else
                 if nargin==1
- 
-                    userinput = newid({'new scene name: '},'Arena',1,{'test'});
+                    
+                    fid = fopen('sceneNameSuggestion.txt');
+                    data = textscan(fid,'%s');
+                    randomName = data{1}{ceil(rand(1)*length(data{1}))};
+                    
+                    userinput = newid({'new scene name: '},'Arena',1,{randomName});
                 elseif nargin==2
                     userinput = {OPTIONALname};
                 end
             end
+            if isempty(userinput);return;end
             obj.Title = userinput{1};
             
             obj.handles = [];
