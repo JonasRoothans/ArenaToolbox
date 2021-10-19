@@ -728,19 +728,25 @@ classdef ArenaScene < handle
                 %get the rootdir to load the config file
                 global arena;
                 root = arena.getrootdir;
-                loaded = load(fullfile(root,'config.mat'))
+                loaded = load(fullfile(root,'config.mat'));
+                
                 leadDBSatlasdir = fullfile('templates','space','MNI_ICBM_2009b_NLIN_ASYM','atlases');
-                
+  
                 subfolders = A_getsubfolders(fullfile(loaded.config.leadDBS,leadDBSatlasdir));
-                
-                
-                [indx,tf] = listdlg('ListString',{subfolders.name},'ListSize',[400,320]);
-                newAtlasPath = fullfile(loaded.config.leadDBS,...
+                options = {subfolders.name};
+                options{end+1} = '[Cracked] Distal Atlas - 100% virus free - aXXo';
+                [indx,tf] = listdlg('ListString',options,'ListSize',[400,320]);
+                if indx ~= length(options)
+                    newAtlasPath = fullfile(loaded.config.leadDBS,...
                     leadDBSatlasdir,...
                     subfolders(indx).name,'atlas_index.mat');
+                else
+                    newAtlasPath = fullfile(arena.getrootdir,'Elements/Misc/Distal_Medium','atlas_index.mat');
+                end
                 in = load(newAtlasPath);
                 
                 allnames = in.atlases.names;
+                
                 [indx,tf] = listdlg('ListString',allnames,'SelectionMode','multiple');
                 thisScene = ArenaScene.getscenedata(hObject);
                 for iAtlas = indx
@@ -748,13 +754,16 @@ classdef ArenaScene < handle
                     
                     name = in.atlases.names{iAtlas};
                     color = in.atlases.colormap(round(in.atlases.colors(iAtlas)),:);
-                    
-                    meshR = Mesh(R.faces,R.vertices);
+                    try
+                        meshR = Mesh(R.faces,R.vertices);
+                    catch
+                        setupDistalAtlasGuarantee()
+                        return
+                    end
                     actorR = meshR.see(thisScene);
                     actorR.changeSetting('complexity',5,...
                         'colorFace',color,...
-                        'colorEdge',color,...
-                        'edgeOpacity',80);
+                        'colorEdge',color);
                     
                     
                     
@@ -765,8 +774,7 @@ classdef ArenaScene < handle
                         actorL.changeName([name,' left'])
                         actorL.changeSetting('complexity',5,...
                             'colorFace',color,...
-                            'colorEdge',color,...
-                            'edgeOpacity',80)
+                            'colorEdge',color);
                     catch
                         disp('unilateral?')
                         
@@ -776,7 +784,7 @@ classdef ArenaScene < handle
                 end
                 
                 
-                %keyboard
+                
             end
             
             function menu_legacyatlas(hObject,eventdata)
