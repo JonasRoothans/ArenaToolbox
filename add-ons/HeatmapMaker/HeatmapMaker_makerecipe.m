@@ -1,4 +1,4 @@
-function [outputArg1,outputArg2] = sweetspotstation_makerecipe(menu,eventdata,scene)
+function [outputArg1,outputArg2] = HeatmapMaker_makerecipe(menu,eventdata,scene)
 
 q_answer = questdlg('How is your data organized?','Arena','Subfolders per patient','All files in 1 folder','Subfolder');
 if isempty(q_answer)
