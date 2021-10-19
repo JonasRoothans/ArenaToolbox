@@ -1,4 +1,4 @@
-function [outputArg1,outputArg2] = HeatmapMaker_cook(menu,eventdata,scene)
+function [outputArg1,outputArg2] = HeatmapMaker_LOOCV(menu,eventdata,scene)
 %SWEETSPOTSTATION_MAKERECIPE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -26,10 +26,8 @@ end
 disp('Converting stack to heatmap.. this may take some minutes')
 heatmap = Stack.convertToHeatmap(title,description);
 heatmap.Tag = nameSuggestion;
-mkdir(fullfile(folder,nameSuggestion,'output'));
-heatmap.save(fullfile(folder,nameSuggestion,'output',title),'memory')
 disp('saving....')
-heatmap.Signedpmap.savenii(fullfile(folder,nameSuggestion,'output','signedpmap.nii'))
+heatmap.Signedpmap.savenii(fullfile(folder,nameSuggestion,'signedpmap.nii'))
 
 assignin('base','heatmap',heatmap)
 disp('heatmap is saved to harddisk and is available in workspace as ''heatmap''')

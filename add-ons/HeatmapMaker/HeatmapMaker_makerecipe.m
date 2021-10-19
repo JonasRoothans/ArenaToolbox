@@ -1,4 +1,4 @@
-function [outputArg1,outputArg2] = sweetspotstation_makerecipe(menu,eventdata,scene)
+function [outputArg1,outputArg2] = HeatmapMaker_makerecipe(menu,eventdata,scene)
 
 q_answer = questdlg('How is your data organized?','Arena','Subfolders per patient','All files in 1 folder','Subfolder');
 if isempty(q_answer)
@@ -25,21 +25,19 @@ switch q_answer
     case 'All files in 1 folder'
         disp(['Found ',num2str(length(subfolders)),' subfolders'])
         counter = 0;
-        for i = 1:numel(subfolders)
-            niiFiles = A_getfiles(fullfile(subfolders(i).folder,subfolders(i).name,'*.nii'));
+            niiFiles = A_getfiles(fullfile(parentfolder,'*.nii'));
             for j = 1:numel(niiFiles)
                 counter = counter+1;
-                file_ID{counter} = niiFiles(j).name;
-                fullpath{counter} = fullfile(subfolders(i).folder,subfolders(i).name,niiFiles(j).name);
-                ENTER_SCORE_LABEL_AND_VALUES(counter) = 0;
-                Move_or_keep_left(counter) = 1;
+                file_ID{counter,1} = niiFiles(j).name;
+                fullpath{counter,1} = fullfile(parentfolder,niiFiles(j).name);
+                ENTER_SCORE_LABEL_AND_VALUES(counter,1) = 0;
+                Move_or_keep_left(counter,1) = 1;
             end
             T.fileID = file_ID;
             T.fullpath = fullpath;
             T.Move_or_keep_left = Move_or_keep_left;
             T.ENTER_SCORE_LABEL_AND_VALUES = ENTER_SCORE_LABEL_AND_VALUES;
             
-        end
 
         
         

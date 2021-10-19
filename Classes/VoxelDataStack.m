@@ -122,6 +122,11 @@ classdef VoxelDataStack < handle
             
             
             %Loop over the folders. All files in a folder will be merged.
+            [parentfolder,~] = fileparts(obj.Recipe.fullpath{1});
+            if not(exist(parentfolder,'dir'))
+                warndlg('The folder in the recipe does not exist. This can occur when the recipe was made on a different computer. This can be fixed by using add-ons > heatmapmaker > other > repair recipe.')
+                return
+            end
             subfolders.name = 1;
             for i = 1:height(obj.Recipe)
                 
@@ -324,7 +329,7 @@ classdef VoxelDataStack < handle
                 exportheatmap.(publicProperties{iField}) = heatmap.(publicProperties{iField});
             end
             
-            save(fullfile(outputdir,[filename,'.heatmap']),'-struct','exportheatmap')
+            save(fullfile(outputdir,[filename,'.heatmap']),'-struct','exportheatmap','-v7.3')
             
             if savememory
                 %save memory file
