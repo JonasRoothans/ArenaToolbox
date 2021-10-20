@@ -78,9 +78,42 @@ classdef ArenaScene < handle
                 'position',[0 0 1 1],...
                 'fontsize',8,...
                 'nextplot','add',...
-                'box','off');
+                'box','off',...
+                'tag','Main Axes');
             axis off
             daspect([1 1 1])
+            
+            %---- Orientation marker
+            obj.handles.axesOrientation = axes('units','normalized',...
+                'position',[0 0.9,0.08,0.08],...
+                'box','off',...
+                'tag','Marker',...
+                'CameraViewAngleMode','Manual');
+            axis off
+            
+            daspect([1 1 1]);
+            obj.handles.light1 = light('Position',[-1 0 0.5],'Style','infinite');
+            obj.handles.light2 = light('Position',[1 0 0.5],'Style','infinite');
+            obj.handles.light3 = light('Position',[0 1 0],'Style','infinite');
+            Marker = ObjFile;
+            Marker = Marker.loadfile('PatientOrientationMarker.obj');
+            Marker.Vertices(:,2) = Marker.Vertices(:,2)*-1;
+            axes(obj.handles.axesOrientation)
+            obj.handles.orientationMarker = patch('Faces',Marker.Faces,'Vertices',Marker.Vertices);
+            obj.handles.orientationMarker.FaceColor = [0.5 0.5 0.5];
+            obj.handles.orientationMarker.FaceAlpha = 1;
+            obj.handles.orientationMarker.EdgeAlpha = 0;
+            obj.handles.orientationMarker.FaceLighting = 'gouraud';           
+            material(obj.handles.orientationMarker,[0.8 0.5 0]);
+            obj.handles.axesOrientation.HitTest = 'off';
+            %link to orientation marker
+            linkprop([obj.handles.axes,obj.handles.axesOrientation],{'View'});
+             axes(obj.handles.axes)
+            
+            %----
+            
+            
+            
             
             
             xpadding = 0.02;
