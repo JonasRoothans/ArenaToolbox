@@ -3173,6 +3173,8 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                                 if numel(eventdata.Modifier)>2
                                     show_shortcuts(src);
                                 end
+                            case 'b'
+                                set(scene.handles.figure,'Color',1-scene.handles.figure.Color)
                             case 'i'
                                 if numel(eventdata.Modifier)==1
                           
