@@ -309,6 +309,7 @@ classdef ArenaScene < handle
             
             %Open-up functions to call from outside!
             obj.CallFromOutside.import_vtk  = @import_vtk;
+            obj.CallFromOutside.fiberMapInterference = @fiberMapInterference;
             
             %... add more
             
@@ -624,7 +625,7 @@ classdef ArenaScene < handle
                 for iActor = 1:numel(actorList)
                     thisActor = actorList(iActor);
                     thisActor.obj2mesh(scene);
-                end
+                end 
             end
             
             function menu_showCOG(hObject,eventdata)
@@ -641,7 +642,7 @@ classdef ArenaScene < handle
                 
             end
             
-            
+           
             function menu_move(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
@@ -956,7 +957,7 @@ classdef ArenaScene < handle
                 end
             end
             
-            function import_vtk(thisScene,filename)
+            function import_vtk(thisScene,filename,fibers_visual)
                 disp('loading a VTK with a custom script. (debug: ArenaScene / import_vtk)')
                 fid = fopen(filename);
                 tline = fgetl(fid);
@@ -978,21 +979,28 @@ classdef ArenaScene < handle
                     %show the fibers
                     f = Fibers;
                     
-                    %dialog box
-                    prompt = {['You are loading a VTK file with ',num2str(numel(Fib)),' elements. How many do you want to visualize?'] };
-                    dlgtitle = 'Arena VTK loader';
-                    definput = {num2str(min([100, numel(Fib)]))};
-                    dims = [1 40];
-                    opts.Interpreter = 'tex';
-                    answer = inputdlg(prompt,dlgtitle,dims,definput,opts);
-
+                    if nargin == 2
+                            %dialog box
+                            prompt = {['You are loading a VTK file with ',num2str(numel(Fib)),' elements. How many do you want to visualize?'] };
+                            dlgtitle = 'Arena VTK loader';
+                            definput = {num2str(min([100, numel(Fib)]))};
+                            dims = [1 40];
+                            opts.Interpreter = 'tex';
+                            answer = inputdlg(prompt,dlgtitle,dims,definput,opts);
+                            fibers_visual = str2num(answer{1});
+                    elseif strcmp(fibers_visual,'all')
+                            fibers_visual = numel(Fib);
+                    elseif strcmp(fibers_visual,'some')
+                            fibers_visual = numel(Fib)/5;
+                    end
+                    
                     for i = 1:numel(Fib)
                         points = V(Fib{i},:);
                         pc = points;
                         f.addFiber(pc,i);
                     end
                     
-                    actor = f.see(thisScene,str2num(answer{1}));
+                    actor = f.see(thisScene,fibers_visual);
                     [pn,fn] = fileparts(filename);
                     actor.changeName(fn);
 
@@ -2481,6 +2489,12 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 
             end
             
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
             function menu_fiberMapInterference(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
@@ -2521,8 +2535,12 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                         options = {'Min value','Max value','Average Value','Sum'};
                         [indx,tf] = listdlg('PromptString',{'Select method'},'ListString',options);
                         samplingMethod = options{indx};
+                    fiberMapInterference(map,scene,samplingMethod,currentActors)
                 end
-        
+            end
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            function fiberMapInterference(map,samplingMethod,currentActors) %currentActors == Fibers?, can those be several or 
                 
                 %loop. First join all the fibers. For quick processing
                 nVectorsPerFiber = arrayfun(@(x) length(x.Vectors),currentActors.Data.Vertices);
@@ -2566,6 +2584,10 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
 
                 
             end
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 
             
             function menu_showFibers(hObject,eventdata)
