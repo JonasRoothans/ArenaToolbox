@@ -24,6 +24,9 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
         function VTAObject = makeVTA(obj,vtaname)
             global arena
              VTA_raw = load(fullfile(arena.Settings.VTApool,vtaname));
+             VTA_raw.Rvta.XWorldLimits = VTA_raw.Rvta.YWorldLimits - VTA_raw.Rvta.PixelExtentInWorldX;
+             VTA_raw.Rvta.YWorldLimits = VTA_raw.Rvta.YWorldLimits - VTA_raw.Rvta.PixelExtentInWorldY;
+             VTA_raw.Rvta.ZWorldLimits = VTA_raw.Rvta.ZWorldLimits - VTA_raw.Rvta.PixelExtentInWorldZ;
              VTA_vd = VoxelData(VTA_raw.Ivta,VTA_raw.Rvta);
              
              T = A_transformationmatriforleadmesh(obj.C0,obj.Direction);

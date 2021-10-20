@@ -199,7 +199,6 @@ classdef ArenaScene < handle
             
             obj.handles.menu.vtas.main = uimenu(obj.handles.figure,'Text','VTAs','Visible','on','Separator','on','callback',{@menu_updateVTAlist});
             obj.handles.menu.vtas.assignVTA = uimenu(obj.handles.menu.vtas.main,'Text','+assign a VTA based on existing layers','callback',{@menu_constructVTA});
-            obj.handles.menu.vtas.constructvta = uimenu(obj.handles.menu.vtas.main,'Text','+create Åström VTA','callback',{@menu_generateVTA});
             obj.handles.menu.vtas.placeElectrode = uimenu(obj.handles.menu.vtas.main,'Text','+place electrode','callback',{@menu_placeElectrode});
             obj.handles.menu.vtas.constructtherapy = uimenu(obj.handles.menu.vtas.main,'Text','+construct (bilateral) therapy','callback',{@menu_constructTherapy});
             obj.handles.menu.vtas.list = gobjects;
@@ -330,7 +329,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Mesh.seperate = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: separate clusters','callback',{@menu_seperateClusters},'Enable','off');
             obj.handles.menu.dynamic.Mesh.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: source data','callback',{@menu_smoothVoxelData},'Enable','off');
             obj.handles.menu.dynamic.Mesh.takeBite = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: take a sample from slice or mesh','callback',{@menu_takeSample},'Enable','off');
-            
+            obj.handles.menu.dynamic.Electrode.makeVTA = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Electrode: create Åström VTA','callback',{@menu_generateVTA},'Enable','off');
             obj.handles.menu.dynamic.Slicei.SpatialCorrelation = obj.handles.menu.dynamic.Mesh.SpatialCorrelation;
             
             obj.handles.menu.dynamic.Slicei.multiply = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: multiply images','callback',{@menu_multiplyslices},'Enable','off');
