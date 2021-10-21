@@ -3602,7 +3602,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
             radiogroupwidth = 0.9*widthpxls;
             radiogroupheight = 0.15*heightpxls;
             radiobuttonwidth =  100; %pxls
-            radiobuttonheight=  20*heightpxls;% pxls
+            radiobuttonheight=  20;% pxls
             fullheight = 1*heightpxls;
             
             
