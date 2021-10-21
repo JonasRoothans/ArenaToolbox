@@ -666,7 +666,9 @@ classdef ArenaScene < handle
                 actorList = ArenaScene.getSelectedActors(scene);
                 for iActor = 1:numel(actorList)
                     thisActor = actorList(iActor);
-                    mesh = thisActor.obj2mesh(scene);
+                    mesh = thisActor.Data.convertToMesh;
+                    newActor = mesh.see(scene);
+                    newActor.changeName(['Mesh from ',thisActor.Tag])
                 end
             end
             
@@ -3478,11 +3480,16 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
             
             ActorTags = {};
             for i = 1:numel(obj.Actors)
-                properties = fieldnames(obj.Actors(i).Visualisation.settings);
-                rgbColour = obj.Actors(i).Visualisation.settings.(properties{1})*255;
-                if isfield(obj.Actors(i).Visualisation.settings,'colorFace2')
-                    rgbColour = obj.Actors(i).Visualisation.settings.colorFace2*255;
+                try
+                    properties = fieldnames(obj.Actors(i).Visualisation.settings);
+                    rgbColour = obj.Actors(i).Visualisation.settings.(properties{1})*255;
+                    if isfield(obj.Actors(i).Visualisation.settings,'colorFace2') %for fibers
+                        rgbColour = obj.Actors(i).Visualisation.settings.colorFace2*255;
+                    end
+                catch %no visualisation properties exist.
+                    rgbColour = [0 0 0];
                 end
+                
                     
                 hexStr = reshape( dec2hex( round(rgbColour), 2 )',1, 6);
                 

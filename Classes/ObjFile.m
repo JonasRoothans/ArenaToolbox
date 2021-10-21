@@ -105,6 +105,12 @@ classdef ObjFile < handle & ArenaActorRendering
            vd.savenii(fullfile(outdir,[tag,'.nii']));
 
        end
+       
+       function mesh = convertToMesh(obj)
+           mesh = Mesh();
+           mesh.Faces = obj.Faces;
+           mesh.Vertices = obj.Vertices;
+       end
         
     end
 end

@@ -86,6 +86,68 @@ classdef ArenaActorRendering < handle
             end
         end
         
+        function updateConfigControls(obj,actor,settings,scene)
+            switch class(obj)
+                case 'PointCloud'
+                    scene.newconfigcontrol(actor,'color',{settings.colorLow, settings.colorHigh},{'colorLow','colorHigh'});
+                    scene.newconfigcontrol(actor,'edit',settings.thickness,'thickness');
+                    scene.newconfigcontrol(actor,'edit',settings.opacity,'opacity');
+                case {'Mesh','CroppedVoxelData'}
+                    scene.newconfigcontrol(actor,'color',{settings.colorFace,settings.colorEdge},{'colorFace','colorEdge'});
+                    scene.newconfigcontrol(actor,'edit',{settings.complexity,settings.threshold},{'complexity','threshold'});
+                    scene.newconfigcontrol(actor,'edit',{settings.faceOpacity,settings.edgeOpacity},{'faceOpacity','edgeOpacity'})
+                    
+                    scene.newconfigcontrol(actor,'button',{'crop','slice'},{'crop','slice'})
+                    scene.newconfigcontrol(actor,'checkbox',settings.smooth,'smooth')
+                case 'ObjFile'
+                    scene.newconfigcontrol(actor,'color',{settings.colorFace,settings.colorEdge},{'colorFace','colorEdge'});
+                    scene.newconfigcontrol(actor,'edit',{settings.complexity},{'complexity'});
+                    scene.newconfigcontrol(actor,'edit',settings.faceOpacity,'faceOpacity')
+                    scene.newconfigcontrol(actor,'edit',settings.edgeOpacity,'edgeOpacity')
+                    scene.newconfigcontrol(actor,'checkbox',settings.smooth,'smooth')
+                case 'VectorCloud'
+                    scene.newconfigcontrol(actor,'color',{settings.color1,settings.color2,settings.color3},{'color1','color2','color3'});
+                    scene.newconfigcontrol(actor,'edit',settings.scale,'scale');
+                    scene.newconfigcontrol(actor,'edit',settings.opacity,'opacity');
+                    scene.newconfigcontrol(actor,'checkbox',settings.leadoverlay,'leadoverlay');
+                case 'Slice'
+                    scene.newconfigcontrol(actor,'color',{settings.colorDark,settings.colorLight},{'colorDark','colorLight'});
+                    scene.newconfigcontrol(actor,'edit',{settings.valueDark,settings.valueLight},{'valueDark','valueLight'});
+                    scene.newconfigcontrol(actor,'vector',settings.crossing,'crossing');
+                    scene.newconfigcontrol(actor,'edit',{settings.faceOpacity,settings.edgeOpacity},{'faceOpacity','edgeOpacity'});
+                    scene.newconfigcontrol(actor,'checkbox',settings.clipDark,'clipDark');
+                case 'Electrode'
+                    scene.newconfigcontrol(actor,'color',{settings.colorBase,settings.colorInactive},{'colorBase','colorInactive'});
+                    scene.newconfigcontrol(actor,'color',{settings.colorCathode,settings.colorAnode},{'colorCathode','colorAnode'});
+                    scene.newconfigcontrol(actor,'vector',{settings.cathode,settings.anode},{'cathode','anode'});
+                    scene.newconfigcontrol(actor,'edit',{settings.opacity},{'opacity'});
+                    scene.newconfigcontrol(actor,'list',{settings.type},{'type'},{'Medtronic3389','Medtronic3387','Medtronic3391','BostonScientific'})
+                case 'Slicei'
+                    scene.newconfigcontrol(actor,'color',{settings.colorDark,settings.colorLight},{'colorDark','colorLight'});
+                    scene.newconfigcontrol(actor,'edit',{settings.valueDark,settings.valueLight},{'valueDark','valueLight'});
+                    scene.newconfigcontrol(actor,'vector',{settings.slice,settings.faceOpacity},{'slice','faceOpacity'});
+                    scene.newconfigcontrol(actor,'list',{settings.plane},{'plane'},{'axial','coronal','sagittal'})
+                    scene.newconfigcontrol(actor,'button','mesh','mesh')
+                    %scene.newconfigcontrol(actor,'checkbox',settings.clipDark,'clipDark');
+                case 'Fibers'
+                    scene.newconfigcontrol(actor,'color',{settings.colorFace,settings.colorFace2},{'colorFace','colorFace2'});
+                    scene.newconfigcontrol(actor,'edit',settings.numberOfFibers,'numberOfFibers');
+                    scene.newconfigcontrol(actor,'edit',settings.faceOpacity,'faceOpacity');
+                    %scene.newconfigcontrol(actor,'checkbox',settings.colorByDirection,'colorByDirection');
+                    scene.newconfigcontrol(actor,'radio',{settings.colorByDirection,settings.colorByWeight,settings.colorSolid},{'colorByDirection','colorByWeight','colorSolid'});
+                    
+                case 'Contour'
+                    scene.newconfigcontrol(actor,'color',{settings.colorFace,settings.colorEdge},{'colorFace','colorEdge'})
+                    scene.newconfigcontrol(actor,'edit',settings.faceOpacity,'faceOpacity')
+                    scene.newconfigcontrol(actor,'edit',settings.edgeOpacity,'edgeOpacity')
+                    
+                   
+                    
+                otherwise
+                    keyboard
+            end
+            
+        end
         
         function visualize(obj,actor,settings,scene)
             
@@ -114,11 +176,9 @@ classdef ArenaActorRendering < handle
                     keyboard
             end
             
-            %nested visualize functions
+            %-----nested visualize functions
             
             function visualizeContour()
-                %---- default settings
-                
                 %create the handle
                 handle = obj.patch;
                 
@@ -623,16 +683,15 @@ classdef ArenaActorRendering < handle
             
             function [settings,loadDefaultSettings] = loadDefaultSettingsWhenNoSettingsAreProvided(settings)
                 
-                
                 loadDefaultSettings = 1;
-                if isstruct(settings)
-                    loadDefaultSettings = 0;
+                if isstruct(settings) %settings already exist
+                    loadDefaultSettings = 0; 
                     return
                 end
                 
                 
                 if isprop(obj,'ActorHandle')
-                    if not(isempty(obj.ActorHandle))
+                    if not(isempty(obj.ActorHandle)) %settings are nested
                         settings = obj.ActorHandle.Visualisation.settings;
                         loadDefaultSettings = 0;
                     end
@@ -645,11 +704,6 @@ classdef ArenaActorRendering < handle
                 end
                 
             end
-            
-            
-            
-            
-            
         end
     end
 end
