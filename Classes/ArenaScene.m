@@ -2539,7 +2539,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 end
             end
             
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
             function fiberMapInterference(map,samplingMethod,currentActors) %currentActors == Fibers?, can those be several or 
                 
                 %loop. First join all the fibers. For quick processing
@@ -2572,23 +2572,13 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                         case 'Average Value'
                             currentActors.Data.Weight(iFiber) = mean(weights);
                         case 'Sum'
-                            currentActors.Data.Weight(iFiber) = nansum(weights);
-                        
+                            currentActors.Data.Weight(iFiber) = nansum(weights);                        
                     end
                 end
-
-                
                 currentActors.changeSetting('colorByWeight',true);
-                Done;
-                
-
-                
+                Done;           
             end
-            
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                
+
             
             function menu_showFibers(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
