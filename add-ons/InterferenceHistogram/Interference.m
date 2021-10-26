@@ -34,17 +34,12 @@ function Interference(menuhandle,eventdata,roi,scene)
     
     
     %load all Tracts
-    % Option 1 acces via config.mat file
-    % global arena
-    % root = arena.getrootdir;
-    % loaded = load(fullfile(root,'config.mat'))
-    % vtk_path = loaded.config.VTKdir 
 
-
-    % Option 2 acces via global variable
-    global config
-    vtk_path = config.VTKdir
-
+    global arena
+    root = arena.getrootdir;
+    histoConfig = load(fullfile(root,'histoConfig.mat'));
+    vtk_path = histoConfig.VTKdir ;
+    results_path = histoConfig.results;
     
     
     
@@ -67,7 +62,7 @@ function Interference(menuhandle,eventdata,roi,scene)
     mesh_list = [];
     y = [];
     x = [];
-    scene_fig = gcf;
+    scene_fig = scene.handles.figure;
     for iMesh = 1:length(mesh_idx)
         interfering_mesh = scene.Actors(mesh_idx(iMesh));
         [hit_list,fiber_list,cmap] = interference_allTracts(interfering_mesh,scene,samplingMethod,weight_thresh,roi_names);
@@ -86,11 +81,11 @@ function Interference(menuhandle,eventdata,roi,scene)
     end
     %save as xls 
     interference_results = cat(2,y,x);
-    writetable(array2table(interference_results,'RowNames',mesh_list,'VariableNames',['improvement',fiber_list]),strcat(scene.Title,'_interference.xls'),'WriteRowNames',true');
+    writetable(array2table(interference_results,'RowNames',mesh_list,'VariableNames',['improvement',fiber_list]),fullfile(results_path,strcat(scene.Title,'_interference.xls')),'WriteRowNames',true');
 
     regression_results = regress(y,x);
     
-    writetable(array2table(transpose(regression_results),'VariableNames',fiber_list),strcat(scene.Title,'_regression.xls'));
+    writetable(array2table(transpose(regression_results),'VariableNames',fiber_list),fullfile(results_path,strcat(scene.Title,'_regression.xls')));
 
     for i=1:length(fiber_list)
     fprintf("%s :    %f.3\n",fiber_list{i},regression_results(i))

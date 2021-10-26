@@ -2,7 +2,6 @@ function FiberInterference(menuhandle,eventdata,scene)
     hit_list = [];
     mesh_list = {};
     cmap = [];
- %%%TO DO: integrate existing functions!
 
     % Ask which Fibers to use, only allow Fibers
     labels= {};
@@ -69,7 +68,7 @@ function FiberInterference(menuhandle,eventdata,scene)
         end
     
         
-        scene.CallFromOutside.fiberMapInterference(map,samplingMethod,interfering_fibers)
+        scene.CallFromOutside.fiberMapInterference(map,mesh,samplingMethod,interfering_fibers)
         
         
         switch samplingMethod
@@ -87,7 +86,7 @@ function FiberInterference(menuhandle,eventdata,scene)
     
     fiber_name = strjoin(regexp(interfering_fibers.Tag,'(\_|\.)','split'));
     fig = figure('Name',sprintf('Interference of the %s',fiber_name));
-    title_name = ['Fiber intereference of the %s with all loaded meshes',fiber_name]
+    title_name = [sprintf('Fiber intereference of the %s with all loaded meshes',fiber_name)]
     plot_histo(fig,title_name, hit_list,mesh_list, cmap)
 end
  

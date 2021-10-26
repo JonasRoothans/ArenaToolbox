@@ -2,19 +2,16 @@ function install_InterferenceHistogram(menuhandle,eventdata,scene)
 
 global arena;
 root = arena.getrootdir;
-loaded = load(fullfile(root,'config.mat'));
-% Option 1 add to config.mat
-% if not(ismember('VTKdir',fieldnames( loaded.config)))
-%     f = msgbox('Pease set the path to the VTK files for the fibers')
-%     vtk_path = uigetdir('Pease set the path to the VTK files for the fibers')
-%     loaded.config.VTKdir = vtk_path;
-%     save(fullfile(root,'config.mat'),'-struct','loaded')
-% end
+if not(isfile(fullfile(root,'histoConfig.mat')))
+    f = msgbox('Please set the path to the VTK files for the fibers')
+    vtk_path = uigetdir('Please set the path to the VTK files for the fibers')
+    histoConfig.VTKdir = vtk_path;
+    f = msgbox('Please set the path to store the results')
+    results_path = uigetdir('Please set the path to store the results')
+    histoConfig.results = results_path;
+    save(fullfile(root,'histoConfig.mat'),'-struct','histoConfig')
+end
 
-%Option 2 create global variable:
-global config
-config = loaded.config
-config.VTKdir = '/Users/visualdbs/Documents/MATLAB/vtk_files_v1';
 
 
 menuInterferenceHistogramSingle= scene.addon_addmenuitem('InterferenceHistogram','Single: Fibers with Mesh');

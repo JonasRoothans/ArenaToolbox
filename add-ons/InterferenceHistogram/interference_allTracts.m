@@ -23,7 +23,7 @@ function [hit_list,fiber_list,cmap] = interference_allTracts(interfering_mesh,sc
             interfering_fibers = thisActor
             fibers_name = strjoin(regexp(interfering_fibers.Tag,'(\_|\.)','split'))
             
-            scene.CallFromOutside.fiberMapInterference(map,samplingMethod,interfering_fibers)
+            scene.CallFromOutside.fiberMapInterference(map,mesh,samplingMethod,interfering_fibers)
             figure(scene_fig); 
             switch samplingMethod
                 case {'Max value','Check if fiber hits mesh'}

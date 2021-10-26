@@ -2490,11 +2490,6 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
             end
             
             
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
             function menu_fiberMapInterference(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
@@ -2540,7 +2535,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
             end
             
 
-            function fiberMapInterference(map,samplingMethod,currentActors) %currentActors == Fibers?, can those be several or 
+            function fiberMapInterference(map,mesh,samplingMethod,currentActors) %currentActors == Fibers?, can those be several or 
                 
                 %loop. First join all the fibers. For quick processing
                 nVectorsPerFiber = arrayfun(@(x) length(x.Vectors),currentActors.Data.Vertices);

@@ -14,7 +14,7 @@ function [samplingMethod,weight_thresh] = get_sampling_and_threshold()  % ask fo
         weight_thresh = inputdlg(prompt,dlgtitle,dims,definput,opts);
         weight_thresh = str2num(weight_thresh{1}); 
     else
-        weight_tresh = 0
+        weight_thresh = 0
     end
 end
   
