@@ -1,6 +1,11 @@
 classdef ArenaScene < handle
     %ARENASCENE Generates UIobjects, and stores Actors.
-    %   Detailed explanation goes here
+    %   This class is the central class of the ArenaToolbox.
+    %   You can open a scene with: 
+    %   -   myScene = newScene();
+    %   -   or startArena;
+    %
+    %   See also ARENAACTOR
     
     properties
         Title
@@ -814,7 +819,7 @@ classdef ArenaScene < handle
                     try
                         meshR = Mesh(R.faces,R.vertices);
                     catch
-                        setupDistalAtlasGuarantee()
+                        waitfor(msgbox('Your version of lead-dbs has a known issue with atlases. You can try the [cracked] version at the bottom of the list','lead-dbs error','error'))
                         return
                     end
                     actorR = meshR.see(thisScene);

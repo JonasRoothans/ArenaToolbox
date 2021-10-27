@@ -1,6 +1,12 @@
 classdef ArenaActorRendering < handle
-    %RENDER Summary of this class goes here
-    %   Detailed explanation goes here
+    %ARENAACTORRENDERING is a superclass for Actor.Data
+    %   This class combines all preferences and setting for the behaviour
+    %   of the actors. Such as
+    %   -  Material rendering
+    %   -  Default settings (color / opacity etc.)
+    %   -  Design of the config controls menu
+    %   -  Visualisation functions
+    %   See also ARENAACTOR ARENASCENE
     
     properties (Hidden)
         settings = struct;

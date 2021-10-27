@@ -1,5 +1,18 @@
 classdef ArenaActor < handle & matlab.mixin.Copyable
-    %ARENAACTOR Connects visualisation settings to Data. Links to Scene.
+    %ARENAACTOR is the vehicle for data visualisation in a Scene.
+    %   It has 4 properties:
+    %   - Data
+    %       This stores the data object such as POINTCLOUD or MESH
+    %   - Visualisation
+    %       Contains handle and settings to the 3D renderings
+    %   - Scene
+    %       provides the handle to the ArenaScene object
+    %   - Tag
+    %       Name
+    %   - Visible
+    %       Boolean, (1 or 0) whether this layer is visible or not.
+    %   See also ARENASCENE POINTCLOUD MESH FIBERS
+    
     
     properties
         Data
@@ -228,26 +241,27 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         
         function copyobj = duplicate(obj,scene)
             copyobj = copy(obj);
-            switch class(copyobj.Data)
-                case 'Mesh'
-                    copyobj.Data = copyobj.Data.duplicate;
-                    copyobj.Visualisation.handle = copy(obj.Visualisation.handle);
-                case 'Electrode'
-                    for iSubPatch = 1:numel(copyobj.Visualisation.handle)
-                        copyobj.Visualisation.handle(iSubPatch) = copy(copyobj.Visualisation.handle(iSubPatch));
-                    end
-                case 'Fibers'
-                    copyobj.Data = obj.Data.duplicate;
-                    copyobj.Data.ActorHandle = copyobj;
-                case 'PointCloud'
-                    copyobj.Visualisation.handle = copy(obj.Visualisation.handle);
-                otherwise
-                    copyobj.Visualisation.handle = copy(obj.Visualisation.handle);
-                    %if it crashes here: make a new case for this class.
-                
-            end
-            scene.Actors(end+1) = copyobj;
-            scene.refreshLayers();
+            copyobj.Data  = copy(obj.Data);
+%             switch class(copyobj.Data)
+%                 case 'Mesh'
+%                     copyobj.Data = copyobj.Data.duplicate;
+%                     copyobj.Visualisation.handle = copy(obj.Visualisation.handle);
+%                 case 'Electrode'
+%                     for iSubPatch = 1:numel(copyobj.Visualisation.handle)
+%                         copyobj.Visualisation.handle(iSubPatch) = copy(copyobj.Visualisation.handle(iSubPatch));
+%                     end
+%                 case 'Fibers'
+%                     copyobj.Data = obj.Data.duplicate;
+%                     copyobj.Data.ActorHandle = copyobj;
+%                 case 'PointCloud'
+%                     copyobj.Visualisation.handle = copy(obj.Visualisation.handle);
+%                 otherwise
+%                     copyobj.Visualisation.handle = copy(obj.Visualisation.handle);
+%                     %if it crashes here: make a new case for this class.
+%                 
+%             end
+            copyobj = copyobj.reviveInScene(scene);
+            %scene.refreshLayers();
         end
         
         
@@ -268,7 +282,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         
         function newActor = reviveInScene(obj,scene)
             newActor = scene.newActor(obj.Data,obj.Visualisation.settings);
-            newActor.changeName(['* ',obj.Tag]);
+            newActor.changeName(obj.Tag);
             
         end
         
