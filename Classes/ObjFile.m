@@ -1,4 +1,4 @@
-classdef ObjFile < handle & ArenaActorRendering
+classdef ObjFile < handle & ArenaActorRendering & matlab.mixin.Copyable
     %ObjFile contains Faces and Vertices. Can be initialised with *.obj
     
     properties
