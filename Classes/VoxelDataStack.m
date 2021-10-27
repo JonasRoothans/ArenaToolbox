@@ -85,6 +85,94 @@ classdef VoxelDataStack < handle
             
         end
         
+        function obj = loadStudyDataFromLegacyRecipe(obj,recipe,templatefile)
+            if nargin==1
+                waitfor(msgbox('Find the recipe'))
+                [filename,foldername] = uigetfile('*.xlsx','Locate the recipe');
+                if filename==0
+                    return
+                end
+                recipe = fullfile(foldername,filename);
+                waitfor(msgbox('Find a nii that serves as template space'))
+                [filename,foldername] = uigetfile('*.nii','Get template file');
+                if filename==0
+                    return
+                end
+                templatefile = fullfile(foldername,filename);
+                
+            end
+            
+            %load excel sheet with scores. Names should match the folders.
+            obj.RecipePath=recipe;
+            recipe = readtable(recipe);
+            if isHeatmapMakerRecipe(recipe)
+                obj = obj.loadStudyDataFromRecipe(recipe,templatefile);
+                return
+            end
+            obj.Recipe = recipe;
+            scoreTag = getScoreTag(recipe);
+            scores = obj.Recipe.(scoreTag);
+            
+            %load template. This will define the voxelsize etc.
+            ref = VoxelData(templatefile);
+            
+          
+            %-- GRouping data before adding to the stack? build some logic
+            %here if required.
+            
+            
+            %set up Stack
+            obj.newEmpty(ref,length(obj.Recipe.filelocation));
+            obj.ScoreLabel = scoreTag;
+            
+
+            for i = 1:height(obj.Recipe)
+                
+                keyboard
+                vtaname = VTA.constructVTAname('Medtronic3389',str2double(vtasettings{3}),str2double(vtasettings{4}),vtasettings{1},vtasettings{2},'False');
+                
+                
+                
+                    vd = VoxelData(obj.Recipe.fullpath{i});
+                    if any(isnan(vd.Voxels(:)))
+                        vd.Voxels(isnan(vd.Voxels)) = 0;
+                    end
+                    
+                    %Mirror to the left.
+                    cog = vd.getcog;
+                    if cog.x>1 && obj.Recipe.Move_or_keep_left(i)
+                        vd.mirror;
+                    end
+                    obj.InsertVoxelDataAt(vd,i);
+                    id = obj.Recipe.fileID(i);
+                
+
+                %get the weight
+                
+                obj.Weights(i) = scores(i);
+                obj.LayerLabels{i} = id;
+            end
+            
+            
+            
+            
+            
+            %--- supporting functions
+            function bool = isHeatmapMakerRecipe(recipe)
+                bool = length(properties(recipe))<22; %should be 25 for legacy.. but the last columns are not required.
+            end
+            function scoreTag = getScoreTag(recipe)
+                options= recipe.Properties.VariableNames(22:end);
+                if length(options)==1
+                    scoreTag = options{1};
+                else
+                    choice = listdlg('ListString',options,'PromptString','Select a label:');
+                    scoreTag = options{choice};
+                end
+                
+            end
+        end
+        
         function obj = loadStudyDataFromRecipe(obj,recipe,templatefile)
             if nargin==1
                 waitfor(msgbox('Find the recipe'))
@@ -105,6 +193,10 @@ classdef VoxelDataStack < handle
             %load excel sheet with scores. Names should match the folders.
             obj.RecipePath=recipe;
             recipe = readtable(recipe);
+            if isLegacyRecipe(recipe)
+                obj = obj.loadStudyDataFromLegacyRecipe(obj.RecipePath,templatefile);
+                return
+            end
             obj.Recipe = recipe;
             scoreTag = getScoreTag(recipe);
             scores = obj.Recipe.(scoreTag);
@@ -184,6 +276,11 @@ classdef VoxelDataStack < handle
                 indx = listdlg('Liststring',recipe.Properties.VariableNames(4:end));
                 score_tag = recipe.Properties.VariableNames{1+indx};
             end
+            end
+            
+            function bool = isLegacyRecipe(recipe)
+                bool = length(properties(recipe))>20 %should be 25.. but the last columns are not required.
+                
             end
         end
             
