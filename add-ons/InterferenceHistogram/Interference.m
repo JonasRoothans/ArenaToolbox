@@ -83,13 +83,55 @@ function Interference(menuhandle,eventdata,roi,scene)
     interference_results = cat(2,y,x);
     writetable(array2table(interference_results,'RowNames',mesh_list,'VariableNames',['improvement',fiber_list]),fullfile(results_path,strcat(scene.Title,'_interference.xls')),'WriteRowNames',true');
 
-    regression_results = regress(y,x);
-    
-    writetable(array2table(transpose(regression_results),'VariableNames',fiber_list),fullfile(results_path,strcat(scene.Title,'_regression.xls')));
 
-    for i=1:length(fiber_list)
-    fprintf("%s :    %f.3\n",fiber_list{i},regression_results(i))
+
+% 
+% %Option 1 multiple Linear Regression (doesn't work for the small dataset) - i
+% think this would make most sense, with the amount of samples all pvalues
+% are NaN - either decide for less tracts or use single linear regressions
+% for each tract?
+%     mdl = fitlm(x(:,find(sum(x))),y);
+% 
+
+%Option 2 R-squared
+%     r_squared = [];
+%     nms = {}
+%     for i=1:length(x)
+%         if any(x(:,i))
+%             r = corrcoef(x(:,i),y);
+%             r2 = r.*r;
+%             r_squared(end+1,:) = r2(1,2);
+%             nms(end+1) = fiber_list(i);
+%         end
+%     end
+
+%     
+% %Option 3 Linerar Regression for each feature independently
+%     p_val = [];
+%     nms = {};
+%     for i=1:length(x)
+%         if any(x(:,i))
+%             mdl = fitlm(x(:,i),y);
+%             p_val(end+1,:) = mdl.Coefficients.pValue;
+%             nms(end+1) = fiber_list(i);
+%         end
+%     end
+%     
+%Option 4 pvalue from linear regression + R2 
+    results = [];
+    nms = {};
+    for i=1:length(x)
+        if any(x(:,i))
+            mdl = fitlm(x(:,i),y);
+            results(end+1,1) = mdl.Coefficients.pValue(2);
+            nms(end+1) = fiber_list(i);
+            r = corrcoef(x(:,i),y);
+            r2 = r.*r;
+            results(end,2) = r2(1,2);
+        end
     end
+
+    writetable(array2table(transpose(results),'RowNames',{'p-value','r-squared'},'VariableNames',nms),fullfile(results_path,strcat(scene.Title,'_p_r2.xls')),'WriteRowNames',true');
 end
 
 
