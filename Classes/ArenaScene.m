@@ -2530,8 +2530,8 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                         options = {'Min value','Max value','Average Value','Sum'};
                         [indx,tf] = listdlg('PromptString',{'Select method'},'ListString',options);
                         samplingMethod = options{indx};
-                    fiberMapInterference(map,scene,samplingMethod,currentActors)
                 end
+                fiberMapInterference(map,mesh,samplingMethod,currentActors)
             end
             
 
@@ -2902,13 +2902,14 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                     switch class(thisActor.Data)
                         case 'Mesh'
                             if isempty(thisActor.Data.Source)
-                                %msgbox('This mesh is not based on VoxelData, pleas ask Jonas for help') %perhaps voxelise?
+                                
+                                cubicMM(iActor,1) = thisActor.Data.getCubicMM;
                                 nVoxels(iActor,1) = nan;
                                 voxelsize(iActor,1) = nan;
-                                cubicMM(iActor,1) = nan;
                                 minVoxelvalue(iActor,1) = nan;
                                 maxVoxelvalue(iActor,1) = nan;
                             else
+                                
                                 [cubicmm,voxelcount] = thisActor.Data.Source.getCubicMM(thisActor.Data.Settings.T);
                                 
                                 nVoxels(iActor,1) = voxelcount;
