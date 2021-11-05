@@ -19,7 +19,8 @@ scene.addon_addmenuitem('HeatmapMaker','Make a Suretune based recipe',str2func('
 
 prediction = scene.addon_addmenuitem('HeatmapMaker','Prediction');
 scene.addon_addmenuitem('HeatmapMaker','Train a prediction algorithm',str2func('@HeatmapMaker_trainPrediction'),prediction)
-scene.addon_addmenuitem('HeatmapMaker','Predict a cohort',str2func('@HeatmapMaker_XX'),prediction)
+scene.addon_addmenuitem('HeatmapMaker','Predict a cohort',str2func('@HeatmapMaker_applyPrediction'),prediction)
+
 
 
 

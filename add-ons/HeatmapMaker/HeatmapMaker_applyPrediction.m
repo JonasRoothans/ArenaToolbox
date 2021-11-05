@@ -1,4 +1,4 @@
-function [outputArg1,outputArg2] = HeatmapMaker_trainPrediction(menu,eventdata,scene)
+function [outputArg1,outputArg2] = HeatmapMaker_applyPrediction(menu,eventdata,scene)
 %HEATMAPMAKER_TRAINPREDICTION Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -13,19 +13,14 @@ waitfor(msgbox({'This is how we proceed:','1. First you select a recipe, this ca
 
 
 %load training data
-TrainingStack = VoxelDataStack();
-TrainingStack.loadStudyDataFromRecipe();
+ValidationStack = VoxelDataStack();
+ValidationStack.loadStudyDataFromRecipe();
 
 
 %ask for title and description
-
-
-
 PredModel = PredictionModel();
-PredModel.SamplingMethod = @mean;
-PredModel.trainOnVoxelDataStack(TrainingStack)
-PredModel.plotTraining;
-PredModel.save()
+PredModel.load();
+
 
 %%%
           
