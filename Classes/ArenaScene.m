@@ -962,7 +962,9 @@ classdef ArenaScene < handle
                 end
                 
                 electrodeorcontact = questdlg('Visualize the electrode or the active contact?','Arena load recipe','Full electrode','Active contacts','Active contacts');
+                if isempty(electrodeorcontact);return;end
                 mirrortoleft = questdlg('Mirror all electrodes to the left side?','Arena load recipe','Yes','No','Yes');
+                if isempty(mirrortoleft);return;end
                 
                 switch electrodeorcontact
                     case 'Active contacts'

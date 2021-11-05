@@ -30,6 +30,10 @@ classdef VoxelDataStack < handle
 
         end
         
+        function l =length(obj)
+            l = size(obj.Voxels,4);
+        end
+        
         function obj = newEmpty(obj,reference,n_files)
             if nargin==1
                 n_files = 1;
@@ -124,33 +128,45 @@ classdef VoxelDataStack < handle
             %set up Stack
             obj.newEmpty(ref,length(obj.Recipe.filelocation));
             obj.ScoreLabel = scoreTag;
-            
+            scene = getScene;
 
             for i = 1:height(obj.Recipe)
                 
-                keyboard
-                vtaname = VTA.constructVTAname('Medtronic3389',str2double(vtasettings{3}),str2double(vtasettings{4}),vtasettings{1},vtasettings{2},'False');
                 
+                %read out VTA settings:
+                leadtype = obj.Recipe.leadtype{i};
+                amplitude = obj.Recipe.amplitude(i);
+                pulsewidth = obj.Recipe.pulsewidth(i);
+                activevector = obj.Recipe.activecontact{i};
+                groundedcontact = obj.Recipe.groundedcontact{i};
+                voltagecontrolled = obj.Recipe.voltage{i};
+                T = eval(obj.Recipe.Tlead2MNI{i});
                 
+                %make a VTA name
+                vtaname = VTA.constructVTAname(leadtype,amplitude,pulsewidth,activevector,groundedcontact,voltagecontrolled);
                 
-                    vd = VoxelData(obj.Recipe.fullpath{i});
-                    if any(isnan(vd.Voxels(:)))
-                        vd.Voxels(isnan(vd.Voxels)) = 0;
-                    end
-                    
-                    %Mirror to the left.
-                    cog = vd.getcog;
-                    if cog.x>1 && obj.Recipe.Move_or_keep_left(i)
-                        vd.mirror;
-                    end
-                    obj.InsertVoxelDataAt(vd,i);
-                    id = obj.Recipe.fileID(i);
+                %create an electrode in MNI space, and generate the VTA.
+                e = Electrode;
+                e.transform(T); %move lead from default position to legacy MNI
+                e.legacy2MNI; %move lead to MNI space.
+                if ~e.isLeft()
+                    e.mirror()
+                end
+                e.makeVTA(vtaname)
+                e.VTA.Tag = [obj.Recipe.name{i},'_',obj.Recipe.leadname{i},'_',obj.Recipe.stimplanname{i}];
+                e.VTA.Space = Space.MNI2009b;
+%                 a = e.see(scene);
+%                 a.changeSetting('cathode',cathode);
+                if ~isempty(scene)  
+                    e.VTA.see(scene)
+                end
                 
+                %warp to tempalte space;
+                out = e.VTA.Volume.warpto(ref);
+                obj.InsertVoxelDataAt(out,i);
+                obj.Weights(i) = obj.Recipe.(obj.ScoreLabel)(i);
+                obj.LayerLabels{i} = e.VTA.Tag;
 
-                %get the weight
-                
-                obj.Weights(i) = scores(i);
-                obj.LayerLabels{i} = id;
             end
             
             
@@ -162,7 +178,7 @@ classdef VoxelDataStack < handle
                 bool = length(properties(recipe))<22; %should be 25 for legacy.. but the last columns are not required.
             end
             function scoreTag = getScoreTag(recipe)
-                options= recipe.Properties.VariableNames(22:end);
+                options= recipe.Properties.VariableNames(21:end);
                 if length(options)==1
                     scoreTag = options{1};
                 else
@@ -331,10 +347,21 @@ classdef VoxelDataStack < handle
             vd = VoxelData(Voxels,obj.R);
         end
         
-        function convertToLOOHeatmaps(obj,filename,description,startingFrom)
-            if nargin==3
+        function HeatmapVDS = convertToLOOHeatmaps(obj,filename,description,startingFrom)
+            if nargin<4
                 startingFrom = 1;
             end
+            
+            saveFileWhenDone = 1;
+            if nargin==1
+                saveFileWhenDone = 0;
+                filename = '';
+                description = '';
+            end
+                
+            
+            HeatmapVDS.Signedpmap = VoxelDataStack;
+            HeatmapVDS.Tmap = VoxelDataStack;
             
             for iLOO = startingFrom:numel(obj.Weights)
                 Vloo = obj.Voxels;
@@ -345,7 +372,14 @@ classdef VoxelDataStack < handle
                 LOOstack = VoxelDataStack(Vloo,Rloo,Wloo);
                 
                 [parent,sub,fn] = fileparts(obj.LayerLabels{iLOO});
-                LOOstack.convertToHeatmap(sub,description,false,filename)
+                output = LOOstack.convertToHeatmap(sub,description,'false',filename);
+                if iLOO ==1
+                    HeatmapVDS.Signedpmap.R = Rloo;
+                    HeatmapVDS.Tmap.R = Rloo;
+                end
+                HeatmapVDS.Signedpmap.InsertVoxelDataAt(output.Signedpmap,iLOO);
+                HeatmapVDS.Tmap.InsertVoxelDataAt(output.Tmap,iLOO);
+                
                 clear LOOstack
             end
             
@@ -399,6 +433,7 @@ classdef VoxelDataStack < handle
 
             raw.recipe = obj.Recipe;
             raw.files = obj.LayerLabels;
+            disp(['--> performing ttest2 for ',filename]);
             [tmap,pmap,signedpmap] = obj.ttest2();
             heatmap = Heatmap();
             heatmap.Tmap = tmap;
@@ -407,31 +442,32 @@ classdef VoxelDataStack < handle
             heatmap.Raw = raw;
             heatmap.Description = description;
             heatmap.VoxelDataStack = obj;
+            heatmap.Tag = filename;
             
             %save
             
             
-        
-            
-            if LOOmode
-                outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput',LOOdir);
-                [~, ~] = mkdir(outputdir);
-            else
-                outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput');
-            end
-            
-            publicProperties = properties(heatmap); % convert from class heatmap to struct to be able to save without changing properties
-            exportheatmap = struct();
-            for iField = 1:numel(publicProperties)
-                exportheatmap.(publicProperties{iField}) = heatmap.(publicProperties{iField});
-            end
-            
-            save(fullfile(outputdir,[filename,'.heatmap']),'-struct','exportheatmap','-v7.3')
-            
-            if savememory
-                %save memory file
-                memory = obj;
-                save(fullfile(outputdir,['memory_',filename,'.heatmap']),'memory','-v7.3')
+             if nargout<1 
+                if LOOmode
+                    outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput',LOOdir);
+                    [~, ~] = mkdir(outputdir);
+                else
+                    outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput');
+                end
+
+                publicProperties = properties(heatmap); % convert from class heatmap to struct to be able to save without changing properties
+                exportheatmap = struct();
+                for iField = 1:numel(publicProperties)
+                    exportheatmap.(publicProperties{iField}) = heatmap.(publicProperties{iField});
+                end
+
+                save(fullfile(outputdir,[filename,'.heatmap']),'-struct','exportheatmap','-v7.3')
+
+                if savememory
+                    %save memory file
+                    memory = obj;
+                    save(fullfile(outputdir,['memory_',filename,'.heatmap']),'memory','-v7.3')
+                end
             end
             
         end
@@ -478,7 +514,6 @@ classdef VoxelDataStack < handle
             tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
             pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
             signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
-            Done;
         end
         
         function [tmap,pmap,signedpmap] = ttest_fuckedup(obj)

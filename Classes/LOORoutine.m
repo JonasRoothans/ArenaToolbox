@@ -1,14 +1,17 @@
 classdef LOORoutine < handle
     
     properties
-        HeatmapFolder
-        MemoryFile
+        Heatmap
+        Memory
         LOOmdl
         LOOCVmdl
     end
     
     properties (Hidden)
-        CleanHistograms
+        SamplingMethod = @A_15bins
+        MemoryFile
+        HeatmapFolder
+        CleanPredictors
         LoadedMemory
         LOOCVpredictions
     end
@@ -19,6 +22,8 @@ classdef LOORoutine < handle
         function LOOroutine()
         end
         
+        
+        
         function setHeatmapFolder(obj)
             obj.HeatmapFolder = uigetdir();
         end
@@ -28,13 +33,18 @@ classdef LOORoutine < handle
             obj.MemoryFile = fullfile(foldername,filename);
         end
         
-        
-        
+
         function clearMemory(obj)
             obj.LoadedMemory = [];
         end
         
-        function LOOregression(obj)
+        function saveTraining(obj,path)
+            [~ ,filename] = fileparts(obj.LoadedMemory.RecipePath);
+            mdl = obj.LOOmdl;
+            save(fullfile(path,['training_',filename,'.mat']),'mdl');
+        end
+        
+        function LOOmdl = LOOregression(obj)
             obj.loadMemory() % this is slow, so will only do it once.
             
             filenames = obj.LoadedMemory.LayerLabels;
@@ -47,36 +57,38 @@ classdef LOORoutine < handle
                 
                 
                 %load LOO set.
-                LOO_heatmap = load(fullfile(obj.HeatmapFolder,[file,'.heatmap']),'-mat');
-                LOO_signedP = LOO_heatmap.signedpmap;
-                LOO_tmap = LOO_heatmap.tmap;
+                LOO_heatmap = obj.loadHeatmap(file,iFilename);
+                
+                LOO_signedP = LOO_heatmap.Signedpmap;
+                LOO_tmap = LOO_heatmap.Tmap;
                 LOO_VTA = obj.LoadedMemory.getVoxelDataAtPosition(iFilename);
                 
                 %take a bite
                 sample = LOO_signedP.Voxels(and(LOO_VTA.Voxels>0.5,LOO_tmap~=0));
                 
                 %analyse bite
-                edges = -1:0.13333333333:1; % define the bins
-                h = histogram(sample,edges);
-                obj.CleanHistograms(iFilename,1:numel(edges)-1) = zscore(h.Values);
-                delete(h)
+                
+                predictors = feval(obj.SamplingMethod,sample);
+                
+                obj.CleanPredictors(iFilename,1:length(predictors)) = predictors;
+       
                 
             end
             close(f)
             
-            obj.LOOmdl = fitlm(obj.CleanHistograms,obj.LoadedMemory.Weights); %Here it calculates the b (by fitting a linear model = multivariatelinearregression)
-            figure;obj.LOOmdl.plot
+            obj.LOOmdl = fitlm(obj.CleanPredictors,obj.LoadedMemory.Weights); %Here it calculates the b (by fitting a linear model = multivariatelinearregression)
+            LOOmdl = obj.LOOmdl;
         end
         
         function LOOCV(obj)
-            if isempty(obj.CleanHistograms)
+            if isempty(obj.CleanPredictors)
                 error('Run .LOOregression() first!')
             end
             
             
             for i = 1:numel(obj.LoadedMemory.Weights)
                 %getsubsets
-                subX = obj.CleanHistograms;
+                subX = obj.CleanPredictors;
                 subX(i,:) = [];
                 subY = obj.LoadedMemory.Weights;
                 subY(i) = [];
@@ -87,7 +99,7 @@ classdef LOORoutine < handle
                 
                 
                 %predict
-                LOO_x = [1,obj.CleanHistograms(i,:)];
+                LOO_x = [1,obj.CleanPredictors(i,:)];
                 Prediction = LOO_x*b;
                 
                 %save
@@ -109,8 +121,34 @@ classdef LOORoutine < handle
     methods(Hidden)
         function loadMemory(obj)
             if isempty(obj.LoadedMemory)
-                Stack = load(obj.MemoryFile,'-mat');
-                obj.LoadedMemory = Stack.memory;
+                if not(isempty(obj.Memory))
+                    switch class(obj.Memory)
+                        case 'char'
+                            Stack = load(obj.MemoryFile,'-mat');
+                            obj.LoadedMemory = Stack.memory;
+                        case 'VoxelDataStack'
+                            obj.LoadedMemory = obj.Memory;
+                    end
+                    
+                else 
+                    msgbox('Please provide memory before running the routine','error','error')
+                    error('Please provide memory before running the routine');
+                end
+            end
+        end
+        
+        function LOO_heatmap = loadHeatmap(obj,file,i)
+            if not(isempty(obj.Heatmap))
+                switch class(obj.Heatmap)
+                    case 'char'
+                        LOO_heatmap = load(fullfile(obj.Heatmap,[file,'.heatmap']),'-mat');
+                    case 'struct'
+                        LOO_heatmap.Signedpmap = obj.Heatmap.Signedpmap.getVoxelDataAtPosition(i);
+                        LOO_heatmap.Tmap = obj.Heatmap.Tmap.getVoxelDataAtPosition(i);
+                end
+            else
+                msgbox('Please provide Heatmap folder or stack','error','error')
+                error('Please provide Heatmap folder or stack')
             end
         end
     end

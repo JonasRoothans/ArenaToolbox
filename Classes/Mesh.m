@@ -170,7 +170,7 @@ classdef Mesh < handle & matlab.mixin.Copyable & ArenaActorRendering
                 case 'PointCloud'
                     points = points.Vectors;
                 case 'Vector3D'
-                    points = points.getArray;
+                    points = points.getArray';
             end
             polyhedron.faces = obj.Faces;
             polyhedron.vertices = obj.Vertices;

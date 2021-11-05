@@ -205,6 +205,11 @@ classdef Vector3D
             
         end
         
+        function obj = legacy2MNI(obj)
+            T = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
+            obj = obj.transform(T);
+        end
+        
         function rad = getAxiAngle(obj)
             rad = atan(obj.x/obj.y);
             if obj.y>0
