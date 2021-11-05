@@ -1,4 +1,4 @@
-classdef ObjFile < handle & ArenaActorRendering
+classdef ObjFile < handle & ArenaActorRendering & matlab.mixin.Copyable
     %ObjFile contains Faces and Vertices. Can be initialised with *.obj
     
     properties
@@ -104,6 +104,12 @@ classdef ObjFile < handle & ArenaActorRendering
            
            vd.savenii(fullfile(outdir,[tag,'.nii']));
 
+       end
+       
+       function mesh = convertToMesh(obj)
+           mesh = Mesh();
+           mesh.Faces = obj.Faces;
+           mesh.Vertices = obj.Vertices;
        end
         
     end
