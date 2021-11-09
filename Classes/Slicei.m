@@ -61,6 +61,26 @@ classdef Slicei < handle & ArenaActorRendering
             thisActor = thisScene.newActor(obj);
         end
         
+        function saveToFolder(obj,outdir,tag)
+            %save obj, voxeldata and thresholded voxeldat
+            if nargin==1
+                [file,outdir] = uiputfile('*.nii');
+                filepath = fullfile(outdir,file);
+                tag = file(1:end-4);
+            elseif nargin==2
+                tag = newid;
+                filepath = fullfile(outdir,[tag,'.nii']);
+            elseif nargin==3
+                filepath = fullfile(outdir,[tag,'.nii']);
+            else
+                return
+            end
+           
+            obj.parent.savenii(filepath)
+
+        end
+        
+        
         function update_slice(obj,scene)
             if ndims(obj.vol) == 3         %Scalar mode
             elseif ndims(obj.vol) == 4     %RGB mode
