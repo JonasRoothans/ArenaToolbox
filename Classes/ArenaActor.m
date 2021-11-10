@@ -173,6 +173,15 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                         
                     case 'Mesh'
                         Source = obj.Data.Source;
+                        if any(isnan(Source.Voxels))
+                            answer = questdlg('The data contains NaN values, if you proceed these will be changed to 0','Oops!','Yes, change them to 0','No I will find another way','Yes, change them to 0');
+                            switch answer
+                                case 'Yes, change them to 0'
+                                    Source.Voxels(isnan(Source.Voxels)) = 0;
+                                case 'No I will find another way'
+                                    return
+                            end
+                        end
                         [imOut,rOut] = imwarp(Source.Voxels,Source.R,affine3d(T));
                         v = obj.Data.Vertices;
                         v_transformed = SDK_transform3d(v,T);
