@@ -52,7 +52,12 @@ classdef LOORoutine < handle
             for iFilename = 1:length(filenames)
                 
                 thisFilename = filenames{iFilename};
+                try
                 [folder,file,extension] = fileparts(thisFilename);
+                catch
+                    file=thisFilename;
+                end
+                
                 disp(file)
                 
                 

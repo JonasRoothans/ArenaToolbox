@@ -19,7 +19,7 @@ classdef VoxelDataStack < handle
     methods
         function obj = VoxelDataStack(Voxels,R,Weights)
             if nargin>0
-                obj.Voxels = Voxels;
+                obj.Voxels = single(Voxels); %by default to minimize memory consumption 
             end
             if nargin>1
                 obj.R = R;
@@ -370,8 +370,11 @@ classdef VoxelDataStack < handle
                 Wloo(iLOO) = [];
                 Rloo = obj.R;
                 LOOstack = VoxelDataStack(Vloo,Rloo,Wloo);
-                
+                try
                 [parent,sub,fn] = fileparts(obj.LayerLabels{iLOO});
+                catch
+                sub=obj.LayerLabels{iLOO};
+                end
                 output = LOOstack.convertToHeatmap(sub,description,'false',filename);
                 if iLOO ==1
                     HeatmapVDS.Signedpmap.R = Rloo;
