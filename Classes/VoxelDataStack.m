@@ -358,10 +358,13 @@ classdef VoxelDataStack < handle
                 filename = '';
                 description = '';
             end
-                
+            
+            size_of_maps = [size(obj.Voxels),numel(obj.Weights)];
             
             HeatmapVDS.Signedpmap = VoxelDataStack;
+            HeatmapVDS.Signedpmap.setSize(size_of_maps,'int8');
             HeatmapVDS.Tmap = VoxelDataStack;
+            HeatmapVDS.Tmap.setSize(size_of_maps,'int8');
             
             for iLOO = startingFrom:numel(obj.Weights)
                 Vloo = obj.Voxels;
@@ -380,6 +383,8 @@ classdef VoxelDataStack < handle
                     HeatmapVDS.Signedpmap.R = Rloo;
                     HeatmapVDS.Tmap.R = Rloo;
                 end
+                output.Signedpmap.Voxels = int8(output.Signedpmap.Voxels*100);
+                output.Tmap.Voxels = int8(output.Tmap.Voxels*100);
                 HeatmapVDS.Signedpmap.InsertVoxelDataAt(output.Signedpmap,iLOO);
                 HeatmapVDS.Tmap.InsertVoxelDataAt(output.Tmap,iLOO);
                 
@@ -387,6 +392,24 @@ classdef VoxelDataStack < handle
             end
             
         end
+        
+        
+        function obj =  setSize(obj,sz,classtype)
+            if ~isempty(obj.Voxels)
+                warning('Instance already contains data. Allocation request is ignored')
+                return
+            end
+            
+            if nargin==3
+                obj.Voxels = zeros(sz(1:4),classtype);
+            else
+                obj.Voxels = NaN(sz(1:4));
+            end
+            
+            obj.Weights = NaN([1,sz(4)]);
+            
+        end
+        
         
         function heatmap = convertToHeatmapBasedOnVoxelValues(obj,filename,description)
             global arena
@@ -415,6 +438,12 @@ classdef VoxelDataStack < handle
         end
         
         function heatmap = convertToHeatmap(obj,filename,description,savememory,LOOdir)
+            
+            % design idea
+            %heatmap = Heatmap;
+            %heatmap.fromVoxelDataStack(obj)
+            %%%%%%
+            
             global arena
             if not(isfield(arena.Settings,'rootdir'))
                 error('Your settings file is outdated. Please remove config.mat and restart MATLAB for a new setup')

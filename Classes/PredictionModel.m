@@ -6,6 +6,8 @@ classdef PredictionModel < handle
         Heatmap
         MappingMethod = 'signedpmap'
         SamplingMethod = @A_15bins;
+        %Tag
+        %Description
     end
     
     properties (Hidden)
@@ -32,7 +34,8 @@ classdef PredictionModel < handle
             %Run a regression
             TrainingModule = LOORoutine();
             TrainingModule.SamplingMethod = obj.SamplingMethod;
-            TrainingModule.Heatmap = LOOmaps;
+            TrainingModule.Heatmap = LOOmaps.Signedpmap;
+            TrainingModule.Mask = LOOmaps.Tmap;
             TrainingModule.Memory = VDS;
             TrainingModule.LOOregression();
             obj.TrainingLinearModel = TrainingModule.LOOmdl;
@@ -62,7 +65,11 @@ classdef PredictionModel < handle
             %warp to map space
             VD2 = VD.warpto(obj.Heatmap.Signedpmap);
             
-            %take sample
+            
+            %
+            %ba = BiteAnalysis(VD,obj.Heatmap.Signedpmap,obj.Heatmap.Tmap) 
+            %predictors = ba.getPredictors(obj.SampligMethod)
+
             sample = obj.Heatmap.Signedpmap.Voxels(and(VD2.Voxels>0.5,obj.Heatmap.Tmap.Voxels~=0));
                 
             %make predictors
@@ -96,7 +103,7 @@ classdef PredictionModel < handle
             mdl = obj;
             formatOut = 'yyyy_mm_dd';
             disp(['saving as: ',datestr(now,formatOut),'_',obj.Heatmap.Tag])
-            save(fullfile(modelFolder,[datestr(now,formatOut),'_',obj.Heatmap.Tag]),'mdl')
+            save(fullfile(modelFolder,[datestr(now,formatOut),'_',obj.Heatmap.Tag]),'mdl','-v7.3')
             disp('Saving complete')
         end
         

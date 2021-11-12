@@ -22,7 +22,6 @@ TrainingStack.loadStudyDataFromRecipe();
 
 
 PredModel = PredictionModel();
-PredModel.SamplingMethod = @mean;
 PredModel.trainOnVoxelDataStack(TrainingStack)
 PredModel.plotTraining;
 PredModel.save()

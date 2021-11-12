@@ -129,7 +129,7 @@ classdef LOORoutine < handle
                 if not(isempty(obj.Memory))
                     switch class(obj.Memory)
                         case 'char'
-                            Stack = load(obj.MemoryFile,'-mat');
+                            Stack = load(obj.Memory,'-mat');
                             obj.LoadedMemory = Stack.memory;
                         case 'VoxelDataStack'
                             obj.LoadedMemory = obj.Memory;

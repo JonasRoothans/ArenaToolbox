@@ -19,6 +19,10 @@ classdef Heatmap < handle
 
         end
         
+        %---- MAKE THIS
+        function obj =  fromVoxelDataStack(obj)
+        end
+        %------
 
         
         function fz = makeFzMap(obj)

@@ -1,7 +1,10 @@
 function [predictors] = A_15bins(sample)
 
+
 %settings
 edges = -1:0.13333333333:1;
+
+if isa(sample,'int8'); edges = edges*100;end
 
 f = figure;
 h = histogram(sample,edges);
