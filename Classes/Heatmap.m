@@ -11,21 +11,84 @@ classdef Heatmap < handle
         Fzmap
         Raw
         Description
-        VoxelDataStack
+        
     end
     
     methods
         function obj = Heatmap()
-
+            
         end
         
-        %---- MAKE THIS
-        function obj =  fromVoxelDataStack(obj)
-        end
-        %------
+        %---- MAKE THIS----convert heatmap from VoxelDataStack- LOO in
+        %LOORoutine
+        function obj =  fromVoxelDataStack(obj,filename)
+            Stack=VoxelDataStack;
+            answer = questdlg('how do you like to load the data?','select Data to load',...
+                'from Recipe','all subject Files in Folder',...
+                'files in subfolders','from Recipe');
+            switch answer
+                case 'from Recipe'
+                    try
+                        Stack.loadStudyDataFromRecipe();
+                    catch
+                        error('something went wrong, currently no support for old recipe files');
+                    end
+                case 'all subject Files in Folder'
+                    
+                    Stack.loadDataFromFolder();
+                    
+                case 'files insubfolders'
+                    selpath = uigetdir([],'select parent folder');
+                    subfolders_dir=A_getsubfolders(selpath);
+                    
+            end
+              
+            
+            
+            global arena
+            if not(isfield(arena.Settings,'rootdir'))
+                error('Your settings file is outdated. Please remove config.mat and restart MATLAB for a new setup')
+            end
+            
+            if nargin<3
+                error('Include the heatmapname and a short description!')
+            end
+            
+            if nargin<4
+               savememory = false;
+            end
+            
 
-        
-        function fz = makeFzMap(obj)
+          
+            [tmap,pmap,signedpmap] = obj.ttest2();
+            
+            heatmap.Tmap = tmap;
+            heatmap.Pmap = pmap;
+            heatmap.Signedpmap = signedpmap;
+            heatmap.Description = description;
+            heatmap.VoxelDataStack = obj;
+            
+            
+            %save
+            
+            outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput');
+            
+            
+            publicProperties = properties(heatmap); % convert from class heatmap to struct to be able to save without changing properties
+            exportheatmap = struct();
+            for iField = 1:numel(publicProperties)
+                exportheatmap.(publicProperties{iField}) = heatmap.(publicProperties{iField});
+            end
+            
+            save(fullfile(outputdir,[filename,'.heatmap']),'-struct','exportheatmap','-v7.3')
+
+               
+           
+            
+        end
+            
+ 
+       function fz = makeFzMap(obj)
             if not(isempty(obj.Fzmap))
                 fz = obj.Fzmap;
                 return

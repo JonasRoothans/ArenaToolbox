@@ -19,7 +19,7 @@ classdef PredictionModel < handle
         function obj = PredictionModel(inputArg1,inputArg2)
         end
         
-        function obj = trainOnVoxelDataStack(obj,VDS)
+        function obj = trainOnVoxelDataStack(obj,VDS,SamplingMethod)
             %user rinput
             UserInput = inputdlg({'HeatmapName','Description'},...
                           'Heatmap maker', [1 50; 3 50],...
@@ -61,22 +61,17 @@ classdef PredictionModel < handle
             title({'LOO training model',['R^2:', num2str(obj.TrainingLinearModel.Rsquared.Ordinary)]})
         end
         
-        function [prediction,predictors] = predictVoxelData(obj,VD)
-            %warp to map space
-            VD2 = VD.warpto(obj.Heatmap.Signedpmap);
-            
-            
-            %
-            %ba = BiteAnalysis(VD,obj.Heatmap.Signedpmap,obj.Heatmap.Tmap) 
-            %predictors = ba.getPredictors(obj.SampligMethod)
-
-            sample = obj.Heatmap.Signedpmap.Voxels(and(VD2.Voxels>0.5,obj.Heatmap.Tmap.Voxels~=0));
-                
-            %make predictors
-            predictors = feval(obj.SamplingMethod,sample);
+        function [prediction,predictors] = predictVoxelData(obj,VD, SimilarityMethod)
+           
+            ba = BiteAnalysis(obj.Heatmap.Signedpmap,VD,SimilarityMethod, obj.Heatmap.Tmap); 
+            predictors = ba.SimilarityResult;
             
             %apply B
+            try
             prediction = [1,predictors]*obj.B;
+            catch
+                error('please train model before applying prediction');
+            end
         end
         
         function mdl = validateOnVoxelDataStack(obj,VDS)

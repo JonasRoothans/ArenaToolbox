@@ -8,7 +8,7 @@ classdef LOORoutine < handle
     end
     
     properties (Hidden)
-        SamplingMethod = @A_15bins
+        SimilarityMethod
         MemoryFile
         HeatmapFolder
         CleanPredictors
@@ -44,7 +44,7 @@ classdef LOORoutine < handle
             save(fullfile(path,['training_',filename,'.mat']),'mdl');
         end
         
-        function LOOmdl = LOOregression(obj)
+        function LOOmdl = LOOregression(obj, SimilarityMethod)
             obj.loadMemory() % this is slow, so will only do it once.
             
             filenames = obj.LoadedMemory.LayerLabels;
@@ -68,13 +68,17 @@ classdef LOORoutine < handle
                 LOO_tmap = LOO_heatmap.Tmap;
                 LOO_VTA = obj.LoadedMemory.getVoxelDataAtPosition(iFilename);
                 
-                %take a bite
-                sample = LOO_signedP.Voxels(and(LOO_VTA.Voxels>0.5,LOO_tmap~=0));
                 
-                %analyse bite
+                %take and apply bite
                 
-                predictors = feval(obj.SamplingMethod,sample);
+                  ba = BiteAnalysis(obj.Heatmap.Signedpmap, VD, SimilarityMethod, obj.Heatmap.Tmap); 
+                  predictors = ba.SimilarityResult
+                  
+                % save the sampling method used to class for record
+                obj.SimilarityMethod=SimilarityMethod;
                 
+              
+               %save predictors to object
                 obj.CleanPredictors(iFilename,1:length(predictors)) = predictors;
        
                 

@@ -437,89 +437,104 @@ classdef VoxelDataStack < handle
             
         end
         
-        function heatmap = convertToHeatmap(obj,filename,description,savememory,LOOdir)
+        
+        % function mechanics moved to Heatmap class
+        function heatmap = convertToHeatmap(obj,filename)
+          
+            heatmap = Heatmap;
+            heatmap.fromVoxelDataStack(obj,filename)
+        end
             
-            % design idea
-            %heatmap = Heatmap;
-            %heatmap.fromVoxelDataStack(obj)
+            
+            
+            
+            
+            
             %%%%%%
             
-            global arena
-            if not(isfield(arena.Settings,'rootdir'))
-                error('Your settings file is outdated. Please remove config.mat and restart MATLAB for a new setup')
-            end
-            
-            if nargin<3
-                error('Include the heatmapname and a short description!')
-            end
-            
-            if nargin<4
-                savememory = false;
-            end
-            
-            if nargin==5
-                LOOmode = true;
-            else
-                LOOmode = false;
-            end
-
-            raw.recipe = obj.Recipe;
-            raw.files = obj.LayerLabels;
-            disp(['--> performing ttest2 for ',filename]);
-            [tmap,pmap,signedpmap] = obj.ttest2();
-            heatmap = Heatmap();
-            heatmap.Tmap = tmap;
-            heatmap.Pmap = pmap;
-            heatmap.Signedpmap = signedpmap;
-            heatmap.Raw = raw;
-            heatmap.Description = description;
-            heatmap.VoxelDataStack = obj;
-            heatmap.Tag = filename;
-            
-            %save
             
             
-             if nargout<1 
-                if LOOmode
-                    outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput',LOOdir);
-                    [~, ~] = mkdir(outputdir);
-                else
-                    outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput');
-                end
-
-                publicProperties = properties(heatmap); % convert from class heatmap to struct to be able to save without changing properties
-                exportheatmap = struct();
-                for iField = 1:numel(publicProperties)
-                    exportheatmap.(publicProperties{iField}) = heatmap.(publicProperties{iField});
-                end
-
-                save(fullfile(outputdir,[filename,'.heatmap']),'-struct','exportheatmap','-v7.3')
-
-                if savememory
-                    %save memory file
-                    memory = obj;
-                    save(fullfile(outputdir,['memory_',filename,'.heatmap']),'memory','-v7.3')
-                end
-            end
             
-        end
-        
- 
-        function [tmap,pmap,signedpmap] = ttest(obj)
             
-          serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
             
-                [~,p_voxels,~,stat] = ttest(serialized');
-                  t_voxels = stat.tstat;
-                  
-            stacksize = size(obj.Voxels);
-            outputsize = stacksize(1:3);      
-            signed_p_voxels = (1-p_voxels).*sign(t_voxels);
-            tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
-            pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
-            signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
-            Done;
-        end
+            
+            
+%             global arena
+%             if not(isfield(arena.Settings,'rootdir'))
+%                 error('Your settings file is outdated. Please remove config.mat and restart MATLAB for a new setup')
+%             end
+%             
+%             if nargin<3
+%                 error('Include the heatmapname and a short description!')
+%             end
+%             
+%             if nargin<4
+%                 savememory = false;
+%             end
+%             
+%             if nargin==5
+%                 LOOmode = true;
+%             else
+%                 LOOmode = false;
+%             end
+% 
+%             raw.recipe = obj.Recipe;
+%             raw.files = obj.LayerLabels;
+%             disp(['--> performing ttest2 for ',filename]);
+%             [tmap,pmap,signedpmap] = obj.ttest2();
+%             heatmap = Heatmap();
+%             heatmap.Tmap = tmap;
+%             heatmap.Pmap = pmap;
+%             heatmap.Signedpmap = signedpmap;
+%             heatmap.Raw = raw;
+%             heatmap.Description = description;
+%             heatmap.VoxelDataStack = obj;
+%             heatmap.Tag = filename;
+%             
+%             %save
+%             
+%             
+%              if nargout<1 
+%                 if LOOmode
+%                     outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput',LOOdir);
+%                     [~, ~] = mkdir(outputdir);
+%                 else
+%                     outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput');
+%                 end
+% 
+%                 publicProperties = properties(heatmap); % convert from class heatmap to struct to be able to save without changing properties
+%                 exportheatmap = struct();
+%                 for iField = 1:numel(publicProperties)
+%                     exportheatmap.(publicProperties{iField}) = heatmap.(publicProperties{iField});
+%                 end
+% 
+%                 save(fullfile(outputdir,[filename,'.heatmap']),'-struct','exportheatmap','-v7.3')
+% 
+%                 if savememory
+%                     %save memory file
+%                     memory = obj;
+%                     save(fullfile(outputdir,['memory_',filename,'.heatmap']),'memory','-v7.3')
+%                 end
+%             end
+%             
+%         end
+%         
+%  
+%         function [tmap,pmap,signedpmap] = ttest(obj)
+%             
+%           serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
+%             
+%                 [~,p_voxels,~,stat] = ttest(serialized');
+%                   t_voxels = stat.tstat;
+%                   
+%             stacksize = size(obj.Voxels);
+%             outputsize = stacksize(1:3);      
+%             signed_p_voxels = (1-p_voxels).*sign(t_voxels);
+%             tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
+%             pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
+%             signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
+%             Done;
+%         end
         
         function [tmap,pmap,signedpmap] = ttest2(obj)
             
