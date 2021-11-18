@@ -21,8 +21,11 @@ classdef Heatmap < handle
         
         %---- MAKE THIS----convert heatmap from VoxelDataStack- LOO in
         %LOORoutine
-        function obj =  fromVoxelDataStack(obj,filename)
-            Stack=VoxelDataStack;
+        function obj =  fromVoxelDataStack(VoxelDataStack,filename)
+            if ~isclass(VoxelDataStack, 'VoxelDataStack')
+                
+           warning(' first argument class type is not compatible, please folllow prompts to load data properly:')
+           Stack=VoxelDataStack;
             answer = questdlg('how do you like to load the data?','select Data to load',...
                 'from Recipe','all subject Files in Folder',...
                 'files in subfolders','from Recipe');
@@ -36,40 +39,42 @@ classdef Heatmap < handle
                 case 'all subject Files in Folder'
                     
                     Stack.loadDataFromFolder();
-                    
+                    % incomplete
                 case 'files insubfolders'
                     selpath = uigetdir([],'select parent folder');
                     subfolders_dir=A_getsubfolders(selpath);
-                    
+                    % incomplete
+            end
             end
               
-            
+            description= inputdlg('enter description:');
             
             global arena
             if not(isfield(arena.Settings,'rootdir'))
                 error('Your settings file is outdated. Please remove config.mat and restart MATLAB for a new setup')
             end
             
-            if nargin<3
-                error('Include the heatmapname and a short description!')
-            end
-            
-            if nargin<4
-               savememory = false;
-            end
-            
+%             if nargin<3
+%                 error('Include the heatmapname and a short description!')
+%             end
+%             
+%             if nargin<4
+%                savememory = false;
+%             end
+%             
 
           
-            [tmap,pmap,signedpmap] = obj.ttest2();
+            [tmap,pmap,signedpmap] = Stack.ttest2();
             
-            heatmap.Tmap = tmap;
-            heatmap.Pmap = pmap;
-            heatmap.Signedpmap = signedpmap;
-            heatmap.Description = description;
-            heatmap.VoxelDataStack = obj;
+            obj.Tmap = tmap;
+            obj.Pmap = pmap;
+            obj.Signedpmap = signedpmap;
+            obj.Description = description;
+            obj.VoxelDataStack = Stack;
             
             
-            %save
+            %save....%%% to be removed in the future and only saved through
+            %heatmap cook function.
             
             outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput');
             
@@ -84,7 +89,7 @@ classdef Heatmap < handle
 
                
            
-            
+        
         end
             
  

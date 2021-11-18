@@ -439,10 +439,13 @@ classdef VoxelDataStack < handle
         
         
         % function mechanics moved to Heatmap class
+        % still work in progress, filled with bugs
         function heatmap = convertToHeatmap(obj,filename)
+            
+            filename= inputdlg('enter description:');
           
             heatmap = Heatmap;
-            heatmap.fromVoxelDataStack(obj,filename)
+            heatmap.fromVoxelDataStack(obj,filename{:})
         end
             
             
@@ -520,21 +523,21 @@ classdef VoxelDataStack < handle
 %         end
 %         
 %  
-%         function [tmap,pmap,signedpmap] = ttest(obj)
-%             
-%           serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
-%             
-%                 [~,p_voxels,~,stat] = ttest(serialized');
-%                   t_voxels = stat.tstat;
-%                   
-%             stacksize = size(obj.Voxels);
-%             outputsize = stacksize(1:3);      
-%             signed_p_voxels = (1-p_voxels).*sign(t_voxels);
-%             tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
-%             pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
-%             signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
-%             Done;
-%         end
+        function [tmap,pmap,signedpmap] = ttest(obj)
+            
+          serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
+            
+                [~,p_voxels,~,stat] = ttest(serialized');
+                  t_voxels = stat.tstat;
+                  
+            stacksize = size(obj.Voxels);
+            outputsize = stacksize(1:3);      
+            signed_p_voxels = (1-p_voxels).*sign(t_voxels);
+            tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
+            pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
+            signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
+            Done;
+        end
         
         function [tmap,pmap,signedpmap] = ttest2(obj)
             
