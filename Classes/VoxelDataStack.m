@@ -493,10 +493,10 @@ classdef VoxelDataStack < handle
 %             heatmap.Description = description;
 %             heatmap.VoxelDataStack = obj;
 %             heatmap.Tag = filename;
-%             
-%             %save
-%             
-%             
+            
+            %save
+            
+            
 %              if nargout<1 
 %                 if LOOmode
 %                     outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput',LOOdir);
@@ -521,8 +521,8 @@ classdef VoxelDataStack < handle
 %             end
 %             
 %         end
-%         
-%  
+        
+ 
         function [tmap,pmap,signedpmap] = ttest(obj)
             
           serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));

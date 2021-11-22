@@ -14,6 +14,11 @@ classdef Heatmap < handle
         
     end
     
+    properties (Hidden)
+        outputdir
+    end
+        
+    
     methods
         function obj = Heatmap()
             
@@ -21,38 +26,46 @@ classdef Heatmap < handle
         
         %---- MAKE THIS----convert heatmap from VoxelDataStack- LOO in
         %LOORoutine
-        function obj =  fromVoxelDataStack(VoxelDataStack,filename)
-            if ~isclass(VoxelDataStack, 'VoxelDataStack')
-                
-           warning(' first argument class type is not compatible, please folllow prompts to load data properly:')
-           Stack=VoxelDataStack;
-            answer = questdlg('how do you like to load the data?','select Data to load',...
-                'from Recipe','all subject Files in Folder',...
-                'files in subfolders','from Recipe');
-            switch answer
-                case 'from Recipe'
-                    try
-                        Stack.loadStudyDataFromRecipe();
-                    catch
-                        error('something went wrong, currently no support for old recipe files');
-                    end
-                case 'all subject Files in Folder'
-                    
-                    Stack.loadDataFromFolder();
-                    % incomplete
-                case 'files insubfolders'
-                    selpath = uigetdir([],'select parent folder');
-                    subfolders_dir=A_getsubfolders(selpath);
-                    % incomplete
-            end
-            end
-              
-            description= inputdlg('enter description:');
+        function obj =  fromVoxelDataStack(obj,StackedData,filename)
             
-            global arena
-            if not(isfield(arena.Settings,'rootdir'))
-                error('Your settings file is outdated. Please remove config.mat and restart MATLAB for a new setup')
+            if nargin<2
+                Stack=VoxelDataStack;
+                answer = questdlg('how do you like to load the data?','select Data to load',...
+                    'from Recipe','all subject Files in Folder',...
+                    'files in subfolders','from Recipe');
+                switch answer
+                    case 'from Recipe'
+                        try
+                            Stack.loadStudyDataFromRecipe();
+                        catch
+                            error('something went wrong, currently no support for old recipe files');
+                        end
+                    case 'all subject Files in Folder'
+                        
+                        Stack.loadDataFromFolder();
+                        % incomplete
+                    case 'files insubfolders'
+                        selpath = uigetdir([],'select parent folder');
+                        subfolders_dir=A_getsubfolders(selpath);
+                        % incomplete
+                end
+            else
+                if ~isequal(class(StackedData), 'VoxelDataStack')
+                    warning(' first argument class type is not compatible, please folllow prompts to load data properly:')
+                    
+                end
+                Stack=StackedData;
             end
+            
+             if nargin<3
+                    filename= inputdlg('enter name/description:');
+                end
+            
+            
+%             global arena
+%             if not(isfield(arena.Settings,'rootdir'))
+%                 error('Your settings file is outdated. Please remove config.mat and restart MATLAB for a new setup')
+%             end
             
 %             if nargin<3
 %                 error('Include the heatmapname and a short description!')
@@ -69,23 +82,24 @@ classdef Heatmap < handle
             obj.Tmap = tmap;
             obj.Pmap = pmap;
             obj.Signedpmap = signedpmap;
-            obj.Description = description;
-            obj.VoxelDataStack = Stack;
+            obj.Description = filename;
+            obj.outputdir=Stack.RecipePath;
+%           obj.VoxelDataStack = Stack;
             
             
             %save....%%% to be removed in the future and only saved through
             %heatmap cook function.
             
-            outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput');
-            
-            
-            publicProperties = properties(heatmap); % convert from class heatmap to struct to be able to save without changing properties
-            exportheatmap = struct();
-            for iField = 1:numel(publicProperties)
-                exportheatmap.(publicProperties{iField}) = heatmap.(publicProperties{iField});
-            end
-            
-            save(fullfile(outputdir,[filename,'.heatmap']),'-struct','exportheatmap','-v7.3')
+%             outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput');
+%             
+%             
+%             publicProperties = properties(heatmap); % convert from class heatmap to struct to be able to save without changing properties
+%             exportheatmap = struct();
+%             for iField = 1:numel(publicProperties)
+%                 exportheatmap.(publicProperties{iField}) = heatmap.(publicProperties{iField});
+%             end
+%             
+%             save(fullfile(outputdir,[filename,'.heatmap']),'-struct','exportheatmap','-v7.3')
 
                
            
@@ -180,44 +194,83 @@ classdef Heatmap < handle
             end
         end
         
-        function save(obj,filename, memory)
-            %voxelstack is not saved by default as it is very big.
-            %thisHeatmap.save('filename.heatmap','memory') will save
-            %memory.
-            save_memory = 0;
-            if nargin==3
-                if strcmp(memory,'memory')
-                    save_memory = 1;
-                end
-            end
+        %save function, to be called by heatmap_cook.. saves without
+        %memory... save function to be added to to voxeldatastack and
+        %LOOroutin 
+        
+        function obj=save(obj,outputdir)
             
-            if nargin==1
-                if not(isempty(obj.Tag))
-                    [fname,pname] = uiputfile([obj.Tag,'.heatmap']);
-                else
-                    [fname,pname] = uiputfile('*.heatmap');
-                end
-                filename = fullfile(pname,fname);
-            end
+            if isempty(obj.Description)
                 
-            %make a new version without the VoxelDataStack to save memory.
-            hm = copy(obj);
-            hm.VoxelDataStack = [];
-            
-            
-             %write heatmap
-            [folder,file,~] = fileparts(filename);
-            out.hm = hm;
-            save(fullfile(folder,[file,'.heatmap']),'-struct','out');
-            
-            %write memory
-            if save_memory
-                out.hm.VoxelDataStack = obj.VoxelDataStack;
-                save(fullfile(folder,[file,'_wVDS.heatmap']),'-struct','out','-v7.3')
+                input= inputdlg('enter description:');
+                obj.Description=input;
             end
             
-            Done;
+            if nargin<2
+                outputdir=obj.outputdir;
+            end
+            
+            [outfolder,file]=fileparts(outputdir);
+            
+         
+            
+            publicProperties = properties(obj); % convert from class heatmap to struct to be able to save without changing properties
+            exportheatmap = struct();
+            for iField = 1:numel(publicProperties)
+                exportheatmap.(publicProperties{iField}) = obj.(publicProperties{iField});
+            end
+
+            filename=obj.Description;   
+                
+            save(fullfile(outfolder,[filename,'.heatmap']),'-struct','exportheatmap','-v7.3');
         end
+  
+        
+        
+        
+        
+        
+        
+        
+        
+%         function save(obj,filename, memory)
+%             %voxelstack is not saved by default as it is very big.
+%             %thisHeatmap.save('filename.heatmap','memory') will save
+%             %memory.
+%             save_memory = 0;
+%             if nargin==3
+%                 if strcmp(memory,'memory')
+%                     save_memory = 1;
+%                 end
+%             end
+%             
+%             if nargin==1
+%                 if not(isempty(obj.Tag))
+%                     [fname,pname] = uiputfile([obj.Tag,'.heatmap']);
+%                 else
+%                     [fname,pname] = uiputfile('*.heatmap');
+%                 end
+%                 filename = fullfile(pname,fname);
+%             end
+%                 
+%             %make a new version without the VoxelDataStack to save memory.
+%             hm = copy(obj);
+%             hm.VoxelDataStack = [];
+%             
+%             
+%              %write heatmap
+%             [folder,file,~] = fileparts(filename);
+%             out.hm = hm;
+%             save(fullfile(folder,[file,'.heatmap']),'-struct','out');
+%             
+%             %write memory
+%             if save_memory
+%                 out.hm.VoxelDataStack = obj.VoxelDataStack;
+%                 save(fullfile(folder,[file,'_wVDS.heatmap']),'-struct','out','-v7.3')
+%             end
+%             
+%             Done;
+%         end
       
         
     end
