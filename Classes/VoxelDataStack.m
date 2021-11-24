@@ -30,6 +30,13 @@ classdef VoxelDataStack < handle
 
         end
         
+        function weights = get.Weights(obj)
+            if isempty(obj.Weights)
+                weights = ones(1,size(obj.Voxels,4));
+            end
+            
+        end
+        
         function l =length(obj)
             l = size(obj.Voxels,4);
         end
@@ -62,6 +69,23 @@ classdef VoxelDataStack < handle
             
             
             
+        end
+        
+        function obj = construct(obj)
+            
+            answer = questdlg('how do you like to load the data?','select Data to load',...
+                    'from Recipe',...
+                    'directly from nii files',...
+                    'from Recipe');
+                switch answer
+                    case 'from Recipe'
+                        obj.loadStudyDataFromRecipe();
+                    case 'directly from nii files'
+                        obj.loadDataFromFolder();
+                    otherwise
+                        return %user aborted
+                end
+     
         end
         
         function obj = loadDataFromFolder(obj,folder)
@@ -239,7 +263,7 @@ classdef VoxelDataStack < handle
             for i = 1:height(obj.Recipe)
                 
                 if data_is_in_subfolders
-                    files = A_getfiles(obj.Recipe.fullpath{i});
+                    files = A_getfiles(fullfile(obj.Recipe.fullpath{i},'*.nii'));
                     for iFile = 1:numel(files)
                     thisFile = fullfile(obj.Recipe.fullpath{i},files(iFile).name);
                     vd = VoxelData(thisFile);
@@ -430,7 +454,6 @@ classdef VoxelDataStack < handle
             heatmap.Signedpmap = signedpmap;
             heatmap.Raw = raw;
             heatmap.Description = description;
-            heatmap.VoxelDataStack = obj;
             heatmap.Amap = VoxelData(nanmean(obj.Voxels,4),heatmap.Tmap.R);
             
             
@@ -540,6 +563,10 @@ classdef VoxelDataStack < handle
         end
         
         function [tmap,pmap,signedpmap] = ttest2(obj)
+            
+            if all(obj.Weights==0)
+                 error('All weights are set to 0. This will not work.')
+             end
             
           serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
           t_voxels = zeros([length(serialized),1]);

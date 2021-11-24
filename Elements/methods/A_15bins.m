@@ -1,10 +1,12 @@
 function [predictors] = A_15bins(Map, IndividualProfile, varargin)
 
+
 p=inputParser;
 
 if nargin>2
     
 defaultmask=varargin{2};
+
 
 checkInput_A_15=@(x) isa(x,'VoxelData'); 
 
