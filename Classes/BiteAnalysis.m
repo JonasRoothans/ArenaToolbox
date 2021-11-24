@@ -24,9 +24,9 @@ classdef BiteAnalysis < handle
         end
         
        
-        function obj=takebite(obj, Mask, SamplingMethod); % Mask must be of the VoxelDataClass; like tmap for signedpmap 
+        function obj=takebite(obj, Mask, SamplingMethod) % Mask must be of the VoxelDataClass; like tmap for signedpmap 
             
-            obj.SamplingMethod=SamplingMethod
+            obj.SamplingMethod=SamplingMethod;
            
             if isempty(obj.Map) || isempty(obj.IndividualProfile)
                 error('load first map and profile into class');
@@ -41,14 +41,10 @@ classdef BiteAnalysis < handle
             
             
             obj.IndividualProfile.warpto(obj.Map);
-            
             if nargin>1
-            
-            obj.SimilarityResult= feval(obj.SamplingMethod, obj.Map, obj.IndividualProfile,Mask);
-            
+                obj.SimilarityResult= feval(obj.SamplingMethod, obj.Map, obj.IndividualProfile,Mask);
             else
-                
-            obj.SimilarityResult= feval(obj.SamplingMethod, obj.Map, obj.IndividualProfile);
+                obj.SimilarityResult= feval(obj.SamplingMethod, obj.Map, obj.IndividualProfile);
             end
             
             

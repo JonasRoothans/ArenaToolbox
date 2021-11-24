@@ -24,86 +24,39 @@ classdef Heatmap < handle
             
         end
         
-        %---- MAKE THIS----convert heatmap from VoxelDataStack- LOO in
-        %LOORoutine
-        function obj =  fromVoxelDataStack(obj,StackedData,filename)
+        function obj =  fromVoxelDataStack(obj,StackedData,tag, description)
             
             if nargin<2
-                Stack=VoxelDataStack;
-                answer = questdlg('how do you like to load the data?','select Data to load',...
-                    'from Recipe','all subject Files in Folder',...
-                    'files in subfolders','from Recipe');
-                switch answer
-                    case 'from Recipe'
-                        try
-                            Stack.loadStudyDataFromRecipe();
-                        catch
-                            error('something went wrong, currently no support for old recipe files');
-                        end
-                    case 'all subject Files in Folder'
-                        
-                        Stack.loadDataFromFolder();
-                        % incomplete
-                    case 'files insubfolders'
-                        selpath = uigetdir([],'select parent folder');
-                        subfolders_dir=A_getsubfolders(selpath);
-                        % incomplete
-                end
-            else
-                if ~isequal(class(StackedData), 'VoxelDataStack')
-                    warning(' first argument class type is not compatible, please folllow prompts to load data properly:')
-                    
-                end
-                Stack=StackedData;
+                error('missing input argument: VoxelDataStack')
             end
             
              if nargin<3
-                    filename= inputdlg('enter name/description:');
-                end
+                    [out]= inputdlg({'tag','Description'});
+                    tag = out{1};
+                    description = out{2};
+             end
             
-            
-%             global arena
-%             if not(isfield(arena.Settings,'rootdir'))
-%                 error('Your settings file is outdated. Please remove config.mat and restart MATLAB for a new setup')
-%             end
-            
-%             if nargin<3
-%                 error('Include the heatmapname and a short description!')
-%             end
-%             
-%             if nargin<4
-%                savememory = false;
-%             end
-%             
 
-          
+            %Wuerzburg-workflow
             [tmap,pmap,signedpmap] = Stack.ttest2();
-            
             obj.Tmap = tmap;
             obj.Pmap = pmap;
             obj.Signedpmap = signedpmap;
-            obj.Description = filename;
-            obj.outputdir=Stack.RecipePath;
-%           obj.VoxelDataStack = Stack;
-            
-            
-            %save....%%% to be removed in the future and only saved through
-            %heatmap cook function.
-            
-%             outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput');
-%             
-%             
-%             publicProperties = properties(heatmap); % convert from class heatmap to struct to be able to save without changing properties
-%             exportheatmap = struct();
-%             for iField = 1:numel(publicProperties)
-%                 exportheatmap.(publicProperties{iField}) = heatmap.(publicProperties{iField});
-%             end
-%             
-%             save(fullfile(outputdir,[filename,'.heatmap']),'-struct','exportheatmap','-v7.3')
 
-               
-           
-        
+            %Berlin-workflow
+            if 0
+            [amap,cmap,rmap] = Stack.berlinWorkflow;
+            obj.Amap = amap;
+            obj.Cmap = cmap;
+            obj.Rmap = rmap;
+            end
+            
+
+            
+            obj.Tag = tag;
+            obj.Description = description;
+            obj.outputdir=Stack.RecipePath;
+
         end
             
  
@@ -118,6 +71,7 @@ classdef Heatmap < handle
             
             fzVoxels = atanh(obj.Rmap.Voxels);
             obj.Fzmap = VoxelData(fzVoxels,obj.Rmap.R);
+            fz = obj.Fzmap;
         end
         
         function newObj = copy(obj)
@@ -197,32 +151,40 @@ classdef Heatmap < handle
         %save function, to be called by heatmap_cook.. saves without
         %memory... save function to be added to to voxeldatastack and
         %LOOroutin 
+        function description = get.Description(obj)
+            if isempty(obj.Description)
+                description= inputdlg('enter description:');
+                obj.Description=description;
+            else
+                description = obj.Description;
+            end
+        end
+        
+        function tag = get.Tag(obj)
+            if isempty(obj.Tag)
+                tag = inputdlg('enter heatmap name:');
+                obj.Tag = tag;
+            else
+                tag = obj.Tag;
+            end
+        end
         
         function obj=save(obj,outputdir)
-            
-            if isempty(obj.Description)
-                
-                input= inputdlg('enter description:');
-                obj.Description=input;
-            end
-            
             if nargin<2
                 outputdir=obj.outputdir;
             end
             
-            [outfolder,file]=fileparts(outputdir);
+            [outfolder,~]=fileparts(outputdir);
             
-         
-            
+
             publicProperties = properties(obj); % convert from class heatmap to struct to be able to save without changing properties
             exportheatmap = struct();
             for iField = 1:numel(publicProperties)
                 exportheatmap.(publicProperties{iField}) = obj.(publicProperties{iField});
             end
 
-            filename=obj.Description;   
                 
-            save(fullfile(outfolder,[filename,'.heatmap']),'-struct','exportheatmap','-v7.3');
+            save(fullfile(outfolder,[obj.Tag,'.heatmap']),'-struct','exportheatmap','-v7.3');
         end
   
         
