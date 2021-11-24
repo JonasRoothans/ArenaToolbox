@@ -40,11 +40,17 @@ classdef Heatmap < handle
             end
             
              if nargin<3
-                    [out]= inputdlg({'tag','Description'});
+                    [~,nameSuggestion] = fileparts(Stack.RecipePath);
+                    [out]= inputdlg({'tag','Description'},'Need info',[1 50; 3 50],{nameSuggestion,''});
+                    if isempty(out)
+                        tag = 'no name';
+                        description = 'no description';
+                    end
                     tag = out{1};
                     description = out{2};
              end
             
+             
 
             %Wuerzburg-workflow
             [tmap,pmap,signedpmap] = Stack.ttest2();
