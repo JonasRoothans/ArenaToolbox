@@ -1,13 +1,27 @@
-function [predictors] = A_15bins(Map, IndividualProfile, Mask)
+function [predictors] = A_15bins(Map, IndividualProfile, varargin)
 
-if nargin <3
-  
-    error(' please add a tmap mask for the signedp map')
+p=inputParser;
+
+if nargin>2
+    
+defaultmask=varargin{2};
+
+checkInput_A_15=@(x) isa(x,'VoxelData'); 
+
+addRequired(p,'Map', @checkInput_A_15);
+addRequired(p,'IndividualProfile', @checkInput_A_15);
+addParameter(p,'Mask',defaultmask, @checkInput_A_15);
+
+p.KeepUnmatched=false;
+   
+bite=Map.Voxels(and(IndividualProfile.Voxels>0.5,defaultmask.Voxels~=0));
+
+else
+    warning ('no mask selected, proceeding without masking')
+     
+    bite=Map.Voxels(IndividualProfile.Voxels>0.5);
 end
-
-
-bite=Map.Voxels(and(IndividualProfile.Voxels>0.5,Mask.Voxels~=0));
-
+    
 
 %settings
 edges = -1:0.13333333333:1;
