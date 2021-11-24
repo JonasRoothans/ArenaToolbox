@@ -24,10 +24,19 @@ classdef Heatmap < handle
             
         end
         
+        
+        
         function obj =  fromVoxelDataStack(obj,StackedData,tag, description)
             
             if nargin<2
-                error('missing input argument: VoxelDataStack')
+                Stack=VoxelDataStack;
+                Stack.construct(); % this will prompt the question on how to load
+
+            else
+                if ~isa(StackedData,'VoxelDataStack')
+                    error(['Was expecting a VoxelDataStack as input argument instead of ',class(StackedData)])
+                end
+                
             end
             
              if nargin<3
@@ -186,55 +195,6 @@ classdef Heatmap < handle
                 
             save(fullfile(outfolder,[obj.Tag,'.heatmap']),'-struct','exportheatmap','-v7.3');
         end
-  
-        
-        
-        
-        
-        
-        
-        
-        
-%         function save(obj,filename, memory)
-%             %voxelstack is not saved by default as it is very big.
-%             %thisHeatmap.save('filename.heatmap','memory') will save
-%             %memory.
-%             save_memory = 0;
-%             if nargin==3
-%                 if strcmp(memory,'memory')
-%                     save_memory = 1;
-%                 end
-%             end
-%             
-%             if nargin==1
-%                 if not(isempty(obj.Tag))
-%                     [fname,pname] = uiputfile([obj.Tag,'.heatmap']);
-%                 else
-%                     [fname,pname] = uiputfile('*.heatmap');
-%                 end
-%                 filename = fullfile(pname,fname);
-%             end
-%                 
-%             %make a new version without the VoxelDataStack to save memory.
-%             hm = copy(obj);
-%             hm.VoxelDataStack = [];
-%             
-%             
-%              %write heatmap
-%             [folder,file,~] = fileparts(filename);
-%             out.hm = hm;
-%             save(fullfile(folder,[file,'.heatmap']),'-struct','out');
-%             
-%             %write memory
-%             if save_memory
-%                 out.hm.VoxelDataStack = obj.VoxelDataStack;
-%                 save(fullfile(folder,[file,'_wVDS.heatmap']),'-struct','out','-v7.3')
-%             end
-%             
-%             Done;
-%         end
-      
-        
     end
     
     

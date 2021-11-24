@@ -64,6 +64,21 @@ classdef VoxelDataStack < handle
             
         end
         
+        function obj = construct(obj)
+            
+            answer = questdlg('how do you like to load the data?','select Data to load',...
+                    'from Recipe',...
+                    'all subject Files in Folder',...
+                    'from Recipe');
+                switch answer
+                    case 'from Recipe'
+                        Stack.loadStudyDataFromRecipe();
+                    case 'all subject Files in Folder'
+                        Stack.loadDataFromFolder();
+                end
+     
+        end
+        
         function obj = loadDataFromFolder(obj,folder)
             if nargin==1
                 waitfor(msgbox('Find the folder with nii files'))
