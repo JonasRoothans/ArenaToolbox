@@ -363,7 +363,7 @@ classdef VoxelData <handle
                 value = [];
                 
                 allVectors = coordinate.Vectors.getArray;
-                value = interp3(X,Y,Z,obj.Voxels,allVectors(:,1),allVectors(:,2),allVectors(:,3));
+                value = interp3(X,Y,Z,double(obj.Voxels),allVectors(:,1),allVectors(:,2),allVectors(:,3));
   
             end
         end

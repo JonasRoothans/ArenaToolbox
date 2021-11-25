@@ -47,9 +47,6 @@ classdef ArenaScene < handle
             %   Detailed explanation goes here
            
             debugmode = 0;
-         
-            
-            
             
             if debugmode
                 userinput = {'debug mode'};
@@ -370,6 +367,7 @@ classdef ArenaScene < handle
             
             %Open-up functions to call from outside!
             obj.CallFromOutside.import_vtk  = @import_vtk;
+            obj.CallFromOutside.fiberMapInterference = @fiberMapInterference;
             
             %... add more
             
@@ -684,10 +682,8 @@ classdef ArenaScene < handle
                 actorList = ArenaScene.getSelectedActors(scene);
                 for iActor = 1:numel(actorList)
                     thisActor = actorList(iActor);
-                    mesh = thisActor.Data.convertToMesh;
-                    newActor = mesh.see(scene);
-                    newActor.changeName(['Mesh from ',thisActor.Tag])
-                end
+                    thisActor.obj2mesh(scene);
+                end 
             end
             
             function menu_showCOG(hObject,eventdata)
@@ -1042,7 +1038,7 @@ classdef ArenaScene < handle
                 end
             end
             
-            function import_vtk(thisScene,filename)
+            function import_vtk(thisScene,filename,fibers_visual)
                 disp('loading a VTK with a custom script. (debug: ArenaScene / import_vtk)')
                 fid = fopen(filename);
                 tline = fgetl(fid);
@@ -1064,21 +1060,28 @@ classdef ArenaScene < handle
                     %show the fibers
                     f = Fibers;
                     
-                    %dialog box
-                    prompt = {['You are loading a VTK file with ',num2str(numel(Fib)),' elements. How many do you want to visualize?'] };
-                    dlgtitle = 'Arena VTK loader';
-                    definput = {num2str(min([100, numel(Fib)]))};
-                    dims = [1 40];
-                    opts.Interpreter = 'tex';
-                    answer = inputdlg(prompt,dlgtitle,dims,definput,opts);
-
+                    if nargin == 2
+                            %dialog box
+                            prompt = {['You are loading a VTK file with ',num2str(numel(Fib)),' elements. How many do you want to visualize?'] };
+                            dlgtitle = 'Arena VTK loader';
+                            definput = {num2str(min([100, numel(Fib)]))};
+                            dims = [1 40];
+                            opts.Interpreter = 'tex';
+                            answer = inputdlg(prompt,dlgtitle,dims,definput,opts);
+                            fibers_visual = str2num(answer{1});
+                    elseif strcmp(fibers_visual,'all')
+                            fibers_visual = numel(Fib);
+                    elseif strcmp(fibers_visual,'some')
+                            fibers_visual = numel(Fib)/5;
+                    end
+                    
                     for i = 1:numel(Fib)
                         points = V(Fib{i},:);
                         pc = points;
                         f.addFiber(pc,i);
                     end
                     
-                    actor = f.see(thisScene,str2num(answer{1}));
+                    actor = f.see(thisScene,fibers_visual);
                     [pn,fn] = fileparts(filename);
                     actor.changeName(fn);
 
@@ -2608,7 +2611,11 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                         [indx,tf] = listdlg('PromptString',{'Select method'},'ListString',options);
                         samplingMethod = options{indx};
                 end
-        
+                fiberMapInterference(map,mesh,samplingMethod,currentActors)
+            end
+            
+
+            function fiberMapInterference(map,mesh,samplingMethod,currentActors) %currentActors == Fibers?, can those be several or 
                 
                 %loop. First join all the fibers. For quick processing
                 nVectorsPerFiber = arrayfun(@(x) length(x.Vectors),currentActors.Data.Vertices);
@@ -2640,19 +2647,13 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                         case 'Average Value'
                             currentActors.Data.Weight(iFiber) = mean(weights);
                         case 'Sum'
-                            currentActors.Data.Weight(iFiber) = nansum(weights);
-                        
+                            currentActors.Data.Weight(iFiber) = nansum(weights);                        
                     end
                 end
-
-                
                 currentActors.changeSetting('colorByWeight',true);
-                Done;
-                
-
-                
+                Done;           
             end
-                
+
             
             function menu_showFibers(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
@@ -2981,13 +2982,14 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                     switch class(thisActor.Data)
                         case 'Mesh'
                             if isempty(thisActor.Data.Source)
-                                %msgbox('This mesh is not based on VoxelData, pleas ask Jonas for help') %perhaps voxelise?
+                                
+                                cubicMM(iActor,1) = thisActor.Data.getCubicMM;
                                 nVoxels(iActor,1) = nan;
                                 voxelsize(iActor,1) = nan;
-                                cubicMM(iActor,1) = nan;
                                 minVoxelvalue(iActor,1) = nan;
                                 maxVoxelvalue(iActor,1) = nan;
                             else
+                                
                                 [cubicmm,voxelcount] = thisActor.Data.Source.getCubicMM(thisActor.Data.Settings.T);
                                 
                                 nVoxels(iActor,1) = voxelcount;
@@ -3195,8 +3197,6 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                                 if numel(eventdata.Modifier)>2
                                     show_shortcuts(src);
                                 end
-                            case 'b'
-                                set(scene.handles.figure,'Color',1-scene.handles.figure.Color)
                             case 'i'
                                 if numel(eventdata.Modifier)==1
                           

@@ -165,10 +165,33 @@ classdef Mesh < handle & matlab.mixin.Copyable & ArenaActorRendering
             end
         end
         
+        function mm = getCubicMM(obj)
+            minrange = min(obj.Vertices); % can these values ever be positive? probably yes;
+            minrange = ceil(abs(minrange)).*sign(minrange);
+            maxrange = max(obj.Vertices);
+            maxrange = ceil(abs(maxrange)).*sign(maxrange);
+
+            
+
+
+            x=minrange(1):0.25:maxrange(1)+1;
+            y=minrange(2):0.25:maxrange(2)+1;
+            z=minrange(3):0.25:maxrange(3)+1;
+
+            [cubeX,cubeY,cubeZ] = meshgrid(x,y,z);
+            points = PointCloud([cubeX(:),cubeY(:),cubeZ(:)]);
+            %points.see
+            overlap = obj.isInside(points);
+            mm = sum(overlap)*0.25^3;          
+            
+
+        end
+        
         function bool = isInside(obj,points)
             switch class(points)
                 case 'PointCloud'
-                    points = points.Vectors;
+                    points = points.Vectors.getArray;
+
                 case 'Vector3D'
                     points = points.getArray';
             end
@@ -176,8 +199,8 @@ classdef Mesh < handle & matlab.mixin.Copyable & ArenaActorRendering
             polyhedron.vertices = obj.Vertices;
             
             bool = inpolyhedron(polyhedron, points,'flipnormals', true);
-            
-            
+           
+  
         end
         
         function saveToFolder(obj,outdir,tag)
