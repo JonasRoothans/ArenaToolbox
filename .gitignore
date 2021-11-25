@@ -3,3 +3,5 @@ config.mat
 *.m~
 *.m~
 *.m~
+.DS_Store
+*.vtk
