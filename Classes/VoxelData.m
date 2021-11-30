@@ -697,7 +697,7 @@ classdef VoxelData <handle
             elseif isa(target,'Heatmap')
                 R = target.R;
             else
-                error('input requirments: obj, target, T')
+                error('input requirments: obj, target, T.  Your target seems invalid.')
             end
             
             newVoxels = imwarp(double(obj.Voxels),obj.R,T,'OutputView',R);
