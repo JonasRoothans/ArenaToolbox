@@ -371,6 +371,26 @@ classdef VoxelDataStack < handle
             vd = VoxelData(Voxels,obj.R);
         end
         
+        function heatmap = convertToLOOHeatmap(obj,iLOO,requiredMaps)
+            
+                Vloo = obj.Voxels;
+                Vloo(:,:,:,iLOO) = [];
+                Wloo = obj.Weights;
+                Wloo(iLOO) = [];
+                Rloo = obj.R;
+                LOOstack = VoxelDataStack(Vloo,Rloo,Wloo);
+                
+                
+                heatmap = Heatmap;
+                heatmap.fromVoxelDataStack(obj,LOOstack,[],[], requiredMaps)
+                
+            
+            
+        end
+        
+        
+        
+        
         function HeatmapVDS = convertToLOOHeatmaps(obj,filename,description,startingFrom)
             if nargin<4
                 startingFrom = 1;

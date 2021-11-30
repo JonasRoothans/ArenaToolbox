@@ -4,7 +4,6 @@ classdef PredictionModel < handle
     
     properties
         Heatmap
-        MappingMethod = 'signedpmap'
         SamplingMethod = @A_15bins;
         %Tag
         %Description
@@ -19,6 +18,10 @@ classdef PredictionModel < handle
         function obj = PredictionModel(inputArg1,inputArg2)
         end
         
+        function bool = isTrained(obj)
+            bool = ~isempty(obj.B);
+        end
+        
         function obj = trainOnVoxelDataStack(obj,VDS,SamplingMethod)
             %user rinput
             UserInput = inputdlg({'HeatmapName','Description'},...
@@ -27,17 +30,17 @@ classdef PredictionModel < handle
             FILENAME = UserInput{1};
             DESCRIPTION = UserInput{2};
 
+            %XXX REMOVED: LOO heatmaps will be made on the fly.    
             %make heatmaps
-            LOOmaps = VDS.convertToLOOHeatmaps;
-            obj.Heatmap = VDS.convertToHeatmap(FILENAME,DESCRIPTION);
+            %LOOmaps = VDS.convertToLOOHeatmaps;
+            %obj.Heatmap = VDS.convertToHeatmap(FILENAME,DESCRIPTION);
             
             %Run a regression
             TrainingModule = LOORoutine();
-            TrainingModule.SamplingMethod = obj.SamplingMethod;
-            TrainingModule.Heatmap = LOOmaps.Signedpmap;
-            TrainingModule.Mask = LOOmaps.Tmap;
-            TrainingModule.Memory = VDS;
+            TrainingModule.SamplingMethod = obj.SamplingMethod; %pass on
+            TrainingModule.VDS = VDS;
             TrainingModule.LOOregression();
+            
             obj.TrainingLinearModel = TrainingModule.LOOmdl;
             obj.B = TrainingModule.LOOmdl.Coefficients.Estimate;
             
@@ -116,7 +119,6 @@ classdef PredictionModel < handle
           
             
             obj.Heatmap = loaded.mdl.Heatmap;
-            obj.MappingMethod = loaded.mdl.MappingMethod;
             obj.SamplingMethod = loaded.mdl.SamplingMethod;
             obj.TrainingLinearModel = loaded.mdl.TrainingLinearModel;
             obj.B = loaded.mdl.B;

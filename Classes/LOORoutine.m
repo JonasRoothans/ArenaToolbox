@@ -1,14 +1,13 @@
 classdef LOORoutine < handle
     
     properties
-        Heatmap
-        Memory
+        SamplingMethod
+        VDS %can be VoxelDataStack OR path to this file
         LOOmdl
         LOOCVmdl
     end
     
     properties (Hidden)
-        SimilarityMethod
         MemoryFile
         HeatmapFolder
         CleanPredictors
@@ -49,37 +48,32 @@ classdef LOORoutine < handle
             
             filenames = obj.LoadedMemory.LayerLabels;
             f = figure;
+            requiredMaps = obj.SamplingMethod.RequiredMaps;
+            
             for iFilename = 1:length(filenames)
                 
+                %indicate progress
                 thisFilename = filenames{iFilename};
                 try
-                [folder,file,extension] = fileparts(thisFilename);
+                [~,file,~] = fileparts(thisFilename);
                 catch
                     file=thisFilename;
                 end
-                
                 disp(file)
                 
                 
-                %load LOO set.
-                LOO_heatmap = obj.loadHeatmap(file,iFilename);
                 
-                LOO_signedP = LOO_heatmap.Signedpmap;
-                LOO_tmap = LOO_heatmap.Tmap;
-                LOO_VTA = obj.LoadedMemory.getVoxelDataAtPosition(iFilename);
+                %make LOO map
+                map = obj.LoadedMemory.ConvertToLOOHeatmap(index,requiredMaps);
                 
+                %get ROI
+                roi = obj.LoadedMemory.getVoxelDataAtPosition(iFilename);
                 
-                %take and apply bite
+                %Take a bite
+                ba = biteanalysis (map,roi,obj.SamplingMethod);
                 
-                  ba = BiteAnalysis(obj.Heatmap.Signedpmap, VD, SimilarityMethod, obj.Heatmap.Tmap); 
-                  predictors = ba.SimilarityResult
-                  
-                % save the sampling method used to class for record
-                obj.SimilarityMethod=SimilarityMethod;
-                
-              
                %save predictors to object
-                obj.CleanPredictors(iFilename,1:length(predictors)) = predictors;
+                obj.CleanPredictors(iFilename,1:length(ba.SimilarityResult)) = ba.SimilarityResult;
        
                 
             end
@@ -88,6 +82,8 @@ classdef LOORoutine < handle
             obj.LOOmdl = fitlm(obj.CleanPredictors,obj.LoadedMemory.Weights); %Here it calculates the b (by fitting a linear model = multivariatelinearregression)
             LOOmdl = obj.LOOmdl;
         end
+        
+        
         
         function LOOCV(obj)
             if isempty(obj.CleanPredictors)

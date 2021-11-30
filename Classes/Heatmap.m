@@ -9,7 +9,7 @@ classdef Heatmap < handle
         Cmap
         Rmap
         Fzmap
-        Raw
+        %Raw  - remove?
         Description
         
     end
@@ -26,7 +26,7 @@ classdef Heatmap < handle
         
         
         
-        function obj =  fromVoxelDataStack(obj,StackedData,tag, description)
+        function obj =  fromVoxelDataStack(obj,StackedData,tag, description,mapSelection)
             
             if nargin<2
                 Stack=VoxelDataStack;
@@ -49,21 +49,28 @@ classdef Heatmap < handle
                     tag = out{1};
                     description = out{2};
              end
-            
+             
+             if nargin<5
+                 mapSelection = {'all'};
+             end
              
 
             %Wuerzburg-workflow
+            if any(intersect(mapSelection,{'all','Signedpmap','Pmap','Tmap'}))
             [tmap,pmap,signedpmap] = Stack.ttest2();
             obj.Tmap = tmap;
             obj.Pmap = pmap;
             obj.Signedpmap = signedpmap;
+            end
 
             %Berlin-workflow
-            if 0
-            [amap,cmap,rmap] = Stack.berlinWorkflow;
-            obj.Amap = amap;
-            obj.Cmap = cmap;
-            obj.Rmap = rmap;
+            if any(intersect(mapSelection,{'all','Amap','Cmap','Rmap'}))
+                if 0 %temporarily disabled
+                    [amap,cmap,rmap] = Stack.berlinWorkflow;
+                    obj.Amap = amap;
+                    obj.Cmap = cmap;
+                    obj.Rmap = rmap;
+                end
             end
             
 
