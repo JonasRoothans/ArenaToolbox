@@ -1,15 +1,28 @@
-function [predictors] = A_Dice(Map, IndividualProfile, Mask)
-
-if nargin <3
-  
-    error(' please add a tmap mask for the signedp map')
-end
-
-
-bite=dice(Map.Voxels(Mask.Voxels~=0),IndividualProfile.Voxels);
-
-
-predictors=bite;
-
-
+classdef A_Dice < SamplingMethod
+    properties %              map
+        RequiredHeatmaps = {'Signedpmap','Tmap'}
+        
+    end
+    
+    methods
+        function [predictors] = A_Dice(Map, IndividualProfile)
+            %---- keep this
+            obj.mapIsOk(Map)
+            
+            %---- customize code below
+            
+            %data
+            map = Map.Signedpmap.Voxels;
+            mask = Map.Tmap.Voxels~=0;
+            roi = IndividualProfile.Voxels;
+            
+            bite=dice(...
+                map(mask),...
+                roi(mask));
+            
+            
+            predictors=bite;
+        end
+    end
+    
 end
