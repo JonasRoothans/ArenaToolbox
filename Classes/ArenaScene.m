@@ -64,7 +64,7 @@ classdef ArenaScene < handle
                         error('cannot find file looks like you have changed the organisation of subfolders in Arena files')
                     end
                   
-                     
+                   rand(1);  
                     randomName = data{1}{ceil(rand(1)*length(data{1}))};
                     
                     userinput = newid({'new scene name: '},'Arena',1,{randomName});

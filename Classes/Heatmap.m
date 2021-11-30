@@ -22,19 +22,29 @@ classdef Heatmap < handle
     methods
         function obj = Heatmap()
             
+            
+        end
+        
+        function imref = R(obj)
+            %find which maps exists
+            [~,~,map] = obj.getMapOverview;
+            if isempty(map)
+                error('Heatmap is empty')
+            end
+            imref = map{1}.R;
         end
         
         
         
-        function obj =  fromVoxelDataStack(obj,StackedData,tag, description,mapSelection)
+        function obj =  fromVoxelDataStack(obj,Stack,tag, description,mapSelection)
             
             if nargin<2
                 Stack=VoxelDataStack;
                 Stack.construct(); % this will prompt the question on how to load
 
             else
-                if ~isa(StackedData,'VoxelDataStack')
-                    error(['Was expecting a VoxelDataStack as input argument instead of ',class(StackedData)])
+                if ~isa(Stack,'VoxelDataStack')
+                    error(['Was expecting a VoxelDataStack as input argument instead of ',class(Stack)])
                 end
                 
             end
@@ -56,7 +66,7 @@ classdef Heatmap < handle
              
 
             %Wuerzburg-workflow
-            if any(intersect(mapSelection,{'all','Signedpmap','Pmap','Tmap'}))
+            if ~isempty(intersect(mapSelection,{'all','Signedpmap','Pmap','Tmap'}))
             [tmap,pmap,signedpmap] = Stack.ttest2();
             obj.Tmap = tmap;
             obj.Pmap = pmap;
@@ -64,7 +74,7 @@ classdef Heatmap < handle
             end
 
             %Berlin-workflow
-            if any(intersect(mapSelection,{'all','Amap','Cmap','Rmap'}))
+            if ~isempty(intersect(mapSelection,{'all','Amap','Cmap','Rmap'}))
                 if 0 %temporarily disabled
                     [amap,cmap,rmap] = Stack.berlinWorkflow;
                     obj.Amap = amap;
@@ -152,18 +162,21 @@ classdef Heatmap < handle
             
         end
         
-        function [maps,mapsWithContents] = getMapOverview(obj)
+        function [maplabels,mapsWithContents,maps] = getMapOverview(obj)
+            maplabels = {};
             maps = {};
             mapsWithContents = {};
             props = properties(obj);
             for p = 1:length(props)
                 if contains(props{p},'map')
-                    maps{end+1} = props{p};
+                    maplabels{end+1} = props{p};
+                  
                     sz = size(obj.(props{p}));
                     if prod(sz)==0
                         sz_string = '__________';
                     else
                         sz_string = '[1 volume]';
+                          maps{end+1} = obj.(props{p});
                     end
                     mapsWithContents{end+1} = [sz_string,': ',props{p}];
                 end

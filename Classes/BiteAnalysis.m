@@ -23,7 +23,12 @@ classdef BiteAnalysis < handle
             end
             if nargin>2
                 obj.SamplingMethod = SamplingMethod;
+                
+                %run at startup when all all input is provided
+                obj = obj.takebite();
             end
+            
+            
         end
         
        

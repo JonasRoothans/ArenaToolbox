@@ -7,6 +7,9 @@ classdef A_Dice < SamplingMethod
     methods
         function [predictors] = A_Dice(Map, IndividualProfile)
             %---- keep this
+            if nargin==0
+                return
+            end
             obj.mapIsOk(Map)
             
             %---- customize code below

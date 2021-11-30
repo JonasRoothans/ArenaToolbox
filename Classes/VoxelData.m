@@ -692,6 +692,10 @@ classdef VoxelData <handle
                 R = target.R;
             elseif isa(target,'imref3d')
                 R = target;
+            elseif isa(target,'VoxelDataStack')
+                R = target.R;
+            elseif isa(target,'Heatmap')
+                R = target.R;
             else
                 error('input requirments: obj, target, T')
             end

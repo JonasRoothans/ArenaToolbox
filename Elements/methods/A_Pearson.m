@@ -7,6 +7,9 @@ classdef A_Pearson < SamplingMethod
     methods
         function [predictors] = A_Pearson(Map, IndividualProfile)
             %---- keep this
+            if nargin==0
+                return
+            end
             obj.mapIsOk(Map)
             
             %---- customize code below

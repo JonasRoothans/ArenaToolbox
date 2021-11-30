@@ -48,7 +48,9 @@ classdef LOORoutine < handle
             
             filenames = obj.LoadedMemory.LayerLabels;
             f = figure;
-            requiredMaps = obj.SamplingMethod.RequiredMaps;
+            
+            samplingMethod = feval(obj.SamplingMethod);
+            requiredMaps = samplingMethod.RequiredHeatmaps;
             
             for iFilename = 1:length(filenames)
                 
@@ -64,13 +66,13 @@ classdef LOORoutine < handle
                 
                 
                 %make LOO map
-                map = obj.LoadedMemory.ConvertToLOOHeatmap(index,requiredMaps);
+                map = obj.LoadedMemory.convertToLOOHeatmap(iFilename,requiredMaps);
                 
                 %get ROI
                 roi = obj.LoadedMemory.getVoxelDataAtPosition(iFilename);
                 
                 %Take a bite
-                ba = biteanalysis (map,roi,obj.SamplingMethod);
+                ba = BiteAnalysis(map,roi,obj.SamplingMethod);
                 
                %save predictors to object
                 obj.CleanPredictors(iFilename,1:length(ba.SimilarityResult)) = ba.SimilarityResult;
@@ -126,13 +128,13 @@ classdef LOORoutine < handle
     methods(Hidden)
         function loadMemory(obj)
             if isempty(obj.LoadedMemory)
-                if not(isempty(obj.Memory))
-                    switch class(obj.Memory)
+                if not(isempty(obj.VDS))
+                    switch class(obj.VDS)
                         case 'char'
-                            Stack = load(obj.Memory,'-mat');
+                            Stack = load(obj.VDS,'-mat');
                             obj.LoadedMemory = Stack.memory;
                         case 'VoxelDataStack'
-                            obj.LoadedMemory = obj.Memory;
+                            obj.LoadedMemory = obj.VDS;
                     end
                     
                 else 

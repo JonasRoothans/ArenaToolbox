@@ -34,6 +34,7 @@ classdef VoxelDataStack < handle
             if isempty(obj.Weights)
                 weights = ones(1,size(obj.Voxels,4));
             end
+            weights = obj.Weights;
             
         end
         
@@ -330,9 +331,9 @@ classdef VoxelDataStack < handle
         
         function obj = InsertVoxelDataAt(obj,vd,index)
             sizeStack = size(obj.Voxels);
-            if index>1
+            if ~any(sizeStack==0)
             if any(not(size(vd.Voxels)==sizeStack(1:3)))
-                vd = vd.warpto.obj;
+                vd = vd.warpto(obj);
             end
             end
             obj.Voxels(:,:,:,index) = vd.Voxels;
@@ -382,7 +383,7 @@ classdef VoxelDataStack < handle
                 
                 
                 heatmap = Heatmap;
-                heatmap.fromVoxelDataStack(obj,LOOstack,[],[], requiredMaps)
+                heatmap.fromVoxelDataStack(obj,'notitle','nodescription', requiredMaps)
                 
             
             
