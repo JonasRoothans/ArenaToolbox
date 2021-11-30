@@ -383,7 +383,7 @@ classdef VoxelDataStack < handle
                 
                 
                 heatmap = Heatmap;
-                heatmap.fromVoxelDataStack(obj,'notitle','nodescription', requiredMaps)
+                heatmap.fromVoxelDataStack(LOOstack,'notitle','nodescription', requiredMaps)
                 
             
             
