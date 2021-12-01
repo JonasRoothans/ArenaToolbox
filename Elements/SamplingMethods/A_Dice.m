@@ -1,6 +1,7 @@
 classdef A_Dice < SamplingMethod
     properties %              map
         RequiredHeatmaps = {'Signedpmap','Tmap'}
+        Description = 'finds the similarity between two binary images'
         
     end
     

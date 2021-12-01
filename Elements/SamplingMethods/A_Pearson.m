@@ -1,6 +1,7 @@
 classdef A_Pearson < SamplingMethod
     properties %              map          mask
         RequiredHeatmaps = {'Signedpmap', 'Tmap'}
+        Description = 'Correlates both images. NaNs will be removed first.'
         
     end
     
@@ -25,7 +26,7 @@ classdef A_Pearson < SamplingMethod
             %sample
             bite=corr(...
                 map(and(mask,nanfilter)),...
-                roi(and(mask,nanfilteR)));
+                roi(and(mask,nanfilter)));
             
             predictors=bite;
         end
