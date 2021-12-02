@@ -1559,7 +1559,9 @@ classdef ArenaScene < handle
                 VTAObject.Tag = [E_actor.Tag,' C',num2str(find(str2num(vtasettings{1}))-1),' ',vtasettings{3},'mA (',vtasettings{4},'us)'];
                 VTAObject.connectTo(obj)
                 VTAObject.ActorElectrode = E_actor;
-                VTAObject.see(obj)
+                actor = VTAObject.see(obj);
+                VTAObject.ActorVolume = actor;
+                
                    
             
             
@@ -3574,7 +3576,12 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
         
         function selectlayer(obj,index)
             if nargin==1
+                try
                 index = obj.handles.panelright.Value(1);
+                catch
+                   index = 1;
+                end
+                   
             end
             
             if ischar(index)
