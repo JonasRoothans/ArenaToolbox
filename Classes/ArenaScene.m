@@ -1392,8 +1392,9 @@ classdef ArenaScene < handle
                     scene.handles.menu.vtas.list(n).main = uimenu(scene.handles.menu.vtas.main,'Text',scene.VTAstorage(i).Tag);%,'callback',{@menu_vta,scene.VTAstorage(i)});
                     scene.handles.menu.vtas.list(n).edit = uimenu(scene.handles.menu.vtas.list(n).main,'Text','prediction (unilateral)','callback',{@menu_vta_prediction,scene.VTAstorage(i)});
                     scene.handles.menu.vtas.list(n).review = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Monopolar review (unilateral)','callback',{@menu_vta_review,scene.VTAstorage(i)});
+                    scene.handles.menu.vtas.list(n).rename = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Rename','callback',{@menu_vta_rename,scene.VTAstorage(i)});
                     scene.handles.menu.vtas.list(n).show = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Show in Scene','callback',{@menu_vta_show,scene.VTAstorage(i)});
-                    scene.handles.menu.vtas.list(n).delete = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Delete VTA','callback',{@menu_vta_delete,scene.VTAstorage(i)});
+                    scene.handles.menu.vtas.list(n).delete = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Delete from this list','callback',{@menu_vta_delete,scene.VTAstorage(i)});
                 end
                 scene.handles.menu.vtas.constructtherapy.Enable = 'off';
                 if i>0
@@ -1463,6 +1464,12 @@ classdef ArenaScene < handle
             function menu_vta_show(hObject,eventdata,vta)
                 vta.see(obj);
             end
+            
+            function menu_vta_rename(hObject,eventdata,vta)
+                customname = newid({'new host name: '},'Arena',1,{vta.Tag});
+                vta.Tag = customname{1};
+            end
+            
             
             function menu_vta_delete(hObject,eventdata,vta)
                 indx = find(obj.VTAstorage==vta);
