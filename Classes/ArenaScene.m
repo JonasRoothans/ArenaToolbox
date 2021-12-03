@@ -202,6 +202,9 @@ classdef ArenaScene < handle
             obj.handles.menu.file.savescene.main = uimenu(obj.handles.menu.file.main,'Text','Save scene','callback',{@menu_savescene});
             obj.handles.menu.file.import.main = uimenu(obj.handles.menu.file.main,'Text','Import actor [cmd+i]','callback',{@menu_importAnything},'Enable','on','Separator','on');
             obj.handles.menu.file.import.fromworkspace = uimenu(obj.handles.menu.file.main,'Text','Import actor from workspace [cmd+shift+i]','callback',{@menu_importfromworkspace});            
+            obj.handles.menu.file.new.main = uimenu(obj.handles.menu.file.main,'Text','New actor');
+            obj.handles.menu.file.new.electrode = uimenu(obj.handles.menu.file.new.main,'Text','Electrode','callback',{@menu_placeElectrode});
+            obj.handles.menu.file.new.vta= uimenu(obj.handles.menu.file.new.main,'Text','Åström VTA','callback',{@menu_generateVTA});
             obj.handles.menu.file.export.main = uimenu(obj.handles.menu.file.main,'Text','Export');
             obj.handles.menu.file.export.wiggle = uimenu(obj.handles.menu.file.export.main,'Text','wiggle (*.mp4)','callback',{@menu_wiggle});
             obj.handles.menu.file.export.blender = uimenu(obj.handles.menu.file.export.main,'Text','Blender (*.obj)','callback',{@menu_exporttoblender});
@@ -212,10 +215,10 @@ classdef ArenaScene < handle
             obj.handles.menu.stusessions.main = uimenu(obj.handles.figure,'Text','Suretune sessions','Visible','off','Separator','on');
             obj.handles.menu.stusessions.openwindows = {};
             
-            obj.handles.menu.vtas.main = uimenu(obj.handles.figure,'Text','VTAs','Visible','on','Separator','on','callback',{@menu_updateVTAlist});
-            obj.handles.menu.vtas.assignVTA = uimenu(obj.handles.menu.vtas.main,'Text','+assign a VTA based on existing layers','callback',{@menu_constructVTA});
-            obj.handles.menu.vtas.placeElectrode = uimenu(obj.handles.menu.vtas.main,'Text','+place electrode','callback',{@menu_placeElectrode});
-            obj.handles.menu.vtas.constructtherapy = uimenu(obj.handles.menu.vtas.main,'Text','+construct (bilateral) therapy','callback',{@menu_constructTherapy});
+            obj.handles.menu.vtas.main = uimenu(obj.handles.figure,'Text','Prediction','Visible','on','Separator','on','callback',{@menu_updateVTAlist});
+            obj.handles.menu.vtas.assignVTA = uimenu(obj.handles.menu.vtas.main,'Text','assign host for predictions','callback',{@menu_constructVTA});
+            %obj.handles.menu.vtas.placeElectrode = uimenu(obj.handles.menu.vtas.main,'Text','+place electrode','callback',{@menu_placeElectrode});
+            obj.handles.menu.vtas.constructtherapy = uimenu(obj.handles.menu.vtas.main,'Text','construct (bilateral) therapy','callback',{@menu_constructTherapy});
             obj.handles.menu.vtas.list = gobjects;
             obj.handles.menu.vtas.therapylist = gobjects;
             
@@ -344,7 +347,6 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Mesh.seperate = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: separate clusters','callback',{@menu_seperateClusters},'Enable','off');
             obj.handles.menu.dynamic.Mesh.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: source data','callback',{@menu_smoothVoxelData},'Enable','off');
             obj.handles.menu.dynamic.Mesh.takeBite = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: take a sample from slice or mesh','callback',{@menu_takeSample},'Enable','off');
-            obj.handles.menu.dynamic.Electrode.makeVTA = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Electrode: create Åström VTA','callback',{@menu_generateVTA},'Enable','off');
             obj.handles.menu.dynamic.Slicei.SpatialCorrelation = obj.handles.menu.dynamic.Mesh.SpatialCorrelation;
             
             obj.handles.menu.dynamic.Slicei.multiply = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: multiply images','callback',{@menu_multiplyslices},'Enable','off');
@@ -1393,8 +1395,10 @@ classdef ArenaScene < handle
                     scene.handles.menu.vtas.list(n).show = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Show in Scene','callback',{@menu_vta_show,scene.VTAstorage(i)});
                     scene.handles.menu.vtas.list(n).delete = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Delete VTA','callback',{@menu_vta_delete,scene.VTAstorage(i)});
                 end
+                scene.handles.menu.vtas.constructtherapy.Enable = 'off';
                 if i>0
                     scene.handles.menu.vtas.list(1).main.Separator = 'on';
+                    scene.handles.menu.vtas.constructtherapy.Enable = 'on';
                 end
                 
                 %rebuild all Therapy items
@@ -1580,7 +1584,7 @@ classdef ArenaScene < handle
                 end
                 VTAobjects{end+1} = '..Load';
                     
-                [indx] = listdlg('ListString',VTAobjects,'PromptString','Select the VTAs','ListSize',[300 160]);
+                [indx] = listdlg('ListString',VTAobjects,'PromptString','Select the VTA and/or Electrode that belong together','ListSize',[300 160]);
                 
                 
                 %load new actors

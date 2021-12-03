@@ -284,6 +284,16 @@ classdef SuretunePortal
                     if not(isempty(obj.scene))
                         actor = e.see(obj.scene);
                         actor.changeName(this.label)
+                        VTAObject = VTA();
+                        VTAObject.Electrode = e;
+                        VTAObject.ActorElectrode = actor;
+                        VTAObject.Source = e.Source;
+                        if contains(reglinkdescription,'MNI')
+                                VTAObject.Space = Space.MNI2009b;
+                        end
+                        VTAObject.Tag = [this.session.patient.name,' ',this.label];
+                        VTAObject.connectTo(obj.scene)
+                        
                     end
                 else
                     for iStimplan = 1:numel(this.stimPlan)
@@ -324,6 +334,9 @@ classdef SuretunePortal
                         
                         actor_vta.changeSetting('colorFace',[1 0.5 0])
                     end
+                   
+                        
+                    
                 end
             end
             
