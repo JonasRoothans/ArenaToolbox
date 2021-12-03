@@ -15,7 +15,7 @@ classdef A_15bins < SamplingMethod
             if nargin==0
                 return
             end
-            obj.mapIsOk(Map)
+            predictors.mapIsOk(Map);  %this is a hack. Do not try this at home.
             
             %---- customize code below
             
