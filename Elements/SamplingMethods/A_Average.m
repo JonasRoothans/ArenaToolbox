@@ -27,7 +27,7 @@ classdef A_Average < SamplingMethod
             
             %
             bite= map(roi);
-            obj.Output = mean(bite);
+            obj.Output = nanmean(bite);
 
             
             

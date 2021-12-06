@@ -42,6 +42,10 @@ classdef BiteAnalysis < handle
             obj.IndividualProfile.warpto(obj.Map);
             method = feval(obj.SamplingMethod, obj.Map, obj.IndividualProfile);
             obj.Predictors= method.Output;
+            
+            if all(isnan(obj.Predictors))
+                warning('All predictors are NaN')
+            end
 
             
            

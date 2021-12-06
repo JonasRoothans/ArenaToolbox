@@ -27,7 +27,29 @@ classdef PredictionModel < handle
                 obj.SamplingMethod = customMethod;
             end
             
-            %Run a regression
+            %get required info from the SamplingMethod
+            samplingMethod = feval(obj.SamplingMethod);
+            requiredMaps = samplingMethod.RequiredHeatmaps;
+            
+            %Make a Heatmap including all data.
+            disp('Making a heatmap based on all data')
+            heatmap=Heatmap(); %#ok<CPROPLC>
+            try
+                [~,foldername] = fileparts(fileparts(VDS.RecipePath));
+                propertyname = VDS.ScoreLabel;
+                nameSuggestion = [foldername,' ',propertyname];
+                description = [];
+            catch
+                disp('name suggestion failed..')
+                nameSuggestionn = [];
+                description = [];
+            end
+                
+            heatmap.fromVoxelDataStack(VDS,nameSuggestion,description,requiredMaps);
+            obj.Heatmap = heatmap;
+           
+            
+            %Run a Leave one out training routine
             TrainingModule = LOORoutine();
             TrainingModule.SamplingMethod = obj.SamplingMethod; %pass on
             TrainingModule.VDS = VDS;
@@ -35,6 +57,7 @@ classdef PredictionModel < handle
             
             obj.TrainingLinearModel = TrainingModule.LOOmdl;
             obj.B = TrainingModule.LOOmdl.Coefficients.Estimate;
+            obj.Tag = obj.Heatmap.Tag;
             
             obj.printTrainingDetails
             
@@ -56,10 +79,11 @@ classdef PredictionModel < handle
             title({'LOO training model',['R^2:', num2str(obj.TrainingLinearModel.Rsquared.Ordinary)]})
         end
         
-        function [prediction,predictors] = predictVoxelData(obj,VD, SimilarityMethod)
+        function [prediction,predictors] = predictVoxelData(obj,VD)
            
-            ba = BiteAnalysis(obj.Heatmap.Signedpmap,VD,SimilarityMethod, obj.Heatmap.Tmap); 
-            predictors = ba.SimilarityResult;
+           
+            ba = BiteAnalysis(obj.Heatmap,VD,obj.SamplingMethod);
+            predictors = ba.Predictors;
             
             %apply B
             try
@@ -101,7 +125,7 @@ classdef PredictionModel < handle
         function obj = load(obj)
             global arena
             root = arena.getrootdir;
-            modelFolder = fullfile(root,'Elements','PredictionModels');
+            modelFolder = fullfile(root,'UserData','PredictionModels');
             if ~exist(modelFolder,'dir')
                 error('../Elements/PredictionModels does not exist!')
             end
@@ -114,6 +138,7 @@ classdef PredictionModel < handle
             obj.SamplingMethod = loaded.mdl.SamplingMethod;
             obj.TrainingLinearModel = loaded.mdl.TrainingLinearModel;
             obj.B = loaded.mdl.B;
+            obj.Tag = loaded.mdl.Tag;
         end
     end
 end
