@@ -5,7 +5,7 @@ classdef PredictionModel < handle
     properties
         Heatmap
         SamplingMethod = @A_15bins;
-        %Tag
+        Tag
         %Description
     end
     
@@ -22,18 +22,10 @@ classdef PredictionModel < handle
             bool = ~isempty(obj.B);
         end
         
-        function obj = trainOnVoxelDataStack(obj,VDS,SamplingMethod)
-            %user rinput
-            UserInput = inputdlg({'HeatmapName','Description'},...
-                          'Heatmap maker', [1 50; 3 50],...
-                          {VDS.ScoreLabel,''}); 
-            FILENAME = UserInput{1};
-            DESCRIPTION = UserInput{2};
-
-            %XXX REMOVED: LOO heatmaps will be made on the fly.    
-            %make heatmaps
-            %LOOmaps = VDS.convertToLOOHeatmaps;
-            %obj.Heatmap = VDS.convertToHeatmap(FILENAME,DESCRIPTION);
+        function obj = trainOnVoxelDataStack(obj,VDS,customMethod)
+            if nargin==3
+                obj.SamplingMethod = customMethod;
+            end
             
             %Run a regression
             TrainingModule = LOORoutine();
@@ -94,14 +86,14 @@ classdef PredictionModel < handle
         function save(obj)
             global arena
             root = arena.getrootdir;
-            modelFolder = fullfile(root,'Elements','PredictionModels');
+            modelFolder = fullfile(root,'UserData','PredictionModels');
             if ~exist(modelFolder,'dir')
                 mkdir(modelFolder)
             end
             mdl = obj;
             formatOut = 'yyyy_mm_dd';
-            disp(['saving as: ',datestr(now,formatOut),'_',obj.Heatmap.Tag])
-            save(fullfile(modelFolder,[datestr(now,formatOut),'_',obj.Heatmap.Tag]),'mdl','-v7.3')
+            disp(['saving as: ',datestr(now,formatOut),'_',obj.Heatmap.Tag,'_',func2str(obj.SamplingMethod),' in ../ArenaToolbox/UserData/PredictionModels'])
+            save(fullfile(modelFolder,[datestr(now,formatOut),'_',obj.Heatmap.Tag,'_',func2str(obj.SamplingMethod)]),'mdl','-v7.3')
             disp('Saving complete')
         end
         

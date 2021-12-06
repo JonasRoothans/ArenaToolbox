@@ -1,14 +1,10 @@
 
 classdef SamplingMethod
-    %BITEMETHOD Summary of this class goes here
-    %   Detailed explanation goes here
-    
     properties
     end
     
     methods
-        function obj = BiteMethod(inputArg1,inputArg2)
-            
+        function obj = SamplingMethod(obj)
         end
         
         function ok = mapIsOk(obj,map)

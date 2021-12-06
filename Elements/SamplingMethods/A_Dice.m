@@ -2,16 +2,17 @@ classdef A_Dice < SamplingMethod
     properties %              map
         RequiredHeatmaps = {'Signedpmap','Tmap'}
         Description = 'finds the similarity between two binary images'
+        Output = [];
         
     end
     
     methods
-        function [predictors] = A_Dice(Map, IndividualProfile)
+        function [obj] = A_Dice(Map, IndividualProfile)
             %---- keep this
             if nargin==0
                 return
             end
-            predictors.mapIsOk(Map);  %this is a hack. Do not try this at home.
+            obj.mapIsOk(Map);  
             
             %---- customize code below
             
@@ -25,7 +26,7 @@ classdef A_Dice < SamplingMethod
                 roi(mask));
             
             
-            predictors=bite;
+            obj.Output=bite;
         end
     end
     

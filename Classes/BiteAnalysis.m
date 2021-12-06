@@ -9,7 +9,7 @@ classdef BiteAnalysis < handle
         SamplingMethod= @A_15bins;
     end
       properties(Hidden)
-          SimilarityResult
+          Predictors
       end
     
     methods
@@ -40,7 +40,8 @@ classdef BiteAnalysis < handle
                   
             
             obj.IndividualProfile.warpto(obj.Map);
-            obj.SimilarityResult= feval(obj.SamplingMethod, obj.Map, obj.IndividualProfile);
+            method = feval(obj.SamplingMethod, obj.Map, obj.IndividualProfile);
+            obj.Predictors= method.Output;
 
             
            

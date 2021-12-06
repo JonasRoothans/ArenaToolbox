@@ -6,16 +6,17 @@ classdef A_15bins < SamplingMethod
             'Then a binary ROI samples the heatmap',...
             'A 15 bin histogram is calculated for this sample',...
             'the output is the zscored histogram'};
-        
+        Output = []
     end
     
+    
     methods
-        function [predictors] = A_15bins(Map, IndividualProfile)
+        function [obj] = A_15bins(Map, IndividualProfile)
             %---- keep this
             if nargin==0
                 return
             end
-            predictors.mapIsOk(Map);  %this is a hack. Do not try this at home.
+            obj.mapIsOk(Map); 
             
             %---- customize code below
             
@@ -31,10 +32,11 @@ classdef A_15bins < SamplingMethod
             mask = Map.Tmap.Voxels~=0;
             
             %
-            bite=Map(and(roi,mask));
+            bite= map(and(roi,mask));
             f = figure;
             h = histogram(bite,edges);
             predictors = [1,zscore(h.Values)];
+            obj.Output = predictors;
             close(f);
             
             

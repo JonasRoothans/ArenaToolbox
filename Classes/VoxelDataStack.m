@@ -48,7 +48,7 @@ classdef VoxelDataStack < handle
             end
             
             obj.R = reference.R;
-            obj.Voxels = zeros([size(reference.Voxels),n_files],'int8');
+            obj.Voxels = zeros([reference.R.ImageSize,n_files]);
             obj.Weights = ones(1,n_files);
         end
         
@@ -214,6 +214,15 @@ classdef VoxelDataStack < handle
             end
         end
         
+        function templateSpace(obj,templatespace)
+            switch class(templatespace)
+                case 'imref'
+                    obj.R = templatespace;
+                otherwise
+                    obj.R = templatespace.R;
+            end
+        end
+        
         function obj = loadStudyDataFromRecipe(obj,recipe,templatefile)
             if nargin==1
                 waitfor(msgbox('Find the recipe'))
@@ -222,13 +231,20 @@ classdef VoxelDataStack < handle
                     return
                 end
                 recipe = fullfile(foldername,filename);
-                waitfor(msgbox('Find a nii that serves as template space'))
-                [filename,foldername] = uigetfile('*.nii','Get template file');
-                if filename==0
-                    return
-                end
-                templatefile = fullfile(foldername,filename);
                 
+                if isempty(obj.R)
+                    waitfor(msgbox('Find a nii that serves as template space'))
+                    [filename,foldername] = uigetfile('*.nii','Get template file');
+                    if filename==0
+                        return
+                    end
+                    templatefile = fullfile(foldername,filename);
+                else
+                    ref = VoxelData;
+                    ref.R = obj.R;
+                    
+                end
+
             end
             
             %load excel sheet with scores. Names should match the folders.
@@ -243,7 +259,9 @@ classdef VoxelDataStack < handle
             scores = obj.Recipe.(scoreTag);
             
             %load template. This will define the voxelsize etc.
-            ref = VoxelData(templatefile);
+            if isempty(obj.R)
+                ref = VoxelData(templatefile);
+            end
             
             %set up Stack
             obj.newEmpty(ref,length(obj.Recipe.fullpath));
@@ -383,7 +401,7 @@ classdef VoxelDataStack < handle
                 
                 
                 heatmap = Heatmap;
-                heatmap.fromVoxelDataStack(LOOstack,'notitle','nodescription', requiredMaps)
+                heatmap.fromVoxelDataStack(LOOstack,'notitle','nodescription', requiredMaps);
                 
             
             

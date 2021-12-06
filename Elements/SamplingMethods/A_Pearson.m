@@ -2,16 +2,16 @@ classdef A_Pearson < SamplingMethod
     properties %              map          mask
         RequiredHeatmaps = {'Signedpmap', 'Tmap'}
         Description = 'Correlates both images. NaNs will be removed first.'
-        
+        Output = [];
     end
     
     methods
-        function [predictors] = A_Pearson(Map, IndividualProfile)
+        function [obj] = A_Pearson(Map, IndividualProfile)
             %---- keep this
             if nargin==0
                 return
             end
-            predictors.mapIsOk(Map);  %this is a hack. Do not try this at home.
+            obj.mapIsOk(Map);  
             
             %---- customize code below
             
@@ -28,7 +28,7 @@ classdef A_Pearson < SamplingMethod
                 map(and(mask,nanfilter)),...
                 roi(and(mask,nanfilter)));
             
-            predictors=bite;
+            obj.Output=bite;
         end
         
     end

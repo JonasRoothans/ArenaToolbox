@@ -43,15 +43,27 @@ classdef LOORoutine < handle
             save(fullfile(path,['training_',filename,'.mat']),'mdl');
         end
         
-        function LOOmdl = LOOregression(obj, SimilarityMethod)
+        function LOOmdl = LOOregression(obj)
             obj.loadMemory() % this is slow, so will only do it once.
             
-            filenames = obj.LoadedMemory.LayerLabels;
-            f = figure;
             
+            %get required info from samplingMethod
             samplingMethod = feval(obj.SamplingMethod);
             requiredMaps = samplingMethod.RequiredHeatmaps;
             
+            %print info
+            home;
+            disp('---------------------------------')
+            disp(['Leave one out regression method: ', func2str(obj.SamplingMethod)])
+            disp(['Leave one out heatmap iterations: ',num2str(length(obj.LoadedMemory.LayerLabels))])
+            for line = 1:length(samplingMethod.Description)
+                disp(['   ',samplingMethod.Description{line}])
+            end
+            disp(' ')
+            disp('Training begins. This will take a while. Time for coffee.')
+            
+            
+            filenames = obj.LoadedMemory.LayerLabels;
             for iFilename = 1:length(filenames)
                 
                 %indicate progress
@@ -61,7 +73,7 @@ classdef LOORoutine < handle
                 catch
                     file=thisFilename;
                 end
-                disp(file)
+                disp([num2str(iFilename),'. ',file{1}])
                 
                 
                 
@@ -75,11 +87,11 @@ classdef LOORoutine < handle
                 ba = BiteAnalysis(map,roi,obj.SamplingMethod);
                 
                %save predictors to object
-                obj.CleanPredictors(iFilename,1:length(ba.SimilarityResult)) = ba.SimilarityResult;
+                obj.CleanPredictors(iFilename,1:length(ba.Predictors)) = ba.Predictors;
        
                 
             end
-            close(f)
+ 
             
             obj.LOOmdl = fitlm(obj.CleanPredictors,obj.LoadedMemory.Weights); %Here it calculates the b (by fitting a linear model = multivariatelinearregression)
             LOOmdl = obj.LOOmdl;
@@ -127,6 +139,7 @@ classdef LOORoutine < handle
     
     methods(Hidden)
         function loadMemory(obj)
+            disp('...Loading data into LOO routine.')
             if isempty(obj.LoadedMemory)
                 if not(isempty(obj.VDS))
                     switch class(obj.VDS)
