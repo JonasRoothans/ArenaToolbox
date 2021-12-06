@@ -1,14 +1,13 @@
 classdef LOORoutine < handle
     
     properties
-        Heatmap
-        Memory
+        SamplingMethod
+        VDS %can be VoxelDataStack OR path to this file
         LOOmdl
         LOOCVmdl
     end
     
     properties (Hidden)
-        SamplingMethod = @A_15bins
         MemoryFile
         HeatmapFolder
         CleanPredictors
@@ -47,38 +46,58 @@ classdef LOORoutine < handle
         function LOOmdl = LOOregression(obj)
             obj.loadMemory() % this is slow, so will only do it once.
             
+            
+            %get required info from samplingMethod
+            samplingMethod = feval(obj.SamplingMethod);
+            requiredMaps = samplingMethod.RequiredHeatmaps;
+            
+            %print info
+            home;
+            disp('---------------------------------')
+            disp(['Leave one out regression method: ', func2str(obj.SamplingMethod)])
+            disp(['Leave one out heatmap iterations: ',num2str(length(obj.LoadedMemory.LayerLabels))])
+            for line = 1:length(samplingMethod.Description)
+                disp(['   ',samplingMethod.Description{line}])
+            end
+            disp(' ')
+            disp('Training begins. This will take a while. Time for coffee.')
+            
+            
             filenames = obj.LoadedMemory.LayerLabels;
-            f = figure;
             for iFilename = 1:length(filenames)
                 
+                %indicate progress
                 thisFilename = filenames{iFilename};
-                [folder,file,extension] = fileparts(thisFilename);
-                disp(file)
+                try
+                [~,file,~] = fileparts(thisFilename);
+                catch
+                    file=thisFilename;
+                end
+                disp([num2str(iFilename),'. ',file{1}])
                 
                 
-                %load LOO set.
-                LOO_heatmap = obj.loadHeatmap(file,iFilename);
                 
-                LOO_signedP = LOO_heatmap.Signedpmap;
-                LOO_tmap = LOO_heatmap.Tmap;
-                LOO_VTA = obj.LoadedMemory.getVoxelDataAtPosition(iFilename);
+                %make LOO map
+                map = obj.LoadedMemory.convertToLOOHeatmap(iFilename,requiredMaps);
                 
-                %take a bite
-                sample = LOO_signedP.Voxels(and(LOO_VTA.Voxels>0.5,LOO_tmap~=0));
+                %get ROI
+                roi = obj.LoadedMemory.getVoxelDataAtPosition(iFilename);
                 
-                %analyse bite
+                %Take a bite
+                ba = BiteAnalysis(map,roi,obj.SamplingMethod);
                 
-                predictors = feval(obj.SamplingMethod,sample);
-                
-                obj.CleanPredictors(iFilename,1:length(predictors)) = predictors;
+               %save predictors to object
+                obj.CleanPredictors(iFilename,1:length(ba.Predictors)) = ba.Predictors;
        
                 
             end
-            close(f)
+ 
             
             obj.LOOmdl = fitlm(obj.CleanPredictors,obj.LoadedMemory.Weights); %Here it calculates the b (by fitting a linear model = multivariatelinearregression)
             LOOmdl = obj.LOOmdl;
         end
+        
+        
         
         function LOOCV(obj)
             if isempty(obj.CleanPredictors)
@@ -120,14 +139,15 @@ classdef LOORoutine < handle
     
     methods(Hidden)
         function loadMemory(obj)
+            disp('...Loading data into LOO routine.')
             if isempty(obj.LoadedMemory)
-                if not(isempty(obj.Memory))
-                    switch class(obj.Memory)
+                if not(isempty(obj.VDS))
+                    switch class(obj.VDS)
                         case 'char'
-                            Stack = load(obj.MemoryFile,'-mat');
+                            Stack = load(obj.VDS,'-mat');
                             obj.LoadedMemory = Stack.memory;
                         case 'VoxelDataStack'
-                            obj.LoadedMemory = obj.Memory;
+                            obj.LoadedMemory = obj.VDS;
                     end
                     
                 else 

@@ -4,8 +4,9 @@ classdef PredictionModel < handle
     
     properties
         Heatmap
-        MappingMethod = 'signedpmap'
         SamplingMethod = @A_15bins;
+        Tag
+        %Description
     end
     
     properties (Hidden)
@@ -17,26 +18,46 @@ classdef PredictionModel < handle
         function obj = PredictionModel(inputArg1,inputArg2)
         end
         
-        function obj = trainOnVoxelDataStack(obj,VDS)
-            %user rinput
-            UserInput = inputdlg({'HeatmapName','Description'},...
-                          'Heatmap maker', [1 50; 3 50],...
-                          {VDS.ScoreLabel,''}); 
-            FILENAME = UserInput{1};
-            DESCRIPTION = UserInput{2};
-
-            %make heatmaps
-            LOOmaps = VDS.convertToLOOHeatmaps;
-            obj.Heatmap = VDS.convertToHeatmap(FILENAME,DESCRIPTION);
+        function bool = isTrained(obj)
+            bool = ~isempty(obj.B);
+        end
+        
+        function obj = trainOnVoxelDataStack(obj,VDS,customMethod)
+            if nargin==3
+                obj.SamplingMethod = customMethod;
+            end
             
-            %Run a regression
+            %get required info from the SamplingMethod
+            samplingMethod = feval(obj.SamplingMethod);
+            requiredMaps = samplingMethod.RequiredHeatmaps;
+            
+            %Make a Heatmap including all data.
+            disp('Making a heatmap based on all data')
+            heatmap=Heatmap(); %#ok<CPROPLC>
+            try
+                [~,foldername] = fileparts(fileparts(VDS.RecipePath));
+                propertyname = VDS.ScoreLabel;
+                nameSuggestion = [foldername,' ',propertyname];
+                description = [];
+            catch
+                disp('name suggestion failed..')
+                nameSuggestionn = [];
+                description = [];
+            end
+                
+            heatmap.fromVoxelDataStack(VDS,nameSuggestion,description,requiredMaps);
+            obj.Heatmap = heatmap;
+           
+            
+            %Run a Leave one out training routine
             TrainingModule = LOORoutine();
-            TrainingModule.SamplingMethod = obj.SamplingMethod;
-            TrainingModule.Heatmap = LOOmaps;
-            TrainingModule.Memory = VDS;
+            TrainingModule.SamplingMethod = obj.SamplingMethod; %pass on
+            TrainingModule.VDS = VDS;
             TrainingModule.LOOregression();
+            
             obj.TrainingLinearModel = TrainingModule.LOOmdl;
             obj.B = TrainingModule.LOOmdl.Coefficients.Estimate;
+            obj.Tag = obj.Heatmap.Tag;
             
             obj.printTrainingDetails
             
@@ -59,17 +80,17 @@ classdef PredictionModel < handle
         end
         
         function [prediction,predictors] = predictVoxelData(obj,VD)
-            %warp to map space
-            VD2 = VD.warpto(obj.Heatmap.Signedpmap);
-            
-            %take sample
-            sample = obj.Heatmap.Signedpmap.Voxels(and(VD2.Voxels>0.5,obj.Heatmap.Tmap.Voxels~=0));
-                
-            %make predictors
-            predictors = feval(obj.SamplingMethod,sample);
+           
+           
+            ba = BiteAnalysis(obj.Heatmap,VD,obj.SamplingMethod);
+            predictors = ba.Predictors;
             
             %apply B
+            try
             prediction = [1,predictors]*obj.B;
+            catch
+                error('please train model before applying prediction');
+            end
         end
         
         function mdl = validateOnVoxelDataStack(obj,VDS)
@@ -89,14 +110,14 @@ classdef PredictionModel < handle
         function save(obj)
             global arena
             root = arena.getrootdir;
-            modelFolder = fullfile(root,'Elements','PredictionModels');
+            modelFolder = fullfile(root,'UserData','PredictionModels');
             if ~exist(modelFolder,'dir')
                 mkdir(modelFolder)
             end
             mdl = obj;
             formatOut = 'yyyy_mm_dd';
-            disp(['saving as: ',datestr(now,formatOut),'_',obj.Heatmap.Tag])
-            save(fullfile(modelFolder,[datestr(now,formatOut),'_',obj.Heatmap.Tag]),'mdl')
+            disp(['saving as: ',datestr(now,formatOut),'_',obj.Heatmap.Tag,'_',func2str(obj.SamplingMethod),' in ../ArenaToolbox/UserData/PredictionModels'])
+            save(fullfile(modelFolder,[datestr(now,formatOut),'_',obj.Heatmap.Tag,'_',func2str(obj.SamplingMethod)]),'mdl','-v7.3')
             disp('Saving complete')
         end
         
@@ -104,7 +125,7 @@ classdef PredictionModel < handle
         function obj = load(obj)
             global arena
             root = arena.getrootdir;
-            modelFolder = fullfile(root,'Elements','PredictionModels');
+            modelFolder = fullfile(root,'UserData','PredictionModels');
             if ~exist(modelFolder,'dir')
                 error('../Elements/PredictionModels does not exist!')
             end
@@ -114,10 +135,10 @@ classdef PredictionModel < handle
           
             
             obj.Heatmap = loaded.mdl.Heatmap;
-            obj.MappingMethod = loaded.mdl.MappingMethod;
             obj.SamplingMethod = loaded.mdl.SamplingMethod;
             obj.TrainingLinearModel = loaded.mdl.TrainingLinearModel;
             obj.B = loaded.mdl.B;
+            obj.Tag = loaded.mdl.Tag;
         end
     end
 end

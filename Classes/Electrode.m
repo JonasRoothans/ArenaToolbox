@@ -116,6 +116,8 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
                     distance = 2;
                 case 'Medtronic3387'
                     distance = 3;
+                case 'BostonScientific'
+                    distance = 2;
                 otherwise
                     keyboard
             end
