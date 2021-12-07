@@ -191,7 +191,7 @@ classdef VoxelDataStack < handle
                 end
                 
                 %warp to tempalte space;
-                out = e.VTA.Volume.warpto(ref);
+                out = e.VTA.Volume.warpto(obj.R);
                 obj.InsertVoxelDataAt(out,i);
                 obj.Weights(i) = obj.Recipe.(obj.ScoreLabel)(i);
                 obj.LayerLabels{i} = e.VTA.Tag;

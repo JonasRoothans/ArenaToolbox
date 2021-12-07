@@ -73,7 +73,10 @@ classdef LOORoutine < handle
                 catch
                     file=thisFilename;
                 end
-                disp([num2str(iFilename),'. ',file{1}])
+                if iscell(file)
+                    file = file{1};
+                end
+                disp([num2str(iFilename),'. ',file])
                 
                 
                 
