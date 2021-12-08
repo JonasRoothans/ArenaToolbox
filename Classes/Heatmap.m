@@ -9,6 +9,7 @@ classdef Heatmap < handle
         Cmap
         Rmap
         Fzmap
+        Nmap
         %Raw  - remove?
         Description
         
@@ -86,6 +87,9 @@ classdef Heatmap < handle
                  mapSelection = {'all'};
              end
              
+             
+             %n-map will always be computed.
+             obj.Nmap = Stack.count();
 
             %Wuerzburg-workflow
             if ~isempty(intersect(mapSelection,{'all','Signedpmap','Pmap','Tmap'}))
@@ -212,6 +216,25 @@ classdef Heatmap < handle
                 end
             end
             index = logical(index);
+        end
+        
+        function saveAllNiiToFolder(obj,outputdir)
+            if nargin<2
+                outputdir=obj.outputdir;
+            end
+            
+            [outfolder,~]=fileparts(outputdir);
+            
+            outputfolder = fullfile(outfolder,['Heatmap__',obj.Tag]);
+            mkdir(outputfolder)
+            [maplabels,mapsWithContents,maps,index] = getMapOverview(obj);
+            indx = find(index);
+            for i = 1:numel(indx)
+                iIndex = indx(i);
+                maps{i}.savenii(fullfile(outputfolder,[maplabels{iIndex},'.nii']));
+            end
+            disp(['Saved to ',outputfolder])
+            
         end
         
         %save function, to be called by heatmap_cook.. saves without

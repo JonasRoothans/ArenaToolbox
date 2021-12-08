@@ -598,6 +598,15 @@ classdef VoxelDataStack < handle
             Done;
         end
         
+        function nmap = count(obj)
+            v = obj.Voxels;
+            v = double(v>0.5);
+            nmap = VoxelData(sum(v,4),obj.R);
+            
+          
+        end
+            
+        
         function [tmap,pmap,signedpmap] = ttest2(obj)
             
             if all(obj.Weights==0)
@@ -610,7 +619,7 @@ classdef VoxelDataStack < handle
             
             for i =  1:length(serialized)
                 
-                if any([all(serialized(i,:)),all(not(serialized(i,:)))])
+                if any([all(serialized(i,:)>0.5),all(not(serialized(i,:)>0.5))])
                     p = 1;
                     t = 0;
                 else
@@ -619,6 +628,11 @@ classdef VoxelDataStack < handle
                 end
                 t_voxels(i) = t;
                 p_voxels(i) = p;
+                
+                if isnan(t)
+                    keyboard
+                end
+                
             end
             
             stacksize = size(obj.Voxels);
