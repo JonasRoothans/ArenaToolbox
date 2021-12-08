@@ -3244,7 +3244,8 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                                     end
                                 end
                                 
-                                                                 
+                            case 'b'
+                                 set(scene.handles.figure,'Color',1-scene.handles.figure.Color)                                 
                             case 'o'
                                 menu_camTargetOrigin(src,eventdata)
                                 
