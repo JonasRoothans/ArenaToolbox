@@ -295,12 +295,13 @@ classdef VoxelDataStack < handle
                         
                         %Add subfolders together
                         if iFile==1
-                            together = vd.warpto(ref).makeBinary(0.5);
+                            together = vd.warpto(obj.R).makeBinary(0.5);
                         else
-                            together = together+vd.warpto(ref).makeBinary(0.5);
+                            together = together+vd.warpto(obj.R).makeBinary(0.5);
                         end
                         
                     end
+                    together = together.makeBinary(0.5);
                     obj.InsertVoxelDataAt(together,i);
                     id = obj.Recipe.folderID(i);
                 else

@@ -15,6 +15,7 @@ scene.addon_addmenuitem('HeatmapMaker','Predict a cohort',str2func('@HeatmapMake
 other = scene.addon_addmenuitem('HeatmapMaker','Other');
 scene.addon_addmenuitem('HeatmapMaker','Repair recipe',str2func('@HeatmapMaker_repairRecipe'),other)
 scene.addon_addmenuitem('HeatmapMaker','ttest without recipe',str2func('@HeatmapMaker_ttest'),other)
+scene.addon_addmenuitem('HeatmapMaker','Sort folder to subfolders per patient',str2func('@HeatmapMaker_sortPerPatient'),other)
 
 legacy = scene.addon_addmenuitem('HeatmapMaker','Legacy (sweetspotstation)');
 scene.addon_addmenuitem('HeatmapMaker','Make a Suretune based recipe',str2func('@HeatmapMaker_XX'),legacy)
