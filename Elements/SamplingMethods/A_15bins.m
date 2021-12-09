@@ -5,7 +5,8 @@ classdef A_15bins < SamplingMethod
             'A mask is created based on where the model exists',...
             'Then a binary ROI samples the heatmap',...
             'A 15 bin histogram is calculated for this sample',...
-            'the output is the zscored histogram'};
+            'the output is the zscored histogram'...
+            'This method supports bilateral sampling using subfolders!'};
         Output = []
     end
     
@@ -24,15 +25,24 @@ classdef A_15bins < SamplingMethod
             N_edges = 15;
             edges = linspace(-1,1,N_edges+1);
             
-            %data
-            map= Map.Signedpmap.Voxels;
-            roi = IndividualProfile.Voxels>0.5;
             
-            %mask
-            mask = Map.Tmap.Voxels~=0;
+            bite = [];
             
-            %
-            bite= map(and(roi,mask));
+            lowerthreshold =0;
+            while any(IndividualProfile.Voxels(:)>(0.5+lowerthreshold))
+                %data
+                map= Map.Signedpmap.Voxels;
+                roi = IndividualProfile.Voxels>(0.5+lowerthreshold);
+
+                %mask
+                mask = Map.Tmap.Voxels~=0;
+
+                %
+                bite=[bite;map(and(roi,mask))];
+
+                %next iteration
+                lowerthreshold = lowerthreshold+1;
+            end
             f = figure;
             h = histogram(bite,edges);
             predictors = [1,zscore(h.Values)];

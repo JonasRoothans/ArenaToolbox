@@ -266,13 +266,23 @@ classdef VoxelDataStack < handle
             
             %subfolder or one folder?
             data_is_in_subfolders = any(ismember(recipe.Properties.VariableNames,'folderID'));
-            
+            answer = questdlg('You have organized your data in subfolders. How should the folders be interpreted? Are you dealing with bilateral therapy?',...
+                'Arena',...
+                'Yes, this is bilateral. Keep the files seperate in the sampling',...
+                'They can be safely merged and treated as one file',...
+                'Yes, this is bilateral. Keep the files seperate in the sampling');
+            switch answer
+                case 'Yes, this is bilateral. Keep the files seperate in the sampling'
+                    individual_sampling = true;
+                otherwise
+                    individual_sampling = false;
+            end
             
             
             %Loop over the folders. All files in a folder will be merged.
             [parentfolder,~] = fileparts(obj.Recipe.fullpath{1});
             if not(exist(parentfolder,'dir'))
-                warndlg('The folder in the recipe does not exist. This can occur when the recipe was made on a different computer. This can be fixed by using add-ons > heatmapmaker > other > repair recipe.')
+                warndlg('The folder in the recipe does not exist. This can occur when the recipe was made on a different computer or if the files have been moved. This can be fixed by using add-ons > heatmapmaker > other > repair recipe.')
                 return
             end
             subfolders.name = 1;
@@ -301,7 +311,10 @@ classdef VoxelDataStack < handle
                         end
                         
                     end
-                    together = together.makeBinary(0.5);
+                    if not(individual_sampling)
+                        together = together.makeBinary(0.5);
+                    end
+                    
                     obj.InsertVoxelDataAt(together,i);
                     id = obj.Recipe.folderID(i);
                 else
