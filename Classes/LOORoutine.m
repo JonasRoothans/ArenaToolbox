@@ -107,29 +107,11 @@ classdef LOORoutine < handle
                 error('Run .LOOregression() first!')
             end
             
+            x = obj.CleanPredictors;
+            y = obj.LoadedMemory.Weights;
             
-            for i = 1:numel(obj.LoadedMemory.Weights)
-                %getsubsets
-                subX = obj.CleanPredictors;
-                subX(i,:) = [];
-                subY = obj.LoadedMemory.Weights;
-                subY(i) = [];
-                
-                %train
-                X = [ones(size(subX,1),1),subX];
-                [b] = regress(subY',X);
-                
-                
-                %predict
-                LOO_x = [1,obj.CleanPredictors(i,:)];
-                Prediction = LOO_x*b;
-                
-                %save
-                obj.LOOCVpredictions(i) = Prediction;
-                
-            end
-            %evaluate prediction
-            obj.LOOCVmdl = fitlm(obj.LOOCVpredictions,obj.LoadedMemory.Weights);
+            [obj.LOOCVmdl,obj.LOOCVpredictions] = LOORoutine.quickLOOCV(x,y);
+            
             obj.LOOCVmdl
             figure; obj.LOOCVmdl.plot
             
@@ -173,6 +155,41 @@ classdef LOORoutine < handle
                 msgbox('Please provide Heatmap folder or stack','error','error')
                 error('Please provide Heatmap folder or stack')
             end
+        end
+    end
+    
+    methods (Static)
+        function [LOOCVmdl,LOOCVpredictions] = quickLOOCV(predictors,truth)
+            LOOCVpredictions = [];
+            for i = 1:numel(truth)
+                %getsubsets
+                subX = predictors;
+                subX(i,:) = [];
+                subY = truth;
+                subY(i) = [];
+                
+                %train
+                if not(subX(1,1)==1)
+                    X = [ones(size(subX,1),1),subX];
+                    LOO_x = [1,predictors(i,:)];
+                else
+                    X = subX;
+                    LOO_x = predictors(i,:);
+                end
+                [b] = regress(subY',X);
+                
+                
+                %predict
+                Prediction = LOO_x*b;
+                
+                %save
+                LOOCVpredictions(i) = Prediction;
+                
+            end
+            %evaluate prediction
+            LOOCVmdl = fitlm(LOOCVpredictions,truth);
+            
+            
         end
     end
 end
