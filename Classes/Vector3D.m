@@ -27,6 +27,13 @@ classdef Vector3D
                     obj.y = double(varargin{1}(2));
                     obj.z = double(varargin{1}(3));
                 end
+                if isstruct(varargin{1})
+                    if isfield(varargin{1},'x')
+                        obj.x = varargin{1}.x;
+                        obj.y = varargin{1}.y;
+                        obj.z = varargin{1}.z;
+                    end
+                end
             end
         end
         

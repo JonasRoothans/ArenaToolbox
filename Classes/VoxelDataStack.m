@@ -630,7 +630,7 @@ classdef VoxelDataStack < handle
             serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
             t_voxels = zeros([length(serialized),1]);
             p_voxels = zeros([length(serialized),1]);
-            
+            disp(' ~running ttest2')
             for i =  1:length(serialized)
                 
                 if any([all(serialized(i,:)>0.5),all(not(serialized(i,:)>0.5))])

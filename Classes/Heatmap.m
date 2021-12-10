@@ -89,7 +89,9 @@ classdef Heatmap < handle
              
              
              %n-map will always be computed.
+             disp(' ~running count')
              obj.Nmap = Stack.count();
+             
 
             %Wuerzburg-workflow
             if ~isempty(intersect(mapSelection,{'all','Signedpmap','Pmap','Tmap'}))

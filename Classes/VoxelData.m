@@ -147,12 +147,37 @@ classdef VoxelData <handle
             obj.R = R;
         end
         
+        function cropped = trim(obj)
+            
+            %get min and max per x,y,z
+            containsData = find(obj.Voxels~=0);
+            [xi,yi,zi] = ind2sub(size(obj.Voxels),containsData);
+            [ld.x,ld.y,ld.z] = obj.R.intrinsicToWorld(min(yi),min(xi),min(zi));
+            [ru.x,ru.y,ru.z] = obj.R.intrinsicToWorld(max(yi),max(xi),max(zi));
+
+            if ~isa(obj.Voxels,'double')    
+                obj.Voxels = double(obj.Voxels);
+            end
+            %crop
+            cropped = crop(obj,ld,ru);
+            
+            if nargout==0
+                obj.Voxels = cropped.Voxels;
+                obj.R = cropped.R;
+            end
+            
+            
+            
+        end
+        
+        
         function obj = crop(obj,leftdown,rightup)
             if not(isa(leftdown,'Vector3D'))
                 leftdown = Vector3D(leftdown);
-                rightup = Vecgtor3D(rightup);
+                rightup = Vector3D(rightup);
             end
-            
+           
+
         %get the voxelindices at boundingbox edges
         [ldy,ldx,ldz] = obj.R.worldToSubscript(min([leftdown.x,rightup.x]),min([leftdown.y,rightup.y]),min([leftdown.z,rightup.z]));  
         [ruy,rux,ruz] = obj.R.worldToSubscript(max([leftdown.x,rightup.x]),max([leftdown.y,rightup.y]),max([leftdown.z,rightup.z]));
