@@ -173,21 +173,25 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                         
                     case 'Mesh'
                         Source = obj.Data.Source;
-                        if any(isnan(Source.Voxels))
-                            answer = questdlg('The data contains NaN values, if you proceed these will be changed to 0','Oops!','Yes, change them to 0','No I will find another way','Yes, change them to 0');
-                            switch answer
-                                case 'Yes, change them to 0'
-                                    Source.Voxels(isnan(Source.Voxels)) = 0;
-                                case 'No I will find another way'
-                                    return
+                        if not(isempty(Source))
+                            if any(isnan(Source.Voxels))
+                                answer = questdlg('The data contains NaN values, if you proceed these will be changed to 0','Oops!','Yes, change them to 0','No I will find another way','Yes, change them to 0');
+                                switch answer
+                                    case 'Yes, change them to 0'
+                                        Source.Voxels(isnan(Source.Voxels)) = 0;
+                                    case 'No I will find another way'
+                                        return
+                                end
                             end
                         end
-                        [imOut,rOut] = imwarp(Source.Voxels,Source.R,affine3d(T));
+                        if not(isempty(Source))
+                            [imOut,rOut] = imwarp(Source.Voxels,Source.R,affine3d(T));
+                            newSource = VoxelData(imOut,rOut);
+                            obj.Data.Source = newSource;
+                        end
                         v = obj.Data.Vertices;
                         v_transformed = SDK_transform3d(v,T);
                         obj.Data.Vertices = v_transformed;
-                        newSource = VoxelData(imOut,rOut);
-                        obj.Data.Source = newSource;
                         delete(obj.Visualisation.handle)
                         obj.Visualisation.handle = []; %remove old handle
                         obj.updateActor(scene,obj.Visualisation.settings);
