@@ -54,7 +54,7 @@ classdef VoxelDataStack < handle
                 otherwise
                     obj.R = reference.R;    
             end
-            obj.Voxels = zeros([obj.R.ImageSize,n_files]);
+            obj.Voxels = zeros([obj.R.ImageSize,n_files],'int8'); %% change numeric class to int8 for memory optimisation, not valid for functional data
             obj.Weights = ones(1,n_files);
         end
         
@@ -614,7 +614,7 @@ classdef VoxelDataStack < handle
         
         function nmap = count(obj)
             v = obj.Voxels;
-            v = double(v>0.5);
+            v = (v>0.5); %%% convert to double class deleted
             nmap = VoxelData(sum(v,4),obj.R);
             
           
