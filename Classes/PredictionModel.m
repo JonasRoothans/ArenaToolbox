@@ -152,6 +152,18 @@ classdef PredictionModel < handle
             end
             
         end
+        
+        function spearman(obj)
+            
+            if ~isempty(obj.TrainingLinearModel)
+                tbl  = obj.TrainingLinearModel.Variables;
+                mtrx = table2array(tbl);
+                predictors = obj.TrainingLinearModel.predict;
+                truth = mtrx(:,end);
+                [rho, pval] = corr(predictors,truth,'Type','Spearman')
+                
+            end
+        end
     end
 end
 

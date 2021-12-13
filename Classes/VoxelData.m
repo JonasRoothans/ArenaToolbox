@@ -148,7 +148,6 @@ classdef VoxelData <handle
         end
         
         function cropped = trim(obj)
-            
             %get min and max per x,y,z
             containsData = find(obj.Voxels~=0);
             [xi,yi,zi] = ind2sub(size(obj.Voxels),containsData);
@@ -165,9 +164,6 @@ classdef VoxelData <handle
                 obj.Voxels = cropped.Voxels;
                 obj.R = cropped.R;
             end
-            
-            
-            
         end
         
         
