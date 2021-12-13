@@ -1257,11 +1257,21 @@ classdef ArenaScene < handle
             
             function import_leadfromnii(scene,v,name)
                 Points = v.detectPoints;
-                [~,order] = sort([Points.z]);% From lowest to highest
-                direction = (Points(order(2))-Points(order(1)));
-                e = Electrode(Points(order(1)),direction.unit);
-                [actor] = e.see(scene);
-                actor.changeName(name);
+                
+                answer = questdlg('This file looks like it might contain an electrode.','Arena importer','Yes, import as an electrode','No, this is an image','No, this is an image');
+                
+                switch answer
+                    case 'No, this is an image'
+                        [actor] = v.getmesh.see(scene);
+                        actor.changeName(name)
+                        
+                    otherwise
+                        [~,order] = sort([Points.z]);% From lowest to highest
+                        direction = (Points(order(2))-Points(order(1)));
+                        e = Electrode(Points(order(1)),direction.unit);
+                        [actor] = e.see(scene);
+                        actor.changeName(name);
+                end
             end
             
             function menu_importAnything(hObject,eventdata)
