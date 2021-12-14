@@ -57,7 +57,7 @@ classdef LOORoutine < handle
             disp(['Leave one out regression method: ', func2str(obj.SamplingMethod)])
             disp(['Leave one out heatmap iterations: ',num2str(length(obj.LoadedMemory.LayerLabels))])
             for line = 1:length(samplingMethod.Description)
-                disp(['   ',samplingMethod.Description{line}])
+                disp(['   ',samplingMethod.Description(line)])
             end
             disp(' ')
             disp('Training begins. This will take a while. Time for coffee.')
