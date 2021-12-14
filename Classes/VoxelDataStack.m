@@ -3,10 +3,9 @@ classdef VoxelDataStack < handle
     %   Detailed explanation goes here
     
     properties
-        Voxels %4D
+        Voxels %4D or sparse
         R
         Weights
-        
     end
     
     properties(Hidden)
@@ -14,6 +13,7 @@ classdef VoxelDataStack < handle
         RecipePath
         LayerLabels
         ScoreLabel
+        SparseOptimization = true;
     end
     
     methods
@@ -40,6 +40,10 @@ classdef VoxelDataStack < handle
         
         function l =length(obj)
             l = size(obj.Voxels,4);
+        end
+        
+        function bool = issparse(obj)
+            bool = issparse(obj.Voxels);
         end
         
         function obj = newEmpty(obj,reference,n_files)
@@ -360,13 +364,47 @@ classdef VoxelDataStack < handle
         
         function obj = InsertVoxelDataAt(obj,vd,index)
             sizeStack = size(obj.Voxels);
-            if ~any(sizeStack==0)
-                if any(not(size(vd.Voxels)==sizeStack(1:3)))
-                    vd = vd.warpto(obj);
+            if obj.issparse
+                 if ~length(obj.Voxels)==numel(vd.Voxels)
+                     vd = vd.warpto(obj);
+                 end
+            else
+                if ~any(sizeStack==0)
+                    if any(not(size(vd.Voxels)==sizeStack(1:3)))
+                        vd = vd.warpto(obj);
+                    end
                 end
             end
-            obj.Voxels(:,:,:,index) = vd.Voxels;
+            
+            % sparse / full decision tree
+            if issparse(obj)
+                obj.insertSparse(vd.Voxels,index)
+            elseif nnz(vd.Voxels)/numel(vd.Voxels) < 0.5 && obj.SparseOptimization
+                answer  = questdlg('If your data consists of fibers or VTAs, data optimization can be applied. Do you want that?','Arena','yes, optimize','no','yes, optimize');
+                switch answer 
+                    case 'yes, optimize'
+                         obj.insertSparse(vd.Voxels,index)
+                    otherwise
+                        obj.insertFull(vd.Voxels,index)
+                        obj.SparseOptimization = false;
+                end
+            else
+                obj.insertFull(vd.Voxels,index)
+            end
+                        
         end
+        
+        function obj = insertFull(obj,v,i)
+            obj.Voxels(:,:,:,i) = v;
+        end
+        
+        function obj = insertSparse(obj,v,i)
+            if ~obj.issparse
+                obj.Voxels = sparse(reshape(double(obj.Voxels),[],size(obj.Voxels,4)));
+            end
+            obj.Voxels(:,i) = sparse(double(v(:)));
+        end
+        
         
         function vd = sum(obj)
             vd = VoxelData(sum(obj.Voxels,4),obj.R);
@@ -598,7 +636,11 @@ classdef VoxelDataStack < handle
         
         function [tmap,pmap,signedpmap] = ttest(obj)
             
-            serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
+            if ~obj.issparse
+                serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
+            else
+                serialized = obj.Voxels;
+            end
             
             [~,p_voxels,~,stat] = ttest(serialized');
             t_voxels = stat.tstat;
@@ -614,10 +656,13 @@ classdef VoxelDataStack < handle
         
         function nmap = count(obj)
             v = obj.Voxels;
-            v = (v>0.5); %%% convert to double class deleted
-            nmap = VoxelData(sum(v,4),obj.R);
-            
-          
+            v = v>0.5; %%% convert to double class deleted
+            if obj.issparse
+                nmap_vector = full(sum(v,2));
+                nmap = VoxelData(reshape(nmap_vector,obj.R.ImageSize));
+            else
+                nmap = VoxelData(sum(v,4),obj.R);
+            end
         end
             
         
@@ -627,13 +672,17 @@ classdef VoxelDataStack < handle
                 error('All weights are set to 0. This will not work.')
             end
             
-            serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
+            if ~obj.issparse
+                serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
+            else
+                serialized = obj.Voxels;
+            end
             t_voxels = zeros([length(serialized),1]);
             p_voxels = zeros([length(serialized),1]);
             disp(' ~running ttest2')
             for i =  1:length(serialized)
                 
-                if any([all(serialized(i,:)>0.5),all(not(serialized(i,:)>0.5))])
+                if ~nnz(serialized(i,:))
                     p = 1;
                     t = 0;
                 else
@@ -649,13 +698,27 @@ classdef VoxelDataStack < handle
                 
             end
             
-            stacksize = size(obj.Voxels);
-            outputsize = stacksize(1:3);
+            outputsize = obj.R.ImageSize;
             signed_p_voxels = (1-p_voxels).*sign(t_voxels);
             tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
             pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
             signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
         end
+        
+        function obj = full(obj)
+            if obj.issparse
+                v = full(obj.Voxels);
+                obj.Voxels = reshape(v,obj.R.ImageSize(1),obj.R.ImageSize(2),obj.R.ImageSize(3),[]);
+            end
+        end
+        
+        function obj = sparse(obj)
+            if ~obj.issparse
+                serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
+                obj.Voxels = sparse(double(serialized));
+            end
+        end
+        
         
         function [tmap,pmap,signedpmap] = ttest_fuckedup(obj)
             %Explanation
