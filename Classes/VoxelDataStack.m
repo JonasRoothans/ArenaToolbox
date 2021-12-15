@@ -3,7 +3,7 @@ classdef VoxelDataStack < handle
     %   Detailed explanation goes here
     
     properties
-        Voxels %4D or sparse
+        Voxels %4D or sparse but always serialized
         R
         Weights
     end
@@ -19,7 +19,12 @@ classdef VoxelDataStack < handle
     methods
         function obj = VoxelDataStack(Voxels,R,Weights)
             if nargin>0
-                obj.Voxels = single(Voxels); %by default to minimize memory consumption
+                %serialize
+                if length(size(Voxels))>2
+                    obj.Voxels = reshape(single(Voxels),[],size(Voxels,4)); %by default to minimize memory consumption
+                else
+                    obj.Voxels = single(Voxels);
+                end
             end
             if nargin>1
                 obj.R = R;
@@ -45,6 +50,9 @@ classdef VoxelDataStack < handle
         function bool = issparse(obj)
             bool = issparse(obj.Voxels);
         end
+        function bool = isfull(obj)
+            bool = ~obj.issparse;
+        end
         
         function obj = newEmpty(obj,reference,n_files)
             if nargin==1
@@ -58,10 +66,13 @@ classdef VoxelDataStack < handle
                 otherwise
                     obj.R = reference.R;    
             end
-            obj.Voxels = zeros([obj.R.ImageSize,n_files],'int8'); %% change numeric class to int8 for memory optimisation, not valid for functional data
+            obj.Voxels = zeros([prod(obj.R.ImageSize),n_files]); %% change numeric class to int8 for memory optimisation, not valid for functional data
             obj.Weights = ones(1,n_files);
         end
         
+        function array = get4DVoxels(obj)
+            array = reshape(full(obj.Voxels),obj.R.ImageSize(1),obj.R.ImageSize(2),obj.R.ImageSize(3),[]);
+        end
         
         function saveAs4Dnii(obj,filename)
             if nargin==2
@@ -75,7 +86,7 @@ classdef VoxelDataStack < handle
             spacing = [obj.R.PixelExtentInWorldX,obj.R.PixelExtentInWorldY,obj.R.PixelExtentInWorldZ];
             origin = [x y z];
             datatype = 16;%64;
-            nii = make_nii(double(permute(obj.Voxels,[2 1 3 4])), spacing, origin, datatype);
+            nii = make_nii(double(permute(obj.get4DVoxels,[2 1 3 4])), spacing, origin, datatype);
             save_nii(nii,fullfile(outfolder,outfile));
             
             
@@ -395,12 +406,12 @@ classdef VoxelDataStack < handle
         end
         
         function obj = insertFull(obj,v,i)
-            obj.Voxels(:,:,:,i) = v;
+            obj.Voxels(:,i) = v(:);
         end
         
         function obj = insertSparse(obj,v,i)
             if ~obj.issparse
-                obj.Voxels = sparse(reshape(double(obj.Voxels),[],size(obj.Voxels,4)));
+                obj.sparse();
             end
             obj.Voxels(:,i) = sparse(double(v(:)));
         end
@@ -435,14 +446,16 @@ classdef VoxelDataStack < handle
         end
         
         function vd = getVoxelDataAtPosition(obj,index)
-            Voxels = obj.Voxels(:,:,:,index);
-            vd = VoxelData(Voxels,obj.R);
+            Voxels = obj.Voxels(:,index);
+            Voxels3D = reshape(Voxels,obj.R.ImageSize);
+            vd = VoxelData(Voxels3D,obj.R);
         end
         
         function heatmap = convertToLOOHeatmap(obj,iLOO,requiredMaps)
             
+            
             Vloo = obj.Voxels;
-            Vloo(:,:,:,iLOO) = [];
+            Vloo(:,iLOO) = [];
             Wloo = obj.Weights;
             Wloo(iLOO) = [];
             Rloo = obj.R;
@@ -480,7 +493,7 @@ classdef VoxelDataStack < handle
             
             for iLOO = startingFrom:numel(obj.Weights)
                 Vloo = obj.Voxels;
-                Vloo(:,:,:,iLOO) = [];
+                Vloo(:,iLOO) = [];
                 Wloo = obj.Weights;
                 Wloo(iLOO) = [];
                 Rloo = obj.R;
@@ -549,8 +562,6 @@ classdef VoxelDataStack < handle
         end
         
         
-        % function mechanics moved to Heatmap class
-        % still work in progress, filled with bugs
         function heatmap = convertToHeatmap(obj,filename)
             
             filename= inputdlg('enter description:');
@@ -561,78 +572,7 @@ classdef VoxelDataStack < handle
         
         
         
-        
-        
-        
-        %%%%%%
-        
-        
-        
-        
-        
-        
-        
-        
-        %             global arena
-        %             if not(isfield(arena.Settings,'rootdir'))
-        %                 error('Your settings file is outdated. Please remove config.mat and restart MATLAB for a new setup')
-        %             end
-        %
-        %             if nargin<3
-        %                 error('Include the heatmapname and a short description!')
-        %             end
-        %
-        %             if nargin<4
-        %                 savememory = false;
-        %             end
-        %
-        %             if nargin==5
-        %                 LOOmode = true;
-        %             else
-        %                 LOOmode = false;
-        %             end
-        %
-        %             raw.recipe = obj.Recipe;
-        %             raw.files = obj.LayerLabels;
-        %             disp(['--> performing ttest2 for ',filename]);
-        %             [tmap,pmap,signedpmap] = obj.ttest2();
-        %             heatmap = Heatmap();
-        %             heatmap.Tmap = tmap;
-        %             heatmap.Pmap = pmap;
-        %             heatmap.Signedpmap = signedpmap;
-        %             heatmap.Raw = raw;
-        %             heatmap.Description = description;
-        %             heatmap.VoxelDataStack = obj;
-        %             heatmap.Tag = filename;
-        
-        %save
-        
-        
-        %              if nargout<1
-        %                 if LOOmode
-        %                     outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput',LOOdir);
-        %                     [~, ~] = mkdir(outputdir);
-        %                 else
-        %                     outputdir = fullfile(arena.Settings.rootdir,'HeatmapOutput');
-        %                 end
-        %
-        %                 publicProperties = properties(heatmap); % convert from class heatmap to struct to be able to save without changing properties
-        %                 exportheatmap = struct();
-        %                 for iField = 1:numel(publicProperties)
-        %                     exportheatmap.(publicProperties{iField}) = heatmap.(publicProperties{iField});
-        %                 end
-        %
-        %                 save(fullfile(outputdir,[filename,'.heatmap']),'-struct','exportheatmap','-v7.3')
-        %
-        %                 if savememory
-        %                     %save memory file
-        %                     memory = obj;
-        %                     save(fullfile(outputdir,['memory_',filename,'.heatmap']),'memory','-v7.3')
-        %                 end
-        %             end
-        %
-        %         end
-        
+
         
         function [tmap,pmap,signedpmap] = ttest(obj)
             
@@ -654,15 +594,21 @@ classdef VoxelDataStack < handle
             Done;
         end
         
+        function v = reshape(obj,v)
+            v = reshape(v,obj.R.ImageSize(1),obj.R.ImageSize(2),obj.ImageSize(3),[]);
+        end
+        
         function nmap = count(obj)
             v = obj.Voxels;
             v = v>0.5; %%% convert to double class deleted
             if obj.issparse
                 nmap_vector = full(sum(v,2));
-                nmap = VoxelData(reshape(nmap_vector,obj.R.ImageSize));
             else
-                nmap = VoxelData(sum(v,4),obj.R);
+                nmap_vector = sum(v,2);
             end
+            
+            nmap = VoxelData(obj.reshape(nmap_vector),obj.R);
+            
         end
             
         
@@ -672,11 +618,8 @@ classdef VoxelDataStack < handle
                 error('All weights are set to 0. This will not work.')
             end
             
-            if ~obj.issparse
-                serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
-            else
-                serialized = obj.Voxels;
-            end
+
+            serialized = obj.Voxels;
             t_voxels = zeros([length(serialized),1]);
             p_voxels = zeros([length(serialized),1]);
             disp(' ~running ttest2')
