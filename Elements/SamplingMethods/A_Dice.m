@@ -18,12 +18,10 @@ classdef A_Dice < SamplingMethod
             
             %data
             map = Map.Signedpmap.Voxels;
-            mask = Map.Tmap.Voxels~=0;
+           % mask is not needed for dice
             roi = IndividualProfile.Voxels;
             
-            bite=dice(...
-                map(mask),...
-                roi(mask));
+            bite=dice(map>0,roi>0); % positive in signedpmap Vs positive in connectome
             
             
             obj.Output=bite;

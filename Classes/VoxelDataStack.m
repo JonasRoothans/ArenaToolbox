@@ -682,7 +682,7 @@ classdef VoxelDataStack < handle
             disp(' ~running ttest2')
             for i =  1:length(serialized)
                 
-                if ~nnz(serialized(i,:))
+                if ~nnz(serialized(i,:)) || all(serialized(i,:)) % checks if the voxel is all zeros or all ones across all subjects
                     p = 1;
                     t = 0;
                 else
