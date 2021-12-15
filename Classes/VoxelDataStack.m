@@ -44,7 +44,7 @@ classdef VoxelDataStack < handle
         end
         
         function l =length(obj)
-            l = size(obj.Voxels,4);
+            l = size(obj.Voxels,2);
         end
         
         function bool = issparse(obj)
@@ -447,8 +447,8 @@ classdef VoxelDataStack < handle
         end
         
         function vd = getVoxelDataAtPosition(obj,index)
-            Voxels = obj.Voxels(:,index);
-            Voxels3D = reshape(Voxels,obj.R.ImageSize);
+            voxels = obj.Voxels(:,index);
+            Voxels3D = obj.reshape(voxels);
             vd = VoxelData(Voxels3D,obj.R);
         end
         
@@ -596,6 +596,9 @@ classdef VoxelDataStack < handle
         end
         
         function v = reshape(obj,v)
+            if issparse(v)
+                v = full(v);
+            end
             v = reshape(v,obj.R.ImageSize(1),obj.R.ImageSize(2),obj.R.ImageSize(3),[]);
         end
         
