@@ -381,7 +381,7 @@ classdef VoxelDataStack < handle
                  end
             else
                 if ~any(sizeStack==0)
-                    if any(not(size(vd.Voxels)==sizeStack(1:3)))
+                    if any(not(numel(vd.Voxels)==max(sizeStack)))
                         vd = vd.warpto(obj);
                     end
                 end
@@ -391,7 +391,7 @@ classdef VoxelDataStack < handle
             if issparse(obj)
                 obj.insertSparse(vd.Voxels,index)
             elseif nnz(vd.Voxels)/numel(vd.Voxels) < 0.5 && obj.SparseOptimization
-                answer  = questdlg('If your data consists of fibers or VTAs, data optimization can be applied. Do you want that?','Arena','yes, optimize','no','yes, optimize');
+                answer  = questdlg('It looks like your data consists of fibers or VTAs. Memory optimization can be applied. Do you want that?','Arena','yes, optimize','no','yes, optimize');
                 switch answer 
                     case 'yes, optimize'
                          obj.insertSparse(vd.Voxels,index)
@@ -411,6 +411,7 @@ classdef VoxelDataStack < handle
         
         function obj = insertSparse(obj,v,i)
             if ~obj.issparse
+                disp('applying memory saving on data storage...')
                 obj.sparse();
             end
             obj.Voxels(:,i) = sparse(double(v(:)));
@@ -657,7 +658,7 @@ classdef VoxelDataStack < handle
         
         function obj = sparse(obj)
             if ~obj.issparse
-                serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
+                serialized = reshape(obj.Voxels,prod(obj.R.ImageSize),[]);
                 obj.Voxels = sparse(double(serialized));
             end
         end
