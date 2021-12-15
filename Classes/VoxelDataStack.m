@@ -596,7 +596,7 @@ classdef VoxelDataStack < handle
         end
         
         function v = reshape(obj,v)
-            v = reshape(v,obj.R.ImageSize(1),obj.R.ImageSize(2),obj.ImageSize(3),[]);
+            v = reshape(v,obj.R.ImageSize(1),obj.R.ImageSize(2),obj.R.ImageSize(3),[]);
         end
         
         function nmap = count(obj)
