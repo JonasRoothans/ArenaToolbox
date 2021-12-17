@@ -119,6 +119,30 @@ classdef Heatmap < handle
 
         end
             
+        function see(obj,scene)
+            
+            props = properties(obj);
+            options = {};
+            for iProp = 1:numel(props)
+                if isa(obj.(props{iProp}),'VoxelData')
+                    options{end+1} =props{iProp};
+                end
+            end
+
+            [indx] = listdlg('ListString',options,...
+                'PromptString',obj.Description,...
+                'ListSize',[250,150]);
+
+            if nargin==1
+                scene = getScene();
+            end
+            for i = indx
+                thisProp = options{i};
+                vd = obj.(thisProp);
+                actor = vd.getslice.see(scene);
+                actor.changeName([obj.Tag,'__',thisProp])
+            end
+        end
  
        function fz = makeFzMap(obj)
             if not(isempty(obj.Fzmap))
