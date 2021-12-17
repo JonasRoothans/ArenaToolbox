@@ -2151,7 +2151,7 @@ classdef ArenaScene < handle
                     end
                 end
                  v1  = VoxelDatas{1}.Voxels(:);
-                 v2 = VoxelDatas{2}.Voxels(:);
+                 v2 = VoxelDatas{2}.warpto(VoxelDatas{1}).Voxels(:);
                  nans = or(isnan(v1),isnan(v2));
                  v1(nans)=[];
                  v2(nans)= [];
