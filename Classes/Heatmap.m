@@ -195,7 +195,33 @@ classdef Heatmap < handle
                     val = listdlg('ListString',mapsWithContents,'PromptString','What kind of map is this?');
                     obj.(maps{val}) = vd;
                 case '.swtspt'
-                    error('Currently Heatmap is not yet backwards compatible. But if this is required. Let me know. -Jonas')
+                    swtspt = load(hmpath,'-mat');
+                    
+                    
+                    [indx] = listdlg('ListString',{swtspt.sweetspot.left.sweetspotArray.Title},...
+                        'PromptString','Select maps to import',...
+                        'ListSize',[250,150]);
+
+                    mapnames = obj.getMapOverview();
+                    for i = 1:numel(indx)
+                        [combi] = listdlg('ListString',mapnames,...
+                        'PromptString',['what is "',swtspt.sweetspot.left.sweetspotArray(indx(i)).Title,'"?'],...
+                        'ListSize',[250,150],...
+                        'SelectionMode','single');
+                    
+                        Tfake2mni = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
+                        obj.(mapnames{combi}) = VoxelData(swtspt.sweetspot.left.sweetspotArray(indx(i)).Data,swtspt.sweetspot.left.imref).imwarp(Tfake2mni);
+                    end
+                    
+                    [~, ~, ~, newOverview] = obj.getMapOverview;
+                     %make signedp from t and p map.
+                    if all(newOverview(1,2)) && not(newOverview(3))
+                        disp('automatic construction of signed p map')
+                        if any(obj.Pmap.Voxels(:) > 1)
+                            obj.Pmap.Voxels = obj.Pmap.Voxels/100;
+                        end
+                        obj.Signedpmap = VoxelData((1-obj.Pmap.Voxels).*sign(obj.Tmap.Voxels),obj.Pmap.R);
+                    end
                 case '.heatmap'
                     hm = load(hmpath,'-mat');
                     if isfield(hm,'hm')

@@ -629,12 +629,19 @@ classdef VoxelDataStack < handle
             disp(' ~running ttest2')
             for i =  1:length(serialized)
                 
-                if sum(serialized(i,:)>0.5)<=1 || all(serialized(i,:)) % checks if the voxel is all zeros or all ones across all subjects
+                % ignore if only 0, 1, or all in a group.
+                if sum(serialized(i,:)>0.5)<=1 || all(serialized(i,:)) 
                     p = 1;
                     t = 0;
                 else
-                    [~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
-                    t = stat.tstat;
+                % if there is 
+                        weightsweights = [obj.Weights,obj.Weights];
+                        serializedcombi = [serialized(i,:)>0.5,serialized(i,:)>1.5];
+                        [~,p,~,stat] = ttest2(weightsweights(serializedcombi),weightsweights(~serializedcombi));
+                        
+                        %[~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
+                        t = stat.tstat;
+                    
                 end
                 t_voxels(i) = t;
                 p_voxels(i) = p;
