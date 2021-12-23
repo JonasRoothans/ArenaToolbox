@@ -126,12 +126,24 @@ classdef PredictionModel < handle
             global arena
             root = arena.getrootdir;
             modelFolder = fullfile(root,'UserData','PredictionModels');
-            if ~exist(modelFolder,'dir')
-                error('../Elements/PredictionModels does not exist!')
+            strmessage=append('from Arena Rootdirectory: ',modelFolder);
+            answer=questdlg('how would you like to load the prediction model?','',...
+               strmessage,...
+                'select from other directory',strmessage);
+            
+            switch answer
+                case strmessage
+                     mdlpath = uigetfile(fullfile(modelFolder,'*.mat'),'select file');
+                     loaded = load(fullfile(modelFolder,mdlpath));
+                case 'select from other directory'
+                   [mdlpath,modelFolder] = uigetfile('*.mat','select file');
+                    loaded = load(fullfile(modelFolder,mdlpath));
             end
-            mdlpath = uigetfile(fullfile(modelFolder,'*.mat'));
+                
+          
+
             disp('Loading...')
-            loaded = load(fullfile(modelFolder,mdlpath));
+             
           
             
             obj.Heatmap = loaded.mdl.Heatmap;
