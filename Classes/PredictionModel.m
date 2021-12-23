@@ -141,14 +141,14 @@ classdef PredictionModel < handle
             obj.Tag = loaded.mdl.Tag;
         end
         
-        function LOOCV(obj)
+        function mdl = LOOCV(obj)
             
             if ~isempty(obj.TrainingLinearModel)
                 tbl  = obj.TrainingLinearModel.Variables;
                 mtrx = table2array(tbl);
                 predictors = mtrx(:,1:end-1);
                 truth = mtrx(:,end);
-                mdl = LOORoutine.quickLOOCV(predictors,truth')
+                mdl = LOORoutine.quickLOOCV(predictors,truth');
             end
             
         end

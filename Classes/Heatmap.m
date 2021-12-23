@@ -10,6 +10,7 @@ classdef Heatmap < handle
         Rmap
         Fzmap
         Nmap
+        Binarymap
         %Raw  - remove?
         Description
         
@@ -193,6 +194,10 @@ classdef Heatmap < handle
                     vd = VoxelData(hmpath);
                     [maps,mapsWithContents] = obj.getMapOverview();
                     val = listdlg('ListString',mapsWithContents,'PromptString','What kind of map is this?');
+                    switch maps{val}
+                        case 'Binarymap'
+                            vd.makeBinary;
+                    end
                     obj.(maps{val}) = vd;
                 case '.swtspt'
                     swtspt = load(hmpath,'-mat');

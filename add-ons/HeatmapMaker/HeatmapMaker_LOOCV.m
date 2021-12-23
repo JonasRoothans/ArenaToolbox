@@ -9,7 +9,10 @@ function [outputArg1,outputArg2] = HeatmapMaker_LOOCV(menu,eventdata,scene)
             modelFolder = fullfile(root,'UserData','PredictionModels');
  [filename,pathname] = uigetfile(fullfile(modelFolder,'*.mat'));
  load(fullfile(pathname,filename),'mdl');
- mdl.LOOCV
+ mdl = mdl.LOOCV;
+ 
+ assignin('base','mdl',mdl)
+ disp('"mdl" is now available in workspace')
 
 
 
