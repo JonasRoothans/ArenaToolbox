@@ -614,6 +614,11 @@ classdef VoxelDataStack < handle
             nmap = VoxelData(obj.reshape(nmap_vector),obj.R);
             
         end
+        
+        function amap = average(obj)
+            averageVoxels = mean(obj.Voxels,2);
+            amap = obj.reshape(averageVoxels);
+        end
             
         
         function [tmap,pmap,signedpmap] = ttest2(obj)

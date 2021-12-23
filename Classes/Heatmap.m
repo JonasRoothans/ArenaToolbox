@@ -102,8 +102,13 @@ classdef Heatmap < handle
             obj.Signedpmap = signedpmap;
             end
 
+            if ~isempty(intersect(mapSelection,{'Amap'}))
+                [amap] = Stack.average();
+                obj.Amap = amap;
+            end
+            
             %Berlin-workflow
-            if ~isempty(intersect(mapSelection,{'all','Amap','Cmap','Rmap'}))
+            if ~isempty(intersect(mapSelection,{'all','Cmap','Rmap'}))
                 if 0 %temporarily disabled
                     [amap,cmap,rmap] = Stack.berlinWorkflow;
                     obj.Amap = amap;
