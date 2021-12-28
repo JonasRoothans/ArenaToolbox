@@ -30,7 +30,7 @@ classdef A_Icp < SamplingMethod
            
         
             %sample
-            [TR, TT, ER, t]=icp(indices_map,indices_profile);
+            [TR, TT, ER, t]=icp(indices_map,indices_profile, 'Matching','kDtree');
             bite=mean(1-ER);
           
             
