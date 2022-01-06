@@ -6,7 +6,7 @@ classdef A_Icp < SamplingMethod
     end
     
     methods
-        function [obj] = A_procrustes(Map, IndividualProfile)
+        function [obj] = A_Icp(Map, IndividualProfile)
             %---- keep this
             if nargin==0
                 return
@@ -23,14 +23,15 @@ classdef A_Icp < SamplingMethod
            [row_profile,col_profile,v_profile]=find(roi);
            indices_profile=[row_profile,col_profile,v_profile];
            
-           map(map<0)=0;
+           map(map<=0.95)=0;
+          
            
            [row_map,col_map,v_map]=find(map);
            indices_map=[row_map,col_map,v_map];
            
         
             %sample
-            [TR, TT, ER, t]=icp(indices_map,indices_profile, 'Matching','kDtree');
+            [TR, TT, ER, t]=icp(indices_map',indices_profile', 'Matching','kDtree');
             bite=mean(1-ER);
           
             
