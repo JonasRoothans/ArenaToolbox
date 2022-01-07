@@ -578,20 +578,19 @@ classdef VoxelDataStack < handle
         
         function [tmap,pmap,signedpmap] = ttest(obj)
             
-            if ~obj.issparse
-                serialized = reshape(obj.Voxels,[],size(obj.Voxels,4));
-            else
-                serialized = obj.Voxels;
-            end
+           
+            serialized = obj.Voxels;
+            
             
             [~,p_voxels,~,stat] = ttest(serialized');
             t_voxels = stat.tstat;
             
             
             signed_p_voxels = (1-p_voxels).*sign(t_voxels);
-            tmap = VoxelData(reshape(t_voxels,[obj.R.ImageSize(1:3)]));
-            pmap = VoxelData(reshape(p_voxels,[obj.R.ImageSize(1:3)]));
-            signedpmap = VoxelData(reshape(signed_p_voxels,[obj.R.ImageSize(1:3)]));
+            
+            tmap = VoxelData(obj.reshape(t_voxels),obj.R);
+            pmap = VoxelData(obj.reshape(p_voxels),obj.R);
+            signedpmap = VoxelData(obj.reshape(signed_p_voxels),obj.R);
             Done;
         end
         
