@@ -557,8 +557,7 @@ classdef VoxelDataStack < handle
             heatmap.Signedpmap = signedpmap;
 %             heatmap.Raw = raw;
             heatmap.Description = description;
-            heatmap.Amap = VoxelData(nanmean(obj.Voxels,4),heatmap.Tmap.R);
-            
+            heatmap.Amap= VoxelData(obj.reshape(obj.average),obj.R);   
             
             
         end
@@ -615,7 +614,13 @@ classdef VoxelDataStack < handle
         end
         
         function amap = average(obj)
-            averageVoxels = mean(obj.Voxels,2);
+            
+            if any(isnan(obj.Voxels))
+                displ('NaNs detected, calculating average map without NaNs')
+            averageVoxels = nanmean(obj.Voxels,2);
+            else
+                averageVoxels = mean(obj.Voxels,2);
+            end
             amap = obj.reshape(averageVoxels);
         end
             
