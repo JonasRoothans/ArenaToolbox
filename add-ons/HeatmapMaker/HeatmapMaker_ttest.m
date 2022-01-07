@@ -29,7 +29,7 @@ heatmap = Stack.convertToHeatmapBasedOnVoxelValues(title,description);
 heatmap.Tag = nameSuggestion;
 disp('saving....')
 mkdir(fullfile(folder,nameSuggestion,'output'));
-heatmap.save(fullfile(folder,nameSuggestion,'output',nameSuggestion),'memory')
+heatmap.save(fullfile(folder,nameSuggestion,'output',nameSuggestion));
 heatmap.Signedpmap.savenii(fullfile(folder,nameSuggestion,'output','signedpmap.nii'))
 heatmap.Tmap.savenii(fullfile(folder,nameSuggestion,'output','Tmap.nii'))
 heatmap.Pmap.savenii(fullfile(folder,nameSuggestion,'output','Pmap.nii'))

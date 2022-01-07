@@ -23,7 +23,7 @@ classdef VoxelDataStack < handle
                 if length(size(Voxels))>2
                     obj.Voxels = reshape(single(Voxels),[],size(Voxels,4)); %by default to minimize memory consumption
                 else
-                    obj.Voxels = single(Voxels);
+                    obj.Voxels =single(Voxels);
                 end
             end
             if nargin>1
@@ -547,14 +547,15 @@ classdef VoxelDataStack < handle
                 error('Include the heatmapname and a short description!')
             end
             
-            raw.recipe = [];
-            raw.files = obj.LayerLabels;
+            %removed all obj.Raw related variables> removed form heatmap class
+%             raw.recipe = [];    
+%             raw.files = obj.LayerLabels;   
             [tmap,pmap,signedpmap] = obj.ttest();
             heatmap = Heatmap();
             heatmap.Tmap = tmap;
             heatmap.Pmap = pmap;
             heatmap.Signedpmap = signedpmap;
-            heatmap.Raw = raw;
+%             heatmap.Raw = raw;
             heatmap.Description = description;
             heatmap.Amap = VoxelData(nanmean(obj.Voxels,4),heatmap.Tmap.R);
             
@@ -586,12 +587,11 @@ classdef VoxelDataStack < handle
             [~,p_voxels,~,stat] = ttest(serialized');
             t_voxels = stat.tstat;
             
-            stacksize = size(obj.Voxels);
-            outputsize = stacksize(1:3);
+            
             signed_p_voxels = (1-p_voxels).*sign(t_voxels);
-            tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
-            pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
-            signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
+            tmap = VoxelData(reshape(t_voxels,[obj.R.ImageSize(1:3)]));
+            pmap = VoxelData(reshape(p_voxels,[obj.R.ImageSize(1:3)]));
+            signedpmap = VoxelData(reshape(signed_p_voxels,[obj.R.ImageSize(1:3)]));
             Done;
         end
         
