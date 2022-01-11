@@ -10,6 +10,7 @@ classdef Heatmap < handle
         Rmap
         Fzmap
         Nmap
+        BFmap % Bayes Factor
         Binarymap
         %Raw  - remove?
         Description
@@ -96,10 +97,11 @@ classdef Heatmap < handle
 
             %Wuerzburg-workflow
             if ~isempty(intersect(mapSelection,{'all','Signedpmap','Pmap','Tmap'}))
-            [tmap,pmap,signedpmap] = Stack.ttest2();
+            [tmap,pmap,signedpmap,bfmap] = Stack.ttest2();
             obj.Tmap = tmap;
             obj.Pmap = pmap;
             obj.Signedpmap = signedpmap;
+            obj.BFmap=bfmap;
             end
 
             if ~isempty(intersect(mapSelection,{'Amap'}))

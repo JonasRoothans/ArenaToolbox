@@ -625,7 +625,7 @@ classdef VoxelDataStack < handle
         end
             
         
-        function [tmap,pmap,signedpmap] = ttest2(obj)
+        function [tmap,pmap,signedpmap,bfmap] = ttest2(obj)
             
             if all(obj.Weights==0)
                 error('All weights are set to 0. This will not work.')
@@ -635,6 +635,7 @@ classdef VoxelDataStack < handle
             serialized = obj.Voxels;
             t_voxels = zeros([length(serialized),1]);
             p_voxels = zeros([length(serialized),1]);
+            bf_voxels= zeros([length(serialized),1]);
             disp(' ~running ttest2')
             for i =  1:length(serialized)
                 
@@ -642,6 +643,7 @@ classdef VoxelDataStack < handle
                 if sum(serialized(i,:)>0.5)<=1 || all(serialized(i,:)) 
                     p = 1;
                     t = 0;
+                    bayes= 0;
                 else
                 % if there is 
                         weightsweights = [obj.Weights,obj.Weights];
@@ -650,10 +652,12 @@ classdef VoxelDataStack < handle
                         
                         %[~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
                         t = stat.tstat;
+                        [bayes]=bf.ttest2('T',t, 'N', [numel(weightsweights(serializedcombi)), numel(weightsweights(~serializedcombi))]);
                     
                 end
                 t_voxels(i) = t;
                 p_voxels(i) = p;
+                bf_voxels(i) = bayes;
                 
                 if isnan(t)
                     keyboard
@@ -666,6 +670,7 @@ classdef VoxelDataStack < handle
             tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
             pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
             signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
+           bfmap = VoxelData(reshape(bf_voxels,outputsize),obj.R);
         end
         
         function obj = full(obj)
