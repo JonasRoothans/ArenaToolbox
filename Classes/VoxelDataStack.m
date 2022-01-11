@@ -629,7 +629,7 @@ classdef VoxelDataStack < handle
         end
             
         
-        function [tmap,pmap,signedpmap] = ttest2(obj)
+        function [tmap,pmap,signedpmap,bfmap] = ttest2(obj)
             
             if all(obj.Weights==0)
                 warning('All weights are set to 0. Skipping ttest')
@@ -645,18 +645,25 @@ classdef VoxelDataStack < handle
             serialized_width = size(serialized,2);
             relevantVoxels = find(and(serialized_sum>1,serialized_sum<serialized_width));
             t_voxels = zeros([length(serialized),1]);
+
             p_voxels = ones([length(serialized),1]);
+            bf_voxels= zeros([length(serialized),1]);
             disp(' ~running ttest2')
             for i =  relevantVoxels'
-                        weightsweights = [obj.Weights,obj.Weights];
-                        serializedcombi = [serialized(i,:)>0.5,serialized(i,:)>1.5];
-                        [~,p,~,stat] = ttest2(weightsweights(serializedcombi),weightsweights(~serializedcombi));
-                        
-                        %[~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
-                        t = stat.tstat;
-
-                    t_voxels(i) = t;
-                    p_voxels(i) = p;
+                
+                weightsweights = [obj.Weights,obj.Weights];
+                serializedcombi = [serialized(i,:)>0.5,serialized(i,:)>1.5];
+                [~,p,~,stat] = ttest2(weightsweights(serializedcombi),weightsweights(~serializedcombi));
+                
+                %[~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
+                t = stat.tstat;
+                
+                [bayes]=bf.ttest2('T',t, 'N', [numel(weightsweights(serializedcombi)), numel(weightsweights(~serializedcombi))]);
+                
+                t_voxels(i) = t;
+                p_voxels(i) = p;
+                bf_voxels(i) = bayes;
+                
                 
                 if isnan(t)
                     keyboard
@@ -669,6 +676,7 @@ classdef VoxelDataStack < handle
             tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
             pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
             signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
+           bfmap = VoxelData(reshape(bf_voxels,outputsize),obj.R);
         end
         
         function obj = full(obj)
