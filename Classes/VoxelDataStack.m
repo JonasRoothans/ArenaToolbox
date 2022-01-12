@@ -23,7 +23,11 @@ classdef VoxelDataStack < handle
                 if length(size(Voxels))>2
                     obj.Voxels = reshape(single(Voxels),[],size(Voxels,4)); %by default to minimize memory consumption
                 else
-                    obj.Voxels =single(Voxels);
+                    if not(issparse(Voxels))
+                        obj.Voxels = single(Voxels);
+                    else
+                        obj.Voxels = Voxels; %sparse does not support single
+                    end
                 end
             end
             if nargin>1
