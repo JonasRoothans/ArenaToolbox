@@ -5,3 +5,4 @@ config.mat
 *.m~
 .DS_Store
 *.vtk
+**/UserData
