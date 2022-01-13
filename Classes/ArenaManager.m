@@ -69,16 +69,19 @@ classdef ArenaManager < handle
         end
         
         
-        function scenehandle = sceneselect(obj,index)
-            if nargin==1 %If selection is not input argument
+        function scenehandle = sceneselect(obj,index,txt)
+            if nargin==1 || isempty(index) %If selection is not input argument
                 options = {};
                 for i = 1:numel(obj.Scenes)
                     options{end+1} = obj.Scenes(i).Title;
                 end
                 options{end+1} = 'other...';
                 
-                index = listdlg('ListString',options,'ListSize',[200,100],'SelectionMode','single');
-                
+                if nargin<3
+                    index = listdlg('ListString',options,'ListSize',[200,100],'SelectionMode','single');
+                elseif nargin==3
+                    index = listdlg('ListString',options,'ListSize',[200,100],'SelectionMode','single','PromptString',txt);
+                end
                 %make new scene when selected
                 if index>numel(obj.Scenes)
                     newScene = ArenaScene();
@@ -86,9 +89,11 @@ classdef ArenaManager < handle
                     obj.Scenes(end+1) = newScene;
                 end
             end
-            scenehandle = obj.Scenes(index);
+           
+                scenehandle = obj.Scenes(index);
+            end
             
-        end
+        
         
     end
     
