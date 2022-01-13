@@ -176,7 +176,7 @@ classdef VoxelDataStack < handle
             %set up Stack
             obj.newEmpty([],length(obj.Recipe.filelocation)); %ref is empty, becasue it's already set.
             obj.ScoreLabel = scoreTag;
-            scene = getScene;
+            scene = getScene('Show the data in a scene?');
             
             for i = 1:height(obj.Recipe)
                 
@@ -637,27 +637,22 @@ classdef VoxelDataStack < handle
             
 
             serialized = obj.Voxels;
+            serialized_sum  = sum(round(serialized),2);
+            serialized_width = size(serialized,2);
+            relevantVoxels = find(and(serialized_sum>1,serialized_sum<serialized_width));
             t_voxels = zeros([length(serialized),1]);
-            p_voxels = zeros([length(serialized),1]);
+            p_voxels = ones([length(serialized),1]);
             disp(' ~running ttest2')
-            for i =  1:length(serialized)
-                
-                % ignore if only 0, 1, or all in a group.
-                if sum(serialized(i,:)>0.5)<=1 || all(serialized(i,:)) 
-                    p = 1;
-                    t = 0;
-                else
-                % if there is 
+            for i =  relevantVoxels'
                         weightsweights = [obj.Weights,obj.Weights];
                         serializedcombi = [serialized(i,:)>0.5,serialized(i,:)>1.5];
                         [~,p,~,stat] = ttest2(weightsweights(serializedcombi),weightsweights(~serializedcombi));
                         
                         %[~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
                         t = stat.tstat;
-                    
-                end
-                t_voxels(i) = t;
-                p_voxels(i) = p;
+
+                    t_voxels(i) = t;
+                    p_voxels(i) = p;
                 
                 if isnan(t)
                     keyboard
