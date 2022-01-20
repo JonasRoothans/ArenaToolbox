@@ -350,6 +350,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Slicei.SpatialCorrelation = obj.handles.menu.dynamic.Mesh.SpatialCorrelation;
             
             obj.handles.menu.dynamic.Slicei.multiply = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: multiply images','callback',{@menu_multiplyslices},'Enable','off');
+            obj.handles.menu.dynamic.Slicei.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: smooth','callback',{@menu_smoothslice},'Enable','off');
             
             obj.handles.menu.dynamic.Fibers.interferenceWithMap = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: interference with map','callback',{@menu_fiberMapInterference},'Enable','off');
             
@@ -2078,6 +2079,19 @@ classdef ArenaScene < handle
                 
             end
             
+            function menu_smoothslice(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    cropped = thisActor.Data.parent.convertToCropped;
+                    cropped.smooth;
+                    actor = cropped.getslice.see(scene);
+                    actor.changeName(['Smoothed_',currentActor.Tag])
+                end
+                
+            end
+            
             function menu_multiplyslices(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
@@ -2159,8 +2173,11 @@ classdef ArenaScene < handle
                     disp(['NaNs were removed from analysis (',num2str(round(mean(nans)*100),3),'%)'])
                  end
                 
-                disp(['Pearson correlation: ',num2str(corr(v1,v2))]);
-                disp(['Spearman correlation: ',num2str(corr(v1,v2,'Type','Spearman'))]);
+                 
+                 [pearson_r,pearson_p] = corr(v1,v2);
+                 [spearman_r,spearman_p] = corr(v1,v2,'Type','Spearman');
+                disp(['Pearson correlation: ',num2str(pearson_r),' (correlation P-value: ',num2str(pearson_p),')']);
+                disp(['Spearman correlation: ',num2str(spearman_r),' (correlation P-value: ',num2str(spearman_p),')']);
 
 disp('Pearson checks if it is on a line while spearman checks if they move in a same direction.')
 disp('Therefore pearson is more conservative. If your data is ordinal: do not use pearson but spearman.')
