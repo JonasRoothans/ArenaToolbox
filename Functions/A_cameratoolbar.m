@@ -127,7 +127,7 @@ figure.InvertHardcopy = 'off';
 if fn==0
     return
 end
-
+axes(scene.handles.axesOrientation) %show marker on top
 scene.handles.panelleft.Visible = 'off';
 scene.handles.panelright.Visible = 'off';
 scene.handles.btn_toggleleft.Visible = 'off';
@@ -143,6 +143,7 @@ scene.handles.panelright.Visible = 'on';
 scene.handles.btn_toggleleft.Visible = 'on';
 scene.handles.btn_toggleright.Visible = 'on';
 scene.handles.btn_layeroptions.Visible = 'on';
+axes(scene.handles.axes) %return focus to main axes
 
 end
 
