@@ -1307,7 +1307,7 @@ classdef ArenaScene < handle
                         case '.nii'
                             v = VoxelData;
                             v.loadnii(fullfile(pathname,filename{iFile}));
-                            if v.isBinary(80)
+                            if v.isProbablyAMesh
                                 
 %                              [pointlist] = v.detectPoints();
 %                                 if length(pointlist)==2
@@ -1318,12 +1318,12 @@ classdef ArenaScene < handle
                                 %end
                             else
                                     %check if it has two dots
-                                [pointlist] = v.detectPoints();
-                                if length(pointlist)==2
-                                    import_leadfromnii(scene,v,name)
-                                else
+%                                 [pointlist] = v.detectPoints();
+%                                 if length(pointlist)==2
+%                                     import_leadfromnii(scene,v,name)
+%                                 else
                                 import_nii_plane(scene,v,name);
-                                end
+                                %end
                             end
                             
                         case '.obj'
