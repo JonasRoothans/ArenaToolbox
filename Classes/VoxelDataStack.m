@@ -363,7 +363,7 @@ classdef VoxelDataStack < handle
                     score_tag = recipe.Properties.VariableNames{4};
                 else
                     indx = listdlg('Liststring',recipe.Properties.VariableNames(4:end));
-                    score_tag = recipe.Properties.VariableNames{1+indx};
+                    score_tag = recipe.Properties.VariableNames{3+indx};
                 end
             end
             
@@ -632,7 +632,11 @@ classdef VoxelDataStack < handle
         function [tmap,pmap,signedpmap] = ttest2(obj)
             
             if all(obj.Weights==0)
-                error('All weights are set to 0. This will not work.')
+                warning('All weights are set to 0. Skipping ttest')
+                tmap = [];
+                pmap = [];
+                signedpmap = [];
+                return
             end
             
 

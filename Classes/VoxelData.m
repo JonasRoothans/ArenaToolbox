@@ -228,9 +228,11 @@ classdef VoxelData <handle
                     return
                 end
                 niifile = fullfile(pathname,filename);
-                noreslice = 0;
+                
+                noreslice = checkIfReslicingIsRecommended(niifile);
+                %noreslice = 0;
             elseif nargin==2
-                noreslice = 0;
+                noreslice = checkIfReslicingIsRecommended(niifile);
             elseif nargin==3
                 if ischar(noreslice)
                     switch lower(noreslice)
@@ -281,6 +283,24 @@ classdef VoxelData <handle
             obj.SourceFile = niifile;
             [~,filename] = fileparts(niifile);
             obj.Tag = filename;
+            
+            function noreslice = checkIfReslicingIsRecommended(niifile)
+                hdr = load_nii_hdr(niifile);
+                %get the SFORM transformation matrix
+                T = [hdr.hist.srow_x;hdr.hist.srow_y;hdr.hist.srow_z;0 0 0 1]';
+                
+                %switch of scaling
+                T(eye(4)>0.5)= 1;
+                
+                noreslice = affine3d(T).isRigid;
+                
+            end
+        end
+        
+        function bool = isProbablyAMesh(obj)
+            ratioOfNonZero = nnz(obj.Voxels)/numel(obj.Voxels);
+            bool = ratioOfNonZero < 0.1;
+            
         end
         
         function [bool, percentage_nonbinary] = isBinary(obj,slack)

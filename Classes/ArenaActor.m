@@ -229,7 +229,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
             question = ['Edit ',obj.Tag];
             switch class(obj.Data)
                 otherwise
-                    answer = questdlg(question,'Arena','change name','delete actor','cancel','cancel');
+                    answer = questdlg(question,'Arena','change name','delete actor','get graphical handle in workspace','get graphical handle in workspace');
             end
             switch answer
                 case 'change name'
@@ -246,7 +246,13 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     end
                 case 'change threshold'
                     keyboard
-                case 'cancel'
+                case 'get graphical handle in workspace'
+                    h= obj.Visualisation.handle;
+                    assignin('base','h',h)
+                    home;
+                    disp('visualisation handle is available as ''h'' in workspace.')
+                    
+                    h %on purpose
                     return
             end
             

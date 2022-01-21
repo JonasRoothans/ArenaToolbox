@@ -108,9 +108,9 @@ classdef ArenaScene < handle
             axis off
             
             daspect([1 1 1]);
-            obj.handles.light1 = light('Position',[-1 0 0.5],'Style','infinite');
-            obj.handles.light2 = light('Position',[1 0 0.5],'Style','infinite');
-            obj.handles.light3 = light('Position',[0 1 0],'Style','infinite');
+            obj.handles.light1_patientorientationmarker = light('Position',[-1 0 0.5],'Style','infinite');
+            obj.handles.light2_patientorientationmarker = light('Position',[1 0 0.5],'Style','infinite');
+            obj.handles.light3_patientorientationmarker = light('Position',[0 1 0],'Style','infinite');
             Marker = ObjFile;
             Marker = Marker.loadfile('PatientOrientationMarker.obj');
             Marker.Vertices(:,2) = Marker.Vertices(:,2)*-1;
@@ -248,7 +248,8 @@ classdef ArenaScene < handle
             
             
             obj.handles.menu.view.lights.main = uimenu(obj.handles.menu.view.main,'Text','Lights');
-            obj.handles.menu.view.lights.visible = uimenu(obj.handles.menu.view.lights.main,'Text','visible','callback',{@menu_showLight},'Checked','on');
+            obj.handles.menu.view.lights.sun = uimenu(obj.handles.menu.view.lights.main,'Text','Sun','callback',{@menu_showLight_sun},'Checked','on');
+            obj.handles.menu.view.lights.ground = uimenu(obj.handles.menu.view.lights.main,'Text','Bottom light','callback',{@menu_showLight_ground},'Checked','off');
             obj.handles.menu.view.lights.cameraposition = uimenu(obj.handles.menu.view.lights.main,'Text','place light at camera position','callback',{@menu_placeLight});
             
             
@@ -350,14 +351,15 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Slicei.SpatialCorrelation = obj.handles.menu.dynamic.Mesh.SpatialCorrelation;
             
             obj.handles.menu.dynamic.Slicei.multiply = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: multiply images','callback',{@menu_multiplyslices},'Enable','off');
+            obj.handles.menu.dynamic.Slicei.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: smooth','callback',{@menu_smoothslice},'Enable','off');
             
             obj.handles.menu.dynamic.Fibers.interferenceWithMap = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: interference with map','callback',{@menu_fiberMapInterference},'Enable','off');
             
             %obj.handles.cameratoolbar = cameratoolbar(obj.handles.figure,'Show');
             obj.handles.cameratoolbar = A_cameratoolbar(obj.handles.figure);
-            obj.handles.light = camlight('headlight');
-            obj.handles.light.Style = 'infinite';
-            
+            obj.handles.lightSun = light('Position',[0 0 1],'Style','infinite');
+            obj.handles.lightGround = light('Position',[0 0 -1],'Style','infinite');
+            obj.handles.lightGround.Visible = 'off';
             
             
             obj = createcoordinatesystem(obj);
@@ -502,14 +504,27 @@ classdef ArenaScene < handle
 
             end
             
-            function menu_showLight(hObject,eventdata)
+            function menu_showLight_sun(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 switch hObject.Checked
                     case 'on'
-                        scene.handles.light.Visible = 'off';
+                        scene.handles.lightSun.Visible = 'off';
                         hObject.Checked = 'off';
                     case 'off'
-                        scene.handles.light.Visible = 'on';
+                        scene.handles.lightSun.Visible = 'on';
+                        hObject.Checked = 'on';
+                end
+            end
+            
+            
+             function menu_showLight_ground(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                switch hObject.Checked
+                    case 'on'
+                        scene.handles.lightGround.Visible = 'off';
+                        hObject.Checked = 'off';
+                    case 'off'
+                        scene.handles.lightGround.Visible = 'on';
                         hObject.Checked = 'on';
                 end
             end
@@ -1306,7 +1321,7 @@ classdef ArenaScene < handle
                         case '.nii'
                             v = VoxelData;
                             v.loadnii(fullfile(pathname,filename{iFile}));
-                            if v.isBinary(80)
+                            if v.isProbablyAMesh
                                 
 %                              [pointlist] = v.detectPoints();
 %                                 if length(pointlist)==2
@@ -1317,12 +1332,12 @@ classdef ArenaScene < handle
                                 %end
                             else
                                     %check if it has two dots
-                                [pointlist] = v.detectPoints();
-                                if length(pointlist)==2
-                                    import_leadfromnii(scene,v,name)
-                                else
+%                                 [pointlist] = v.detectPoints();
+%                                 if length(pointlist)==2
+%                                     import_leadfromnii(scene,v,name)
+%                                 else
                                 import_nii_plane(scene,v,name);
-                                end
+                                %end
                             end
                             
                         case '.obj'
@@ -2078,6 +2093,19 @@ classdef ArenaScene < handle
                 
             end
             
+            function menu_smoothslice(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    cropped = thisActor.Data.parent.convertToCropped;
+                    cropped.smooth;
+                    actor = cropped.getslice.see(scene);
+                    actor.changeName(['Smoothed_',currentActor.Tag])
+                end
+                
+            end
+            
             function menu_multiplyslices(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
@@ -2159,8 +2187,11 @@ classdef ArenaScene < handle
                     disp(['NaNs were removed from analysis (',num2str(round(mean(nans)*100),3),'%)'])
                  end
                 
-                disp(['Pearson correlation: ',num2str(corr(v1,v2))]);
-                disp(['Spearman correlation: ',num2str(corr(v1,v2,'Type','Spearman'))]);
+                 
+                 [pearson_r,pearson_p] = corr(v1,v2);
+                 [spearman_r,spearman_p] = corr(v1,v2,'Type','Spearman');
+                disp(['Pearson correlation: ',num2str(pearson_r),' (correlation P-value: ',num2str(pearson_p),')']);
+                disp(['Spearman correlation: ',num2str(spearman_r),' (correlation P-value: ',num2str(spearman_p),')']);
 
 disp('Pearson checks if it is on a line while spearman checks if they move in a same direction.')
 disp('Therefore pearson is more conservative. If your data is ordinal: do not use pearson but spearman.')
