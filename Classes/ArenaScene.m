@@ -359,7 +359,7 @@ classdef ArenaScene < handle
             obj.handles.cameratoolbar = A_cameratoolbar(obj.handles.figure);
             obj.handles.lightSun = light('Position',[0 0 1],'Style','infinite');
             obj.handles.lightGround = light('Position',[0 0 -1],'Style','infinite');
-            obj.handles.lightGround.Visible = 'off';
+            obj.handles.lightGround.Visible = 'on';
             
             
             obj = createcoordinatesystem(obj);
