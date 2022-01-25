@@ -229,10 +229,10 @@ classdef VoxelData <handle
                 end
                 niifile = fullfile(pathname,filename);
                 
-                noreslice = checkIfReslicingIsRecommended(niifile);
+                noreslice = 0;%checkIfReslicingIsRecommended(niifile);
                 %noreslice = 0;
             elseif nargin==2
-                noreslice = checkIfReslicingIsRecommended(niifile);
+                noreslice = 0;%checkIfReslicingIsRecommended(niifile);
             elseif nargin==3
                 if ischar(noreslice)
                     switch lower(noreslice)
