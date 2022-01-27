@@ -49,7 +49,7 @@ for i=1:numel(numericValues)
             
             continue
         else
-            error ('memory requirement for array is larger than available on computer,try using on a computer with bigger RAM or close some of the running programs'); 
+            error ('It looks like, memory requirement for array is larger than available on computer,try using on a computer with bigger RAM or close some of the running programs'); 
             
         end
         
