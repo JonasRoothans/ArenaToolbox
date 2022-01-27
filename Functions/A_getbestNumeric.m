@@ -2,12 +2,15 @@ function BestNumeric=A_getbestNumeric(varargin);
 % incomplete-non functional
 if ispc
  
-    CurrentMemory=memory;
+    [CurrentMemory, Totalmemory]=memory;
     
     CurrentMemory=CurrentMemory.MemUsedMATLAB/1e6;
+    Totalmemory=Totalmemory.PhysicalMemory/1e6;
 else 
 
-CurrentMemory=memoryForMac(); %get current memory Status
+[CurrentMemory, Totalmemory]=memoryForMac(); %get current memory Status
+CurrentMemory=str2double(CurrentMemory);
+Totalmemory=str2double(Totalmemory);
 end
      
 sum=prod(varargin{:}); % get number of Array elements
@@ -24,49 +27,45 @@ for i=1:numel(numericValues)
         
         case 'double'
             
-            burden=(sum*8)/10e6;
+            burden=(sum*8)/1e6;
             condition=1;
             
         case 'single'
             
-            burden=(sum*4)/10e6;
+            burden=(sum*4)/1e6;
             condition=2;
             
         case 'int8'
             
-            burden=(sum*1)/10e6;
+            burden=(sum*1)/1e6;
             condition=3;
             
     end
-end
+
    
-    if ((burden+CurrentMemory)/1000)>8 
+    if ((burden+CurrentMemory)/1000)>Totalmemory 
         
-        while condition<3
+        if condition<3
             
-            condition=condition+1;
+            continue
+        else
+            error ('memory requirement for array is larger than available on computer,try using on a computer with bigger RAM or close some of the running programs'); 
             
-            if condition==2
-                
-                 burden=(sum*4)/10e6;
-            else
-                
-                burden=(sum*1)/10e6;
-            end
-            
-            warning(['using lower precision numeric Value:', numericValues{condition}])
         end
+        
+    else
+        if condition~=1
+        warning(['using lower precision numeric Value:', numericValues{condition}])
+        end
+        break
     end
-    
+            
+
+end
+
     BestNumeric=numericValues{condition};
             
-            
-        
-        
-    
-        
-        
-    
+     
 end
      
      
@@ -83,7 +82,7 @@ end
      
      
      
-    function CurrentMemory=memoryForMac()
+    function [CurrentMemory, totalMemory]=memoryForMac()
 % This function will return the memory used by MATLAB on the MAC
 %
 
@@ -116,7 +115,12 @@ else
     memLoc = findstr(info,'MEM');
     MEM = info(memLoc+5:end-1);
     fprintf('Total memory used: %s\n',MEM);
-    CurrentMemory=str2double(MEM); % add a loop to change to number format
+    CurrentMemory=MEM(isstrprop(MEM,'digit')); % change to number format
+    
+    PhysmemLoc = findstr(info,'PhysMem');
+    Physmem = info(PhysmemLoc+5:end-1);
+    fprintf('Total memory used: %s\n',Physmem);
+    totalMemory=Physmem(isstrprop(Physmem,'digit'));
 end
 % modified from Michael Burke, Mathworks- https://www.mathworks.com/matlabcentral/answers/78726-show-memory-options-in-matlab-working-on-mac-platform
 end
