@@ -92,7 +92,9 @@ switch class(actor.Data)
         inbetween2 = [actor.Visualisation.handle.XData(end,1),actor.Visualisation.handle.YData(end,1), actor.Visualisation.handle.ZData(end,1)];
         rightcorner = [actor.Visualisation.handle.XData(end,end),actor.Visualisation.handle.YData(end,end), actor.Visualisation.handle.ZData(end,end)];
         [~,~] = mkdir('textures');
-        imwrite(actor.Visualisation.handle.CData,fullfile('textures',[objectname,'.jpg']))
+        imwrite(actor.Visualisation.handle.CData,fullfile('textures',[objectname,'.jpg']),'Quality',100)
+        imwrite(actor.Visualisation.handle.CData~=0.5,fullfile('textures',[objectname,'_alpha.jpg']),'Quality',100)
+        
         Vertices = [leftcorner;inbetween1;inbetween2;rightcorner];
         Faces = [1 2 3; 2 4 3];
         VerticesTexture = [0 1; 1 1; 0 0; 1 0];
@@ -123,7 +125,7 @@ switch class(actor.Data)
         fprintf(fidmtl,'Ni 1.000000\n');
         fprintf(fidmtl,'d 1.000000\n');
         fprintf(fidmtl,'illum 2\n');
-        fprintf(fidmtl,['map_Kd textures\\',objectname,'.jpg\n']);
+        fprintf(fidmtl,['map_Kd textures\\',objectname,'_alpha.jpg\n']);
         fprintf(fidmtl,['map_Ke textures\\\\',objectname,'.jpg\n']);
         fprintf(fidmtl,['map_d textures\\\\',objectname,'.jpg\n']);
         

@@ -96,8 +96,10 @@ classdef Heatmap < handle
              
 
             %Wuerzburg-workflow
-            if ~isempty(intersect(mapSelection,{'all','Signedpmap','Pmap','Tmap'}))
+
+            if ~isempty(intersect(mapSelection,{'all','Signedpmap','Pmap','Tmap','BFmap'}))
             [tmap,pmap,signedpmap,bfmap] = Stack.ttest2();
+
             obj.Tmap = tmap;
             obj.Pmap = pmap;
             obj.Signedpmap = signedpmap;

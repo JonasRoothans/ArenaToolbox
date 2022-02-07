@@ -6,3 +6,5 @@ config.mat
 .DS_Store
 *.vtk
 **/UserData
+*.mat
+

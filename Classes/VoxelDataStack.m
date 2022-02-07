@@ -23,7 +23,11 @@ classdef VoxelDataStack < handle
                 if length(size(Voxels))>2
                     obj.Voxels = reshape(single(Voxels),[],size(Voxels,4)); %by default to minimize memory consumption
                 else
-                    obj.Voxels =single(Voxels);
+                    if not(issparse(Voxels))
+                        obj.Voxels = single(Voxels);
+                    else
+                        obj.Voxels = Voxels; %sparse does not support single
+                    end
                 end
             end
             if nargin>1
@@ -66,10 +70,8 @@ classdef VoxelDataStack < handle
                 otherwise
                     obj.R = reference.R;    
             end
-
-%             BestNUmericType=A_getbestNumeric([obj.R.ImageSize,n_files]);
-            obj.Voxels = zeros([prod(obj.R.ImageSize),n_files],'int8'); %% change numeric class to int8 for memory optimisation, not valid for functional data
-
+            BestNUmericType=A_getbestNumeric([obj.R.ImageSize,n_files]);
+            obj.Voxels = zeros([prod(obj.R.ImageSize),n_files],BestNUmericType); %% change numeric class to int8 for memory optimisation, not valid for functional data
             obj.Weights = ones(1,n_files);
         end
         
@@ -175,7 +177,7 @@ classdef VoxelDataStack < handle
             %set up Stack
             obj.newEmpty([],length(obj.Recipe.filelocation)); %ref is empty, becasue it's already set.
             obj.ScoreLabel = scoreTag;
-            scene = getScene;
+            scene = getScene('Show the data in a scene?');
             
             for i = 1:height(obj.Recipe)
                 
@@ -362,7 +364,7 @@ classdef VoxelDataStack < handle
                     score_tag = recipe.Properties.VariableNames{4};
                 else
                     indx = listdlg('Liststring',recipe.Properties.VariableNames(4:end));
-                    score_tag = recipe.Properties.VariableNames{1+indx};
+                    score_tag = recipe.Properties.VariableNames{3+indx};
                 end
             end
             
@@ -631,36 +633,38 @@ classdef VoxelDataStack < handle
         function [tmap,pmap,signedpmap,bfmap] = ttest2(obj)
             
             if all(obj.Weights==0)
-                error('All weights are set to 0. This will not work.')
+                warning('All weights are set to 0. Skipping ttest')
+                tmap = [];
+                pmap = [];
+                signedpmap = [];
+                return
             end
             
 
             serialized = obj.Voxels;
+            serialized_sum  = sum(round(serialized),2);
+            serialized_width = size(serialized,2);
+            relevantVoxels = find(and(serialized_sum>1,serialized_sum<serialized_width));
             t_voxels = zeros([length(serialized),1]);
-            p_voxels = zeros([length(serialized),1]);
+
+            p_voxels = ones([length(serialized),1]);
             bf_voxels= zeros([length(serialized),1]);
             disp(' ~running ttest2')
-            for i =  1:length(serialized)
+            for i =  relevantVoxels'
                 
-                % ignore if only 0, 1, or all in a group.
-                if sum(serialized(i,:)>0.5)<=1 || all(serialized(i,:)) 
-                    p = 1;
-                    t = 0;
-                    bayes= 0;
-                else
-                % if there is 
-                        weightsweights = [obj.Weights,obj.Weights];
-                        serializedcombi = [serialized(i,:)>0.5,serialized(i,:)>1.5];
-                        [~,p,~,stat] = ttest2(weightsweights(serializedcombi),weightsweights(~serializedcombi));
-                        
-                        %[~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
-                        t = stat.tstat;
-                        [bayes]=bf.ttest2('T',t, 'N', [numel(weightsweights(serializedcombi)), numel(weightsweights(~serializedcombi))]);
-                    
-                end
+                weightsweights = [obj.Weights,obj.Weights];
+                serializedcombi = [serialized(i,:)>0.5,serialized(i,:)>1.5];
+                [~,p,~,stat] = ttest2(weightsweights(serializedcombi),weightsweights(~serializedcombi));
+                
+                %[~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
+                t = stat.tstat;
+                
+                [bayes]=bf.ttest2('T',t, 'N', [numel(weightsweights(serializedcombi)), numel(weightsweights(~serializedcombi))]);
+                
                 t_voxels(i) = t;
                 p_voxels(i) = p;
                 bf_voxels(i) = bayes;
+                
                 
                 if isnan(t)
                     keyboard
