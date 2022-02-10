@@ -57,7 +57,12 @@ end
 for i = indx
     thisProp = options{i};
     vd = hm.(thisProp);
-    actor = vd.getslice.see(scene);
+    slice = vd.getslice;
+    if any(contains(options,'Nmap'))
+        amap = hm.Nmap.makeBinary(0.5);
+        slice.addAlphaMap(amap)
+    end
+    actor = slice.see(scene);
     actor.changeName([label,'__',thisProp])
 end
 

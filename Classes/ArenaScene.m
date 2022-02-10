@@ -468,7 +468,7 @@ classdef ArenaScene < handle
             
             function templatelist =  menu_refreshTemplatelist(hObject,eventdata,custom)
                 
-                 templatedir = fullfile(fileparts(fileparts(mfilename('fullpath'))),'Elements','templates');
+                 templatedir = fullfile(fileparts(fileparts(mfilename('fullpath'))),'UserData','Templates');
                 if not(isfolder(templatedir))
                     scene = ArenaScene.getscenedata(hObject);
                     
@@ -488,7 +488,7 @@ classdef ArenaScene < handle
                 if strcmp(custom,'user')
                     scene = ArenaScene.getscenedata(hObject);
                     if isempty(iTemplate)
-                        msgbox('No .nii files are detected in the folder: ArenaToolbox/Elements/templates')
+                        msgbox('No .nii files are detected in the folder: ArenaToolbox/UserData/Templates')
                         return
                     end
                     
@@ -2101,7 +2101,7 @@ classdef ArenaScene < handle
                     cropped = thisActor.Data.parent.convertToCropped;
                     cropped.smooth;
                     actor = cropped.getslice.see(scene);
-                    actor.changeName(['Smoothed_',currentActor.Tag])
+                    actor.changeName(['Smoothed_',thisActor.Tag])
                 end
                 
             end
