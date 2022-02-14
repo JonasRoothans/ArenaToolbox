@@ -86,7 +86,13 @@ classdef Heatmap < handle
              end
              
              if nargin<5
-                 mapSelection = {'all'};
+                answer=questdlg('Do you want to calculate a bayes factor map as well? it will take considerably more time');
+               switch answer
+                   case 'Yes'
+                   mapSelection = {'all'};
+                   case 'No'
+                   mapSelection ={'all except BFmap'}
+               end
              end
              
              
@@ -97,13 +103,14 @@ classdef Heatmap < handle
 
             %Wuerzburg-workflow
 
-            if ~isempty(intersect(mapSelection,{'all','Signedpmap','Pmap','Tmap','BFmap'}))
-            [tmap,pmap,signedpmap,bfmap] = Stack.ttest2();
+            if ~isempty(intersect(mapSelection,{'all', 'all except bayes', 'Signedpmap','Pmap','Tmap','BFmap'}))
+            [tmap,pmap,signedpmap,bfmap] = Stack.ttest2(mapSelection);
 
             obj.Tmap = tmap;
             obj.Pmap = pmap;
             obj.Signedpmap = signedpmap;
-            obj.BFmap=bfmap;
+            if  ~isempty(intersect(mapSelection,{'all except bayes'}))
+                obj.BFmap=bfmap;
             end
 
             if ~isempty(intersect(mapSelection,{'Amap'}))
@@ -127,6 +134,7 @@ classdef Heatmap < handle
             obj.Description = description;
             obj.outputdir=Stack.RecipePath;
 
+            end
         end
             
         function see(obj,scene)

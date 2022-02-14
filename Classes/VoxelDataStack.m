@@ -630,7 +630,27 @@ classdef VoxelDataStack < handle
         end
             
         
-        function [tmap,pmap,signedpmap,bfmap] = ttest2(obj)
+        function [tmap,pmap,signedpmap,bfmap] = ttest2(obj,varargin)
+            
+            p=inputParser;
+            
+            Bayes=false;
+            
+            if nargin>1
+                MapType=varargin{1};
+                addParameter(p,'MapSelection', MapType);
+                
+                if ~isempty(intersect(MapType,{'all except BFmap'}))
+                    Bayes=true;
+                end
+            end
+            
+            
+            
+            
+            p.KeepUnmatched=false;
+
+
             
             if all(obj.Weights==0)
                 warning('All weights are set to 0. Skipping ttest')
@@ -648,7 +668,9 @@ classdef VoxelDataStack < handle
             t_voxels = zeros([length(serialized),1]);
 
             p_voxels = ones([length(serialized),1]);
+            if Bayes
             bf_voxels= zeros([length(serialized),1]);
+            end
             disp(' ~running ttest2')
             for i =  relevantVoxels'
                 
@@ -658,12 +680,13 @@ classdef VoxelDataStack < handle
                 
                 %[~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
                 t = stat.tstat;
-                
+                if Bayes
                 [bayes]=bf.ttest2('T',t, 'N', [numel(weightsweights(serializedcombi)), numel(weightsweights(~serializedcombi))]);
-                
+                 bf_voxels(i) = bayes;
+                end
                 t_voxels(i) = t;
                 p_voxels(i) = p;
-                bf_voxels(i) = bayes;
+              
                 
                 
                 if isnan(t)
@@ -677,7 +700,11 @@ classdef VoxelDataStack < handle
             tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
             pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
             signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
-           bfmap = VoxelData(reshape(bf_voxels,outputsize),obj.R);
+            if Bayes
+                bfmap = VoxelData(reshape(bf_voxels,outputsize),obj.R);
+            else
+                bfmap=empty;
+            end
         end
         
         function obj = full(obj)
