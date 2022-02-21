@@ -5,7 +5,8 @@ function [outputArg1,outputArg2] = HeatmapMaker_ttest(menu,eventdata,scene)
 
           
 Stack = VoxelDataStack;
-Stack.loadDataFromFolder();
+% Stack.loadDataFromFolder();
+Stack.construct();
 
 if isempty(Stack.Voxels)
     disp('aborted by user')
