@@ -83,9 +83,11 @@ classdef Slicei < handle & ArenaActorRendering
         end
         
         function addAlphaMap(obj,vd)
-            vd.warpto(obj.parent)
-            vd_bin = vd.makeBinary;
-            obj.alphamap = vd_bin;
+            amap = vd.getslice;
+            %vd.warpto(obj.parent)
+            %vd_bin = vd.makeBinary;
+            
+            obj.alphamap = amap.vol;
         end
         
         
@@ -112,7 +114,7 @@ classdef Slicei < handle & ArenaActorRendering
                 end
                 sliceim = squeeze(obj.vol(:,:,round(obj.sliceidx),:));
                 if alphalayer
-                 alphaim = squeeze(obj.alphamap.Voxels(:,:,round(obj.sliceidx),:));
+                 alphaim = squeeze(obj.alphamap(:,:,round(obj.sliceidx),:));
                 end
             elseif obj.slicedim == 2 % j
               ij2xyz = obj.I2X(:,[1 3]);
@@ -124,7 +126,7 @@ classdef Slicei < handle & ArenaActorRendering
               end
               sliceim = squeeze(obj.vol(:,round(obj.sliceidx),:,:));
               if alphalayer
-                  alphaim = squeeze(obj.alphamap.Voxels(:,round(obj.sliceidx),:,:));
+                  alphaim = squeeze(obj.alphamap(:,round(obj.sliceidx),:,:));
               end
             elseif obj.slicedim == 1 % i
               ij2xyz = obj.I2X(:,[2 3]);
@@ -136,7 +138,7 @@ classdef Slicei < handle & ArenaActorRendering
               end
               sliceim = squeeze(obj.vol(round(obj.sliceidx),:,:,:));
               if alphalayer
-                  alphaim = squeeze(obj.alphamap.Voxels(round(obj.sliceidx),:,:,:));
+                  alphaim = squeeze(obj.alphamap(round(obj.sliceidx),:,:,:));
               end
             else
                 error('Slicedim should be 1, 2 or 3')
@@ -168,7 +170,7 @@ classdef Slicei < handle & ArenaActorRendering
              if alphalayer
                  obj.handle.FaceAlpha = 'interp';
                 obj.handle.AlphaDataMapping = 'none';
-                obj.handle.AlphaData = alphaim';
+                obj.handle.AlphaData = alphaim;
                 
                 
              elseif strcmp(scene.handles.menu.view.dynamictransparanncy.main.Checked,'on') && obj.clipDark

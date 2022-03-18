@@ -126,7 +126,7 @@ classdef PredictionModel < handle
             global arena
             root = arena.getrootdir;
             modelFolder = fullfile(root,'UserData','PredictionModels');
-            strmessage=append('from Arena Rootdirectory: ',modelFolder);
+            strmessage=['from Arena Rootdirectory: ',modelFolder];
             answer=questdlg('how would you like to load the prediction model?','',...
                strmessage,...
                 'select from other directory',strmessage);

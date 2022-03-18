@@ -316,11 +316,11 @@ output = {};
     function Tfromreglink = getSecondTransformation(reglink)
         switch class(reglink)
             case 'Atlas'
-                T = load('Tapproved.mat');
-                atlasname = [lower(reglink.hemisphere),lower(reglink.group),'2mni'];
-                Tatlas2fake = T.(atlasname);
-                Tfake2mni = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
-                Tfromreglink = Tatlas2fake*Tfake2mni;
+                T = load('2022.mat');
+                atlasname = ['stu2mni_',lower(reglink.hemisphere),upper(reglink.group)];
+                %Tatlas2fake = T.(atlasname);
+                %Tfake2mni = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
+                Tfromreglink = T.(atlasname);
             case 'ACPCIH'
                 Tlps2ras = diag([-1 -1 1 1]);
                 MCP2AC = Vector3D(reglink.ac-reglink.pc).norm*-0.5;

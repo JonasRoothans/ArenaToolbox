@@ -630,7 +630,7 @@ classdef VoxelDataStack < handle
         end
             
         
-        function [tmap,pmap,signedpmap,bfmap] = ttest2(obj)
+        function [tmap,pmap,signedpmap] = ttest2(obj)
             
             if all(obj.Weights==0)
                 warning('All weights are set to 0. Skipping ttest')
@@ -659,11 +659,11 @@ classdef VoxelDataStack < handle
                 %[~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
                 t = stat.tstat;
                 
-                [bayes]=bf.ttest2('T',t, 'N', [numel(weightsweights(serializedcombi)), numel(weightsweights(~serializedcombi))]);
+                %[bayes]=bf.ttest2('T',t, 'N', [numel(weightsweights(serializedcombi)), numel(weightsweights(~serializedcombi))]);
                 
                 t_voxels(i) = t;
                 p_voxels(i) = p;
-                bf_voxels(i) = bayes;
+                %bf_voxels(i) = bayes;
                 
                 
                 if isnan(t)
@@ -677,7 +677,7 @@ classdef VoxelDataStack < handle
             tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
             pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
             signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
-           bfmap = VoxelData(reshape(bf_voxels,outputsize),obj.R);
+           %bfmap = VoxelData(reshape(bf_voxels,outputsize),obj.R);
         end
         
         function obj = full(obj)
