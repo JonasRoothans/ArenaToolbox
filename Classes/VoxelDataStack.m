@@ -618,19 +618,47 @@ classdef VoxelDataStack < handle
             
         end
         
-        function amap = average(obj)
+        function amap = average(obj,varargin)
             
-            if any(isnan(obj.Voxels))
-                displ('NaNs detected, calculating average map without NaNs')
+            p=inputParser;
+            
+            if nargin>1
+                averageType=varargin{2};
+                addParameter(p,'averageType', averageType);
+                
+            end
             averageVoxels = nanmean(obj.Voxels,2);
-            else
-                averageVoxels = mean(obj.Voxels,2);
+            
+            if ~isempty(varargin) && ~isempty(intersect(averageType,{'weighted'})) % only if varargin is empty, is the second statement 
+                averageVoxels=(obj.Voxels*obj.Weights')./nansum(obj.Voxels);
             end
             amap = obj.reshape(averageVoxels);
         end
             
         
-        function [tmap,pmap,signedpmap] = ttest2(obj)
+
+        function [tmap,pmap,signedpmap,bfmap] = ttest2(obj,varargin)
+            
+            p=inputParser;
+            
+            Bayes=false;
+            
+            if nargin>1
+                MapType=varargin{1};
+                addParameter(p,'MapSelection', MapType);
+                
+                if ~isempty(intersect(MapType,{'Tstatistic pipeline with Bayesian Stats'}))
+                    Bayes=true;
+                end
+            end
+            
+            
+            
+            
+            p.KeepUnmatched=false;
+
+
+
             
             if all(obj.Weights==0)
                 warning('All weights are set to 0. Skipping ttest')
@@ -642,28 +670,42 @@ classdef VoxelDataStack < handle
             
 
             serialized = obj.Voxels;
-            serialized_sum  = sum(round(serialized),2);
-            serialized_width = size(serialized,2);
-            relevantVoxels = find(and(serialized_sum>1,serialized_sum<serialized_width));
-            t_voxels = zeros([length(serialized),1]);
+            serialized_sum  = sum(round(serialized),2); % takes the sum across all subjects
+            serialized_width = size(serialized,2); %number of data points per voxel
+            relevantVoxels = find(and(serialized_sum>1,serialized_sum<serialized_width)); % excludes voxels that are almost empty across all subjects or that are filled across all subject 
+            t_voxels = zeros([length(serialized),1]); % all values assigned zeros including non relevenat voxels
 
-            p_voxels = ones([length(serialized),1]);
-            bf_voxels= zeros([length(serialized),1]);
+
+            p_voxels = ones([length(serialized),1]); % all values assigned ones including non relevenat voxels
+            if Bayes
+            bf_voxels= zeros([length(serialized),1]); % bf applied to all voxels including relevant and non relevant
+            end
             disp(' ~running ttest2')
             for i =  relevantVoxels'
                 
-                weightsweights = [obj.Weights,obj.Weights];
-                serializedcombi = [serialized(i,:)>0.5,serialized(i,:)>1.5];
-                [~,p,~,stat] = ttest2(weightsweights(serializedcombi),weightsweights(~serializedcombi));
-                
-                %[~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
-                t = stat.tstat;
-                
-                %[bayes]=bf.ttest2('T',t, 'N', [numel(weightsweights(serializedcombi)), numel(weightsweights(~serializedcombi))]);
-                
+                if any(serialized(i,:)>1)
+                    weightsweights = [obj.Weights,obj.Weights]
+                    serializedcombi = [serialized(i,:)>0.5,serialized(i,:)>1.5];
+                    [~,p,~,stat] = ttest2(weightsweights(serializedcombi),weightsweights(~serializedcombi));
+                    t = stat.tstat;
+                    if Bayes
+                        [bayes]=bf.ttest2('T',t, 'N', [numel(weightsweights(serializedcombi)), numel(weightsweights(~serializedcombi))]);
+                        bf_voxels(i) = bayes;
+                    end
+                else
+                    [~,p,~,stat] = ttest2(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
+                    t = stat.tstat;
+                    if Bayes
+                        [bayes]=bf.ttest2('T',t, 'N', [numel(obj.Weights(serialized(i,:)>0.5)), numel(obj.Weights(~serialized(i,:)>0.5))]);
+                        bf_voxels(i) = bayes;
+                    end
+                end
+              
                 t_voxels(i) = t;
                 p_voxels(i) = p;
-                %bf_voxels(i) = bayes;
+                
+
+
                 
                 
                 if isnan(t)
@@ -677,9 +719,65 @@ classdef VoxelDataStack < handle
             tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
             pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
             signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
-           %bfmap = VoxelData(reshape(bf_voxels,outputsize),obj.R);
+
+            if Bayes
+                bfmap = VoxelData(reshape(bf_voxels,outputsize),obj.R);
+            else
+                bfmap=[];
+            end
+
+
         end
         
+        
+        
+        function [rmap] = berlinWorkflow(obj,varargin)
+            
+            % this pipeline is based on the methods described in Annals of
+            % Neurology paper Horn et al 2017
+            
+
+
+            
+            if all(obj.Weights==0)
+                warning('All weights are set to 0. Skipping correlation. No rmap or cmap produced')
+                return
+            end
+            
+            if obj.isBinary(obj)
+                error(['data is binary, correlation stats my be not the best choice,'...
+                    ,'please use Tstats pipeline instead']);
+            end
+             
+            serialized = obj.Voxels;
+            filledvoxels=serialized>0;
+            r_voxels = zeros([length(serialized),1]);
+            
+            serialized_sum  = sum(round(filledvoxels),2); % takes the sum across all subjects
+            
+            relevantVoxels = find(serialized_sum>1); % excludes voxels that has less than two data points
+            
+            
+            disp(' ~running ttest2')
+            
+            for i =  relevantVoxels'
+                
+                
+                [rho] = corr(obj.Voxels(i,:)',obj.Weights');
+                r_voxels(i) = rho;
+              
+                if isnan(rho)
+                    keyboard
+                end
+                
+            end
+            
+            outputsize = obj.R.ImageSize;
+            rmap = VoxelData(reshape(r_voxels,outputsize),obj.R);
+           
+        end
+         
+   
         function obj = full(obj)
             if obj.issparse
                 v = full(obj.Voxels);
@@ -834,6 +932,30 @@ classdef VoxelDataStack < handle
             
             
         end
+        
+        function [bool, percentage_nonbinary] = isBinary(obj,slack)
+            if nargin==1
+                %default slack is 0%
+                slack = 0;
+            end
+            v = obj.Voxels;
+            high = v==max(v(:));
+            low = v==min(v(:));
+            
+            inbetween = not(or(high,low));
+            percentage_nonbinary = sum(inbetween(:))/numel(v(:))*100;
+            
+            if percentage_nonbinary <= slack
+                bool = true;
+            else
+                bool = false;
+            end
+            
+            
+        end
+        
+        
+        
         
         
     end

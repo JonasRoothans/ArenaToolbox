@@ -6,6 +6,7 @@ classdef Heatmap < handle
         Pmap
         Signedpmap
         Amap
+        Amapweighted
         Cmap
         Rmap
         Fzmap
@@ -86,7 +87,41 @@ classdef Heatmap < handle
              end
              
              if nargin<5
-                 mapSelection = {'all'};
+
+                
+                 if nnz(Stack.Voxels)/numel(Stack.Voxels) < 0.5 || Stack.SparseOptimization
+                     List={'Tstatistic pipeline (dystonia Brain 2019 paper)','Tstatistic pipeline with Bayesian Stats'};
+                 else
+                     
+                     List={'Tstatistic pipeline (dystonia Brain 2019 paper)','Tstatistic pipeline with Bayesian Stats',...
+                         'Correlation Stats( Horn et al 2017, ANA)'};
+                 end
+              
+                
+               [indx, tf]=listdlg('PromptString',{'Select heatmap pipeline.'...
+                'you can select more than one.',''},...
+                'ListString',List);
+                
+                if tf==false
+                    error('you must select a heatmap pipeline, aborting now. Please try again')
+                end
+                
+               for selected=1:numel(indx)
+                   if indx(selected)==1
+                       mapSelection(selected)={'Tstatistic pipeline'}
+                   end
+                   if indx(selected)==2
+                       mapSelection(selected)={'Tstatistic pipeline with Bayesian Stats'}
+                   end
+                   
+                    if indx(selected)==3
+                       mapSelection(selected)={'Correlation Stats'}
+                   end
+                   
+               end
+                
+               
+
              end
              
              
@@ -97,29 +132,38 @@ classdef Heatmap < handle
 
             %Wuerzburg-workflow
 
-            if ~isempty(intersect(mapSelection,{'all','Signedpmap','Pmap','Tmap','BFmap'}))
-            [tmap,pmap,signedpmap] = Stack.ttest2();
+            if ~isempty(intersect(mapSelection,{'Tstatistic pipeline with Bayesian Stats'})) && ~isempty(intersect(mapSelection,{'Tstatistic pipeline'})) 
+                mapSelection(1)=[];
 
-            obj.Tmap = tmap;
-            obj.Pmap = pmap;
-            obj.Signedpmap = signedpmap;
-            %obj.BFmap=bfmap;
             end
-
-            if ~isempty(intersect(mapSelection,{'Amap'}))
+ 
+            if ~isempty(intersect(mapSelection,{'Tstatistic pipeline', 'Tstatistic pipeline with Bayesian Stats'}))
+                [tmap,pmap,signedpmap,bfmap] = Stack.ttest2(mapSelection);
                 [amap] = Stack.average();
+                obj.Tmap = tmap;
+                obj.Pmap = pmap;
+                obj.Signedpmap = signedpmap;
                 obj.Amap = amap;
-            end
-            
-            %Berlin-workflow
-            if ~isempty(intersect(mapSelection,{'all','Cmap','Rmap'}))
-                if 0 %temporarily disabled
-                    [amap,cmap,rmap] = Stack.berlinWorkflow;
-                    obj.Amap = amap;
-                    obj.Cmap = cmap;
-                    obj.Rmap = rmap;
+                
+                if  ~isempty(intersect(mapSelection,{'Tstatistic pipeline with Bayesian Stats'}))
+                    obj.BFmap=bfmap;
                 end
+            end   
+                
+                
+                
+            %Berlin-workflow
+            if ~isempty(intersect(mapSelection,{'Correlation Stats'}))
+                [amapweighted]=Stack.average('averageType', 'weighted');
+                [rmap] = Stack.berlinWorkflow;
+                cmap=amapweighted;
+                cmap(rmap<0)=0;
+                obj.Amapweighted=amapweighted;
+                obj.Rmap = rmap;
+                obj.Cmap=cmap;
+                
             end
+          
             
 
             
@@ -127,7 +171,10 @@ classdef Heatmap < handle
             obj.Description = description;
             obj.outputdir=Stack.RecipePath;
 
-        end
+
+            end
+        
+
             
         function see(obj,scene)
             
@@ -341,8 +388,8 @@ classdef Heatmap < handle
             
         end
     end
-    
-    
-    
 end
+    
+    
+
 

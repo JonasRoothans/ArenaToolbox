@@ -1,18 +1,14 @@
 classdef A_EarthmoverDistance < SamplingMethod
     properties %              map          mask
         RequiredHeatmaps = {'Signedpmap'}
-        Description = {'This method was used in the Dystonia Paper',...
-            'A mask is created based on where the model exists',...
-            'Then a binary ROI samples the heatmap',...
-            'A 11 bin histogram is calculated for this sample',...
-            'the output is the zscored histogram'...
-            'This method supports bilateral sampling using subfolders!'};
+        Description = {'This method changes a spatial signal into a curve based signal' ... 
+            'spatial into spatiotemporal and then calculates wasserstein distance to move profile to template'};
         Output = []
     end
     
     
     methods
-        function [obj] = A_11bins(Map, IndividualProfile)
+        function [obj] = A_EarthmoverDistance(Map, IndividualProfile)
             %---- keep this
             if nargin==0
                 return
@@ -22,14 +18,40 @@ classdef A_EarthmoverDistance < SamplingMethod
             %---- customize code below
             
             
+            
             %rescale to [0 1]
             Map=rescale(Map);
             
+            %vectorise map
+            Map=Map(:);
+            Probability_sum=sum(Map(:));
+            Probability_matrix_map=Map/Probability_sum;
+            
+            %find index of data
+            location_index=find(Map);
+            
+           
+   
+            
+            %vectorise Individual Profile
+            IndividualProfile=IndividualProfile(:);
+            Probability_sum_IP=sum(IndividualProfile(:));
+            Probability_matrix_IP=IndividualProfile/Probability_sum_IP;
+            
+            
+           [flow value]=emd(1:numel(IndividualProfile),1:numel(Map),double(Probability_matrix_IP),double(Probability_matrix_map), @gdf);
+            
+                
+%             get probability distribution of map
+            Map2=histogram(Map,'Normalization','probability');
+            
+%             get probability distribution of individual profile
+            IndividualProfile2=histogram(IndividualProfile,'Normalization','probability');
+            [flow value]=emd(1:numel(IndividualProfile),1:numel(Map),double(Probability_matrix_IP),double(Probability_matrix_map), @gdf);
             
             %settings
+            
            
-            f = figure;
-            h = histogram(bite,'Normalization','probability');
             predictors = [1,zscore(h.Values)];
             obj.Output = predictors;
             close(f);
