@@ -14,6 +14,8 @@ classdef Slicei < handle & ArenaActorRendering
         opacity
         clipDark
         parent
+        alphamap
+        useAlphaMap
     end
     
     properties (Access = private)
@@ -33,7 +35,7 @@ classdef Slicei < handle & ArenaActorRendering
               obj.I2X = T;
               obj.slicedim = 3;
               obj.sliceidx = round(size(obj.vol,3)/2);
-              obj.cmap = A_colorgradient([0 0 0],[1 1 1],255);
+              obj.cmap = A_colorgradient([0 0 0],[0.5 0.5 0.5],[1 1 1],255);
               obj.light = max(obj.vol(:));
               obj.dark = min(obj.vol(:));
               obj.opacity = 1;
@@ -80,6 +82,14 @@ classdef Slicei < handle & ArenaActorRendering
 
         end
         
+        function addAlphaMap(obj,vd)
+            amap = vd.getslice;
+            %vd.warpto(obj.parent)
+            %vd_bin = vd.makeBinary;
+            
+            obj.alphamap = amap.vol;
+        end
+        
         
         function update_slice(obj,scene)
             if ndims(obj.vol) == 3         %Scalar mode
@@ -88,6 +98,11 @@ classdef Slicei < handle & ArenaActorRendering
                 error('Only scalar and RGB images supported')
             end
             
+            if not(isempty(obj.alphamap))
+                alphalayer = 1;
+            else
+                alphalayer = 0;
+            end
                         % Create the slice
             if obj.slicedim == 3 % k
                 ij2xyz = obj.I2X(:,[1 2]);
@@ -98,6 +113,9 @@ classdef Slicei < handle & ArenaActorRendering
                     obj.sliceidx=size(obj.vol,3);
                 end
                 sliceim = squeeze(obj.vol(:,:,round(obj.sliceidx),:));
+                if alphalayer
+                 alphaim = squeeze(obj.alphamap(:,:,round(obj.sliceidx),:));
+                end
             elseif obj.slicedim == 2 % j
               ij2xyz = obj.I2X(:,[1 3]);
               ij2xyz(:,3) = obj.I2X*[0 obj.sliceidx 0 1]';
@@ -107,6 +125,9 @@ classdef Slicei < handle & ArenaActorRendering
                   obj.sliceidx=size(obj.vol,2);
               end
               sliceim = squeeze(obj.vol(:,round(obj.sliceidx),:,:));
+              if alphalayer
+                  alphaim = squeeze(obj.alphamap(:,round(obj.sliceidx),:,:));
+              end
             elseif obj.slicedim == 1 % i
               ij2xyz = obj.I2X(:,[2 3]);
               ij2xyz(:,3) = obj.I2X*[obj.sliceidx 0 0 1]';
@@ -116,6 +137,9 @@ classdef Slicei < handle & ArenaActorRendering
                   obj.sliceidx=size(obj.vol,1);
               end
               sliceim = squeeze(obj.vol(round(obj.sliceidx),:,:,:));
+              if alphalayer
+                  alphaim = squeeze(obj.alphamap(round(obj.sliceidx),:,:,:));
+              end
             else
                 error('Slicedim should be 1, 2 or 3')
             end
@@ -143,7 +167,13 @@ classdef Slicei < handle & ArenaActorRendering
             
             
             %function disabled
-             if strcmp(scene.handles.menu.view.dynamictransparanncy.main.Checked,'on') && obj.clipDark
+             if alphalayer
+                 obj.handle.FaceAlpha = 'interp';
+                obj.handle.AlphaDataMapping = 'none';
+                obj.handle.AlphaData = alphaim;
+                
+                
+             elseif strcmp(scene.handles.menu.view.dynamictransparanncy.main.Checked,'on') && obj.clipDark
                 %obj.handle.FaceColor = obj.cmap(end,:);
                 obj.handle.FaceAlpha = 'interp';
                 obj.handle.AlphaDataMapping = 'none';

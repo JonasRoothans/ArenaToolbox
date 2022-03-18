@@ -62,6 +62,7 @@ classdef ArenaActorRendering < handle
                 case 'Slicei'
                     settings = struct;
                     settings.colorDark = [0 0 0];
+                    settings.colorMiddle = [0.5 0.5 0.5];
                     settings.colorLight = [1 1 1];
                     settings.valueDark = min(obj.vol(:));
                     settings.valueLight = max(obj.vol(:));
@@ -129,7 +130,7 @@ classdef ArenaActorRendering < handle
                     scene.newconfigcontrol(actor,'edit',{settings.opacity},{'opacity'});
                     scene.newconfigcontrol(actor,'list',{settings.type},{'type'},{'Medtronic3389','Medtronic3387','Medtronic3391','BostonScientific'})
                 case 'Slicei'
-                    scene.newconfigcontrol(actor,'color',{settings.colorDark,settings.colorLight},{'colorDark','colorLight'});
+                    scene.newconfigcontrol(actor,'color',{settings.colorDark,settings.colorMiddle,settings.colorLight},{'colorDark','colorMiddle','colorLight'});
                     scene.newconfigcontrol(actor,'edit',{settings.valueDark,settings.valueLight},{'valueDark','valueLight'});
                     scene.newconfigcontrol(actor,'vector',{settings.slice,settings.faceOpacity},{'slice','faceOpacity'});
                     scene.newconfigcontrol(actor,'list',{settings.plane},{'plane'},{'axial','coronal','sagittal'})
@@ -605,7 +606,7 @@ classdef ArenaActorRendering < handle
                 end
                 
                 %set gradient
-                cmap = A_colorgradient(settings.colorDark,settings.colorLight,255);
+                cmap = A_colorgradient(settings.colorDark,settings.colorMiddle,settings.colorLight,255);
                 obj.cmap = cmap;
                 obj.dark = settings.valueDark;
                 obj.light = settings.valueLight;

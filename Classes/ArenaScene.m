@@ -266,8 +266,8 @@ classdef ArenaScene < handle
             
             
             obj.handles.menu.atlas.main = uimenu(obj.handles.figure,'Text','Atlas');
-            obj.handles.menu.atlas.lead.main = uimenu(obj.handles.menu.atlas.main,'Text','from leadDBS (MNI)','callback',{@menu_atlasleaddbs});
-            obj.handles.menu.atlas.suretune.main = uimenu(obj.handles.menu.atlas.main ,'Text','from SureTune (legacy LPS)');
+            obj.handles.menu.atlas.lead.main = uimenu(obj.handles.menu.atlas.main,'Text','from leadDBS (MNI_2022)','callback',{@menu_atlasleaddbs});
+            obj.handles.menu.atlas.suretune.main = uimenu(obj.handles.menu.atlas.main ,'Text','from SureTune (MNI_2022)');
             obj.handles.menu.atlas.suretune.stn = uimenu(obj.handles.menu.atlas.suretune.main ,'Text','STN','callback',{@menu_legacyatlas});
             obj.handles.menu.atlas.suretune.gpi = uimenu(obj.handles.menu.atlas.suretune.main ,'Text','GPi','callback',{@menu_legacyatlas});
             obj.handles.menu.atlas.suretune.other = uimenu(obj.handles.menu.atlas.suretune.main ,'Text','Other','callback',{@menu_legacyatlas});
@@ -306,12 +306,20 @@ classdef ArenaScene < handle
             
             
             
-            obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform'); %relocated
-            obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
-            obj.handles.menu.transform.selectedlayer.lps2ras = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','LPS <> RAS','callback',{@menu_lps2ras});
-            obj.handles.menu.transform.selectedlayer.mirror = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','mirror','callback',{@menu_mirror});
-            obj.handles.menu.transform.selectedlayer.yeb2mni = uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','Legacy --> MNI','callback',{@menu_Fake2MNI});
-            obj.handles.menu.transform.selectedlayer.move =  uimenu(obj.handles.menu.transform.selectedlayer.main,'Text','Move','callback',{@menu_move});
+            obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform selection'); %relocated
+            %obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
+            obj.handles.menu.transform.selectedlayer.old.main = uimenu(obj.handles.menu.transform.main,'Text','historical');
+            obj.handles.menu.transform.selectedlayer.simple.main = uimenu(obj.handles.menu.transform.main,'Text','simple');
+            obj.handles.menu.transform.selectedlayer.lps2ras = uimenu(obj.handles.menu.transform.selectedlayer.old.main,'Text','LPS <> RAS','callback',{@menu_lps2ras});
+            obj.handles.menu.transform.selectedlayer.mirror = uimenu(obj.handles.menu.transform.selectedlayer.simple.main,'Text','mirror left/right','callback',{@menu_mirror});
+            obj.handles.menu.transform.selectedlayer.yeb2mni = uimenu(obj.handles.menu.transform.selectedlayer.old.main,'Text','Legacy 2019 --> arena2021','callback',{@menu_Fake2MNI});
+            obj.handles.menu.transform.selectedlayer.arena2leadmni.main = uimenu(obj.handles.menu.transform.main,'Text','arena2021 to arena2022');
+            
+            obj.handles.menu.transform.selectedlayer.arena2leadmni.leftstn = uimenu(obj.handles.menu.transform.selectedlayer.arena2leadmni.main, 'Text','leftSTN','callback',{@menu_MNI2leaddbsMNI});
+            obj.handles.menu.transform.selectedlayer.arena2leadmni.rightstn = uimenu(obj.handles.menu.transform.selectedlayer.arena2leadmni.main, 'Text','rightSTN','callback',{@menu_MNI2leaddbsMNI});
+            obj.handles.menu.transform.selectedlayer.arena2leadmni.leftgpi = uimenu(obj.handles.menu.transform.selectedlayer.arena2leadmni.main, 'Text','leftGPI','callback',{@menu_MNI2leaddbsMNI});
+            obj.handles.menu.transform.selectedlayer.arena2leadmni.rightgpi = uimenu(obj.handles.menu.transform.selectedlayer.arena2leadmni.main, 'Text','rightGPI','callback',{@menu_MNI2leaddbsMNI});
+            obj.handles.menu.transform.selectedlayer.move =  uimenu(obj.handles.menu.transform.selectedlayer.simple.main,'Text','Move','callback',{@menu_move});
             
             obj.handles.menu.addons.main = uimenu(obj.handles.figure,'Text','Add-ons');
             menu_refreshAddOnsList(obj,[],'startup');
@@ -468,7 +476,7 @@ classdef ArenaScene < handle
             
             function templatelist =  menu_refreshTemplatelist(hObject,eventdata,custom)
                 
-                 templatedir = fullfile(fileparts(fileparts(mfilename('fullpath'))),'Elements','templates');
+                 templatedir = fullfile(fileparts(fileparts(mfilename('fullpath'))),'UserData','Templates');
                 if not(isfolder(templatedir))
                     scene = ArenaScene.getscenedata(hObject);
                     
@@ -488,7 +496,7 @@ classdef ArenaScene < handle
                 if strcmp(custom,'user')
                     scene = ArenaScene.getscenedata(hObject);
                     if isempty(iTemplate)
-                        msgbox('No .nii files are detected in the folder: ArenaToolbox/Elements/templates')
+                        msgbox('No .nii files are detected in the folder: ArenaToolbox/UserData/Templates')
                         return
                     end
                     
@@ -734,6 +742,31 @@ classdef ArenaScene < handle
             end
             
             
+            function menu_MNI2leaddbsMNI(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                button = hObject.Text;
+                T = load('T2022');
+                
+                
+                    
+                
+                for i = 1:numel(currentActors)
+                    thisActor = currentActors(i);
+                    thisActor.transform(scene,'T',round(T.(['arena2mni_',button]),5));
+                    currentName = thisActor.Tag;
+                    label = '[mni2022]  ';
+                    if contains(currentName,label)
+                        newname = erase(currentName,label);
+                    else
+                        newname = [label,currentName];
+                    end
+                    thisActor.changeName(newname)
+                end
+                
+            end
+            
             
             function menu_Fake2MNI(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
@@ -880,7 +913,9 @@ classdef ArenaScene < handle
                 rootdir = fileparts(fileparts(mfilename('fullpath')));
                 legacypath = fullfile(rootdir,'Elements','SureTune');
                 thisScene = ArenaScene.getscenedata(hObject);
-                T = load('Tapproved.mat');
+                T = load('Tapproved.mat'); %--> changed feb 24 2022, after
+                %call with Andy. 
+                %T = load('T2022.mat');
                 
                 
                 
@@ -896,6 +931,13 @@ classdef ArenaScene < handle
                         obj_rn_right = obj_rn.transform(T.rightstn2mni);
                         obj_sn_left = obj_sn.transform(T.leftstn2mni);
                         obj_sn_right = obj_sn.transform(T.rightstn2mni);
+                        
+%                         obj_stn_left = obj_stn.transform(T.stu2mni_leftSTN);
+%                         obj_stn_right = obj_stn.transform(T.stu2mni_rightSTN);
+%                         obj_rn_left = obj_rn.transform(T.stu2mni_leftSTN);
+%                         obj_rn_right = obj_rn.transform(T.stu2mni_rightSTN);
+%                         obj_sn_left = obj_sn.transform(T.stu2mni_leftSTN);
+%                         obj_sn_right = obj_sn.transform(T.stu2mni_rightSTN);
                         
                         [thisScene.handles.atlas.legacy.Actor_stnleft,scene] = obj_stn_left.see(thisScene);
                         [thisScene.handles.atlas.legacy.Actor_snleft,scene] = obj_sn_left.see(thisScene);
@@ -913,21 +955,21 @@ classdef ArenaScene < handle
                         thisScene.handles.atlas.legacy.Actor_rnright.changeSetting('colorFace',[1 0 0],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
                         
                         
-                        thisScene.handles.atlas.legacy.Actor_stnleft.changeName('[legacy] STNleft')
-                        thisScene.handles.atlas.legacy.Actor_snleft.changeName('[legacy] SNleft')
-                        thisScene.handles.atlas.legacy.Actor_rnleft.changeName('[legacy] RNleft')
-                        thisScene.handles.atlas.legacy.Actor_stnright.changeName('[legacy] STNright')
-                        thisScene.handles.atlas.legacy.Actor_snright.changeName('[legacy] SNright')
-                        thisScene.handles.atlas.legacy.Actor_rnright.changeName('[legacy] RNright')
+                        thisScene.handles.atlas.legacy.Actor_stnleft.changeName('[mni] STNleft')
+                        thisScene.handles.atlas.legacy.Actor_snleft.changeName('[mni] SNleft')
+                        thisScene.handles.atlas.legacy.Actor_rnleft.changeName('[mni] RNleft')
+                        thisScene.handles.atlas.legacy.Actor_stnright.changeName('[mni] STNright')
+                        thisScene.handles.atlas.legacy.Actor_snright.changeName('[mni] SNright')
+                        thisScene.handles.atlas.legacy.Actor_rnright.changeName('[mni] RNright')
                         
                     case 'GPi'
                         obj_gpi = ObjFile(fullfile(legacypath,'LH_IGP-ON-pmMR.obj'));
                         obj_gpe = ObjFile(fullfile(legacypath,'LH_EGP-ON-pmMR.obj'));
                         
-                        obj_gpi_left = obj_gpi.transform(T.leftgpi2mni);
-                        obj_gpe_left = obj_gpe.transform(T.leftgpi2mni);
-                        obj_gpi_right = obj_gpi.transform(T.rightgpi2mni);
-                        obj_gpe_right = obj_gpe.transform(T.rightgpi2mni);
+                        obj_gpi_left = obj_gpi.transform(T.stu2mni_leftGPI);
+                        obj_gpe_left = obj_gpe.transform(T.stu2mni_leftGPI);
+                        obj_gpi_right = obj_gpi.transform(T.stu2mni_rightGPI);
+                        obj_gpe_right = obj_gpe.transform(T.stu2mni_rightGPI);
                         
                         [thisScene.handles.atlas.legacy.Actor_gpileft,scene] = obj_gpi_left.see(thisScene);
                         [thisScene.handles.atlas.legacy.Actor_gpeleft,scene] = obj_gpe_left.see(thisScene);
@@ -941,10 +983,10 @@ classdef ArenaScene < handle
                         thisScene.handles.atlas.legacy.Actor_gpiright.changeSetting('colorFace',[0 0 1],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
                         thisScene.handles.atlas.legacy.Actor_gperight.changeSetting('colorFace',[0 1 1],'faceOpacity',20,'edgeOpacity',0,'complexity',10)
                         
-                        thisScene.handles.atlas.legacy.Actor_gpileft.changeName('[legacy] GPIleft')
-                        thisScene.handles.atlas.legacy.Actor_gpeleft.changeName('[legacy] GPEeft')
-                        thisScene.handles.atlas.legacy.Actor_gpiright.changeName('[legacy] GPIright')
-                        thisScene.handles.atlas.legacy.Actor_gperight.changeName('[legacy] GPRright')
+                        thisScene.handles.atlas.legacy.Actor_gpileft.changeName('[mni] GPIleft')
+                        thisScene.handles.atlas.legacy.Actor_gpeleft.changeName('[mni] GPEeft')
+                        thisScene.handles.atlas.legacy.Actor_gpiright.changeName('[mni] GPIright')
+                        thisScene.handles.atlas.legacy.Actor_gperight.changeName('[mni] GPRright')
                         
                     case 'Other'
                         %keyboard
@@ -954,8 +996,12 @@ classdef ArenaScene < handle
                         end
                         for iAtlas = 1:numel(atlases)
                             obj_custom = ObjFile(fullfile(legacypath,atlases{iAtlas}));
+                            
                             obj_custom_left = obj_custom.transform(T.leftstn2mni);
                             obj_custom_right = obj_custom.transform(T.rightstn2mni);
+                            
+%                             obj_custom_left = obj_custom.transform(T.stu2mni_leftSTN);
+%                             obj_custom_right = obj_custom.transform(T.stu2mni_rightSTN);
                             [thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left'])] = obj_custom_left.see(thisScene);
                             [thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right'])] = obj_custom_right.see(thisScene);
                             
@@ -2101,7 +2147,7 @@ classdef ArenaScene < handle
                     cropped = thisActor.Data.parent.convertToCropped;
                     cropped.smooth;
                     actor = cropped.getslice.see(scene);
-                    actor.changeName(['Smoothed_',currentActor.Tag])
+                    actor.changeName(['Smoothed_',thisActor.Tag])
                 end
                 
             end

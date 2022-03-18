@@ -636,6 +636,7 @@ classdef VoxelDataStack < handle
         end
             
         
+
         function [tmap,pmap,signedpmap,bfmap] = ttest2(obj,varargin)
             
             p=inputParser;
@@ -657,6 +658,7 @@ classdef VoxelDataStack < handle
             p.KeepUnmatched=false;
 
 
+
             
             if all(obj.Weights==0)
                 warning('All weights are set to 0. Skipping ttest')
@@ -672,6 +674,7 @@ classdef VoxelDataStack < handle
             serialized_width = size(serialized,2); %number of data points per voxel
             relevantVoxels = find(and(serialized_sum>1,serialized_sum<serialized_width)); % excludes voxels that are almost empty across all subjects or that are filled across all subject 
             t_voxels = zeros([length(serialized),1]); % all values assigned zeros including non relevenat voxels
+
 
             p_voxels = ones([length(serialized),1]); % all values assigned ones including non relevenat voxels
             if Bayes
@@ -701,6 +704,8 @@ classdef VoxelDataStack < handle
                 t_voxels(i) = t;
                 p_voxels(i) = p;
                 
+
+
                 
                 
                 if isnan(t)
@@ -714,11 +719,14 @@ classdef VoxelDataStack < handle
             tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
             pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
             signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
+
             if Bayes
                 bfmap = VoxelData(reshape(bf_voxels,outputsize),obj.R);
             else
                 bfmap=[];
             end
+
+
         end
         
         

@@ -145,16 +145,19 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 switch varargin{1}
                     case 'lps2ras'
                         T = diag([-1 -1 1 1]);
-                        obj = applyT(obj,T)
+                        obj = applyT(obj,T);
                     case 'mirror'
                         T = diag([-1 1 1 1]);
-                        obj = applyT(obj,T)
+                        obj = applyT(obj,T);
                     case 'Fake2MNI'
                         T = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
                         obj = applyT(obj,T);
+                    case 'Arena2Andy'
+                        T = load('Tlead.mat');
+                        obj = applyT(obj,T.Tlead);
                     case 'T'
                         T = varargin{2};
-                        obj = applyT(obj,T)
+                        obj = applyT(obj,T);
                 end
             end
             

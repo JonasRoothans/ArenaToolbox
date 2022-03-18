@@ -87,6 +87,7 @@ classdef Heatmap < handle
              end
              
              if nargin<5
+
                 
                  if nnz(Stack.Voxels)/numel(Stack.Voxels) < 0.5 || Stack.SparseOptimization
                      List={'Tstatistic pipeline (dystonia Brain 2019 paper)','Tstatistic pipeline with Bayesian Stats'};
@@ -120,6 +121,7 @@ classdef Heatmap < handle
                end
                 
                
+
              end
              
              
@@ -129,8 +131,10 @@ classdef Heatmap < handle
              
 
             %Wuerzburg-workflow
+
             if ~isempty(intersect(mapSelection,{'Tstatistic pipeline with Bayesian Stats'})) && ~isempty(intersect(mapSelection,{'Tstatistic pipeline'})) 
                 mapSelection(1)=[];
+
             end
  
             if ~isempty(intersect(mapSelection,{'Tstatistic pipeline', 'Tstatistic pipeline with Bayesian Stats'}))
@@ -167,8 +171,10 @@ classdef Heatmap < handle
             obj.Description = description;
             obj.outputdir=Stack.RecipePath;
 
+
             end
         
+
             
         function see(obj,scene)
             
