@@ -41,7 +41,7 @@ classdef PredictionModel < handle
                 description = [];
             catch
                 disp('name suggestion failed..')
-                nameSuggestionn = [];
+                nameSuggestion = [];
                 description = [];
             end
                 

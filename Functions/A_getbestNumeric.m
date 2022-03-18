@@ -8,9 +8,8 @@ if ispc
     Totalmemory=Totalmemory.PhysicalMemory/1e6;
 else 
 
-[CurrentMemory, Totalmemory]=memoryForMac(); %get current memory Status
-CurrentMemory=str2double(CurrentMemory);
-Totalmemory=str2double(Totalmemory);
+[CurrentMemory, memorybySystem,  Totalmemory]=memoryForMac(); %get current memory Status
+
 end
      
 sum=prod(varargin{:}); % get number of Array elements
@@ -43,7 +42,7 @@ for i=1:numel(numericValues)
     end
 
    
-    if ((burden+CurrentMemory)/1000)>Totalmemory 
+    if (burden+CurrentMemory)>Totalmemory 
         
         if condition<3
             
@@ -82,11 +81,12 @@ end
      
      
      
-    function [CurrentMemory, totalMemory]=memoryForMac()
+    function [memoryByMatlab, MemoryBysystem, totalMemory, unusedmem]=memoryForMac()
 % This function will return the memory used by MATLAB on the MAC
 %
 
 %% First get the version of MATLAB
+
 
 curVer = version('-release');
 
@@ -115,12 +115,23 @@ else
     memLoc = findstr(info,'MEM');
     MEM = info(memLoc+5:end-1);
     fprintf('Total memory used: %s\n',MEM);
-    CurrentMemory=MEM(isstrprop(MEM,'digit')); % change to number format
+    memoryByMatlab=MEM(isstrprop(MEM,'digit')); % change to number format
+    memoryByMatlab=str2double(memoryByMatlab);
     
     PhysmemLoc = findstr(info,'PhysMem');
-    Physmem = info(PhysmemLoc+5:end-1);
+    Physmem=info(PhysmemLoc+5:end-1);
     fprintf('Total memory used: %s\n',Physmem);
-    totalMemory=Physmem(isstrprop(Physmem,'digit'));
+    %     totalMemory=Physmem(isstrprop(Physmem,'digit'));
+    memoryinfo=isstrprop(Physmem,'digit');
+    MemoryBysystem=Physmem(find(memoryinfo,4));
+    MemoryBysystem=str2double(MemoryBysystem(isstrprop(MemoryBysystem,'digit')));
+    unusedmem_position=strfind(Physmem,'M');
+    unusedmem_position=unusedmem_position(3);
+    unusedindex=(unusedmem_position-5):unusedmem_position;
+    
+    unusedmem=Physmem(unusedindex);
+    unusedmem=str2double(unusedmem(isstrprop(unusedmem,'digit')));
+    totalMemory=unusedmem+MemoryBysystem;
 end
 % modified from Michael Burke, Mathworks- https://www.mathworks.com/matlabcentral/answers/78726-show-memory-options-in-matlab-working-on-mac-platform
 end
