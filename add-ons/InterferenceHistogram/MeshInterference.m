@@ -25,13 +25,41 @@ function MeshInterference(menuhandle,eventdata,scene)
     
     % get sampling and threshold from user
     [samplingMethod,weight_thresh] = get_sampling_and_threshold();
-    
+    if numel(interfering_mesh)==1
     [hit_list,fiber_list,cmap] =  interference_allTracts(interfering_mesh,scene,samplingMethod,weight_thresh);
     
     mesh_name = strjoin(regexp(interfering_mesh.Tag,'(\_|\.)','split'));
     fig = figure('Name',sprintf('Clinical Outcome vs Fibers hit for %s',mesh_name));
     title = strcat("Improvement of clinical outcome: ",num2str(clinical_outcome),"%")
     plot_histo(fig,title, hit_list,fiber_list, cmap)
+    else
+        meshes={};
+        fibersLoaded={};
+        FibersHit=[];
+        for iMesh=1:numel(interfering_mesh)
+            Themesh=interfering_mesh(iMesh)
+            [hit_list,fiber_list,cmap] =  interference_allTracts(Themesh,scene,samplingMethod,weight_thresh);
+            mesh_name = strjoin(regexp(interfering_mesh(iMesh).Tag,'(\_|\.)','split'));
+            meshes{iMesh}=mesh_name;
+            fibersLoaded=fiber_list;
+            FibersHit(:,iMesh)=hit_list;
+        end
+        FibersHit=num2cell(FibersHit',1);
+        T=table(meshes(:),FibersHit{:}, 'VariableNames', {'ROI', fibersLoaded{:}});
+        
+        % save results
+        global arena
+        root = arena.getrootdir;
+        outputdirectory=load(fullfile(root,'histoConfig.mat'));
+        outputdirectory=outputdirectory.results;
+        formatOut = 'yyyy_mm_dd';
+        disp(['saving as: ',datestr(now,formatOut),'_','Clinical Outcome vs Fibers hit for meshes',' in ..',outputdirectory])
+        writetable(T,fullfile(outputdirectory,[datestr(now,formatOut),'_','Clinical Outcome vs Fibers hit for meshes.xlsx']));
+        disp('Saving complete')
+        
+        
+        
+        
 end
  
     
