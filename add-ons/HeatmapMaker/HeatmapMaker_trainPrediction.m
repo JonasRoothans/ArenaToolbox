@@ -15,7 +15,7 @@ PredModel.SamplingMethod = SamplingMethod.choosedlg();
 PredModel.trainOnVoxelDataStack(TrainingStack)
 PredModel.plotTraining;
 PredModel.save()
-
+    
 
 answer = questdlg('Do you want to quickly simulate a prediction (LOOCV)','wait.. there is more!','Yes, the results are good enough to try','don''t bother','Yes, the results are good enough to try');
 switch answer
