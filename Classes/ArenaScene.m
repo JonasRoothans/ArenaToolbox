@@ -368,6 +368,7 @@ classdef ArenaScene < handle
             obj.handles.lightSun = light('Position',[0 0 1],'Style','infinite');
             obj.handles.lightGround = light('Position',[0 0 -1],'Style','infinite');
             obj.handles.lightGround.Visible = 'on';
+            obj.handles.light = light('Position',[1 1 1],'Style','local');
             
             
             obj = createcoordinatesystem(obj);
