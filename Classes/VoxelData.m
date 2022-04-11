@@ -472,11 +472,16 @@ classdef VoxelData <handle
             o3 = VoxelData(img1-img2,o1.R);
         end
         
-        function o3 = plus(o1,o2)
-            img1 = o1.Voxels;
-            img2 = o2.Voxels;
+        function o3 = plus(varargin)
+        
+            Stack=VoxelDataStack;
+            Stack.R=varargin{1}.R;
             
-            o3 = VoxelData(img1+img2,o1.R);
+          for iStack=1:numel(varargin)
+              Stack.Voxels(:,:,:,iStack)= varargin{iStack}.Voxels;
+          end
+          
+          o3=Stack.sum; 
         end
         
         function out = gt(o1,o2)

@@ -2674,6 +2674,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
             function menu_fiberMapInterference(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
+                
 
                 %--> to do: only suggest meshes or slices.
                 %get map
@@ -2718,14 +2719,22 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
 
             function fiberMapInterference(map,mesh,samplingMethod,currentActors) %currentActors == Fibers?, can those be several or 
                 
+                fibers=cell(numel(currentActors),1);
+                average_tract=zeros(numel(currentActors),1);
+                median_tract=zeros(numel(currentActors),1);
+                percentageofFiber_hit=zeros(numel(currentActors),1);
+                
+                for iCurrent=1:numel(currentActors)
+                    fibers{iCurrent}=currentActors(iCurrent).Tag;
+     
                 %loop. First join all the fibers. For quick processing
-                nVectorsPerFiber = arrayfun(@(x) length(x.Vectors),currentActors.Data.Vertices);
+                nVectorsPerFiber = arrayfun(@(x) length(x.Vectors),currentActors(iCurrent).Data.Vertices);
                 Vectors = Vector3D.empty(sum(nVectorsPerFiber),0); %empty allocation
                 FiberIndices = [0,cumsum(nVectorsPerFiber)]+1;
                 weights = [];
-                fibIndex = 1;
-                for iFiber = 1:numel(currentActors.Data.Vertices)
-                    Vectors(FiberIndices(iFiber):FiberIndices(iFiber+1)-1) = currentActors.Data.Vertices(iFiber).Vectors;
+%                 fibIndex = 1;
+                for iFiber = 1:numel(currentActors(iCurrent).Data.Vertices)
+                    Vectors(FiberIndices(iFiber):FiberIndices(iFiber+1)-1) = currentActors(iCurrent).Data.Vertices(iFiber).Vectors;
                 end
                 FiberIndices(iFiber+1) = length(Vectors)+1;
                  
@@ -2738,29 +2747,38 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                         mapvalue = map.getValueAt(PointCloud(Vectors));
                 end
                 
-                for iFiber = 1:numel(currentActors.Data.Vertices)
+             
+                
+                
+                for iFiber = 1:numel(currentActors(iCurrent).Data.Vertices)
                     weights = mapvalue(FiberIndices(iFiber):FiberIndices(iFiber+1)-1);
+                    
                     switch samplingMethod
                         case 'Min value'
-                            currentActors.Data.Weight(iFiber) = min(weights);
+                            currentActors(iCurrent).Data.Weight(iFiber) = min(weights);
+                            TractInterference(iFiber)=min(currentActors.Data.Weight,'omitnan');
+                           
                         case {'Max value','Check if fiber hits mesh'}
-                            currentActors.Data.Weight(iFiber) = max(weights);
+                            currentActors(iCurrent).Data.Weight(iFiber) = max(weights);
+                            
                         case 'Average Value'
-                            currentActors.Data.Weight(iFiber) = mean(weights);
+                            currentActors(iCurrent).Data.Weight(iFiber) = mean(weights);
+                           
                         case 'Sum'
-                            currentActors.Data.Weight(iFiber) = nansum(weights);                        
+                            currentActors(iCurrent).Data.Weight(iFiber) = nansum(weights); 
+                                  
                     end
                 end
-                currentActors.changeSetting('colorByWeight',true);
-                answer = questdlg('Do you want to export the fiber values to the currently active folder?','save','yes','no','yes');
-                switch answer
-                    case 'yes'
-                        weights = currentActors.Data.Weight;
-                        save([currentActors.Tag,'.mat'],'weights')
+                
+                average_tract(iCurrent)=mean(weights{iCurrent},'omitnan');
+                median_tract(iCurrent)=median(weights{iCurrent},'omitnan');
+                percentageofFiber_hit(iCurrent)=100*(nnz(weights{iCurrent})/numel(weights{iCurrent}));
+%                 FibersHit=num2cell(FibersHit',1);
+%                 T=table(meshes(:),FibersHit{:}, 'VariableNames', {'ROI', fibersLoaded{:}});
+                currentActors(iCurrent).changeSetting('colorByWeight',true);
                 end
+                Done; 
                 
-                
-                Done;           
             end
 
             
