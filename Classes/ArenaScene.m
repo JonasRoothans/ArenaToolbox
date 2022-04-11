@@ -2724,6 +2724,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 median_tract=zeros(numel(currentActors),1);
                 percentageofFiber_hit=zeros(numel(currentActors),1);
                 
+                save_answer = questdlg('Do you want to export the fiber values to the currently active folder?','save','yes','no','yes');
                 for iCurrent=1:numel(currentActors)
                     fibers{iCurrent}=currentActors(iCurrent).Tag;
      
@@ -2748,6 +2749,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 end
                 
              
+            
                 
                 
                 for iFiber = 1:numel(currentActors(iCurrent).Data.Vertices)
@@ -2770,13 +2772,21 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                     end
                 end
                 
-                average_tract(iCurrent)=mean(weights{iCurrent},'omitnan');
-                median_tract(iCurrent)=median(weights{iCurrent},'omitnan');
-                percentageofFiber_hit(iCurrent)=100*(nnz(weights{iCurrent})/numel(weights{iCurrent}));
-%                 FibersHit=num2cell(FibersHit',1);
-%                 T=table(meshes(:),FibersHit{:}, 'VariableNames', {'ROI', fibersLoaded{:}});
-                currentActors(iCurrent).changeSetting('colorByWeight',true);
+%                 average_tract(iCurrent)=nanmean(weights{iCurrent},'omitnan');
+%                 median_tract(iCurrent)=median(weights{iCurrent},'omitnan');
+%                 percentageofFiber_hit(iCurrent)=100*(nnz(weights{iCurrent})/numel(weights{iCurrent}));
+% %                 FibersHit=num2cell(FibersHit',1);
+% %                 T=table(meshes(:),FibersHit{:}, 'VariableNames', {'ROI', fibersLoaded{:}});
+                 currentActors(iCurrent).changeSetting('colorByWeight',true);
+                
+                    switch save_answer
+                        case 'yes'
+                            weights = currentActors(iCurrent).Data.Weight;
+                            save([currentActors(iCurrent).Tag,'.mat'],'weights')
+                    end
                 end
+                
+                
                 Done; 
                 
             end
