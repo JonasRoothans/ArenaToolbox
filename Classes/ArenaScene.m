@@ -2752,6 +2752,14 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                     end
                 end
                 currentActors.changeSetting('colorByWeight',true);
+                answer = questdlg('Do you want to export the fiber values to the currently active folder?','save','yes','no','yes');
+                switch answer
+                    case 'yes'
+                        weights = currentActors.Data.Weight;
+                        save([currentActors.Tag,'.mat'],'weights')
+                end
+                
+                
                 Done;           
             end
 
