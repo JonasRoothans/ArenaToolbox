@@ -1,6 +1,4 @@
 classdef VoxelDataStack < handle
-    %VOXELDATASTACK Summary of this class goes here
-    %   Detailed explanation goes here
     
     properties
         Voxels %4D or sparse but always serialized

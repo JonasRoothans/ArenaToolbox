@@ -163,7 +163,8 @@ classdef Slicei < handle & ArenaActorRendering
             %obj.handle.FaceColor = 'texturemap';
            
             %set material
-            material(obj.handle,'dull')
+            materialsettings = ArenaActorRendering;
+            material(obj.handle,materialsettings.MATERIAL_Slicei)
             
             
             %function disabled

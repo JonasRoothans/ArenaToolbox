@@ -10,7 +10,7 @@ classdef ArenaActorRendering < handle
     
     properties (Hidden)
         settings = struct;
-        MATERIAL_Slicei =  [0.9 0.2 0];
+        MATERIAL_Slicei =  [1 0.2 0];
         MATERIAL_ObjFile = [0.8 1 0.2];
         MATERIAL_Mesh =    [0.8 1 0.2];
         MATERIAL_Fiber =   [0.8 0.8 0.2];

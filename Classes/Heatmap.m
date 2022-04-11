@@ -13,7 +13,6 @@ classdef Heatmap < handle
         Nmap
         BFmap % Bayes Factor
         Binarymap
-        %Raw  - remove?
         Description
         
     end

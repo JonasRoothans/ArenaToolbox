@@ -368,6 +368,7 @@ classdef ArenaScene < handle
             obj.handles.lightSun = light('Position',[0 0 1],'Style','infinite');
             obj.handles.lightGround = light('Position',[0 0 -1],'Style','infinite');
             obj.handles.lightGround.Visible = 'on';
+            obj.handles.light = light('Position',[1 1 1],'Style','local');
             
             
             obj = createcoordinatesystem(obj);
@@ -913,9 +914,9 @@ classdef ArenaScene < handle
                 rootdir = fileparts(fileparts(mfilename('fullpath')));
                 legacypath = fullfile(rootdir,'Elements','SureTune');
                 thisScene = ArenaScene.getscenedata(hObject);
-                T = load('Tapproved.mat'); %--> changed feb 24 2022, after
-                %call with Andy. 
-                %T = load('T2022.mat');
+                %T = load('Tapproved.mat'); %--> changed feb 24 2022, after
+                call with Andy. 
+                T = load('T2022.mat');
                 
                 
                 
