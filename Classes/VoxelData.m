@@ -299,7 +299,8 @@ classdef VoxelData <handle
         
         function bool = isProbablyAMesh(obj)
             ratioOfNonZero = nnz(obj.Voxels)/numel(obj.Voxels);
-            bool = ratioOfNonZero < 0.1;
+            DataTendency=mean(obj.Voxels(obj.Voxels~=0));
+            bool = ratioOfNonZero < 0.1 && (DataTendency > 0.8 && DataTendency < 1.2);
             
         end
         
