@@ -362,6 +362,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Slicei.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: smooth','callback',{@menu_smoothslice},'Enable','off');
             
             obj.handles.menu.dynamic.Fibers.interferenceWithMap = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: interference with map','callback',{@menu_fiberMapInterference},'Enable','off');
+            obj.handles.menu.dynamic.Fibers.exportSummary = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: export fiber summary','callback',{@menu_fiberSummary},'Enable','off');
             
             %obj.handles.cameratoolbar = cameratoolbar(obj.handles.figure,'Show');
             obj.handles.cameratoolbar = A_cameratoolbar(obj.handles.figure);
@@ -2671,6 +2672,38 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 
             end
             
+            
+            function menu_fiberSummary(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                average = [];
+                totalsum = [];
+                nonzeropercent = [];
+                
+                
+                [fiberActors,names] = ArenaScene.getActorsOfClass(scene,'Fibers');
+                for iFiber = 1:numel(fiberActors)
+                    thisFiber = fiberActors(iFiber);
+                    if isempty(thisFiber.Data)
+                        average(iFiber,1) = nan;
+                        totalsum(iFiber,1) = nan;
+                        nonnceroperceernt(iFiber,1) = nan;
+                    end
+                    average(iFiber,1) = nanmean(thisFiber.Data.Weight);
+                    totalsum(iFiber,1) = nansum(thisFiber.Data.Weight);
+                    nonzeropercent(iFiber,1) = nnz(thisFiber.Data.Weight)/numel(thisFiber.Data.Weight)*100;
+                   
+                end
+                
+                summary = table(names,average,totalsum,nonzeropercent);
+                assignin('base','summary',summary)
+                Done;
+
+                
+            end
+                
+            
             function menu_fiberMapInterference(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
@@ -4055,6 +4088,14 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 return
             end
             currentActor = scene.Actors(ind);
+        end
+        
+        function [actorlist,namelist,indexlist] =  getActorsOfClass(scene,classname)
+            classes = ArenaScene.getClasses(scene.Actors);
+            indexlist = find(ismember(classes,classname));
+            actorlist = scene.Actors(indexlist);
+            namelist = {actorlist.Tag};
+            
         end
         
         function classes = getClasses(actorlist)
