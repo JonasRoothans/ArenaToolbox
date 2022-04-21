@@ -360,6 +360,7 @@ classdef ArenaScene < handle
             
             obj.handles.menu.dynamic.Slicei.multiply = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: multiply images','callback',{@menu_multiplyslices},'Enable','off');
             obj.handles.menu.dynamic.Slicei.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: smooth','callback',{@menu_smoothslice},'Enable','off');
+            obj.handles.menu.dynamic.Slicei.mask = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: apply mask','callback',{@menu_applyMask},'Enable','off');
             
             obj.handles.menu.dynamic.Fibers.interferenceWithMap = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: interference with map','callback',{@menu_fiberMapInterference},'Enable','off');
             obj.handles.menu.dynamic.Fibers.exportSummary = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: export fiber summary','callback',{@menu_fiberSummary},'Enable','off');
@@ -2140,6 +2141,52 @@ classdef ArenaScene < handle
                 
                 
             end
+            
+            function menu_applyMask(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                [~,meshcandidate_name,meshcandidate_indx] = ArenaScene.getActorsOfClass(scene,'Mesh');
+                [~,slicecandidate_name,slicecandidate_indx] = ArenaScene.getActorsOfClass(scene,'Slicei');
+                
+                meshcandidate_name  = cellfun(@(c)['Mesh: ' c],meshcandidate_name,'uni',false);
+                slicecandidate_name  = cellfun(@(c)['Slice: ' c],slicecandidate_name,'uni',false);
+                
+                [indx] = listdlg('ListString',[meshcandidate_name,slicecandidate_name],'PromptString','Select the mask');
+                candidate_indx = [meshcandidate_indx,slicecandidate_indx];
+                mask_index = candidate_indx(indx);
+                
+                maskActor = scene.Actors(mask_index);
+                map = currentActors.Data.parent;
+                
+                
+                switch class(maskActor.Data)
+                    case 'Mesh'
+                        if ~isempty(maskActor.Data.Source)
+                            maskVD = maskActor.Data.Source.makeBinary(maskActor.Data.Settings.T);
+                            maskVD.warpto(map)
+                        else
+                            maskActor.Data.convertToVoxelsInTemplate(map)
+                        end
+                    case 'Slicei'
+                        maskVD = maskActor.Data.parent.makeBinary;
+                        maskVD.warpto(map);
+                end
+                
+                maskVD.Voxels = double(maskVD.Voxels);
+                maskVD.Voxels(maskVD.Voxels==0) = nan;
+                maskedImage = map.*maskVD;
+                actor = maskedImage.getslice.see(scene);
+                actor.changeName(['masked_',currentActors.Tag])
+                
+                
+                
+                        
+                
+                
+            end
+            
+            
             
             function menu_smoothslice(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
