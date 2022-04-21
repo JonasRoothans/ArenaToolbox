@@ -2680,15 +2680,18 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 average = [];
                 totalsum = [];
                 nonzeropercent = [];
+                number = [];
                 
                 
                 [fiberActors,names] = ArenaScene.getActorsOfClass(scene,'Fibers');
                 for iFiber = 1:numel(fiberActors)
                     thisFiber = fiberActors(iFiber);
+                    number(iFiber,1) = numel(thisFiber.Visualisation.handle);
                     if isempty(thisFiber.Data)
                         average(iFiber,1) = nan;
                         totalsum(iFiber,1) = nan;
                         nonnceroperceernt(iFiber,1) = nan;
+                        
                     end
                     average(iFiber,1) = nanmean(thisFiber.Data.Weight);
                     totalsum(iFiber,1) = nansum(thisFiber.Data.Weight);
@@ -2696,7 +2699,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                    
                 end
                 
-                summary = table(names,average,totalsum,nonzeropercent);
+                summary = table(names,average,totalsum,nonzeropercent,number)
                 assignin('base','summary',summary)
                 Done;
 
