@@ -2841,7 +2841,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                     switch samplingMethod
                         case 'Min value'
                             currentActors(iCurrent).Data.Weight(iFiber) = min(weights);
-                            TractInterference(iFiber)=min(currentActors.Data.Weight,'omitnan');
+%                             TractInterference(iFiber)=min(currentActors.Data.Weight,'omitnan');
                            
                         case {'Max value','Check if fiber hits mesh'}
                             currentActors(iCurrent).Data.Weight(iFiber) = max(weights);

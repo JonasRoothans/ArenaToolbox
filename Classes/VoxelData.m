@@ -820,7 +820,11 @@ classdef VoxelData <handle
                     histf = figure;histogram(obj.Voxels(:),50);
                     set(gca, 'YScale', 'log')
                     try
+                        fcnNames = {'WindowButtonDownFcn','WindowButtonMotionFcn'}; %https://www.mathworks.com/matlabcentral/answers/22461-ginput-is-turning-off-mouse-cursor
+                        fcnVals = get(gcf,fcnNames);
+                        oldFcnNameValPairs = cat(1, fcnNames, fcnVals);
                         [T,~] = ginput(1);
+                         set(gcf, oldFcnNameValPairs{:});
                     catch
                         error('user canceled')
                     end
