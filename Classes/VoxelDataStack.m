@@ -574,7 +574,56 @@ classdef VoxelDataStack < handle
             heatmap.fromVoxelDataStack(obj,filename{:})
         end
         
+        function VDS = valueToNan(obj,value)
+            
+            newVoxels = obj.Voxels;
+            newVoxels(newVoxels==value) = nan;
+            
+            if nargout==1
+                VDS = VoxelDataStack;
+                VDS.Voxels = newVoxels;
+                VDS.R = obj.R;
+                VDS.Weights = obj.Weights;
+            else
+                obj.Voxels = newVoxels;
+            end
+            
+            
+        end
         
+        function VDS = nanToValue(obj,value)
+            newVoxels = obj.Voxels;
+            newVoxels(isan(newvoxels)) = value;
+            
+            if nargout==1
+                VDS = VoxelDataStack;
+                VDS.Voxels = newVoxels;
+                VDS.R = obj.R;
+                VDS.Weights = obj.Weights;
+            else
+                obj.Voxels = newVoxels;
+            end
+            
+        end
+        
+        
+        function hm = ttestAgainstVDS(obj,VDS)
+            
+            
+            [h,p,ci,stat] = ttest2(obj.Voxels',VDS.Voxels');
+            
+            pmap = obj.reshape(p);
+            tmap = obj.reshape(stat.tstat);
+            signedpmap = (1-pmap)./sign(tmap);
+            
+            hm = Heatmap;
+            hm.Tmap = VoxelData(tmap,obj.R);
+            hm.Pmap = VoxelData(pmap,obj.R);
+            hm.Signedpmap = VoxelData(signedpmap,obj.R);
+            
+            
+            
+        end
         
 
         

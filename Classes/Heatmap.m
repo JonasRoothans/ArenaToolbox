@@ -176,7 +176,7 @@ classdef Heatmap < handle
 
             
         function see(obj,scene)
-            
+            global arena
             props = properties(obj);
             options = {};
             for iProp = 1:numel(props)
@@ -190,7 +190,7 @@ classdef Heatmap < handle
                 'ListSize',[250,150]);
 
             if nargin==1
-                scene = getScene();
+                scene  = arena.sceneselect();
             end
             for i = indx
                 thisProp = options{i};
