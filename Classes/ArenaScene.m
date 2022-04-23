@@ -2746,7 +2746,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                    
                 end
                 
-                summary = table(names,average,totalsum,nonzeropercent,number)
+                summary = table(names(:),average,totalsum,nonzeropercent,number)
                 assignin('base','summary',summary)
                 Done;
 
@@ -2807,7 +2807,17 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 median_tract=zeros(numel(currentActors),1);
                 percentageofFiber_hit=zeros(numel(currentActors),1);
                 
-                save_answer = questdlg('Do you want to export the fiber values to the currently active folder?','save','yes','no','yes');
+                save_answer = questdlg('Do you want to export the fiber values to the currently active folder?','save','yes','no','save to custom directory','yes');
+                
+                switch save_answer
+                    case 'yes'
+                        folder_selected=pwd;
+                    case 'save to custom directory'
+                        [folder_selected] = uigetdir;
+                        
+                end
+                
+                 
                 for iCurrent=1:numel(currentActors)
                     fibers{iCurrent}=currentActors(iCurrent).Tag;
      
@@ -2847,7 +2857,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                             currentActors(iCurrent).Data.Weight(iFiber) = max(weights);
                             
                         case 'Average Value'
-                            currentActors(iCurrent).Data.Weight(iFiber) = mean(weights);
+                            currentActors(iCurrent).Data.Weight(iFiber) = mean(weights,'omitnan');
                            
                         case 'Sum'
                             currentActors(iCurrent).Data.Weight(iFiber) = nansum(weights); 
@@ -2861,12 +2871,9 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
 % %                 FibersHit=num2cell(FibersHit',1);
 % %                 T=table(meshes(:),FibersHit{:}, 'VariableNames', {'ROI', fibersLoaded{:}});
                  currentActors(iCurrent).changeSetting('colorByWeight',true);
-                
-                    switch save_answer
-                        case 'yes'
-                            weights = currentActors(iCurrent).Data.Weight;
-                            save([currentActors(iCurrent).Tag,'.mat'],'weights')
-                    end
+                 weights = currentActors(iCurrent).Data.Weight;
+                 save(fullfile(folder_selected,[currentActors(iCurrent).Tag,'.mat']),'weights')
+                   
                 end
                 
                 
