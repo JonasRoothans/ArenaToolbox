@@ -2807,6 +2807,19 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 median_tract=zeros(numel(currentActors),1);
                 percentageofFiber_hit=zeros(numel(currentActors),1);
                 
+                twoGradients_map=false;
+                
+                if any(map.Voxels(:)<0) && any(map.Voxels(:)>0)
+                    
+                    twoGradients_map=true;
+                    
+                    MapForWeights=questdlg(['the heatmap contains positive & negative values, which one would you like to save as weights?'...
+                        'please note however, that both will be used to do a 2 sample ttest per fiber bundle'... 
+                        'see exported methods text for more details'], 'action required', 'positive','negative','positive');
+                    
+                end
+
+             
                 save_answer = questdlg('Do you want to export the fiber values to the currently active folder?','save','yes','no','save to custom directory','yes');
                 
                 switch save_answer
@@ -2825,55 +2838,97 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 nVectorsPerFiber = arrayfun(@(x) length(x.Vectors),currentActors(iCurrent).Data.Vertices);
                 Vectors = Vector3D.empty(sum(nVectorsPerFiber),0); %empty allocation
                 FiberIndices = [0,cumsum(nVectorsPerFiber)]+1;
-                weights = [];
+                weights = {};
 %                 fibIndex = 1;
                 for iFiber = 1:numel(currentActors(iCurrent).Data.Vertices)
                     Vectors(FiberIndices(iFiber):FiberIndices(iFiber+1)-1) = currentActors(iCurrent).Data.Vertices(iFiber).Vectors;
                 end
                 FiberIndices(iFiber+1) = length(Vectors)+1;
-                 
+                
+                direction={};
+                mapcell={};
+                weights_ttest(1,1)={cell(1,2)};
+                weights_ttest(1,2)={cell(1,2)};
                 
                 %sample the map
                 switch samplingMethod
                     case 'Check if fiber hits mesh'
-                        mapvalue = mesh.isInside(Vectors);
+                        mapcell(1) = mesh.isInside(Vectors);
                     otherwise
-                        mapvalue = map.getValueAt(PointCloud(Vectors));
-                end
-                
-             
-            
-                
-                
-                for iFiber = 1:numel(currentActors(iCurrent).Data.Vertices)
-                    weights = mapvalue(FiberIndices(iFiber):FiberIndices(iFiber+1)-1);
-                    
-                    switch samplingMethod
-                        case 'Min value'
-                            currentActors(iCurrent).Data.Weight(iFiber) = min(weights);
-%                             TractInterference(iFiber)=min(currentActors.Data.Weight,'omitnan');
-                           
-                        case {'Max value','Check if fiber hits mesh'}
-                            currentActors(iCurrent).Data.Weight(iFiber) = max(weights);
+                        if twoGradients_map
                             
-                        case 'Average Value'
-                            currentActors(iCurrent).Data.Weight(iFiber) = mean(weights,'omitnan');
-                           
-                        case 'Sum'
-                            currentActors(iCurrent).Data.Weight(iFiber) = nansum(weights); 
-                                  
-                    end
+                            map_positive=map.copy;
+                            map_positive.Voxels(map_positive.Voxels<0)=0;
+                          
+                            mapcell{1}=map_positive.getValueAt(PointCloud(Vectors));
+                            
+                            map_negative=map.copy;
+                            map_negative.Voxels(map_negative.Voxels>0)=0;
+                            map_negative.Voxels=map_negative.Voxels.*-1;
+                        
+                            mapcell{2}=map_negative.getValueAt(PointCloud(Vectors));
+                            
+                            switch MapForWeights
+                                case 'positive'
+                                    mapcell([1 2])=mapcell([2 1]);
+                                    direction{1}='negative';
+                                    direction{2}='positive';
+                                    weights_ttest{1,1}{1,1}='negative';
+                                    weights_ttest{1,2}{1,1}='positive';
+                                    
+                                    % do nothing
+                                case 'negative'
+                                    
+                                    direction{2}='negative';
+                                    direction{1}='positive';
+                                    weights_ttest([1 2])=weights_ttest([2 1]);
+                            end
+                            
+                        else
+                            direction{1}='One Sign'
+                            mapcell{1}=map.getValueAt(PointCloud(Vectors));
+                        end
+
                 end
                 
-%                 average_tract(iCurrent)=nanmean(weights{iCurrent},'omitnan');
-%                 median_tract(iCurrent)=median(weights{iCurrent},'omitnan');
-%                 percentageofFiber_hit(iCurrent)=100*(nnz(weights{iCurrent})/numel(weights{iCurrent}));
-% %                 FibersHit=num2cell(FibersHit',1);
-% %                 T=table(meshes(:),FibersHit{:}, 'VariableNames', {'ROI', fibersLoaded{:}});
-                 currentActors(iCurrent).changeSetting('colorByWeight',true);
-                 weights = currentActors(iCurrent).Data.Weight;
-                 save(fullfile(folder_selected,[currentActors(iCurrent).Tag,'.mat']),'weights')
-                   
+                for   iMapcell=1:numel(mapcell)
+                    
+                    mapvalue=mapcell{iMapcell}';
+                    mapvalue(mapvalue==0)=nan;
+                    
+                    disp(iMapcell)
+                    disp(iCurrent)
+                    
+                    
+                    
+                    
+                    for iFiber = 1:numel(currentActors(iCurrent).Data.Vertices)
+                        weights{iMapcell} = mapvalue(FiberIndices(iFiber):FiberIndices(iFiber+1)-1);
+                        
+                        switch samplingMethod
+                            case 'Min value'
+                                currentActors(iCurrent).Data.Weight(iFiber) = min(weights{iMapcell});
+                                %                             TractInterference(iFiber)=min(currentActors.Data.Weight,'omitnan');
+                                
+                            case {'Max value','Check if fiber hits mesh'}
+                                currentActors(iCurrent).Data.Weight(iFiber) = max(weights{iMapcell});
+                                
+                            case 'Average Value'
+                                currentActors(iCurrent).Data.Weight(iFiber) = mean(weights{iMapcell},'omitnan');
+                                
+                            case 'Sum'
+                                currentActors(iCurrent).Data.Weight(iFiber) = nansum(weights{iMapcell});
+                                
+                        end
+                        weights_ttest{1,iMapcell}{1,2}(iFiber)=currentActors(iCurrent).Data.Weight(iFiber);
+                        
+                    end
+                    
+                    weights_Actor = currentActors(iCurrent).Data.Weight;
+                    save(fullfile(folder_selected,[direction{iMapcell},'_',currentActors(iCurrent).Tag,'.mat']),'weights_Actor')
+                end
+                currentActors(iCurrent).changeSetting('colorByWeight',true);
+                assignin('base','weights_ttest',weights_ttest)
                 end
                 
                 
