@@ -68,7 +68,13 @@ classdef VoxelDataStack < handle
                 otherwise
                     obj.R = reference.R;    
             end
-            BestNUmericType=A_getbestNumeric([obj.R.ImageSize,n_files]);
+            try
+               BestNUmericType=A_getbestNumeric([obj.R.ImageSize,n_files]);
+            catch
+                BestNUmericType='double';
+                disp('it appears , you are using a  linux system')
+                disp('double numeric format will be used')
+            end
             obj.Voxels = zeros([prod(obj.R.ImageSize),n_files],BestNUmericType); %% change numeric class to int8 for memory optimisation, not valid for functional data
             obj.Weights = ones(1,n_files);
         end
