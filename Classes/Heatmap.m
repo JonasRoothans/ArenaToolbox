@@ -118,9 +118,10 @@ classdef Heatmap < handle
                    end
                    
                end
-                
-               
-
+             elseif ~isempty(intersect(mapSelection,{'Signedpmap, Tmap'}))
+                 mapSelection(selected)={'Tstatistic pipeline'}
+                 
+                 
              end
              
              
