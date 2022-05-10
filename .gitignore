@@ -8,3 +8,4 @@ config.mat
 **/UserData
 *.mat
 
+*.m~
