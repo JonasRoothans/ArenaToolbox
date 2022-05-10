@@ -9,3 +9,4 @@ config.mat
 *.mat
 
 *.m~
+*.DS_Store
