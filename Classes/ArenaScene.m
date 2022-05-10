@@ -2822,7 +2822,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 MapContainsPosAndNeg = any(map.Voxels(:)<0) && any(map.Voxels(:)>0);
                 
                 
-                if MapCointainsPosAndNeg
+                if MapContainsPosAndNeg
                     PosNegAction=questdlg(['the heatmap contains positive & negative values..'...
                         'Which should be used for the visualisation? (this does not affect the export)'], 'action required', 'ignore negative numbers','ignore positive numbers','use all','use all');  
                 end
@@ -2842,11 +2842,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                     end
                     FiberIndices(iFiber+1) = length(Vectors)+1;
                     
-                    %initiation
-                    direction={};
-                    mapvalue={};
-                    weights_ttest(1,1)={cell(1,2)};
-                    weights_ttest(1,2)={cell(1,2)};
+                  
                     
                     %sample the map for everything at once
                     switch samplingMethod
@@ -2889,13 +2885,13 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                                 case 'Average Value'
                                     currentActors(iCurrent).Data.Weight(iFiber) = mean(weights_selection,'omitnan');
                                     storage.onlyPositive(iFiber,1) = nanmean(weights_pos);
-                                    storage.onlyNegative(iFiber,1) = nanmean(weights_neg);
+                                    storage.onlyNegative(iFiber,1) = nanmean(weights_neg*-1); % negative are saved as positive
                                     storage.all(iFiber,1) = nanmean(weights);
                                     
                                 case 'Sum'
                                     currentActors(iCurrent).Data.Weight(iFiber) = nansum(weights_selection); 
                                     storage.onlyPositive(iFiber,1) = nansum(weights_pos);
-                                    storage.onlyNegative(iFiber,1) = nansum(weights_neg);
+                                    storage.onlyNegative(iFiber,1) = nansum(weights_neg*-1); % negative are saved as positive
                                     storage.all(iFiber,1) = nansum(all);
                                     
                             end
@@ -2907,7 +2903,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                         storage.fibername = currentActors(iCurrent).Tag;
    
                         
-                        save(fullfile(folder_selected,['selected',currentActors(iCurrent).Tag,'.mat']),'Weights_Actor');
+                        save(fullfile(folder_selected,['selected',currentActors(iCurrent).Tag,'.mat']),'storage');
                         save(fullfile(folder_selected,['neg',currentActors(iCurrent).Tag,'.mat']),'storage');
                         
                     
