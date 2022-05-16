@@ -18,7 +18,8 @@ end
 
 vd = VoxelData(swtspt.sweetspot.left.sweetspotArray(indx).Data,swtspt.sweetspot.left.imref);
 
-
+% --> Data should simply never be in the old format. NEED TO FIXTHIS -
+% JONAS
 
 Tfake2mni = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
 vd.imwarp(Tfake2mni);

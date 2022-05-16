@@ -917,7 +917,7 @@ classdef ArenaScene < handle
                 legacypath = fullfile(rootdir,'Elements','SureTune');
                 thisScene = ArenaScene.getscenedata(hObject);
                 %T = load('Tapproved.mat'); %--> changed feb 24 2022, after
-                call with Andy. 
+                %call with Andy. 
                 T = load('T2022.mat');
                 
                 

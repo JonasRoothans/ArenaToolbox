@@ -84,6 +84,15 @@ classdef VTA < handle
         end
         
         function actor = see(obj,scene)
+            global arena
+            if nargin==1
+                if isempty(arena)
+                    evalin('base','startArena');
+                    scene = arena.sceneselect(1);
+                else
+                    scene = arena.sceneselect();
+                end
+            end
             actor = obj.Volume.getmesh(0.5).see(scene);
             actor.changeName(obj.Tag)
         end
