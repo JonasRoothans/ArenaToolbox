@@ -15,24 +15,42 @@ function Interference(menuhandle,eventdata,roi,scene)
     %dialog box - ask for clinical outcome
     prompt = {sprintf('You are calculating the interference of \n  %s Fibers \nwith all loaded Meshes. Please enter the corresponding clinical outcome(%%) for the follwing Meshes: \n 1. %s',roi, mesh_labels{1})};
     dlgtitle = 'Meshes vs Fibers';
-    if length(mesh_idx)<20
-    definput = {num2str(max([-100, 100]))};
-    dims = [0.8 80];
-    opts.Interpreter = 'tex';
     
-    if length(mesh_idx)>1
-            for i=2:length(mesh_idx)
-                prompt{end +1} = sprintf('%i. %s',i,mesh_labels{i});
-                definput{end +1} = definput{1};
-                dims(end +1,:) = dims(1,:);
-            end
-    end
-    clinical_outcome = inputdlg(prompt,dlgtitle,dims,definput,opts);
-    clinical_outcome = cellfun(@str2num,clinical_outcome);
-    else
-        disp('skipped dialog, because it exceeds the limits')
-        clinical_outcome = ones(length(mesh_idx),1)*100;
-    end
+   if not(isempty(fieldnames(vertcat(scene.Actors(mesh_idx).Meta))))
+       if length(fieldnames(vertcat(scene.Actors(mesh_idx).Meta)))==1
+           %if there is one meta tag
+           clinical_outcome = [];
+           fname = fieldnames(vertcat(scene.Actors(mesh_idx).Meta));
+           for i_idx = 1:numel(mesh_idx)
+               try
+                    clinical_outcome(i_idx) = scene.Actors(mesh_idx(i_idx)).Meta.(fname{1});
+               catch
+                   clinical_outcome(i_idx) = nan;
+               end
+           end
+               
+       else
+           
+    
+        if length(mesh_idx)<20
+        definput = {num2str(max([-100, 100]))};
+        dims = [0.8 80];
+        opts.Interpreter = 'tex';
+
+        if length(mesh_idx)>1
+                for i=2:length(mesh_idx)
+                    prompt{end +1} = sprintf('%i. %s',i,mesh_labels{i});
+                    definput{end +1} = definput{1};
+                    dims(end +1,:) = dims(1,:);
+                end
+        end
+        clinical_outcome = inputdlg(prompt,dlgtitle,dims,definput,opts);
+        clinical_outcome = cellfun(@str2num,clinical_outcome);
+        else
+            disp('skipped dialog, because it exceeds the limits')
+            clinical_outcome = ones(length(mesh_idx),1)*100;
+        end
+       end
     
     %set sampling method and threshold - if mesh.Data.Source is empty the
     %sampling method is overwritten to "Check if fiber hits mesh"

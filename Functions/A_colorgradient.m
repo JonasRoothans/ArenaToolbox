@@ -1,10 +1,15 @@
 function [grad,im]=A_colorgradient(c1,c2,c3,depth)
-gradient_1 = halfGradient(c1,c2,floor(depth/2));
-gradient_2 = halfGradient(c2,c3,floor(depth/2));
-if mod(depth/2,1)>0
-    grad = [gradient_1;c2;gradient_2];
+if and(numel(c3)==1,nargin==3) %if c3 is depth
+    grad = halfGradient(c1,c2,c3);
 else
-    grad = [gradient_1;gradient_2];
+    gradient_1 = halfGradient(c1,c2,floor(depth/2));
+    gradient_2 = halfGradient(c2,c3,floor(depth/2));
+
+    if mod(depth/2,1)>0
+        grad = [gradient_1;c2;gradient_2];
+    else
+        grad = [gradient_1;gradient_2];
+    end
 end
 
 

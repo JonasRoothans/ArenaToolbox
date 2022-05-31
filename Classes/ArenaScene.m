@@ -1036,13 +1036,13 @@ classdef ArenaScene < handle
                     return
                 end
                 
-                electrodeorcontact = questdlg('Visualize the electrode or the active contact?','Arena load recipe','Full electrode','Active contacts','Active contacts');
+                electrodeorcontact = questdlg('Visualize the electrode,the active contact or VTAs?','Arena load recipe','Full electrode','Active contacts','VTAs','Active contacts');
                 if isempty(electrodeorcontact);return;end
                 mirrortoleft = questdlg('Mirror all electrodes to the left side?','Arena load recipe','Yes','No','Yes');
                 if isempty(mirrortoleft);return;end
                 
                 switch electrodeorcontact
-                    case 'Active contacts'
+                    case {'Active contacts','VTAs'}
                         [indx] = listdlg('PromptString','Weight based on:','ListString',[table.Properties.VariableNames(21:end),{'no weight'}]);
                         try
                             weightlabel = table.Properties.VariableNames{20+indx};
@@ -1095,6 +1095,29 @@ classdef ArenaScene < handle
                                weight = table.(weightlabel)(iRow);
                            end
                            ActiveContacts_pc.addVectors(e.getLocationOfAC(cathode),weight);
+                        case 'VTAs'
+                            if isnan(weightlabel)
+                               weight  = 1;
+                           else
+                               weight = table.(weightlabel)(iRow);
+                           end
+                             vtaname = VTA.constructVTAname(table.leadtype{iRow},...
+                                 table.amplitude(iRow),...
+                                 table.pulsewidth(iRow),...
+                                  table.activecontact{iRow},...
+                                  table.groundedcontact{iRow},...
+                                   table.voltage{iRow});
+                                  
+                                  
+                      vta = e.makeVTA(vtaname);
+                             actor = vta.see(thisScene);
+                             actor.Meta.(weightlabel) = weight;
+                             
+                             vtaname = [table.name{iRow},'_',table.leadname{iRow}];
+                             actor.changeName(vtaname)
+                             
+                             
+                            
                     end
                 end
                 
@@ -2807,15 +2830,15 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 median_tract=zeros(numel(currentActors),1);
                 percentageofFiber_hit=zeros(numel(currentActors),1);
                 
-                save_answer = questdlg('Do you want to export the fiber values to the currently active folder?','save','yes','no','save to custom directory','yes');
+                %save_answer = questdlg('Do you want to export the fiber values to the currently active folder?','save','yes','no','save to custom directory','yes');
                 
-                switch save_answer
-                    case 'yes'
-                        folder_selected=pwd;
-                    case 'save to custom directory'
-                        [folder_selected] = uigetdir;
+                %switch save_answer
+                  %  case 'yes'
+                 %       folder_selected=pwd;
+                 %   case 'save to custom directory'
+                 %       [folder_selected] = uigetdir;
                         
-                end
+               % end
                 
                  
                 for iCurrent=1:numel(currentActors)
@@ -2872,12 +2895,12 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
 % %                 T=table(meshes(:),FibersHit{:}, 'VariableNames', {'ROI', fibersLoaded{:}});
                  currentActors(iCurrent).changeSetting('colorByWeight',true);
                  weights = currentActors(iCurrent).Data.Weight;
-                 save(fullfile(folder_selected,[currentActors(iCurrent).Tag,'.mat']),'weights')
+       %          save(fullfile(folder_selected,[currentActors(iCurrent).Tag,'.mat']),'weights')
                    
                 end
                 
                 
-                Done; 
+                %Done; 
                 
             end
 

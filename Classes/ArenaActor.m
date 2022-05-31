@@ -20,6 +20,7 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         Scene
         Tag
         Visible = true;
+        Meta
     end
     
     methods
