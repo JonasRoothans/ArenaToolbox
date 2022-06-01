@@ -136,7 +136,7 @@ classdef Heatmap < handle
 
             end
  
-            if ~isempty(intersect(mapSelection,{'Tstatistic pipeline', 'Tstatistic pipeline with Bayesian Stats'}))
+            if ~isempty(intersect(mapSelection,{'Tstatistic pipeline', 'Tstatistic pipeline with Bayesian Stats','Signedpmap','Tmap'}))
                 [tmap,pmap,signedpmap,bfmap] = Stack.ttest2(mapSelection);
                 [amap] = Stack.average();
                 obj.Tmap = tmap;
