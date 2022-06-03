@@ -103,7 +103,7 @@ output = {};
     function cb_dataset(hObject,b)
         this = hObject.UserData;
         
-        [T,reglinkdescription] = universalCallbackRoutine(this);
+        [T,reglinkdescription] = SuretuneTransformationTools.universalCallbackRoutine(this);
         
         %create VoxelData and warp
         vd = VoxelData();
@@ -130,7 +130,7 @@ output = {};
 
     function cb_mss(hObject,h)
         this = hObject.UserData;
-        [T,reglinkdescription] = universalCallbackRoutine(this);
+        [T,reglinkdescription] = SuretuneTransformationTools.universalCallbackRoutine(this);
         m = this.computemesh;
         %[V,F] = SDK_smoothedges(m,10,100,8,0.7)
         % maxMaxEdgeLength,maxVertices,maxConnections,buldgeFactor)
@@ -144,7 +144,7 @@ output = {};
 
     function cb_ibs(hObject,h)
         this = hObject.UserData;
-        [T,reglinkdescription] = universalCallbackRoutine(this);
+        [T,reglinkdescription] = SuretuneTransformationTools.universalCallbackRoutine(this);
         
          %create VoxelData and warp
         vd = VoxelData();
@@ -182,7 +182,7 @@ output = {};
 
     function cb_ACPC(hObject,b)
         this = hObject.UserData;
-        [T,reglinkdescription] = universalCallbackRoutine(this);
+        [T,reglinkdescription] = SuretuneTransformationTools.universalCallbackRoutine(this);
         
         %create VectorCloud and warp
         AC = -1*Vector3D(this.ac-this.pc).norm/2;
@@ -201,7 +201,7 @@ output = {};
 
     function cb_lead(hObject,b)
         this = hObject.UserData;
-        [T,reglinkdescription] = universalCallbackRoutine(this);
+        [T,reglinkdescription] = SuretuneTransformationTools.universalCallbackRoutine(this);
         
         %generate Electrode
         e = Electrode;
@@ -242,7 +242,7 @@ output = {};
     end
     function cb_atlas(hObject,b)
         this = hObject.UserData;
-        [T,reglinkdescription] = universalCallbackRoutine(this);
+        [T,reglinkdescription] = SuretuneTransformationTools.universalCallbackRoutine(this);
         
         %load atlases
         rootdir = fileparts(fileparts(mfilename('fullpath')))
@@ -294,67 +294,67 @@ output = {};
         
     end
 
-
-%% Engine
-
-    function [names,regs] = getRegistrationlink(suretuneRegisterable)
-        session = suretuneRegisterable.session;
-        [~,types] = session.listregisterables;
-        atlas_indices = find(contains(types,'Atlas'));
-        names = {};
-        regs = {};
-        
-        for i = 1:numel(atlas_indices)
-            thisAtlas = session.getregisterable(atlas_indices(i));
-            names{i} = [thisAtlas.group,' ',thisAtlas.hemisphere];
-            regs{i} = thisAtlas;
-        end
-        names = [{'--','Native / Scanner','Suretune patient space','ACPC'},names];
-        regs = [{nan,suretuneRegisterable,session.getregisterable(1),session.getregisterable('acpcCoordinateSystem')},regs];
-    end
-
-    function Tfromreglink = getSecondTransformation(reglink)
-        switch class(reglink)
-            case 'Atlas'
-                T = load('2022.mat');
-                atlasname = ['stu2mni_',lower(reglink.hemisphere),upper(reglink.group)];
-                %Tatlas2fake = T.(atlasname);
-                %Tfake2mni = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
-                Tfromreglink = T.(atlasname);
-            case 'ACPCIH'
-                Tlps2ras = diag([-1 -1 1 1]);
-                MCP2AC = Vector3D(reglink.ac-reglink.pc).norm*-0.5;
-                Tmcp2ac = [1 0 0 0;0 1 0 0;0 0 1 0;0 MCP2AC 0 1];
-                Tfromreglink = Tlps2ras*Tmcp2ac;
-            case 'Dataset'
-                Tfromreglink= diag([-1 -1 1 1]); %lps2ras
-            case 'ImageBasedStructureSegmentation'
-                 Tfromreglink= diag([-1 -1 1 1]); %lps2ras
-             case 'ManualStructureSegmentation'
-                 Tfromreglink= diag([-1 -1 1 1]); %lps2ras
-                 
-            otherwise
-                keyboard
-        end
-        
-    end
-
-    function [T,description] = universalCallbackRoutine(this)
-        [names,regs] = getRegistrationlink(this);
-        [selection] = listdlg('ListString',names);
-        
-        %possibly abort?
-        if isempty(selection);return;end
-        if selection==1;return;end
-        
-        %first Transformation (registerable to reglink)
-        reglink = regs{selection};
-        Ttoreglink = this.session.gettransformfromto(this,reglink);
-        
-        %Second Transformation (reglink to arena)
-        Tfromreglink = getSecondTransformation(reglink);
-        
-        T = round(Ttoreglink*Tfromreglink,6);
-        description = names{selection};
-    end
 end
+%% Engine has been moved to SuretuneTransformationTools
+% 
+%     function [names,regs] = getRegistrationlink(suretuneRegisterable)
+%         session = suretuneRegisterable.session;
+%         [~,types] = session.listregisterables;
+%         atlas_indices = find(contains(types,'Atlas'));
+%         names = {};
+%         regs = {};
+%         
+%         for i = 1:numel(atlas_indices)
+%             thisAtlas = session.getregisterable(atlas_indices(i));
+%             names{i} = [thisAtlas.group,' ',thisAtlas.hemisphere];
+%             regs{i} = thisAtlas;
+%         end
+%         names = [{'--','Native / Scanner','Suretune patient space','ACPC'},names];
+%         regs = [{nan,suretuneRegisterable,session.getregisterable(1),session.getregisterable('acpcCoordinateSystem')},regs];
+%     end
+% 
+%     function Tfromreglink = getSecondTransformation(reglink)
+%         switch class(reglink)
+%             case 'Atlas'
+%                 T = load('2022.mat');
+%                 atlasname = ['stu2mni_',lower(reglink.hemisphere),upper(reglink.group)];
+%                 %Tatlas2fake = T.(atlasname);
+%                 %Tfake2mni = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
+%                 Tfromreglink = T.(atlasname);
+%             case 'ACPCIH'
+%                 Tlps2ras = diag([-1 -1 1 1]);
+%                 MCP2AC = Vector3D(reglink.ac-reglink.pc).norm*-0.5;
+%                 Tmcp2ac = [1 0 0 0;0 1 0 0;0 0 1 0;0 MCP2AC 0 1];
+%                 Tfromreglink = Tlps2ras*Tmcp2ac;
+%             case 'Dataset'
+%                 Tfromreglink= diag([-1 -1 1 1]); %lps2ras
+%             case 'ImageBasedStructureSegmentation'
+%                  Tfromreglink= diag([-1 -1 1 1]); %lps2ras
+%              case 'ManualStructureSegmentation'
+%                  Tfromreglink= diag([-1 -1 1 1]); %lps2ras
+%                  
+%             otherwise
+%                 keyboard
+%         end
+%         
+%     end
+% 
+%     function [T,description] = universalCallbackRoutine(this)
+%         [names,regs] = getRegistrationlink(this);
+%         [selection] = listdlg('ListString',names);
+%         
+%         %possibly abort?
+%         if isempty(selection);return;end
+%         if selection==1;return;end
+%         
+%         %first Transformation (registerable to reglink)
+%         reglink = regs{selection};
+%         Ttoreglink = this.session.gettransformfromto(this,reglink);
+%         
+%         %Second Transformation (reglink to arena)
+%         Tfromreglink = getSecondTransformation(reglink);
+%         
+%         T = round(Ttoreglink*Tfromreglink,6);
+%         description = names{selection};
+%     end
+% end

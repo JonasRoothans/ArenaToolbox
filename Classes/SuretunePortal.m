@@ -1,4 +1,4 @@
-classdef SuretunePortal
+classdef SuretunePortal < SuretuneTransformationTools
     %SURETUNEPORTAL Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -266,7 +266,7 @@ classdef SuretunePortal
             
             function cb_lead(hObject,b)
                 this = hObject.UserData;
-                [T,reglinkdescription] = universalCallbackRoutine(this);
+                [T,reglinkdescription] = SuretuneTransformationTools.universalCallbackRoutine(this);
                 
                 %generate Electrode
                 e = Electrode;
@@ -301,6 +301,7 @@ classdef SuretunePortal
                         vd = VoxelData();
                         vd.importSuretuneDataset(this.stimPlan{iStimplan}.vta.Medium);
                         vd.imwarp(T);
+                        
                         
                         
                         VTAObject = VTA();
@@ -395,68 +396,68 @@ classdef SuretunePortal
             end
             
             
-            %% Engine
-            
-            function [names,regs] = getRegistrationlink(suretuneRegisterable)
-                session = suretuneRegisterable.session;
-                [~,types] = session.listregisterables;
-                atlas_indices = find(contains(types,'Atlas'));
-                names = {};
-                regs = {};
-                
-                for i = 1:numel(atlas_indices)
-                    thisAtlas = session.getregisterable(atlas_indices(i));
-                    names{i} = ['to MNI via ',thisAtlas.group,' ',thisAtlas.hemisphere];
-                    regs{i} = thisAtlas;
-                end
-                names = [{'--','Native / Scanner','Suretune patient space','to MNI via ACPC'},names];
-                regs = [{nan,suretuneRegisterable,session.getregisterable(1),session.getregisterable('acpcCoordinateSystem')},regs];
-            end
-            
-            function Tfromreglink = getSecondTransformation(reglink)
-                switch class(reglink)
-                    case 'Atlas'
-                        T = load('Tapproved.mat');
-                        atlasname = [lower(reglink.hemisphere),lower(reglink.group),'2mni'];
-                        Tatlas2fake = T.(atlasname);
-                        Tfake2mni = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
-                        Tfromreglink = Tatlas2fake*Tfake2mni;
-                    case 'ACPCIH'
-                        Tlps2ras = diag([-1 -1 1 1]);
-                        MCP2AC = Vector3D(reglink.ac-reglink.pc).norm*-0.5;
-                        Tmcp2ac = [1 0 0 0;0 1 0 0;0 0 1 0;0 MCP2AC 0 1];
-                        Tfromreglink = Tlps2ras*Tmcp2ac;
-                    case 'Dataset'
-                        Tfromreglink= diag([-1 -1 1 1]); %lps2ras
-                    case 'ImageBasedStructureSegmentation'
-                        Tfromreglink= diag([-1 -1 1 1]); %lps2ras
-                    case 'ManualStructureSegmentation'
-                        Tfromreglink= diag([-1 -1 1 1]); %lps2ras
-                        
-                    otherwise
-                        keyboard
-                end
-                
-            end
-            
-            function [T,description] = universalCallbackRoutine(this)
-                [names,regs] = getRegistrationlink(this);
-                [selection] = listdlg('PromptString','In which space do you want it?','ListString',names);
-                
-                %possibly abort?
-                if isempty(selection);return;end
-                if selection==1;return;end
-                
-                %first Transformation (registerable to reglink)
-                reglink = regs{selection};
-                Ttoreglink = this.session.gettransformfromto(this,reglink);
-                
-                %Second Transformation (reglink to arena)
-                Tfromreglink = getSecondTransformation(reglink);
-                
-                T = round(Ttoreglink*Tfromreglink,6);
-                description = names{selection};
-            end
+%             %% Engine
+%             
+%             function [names,regs] = getRegistrationlink(suretuneRegisterable)
+%                 session = suretuneRegisterable.session;
+%                 [~,types] = session.listregisterables;
+%                 atlas_indices = find(contains(types,'Atlas'));
+%                 names = {};
+%                 regs = {};
+%                 
+%                 for i = 1:numel(atlas_indices)
+%                     thisAtlas = session.getregisterable(atlas_indices(i));
+%                     names{i} = ['to MNI via ',thisAtlas.group,' ',thisAtlas.hemisphere];
+%                     regs{i} = thisAtlas;
+%                 end
+%                 names = [{'--','Native / Scanner','Suretune patient space','to MNI via ACPC'},names];
+%                 regs = [{nan,suretuneRegisterable,session.getregisterable(1),session.getregisterable('acpcCoordinateSystem')},regs];
+%             end
+%             
+%             function Tfromreglink = getSecondTransformation(reglink)
+%                 switch class(reglink)
+%                     case 'Atlas'
+%                         T = load('Tapproved.mat');
+%                         atlasname = [lower(reglink.hemisphere),lower(reglink.group),'2mni'];
+%                         Tatlas2fake = T.(atlasname);
+%                         Tfake2mni = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
+%                         Tfromreglink = Tatlas2fake*Tfake2mni;
+%                     case 'ACPCIH'
+%                         Tlps2ras = diag([-1 -1 1 1]);
+%                         MCP2AC = Vector3D(reglink.ac-reglink.pc).norm*-0.5;
+%                         Tmcp2ac = [1 0 0 0;0 1 0 0;0 0 1 0;0 MCP2AC 0 1];
+%                         Tfromreglink = Tlps2ras*Tmcp2ac;
+%                     case 'Dataset'
+%                         Tfromreglink= diag([-1 -1 1 1]); %lps2ras
+%                     case 'ImageBasedStructureSegmentation'
+%                         Tfromreglink= diag([-1 -1 1 1]); %lps2ras
+%                     case 'ManualStructureSegmentation'
+%                         Tfromreglink= diag([-1 -1 1 1]); %lps2ras
+%                         
+%                     otherwise
+%                         keyboard
+%                 end
+%                 
+%             end
+%             
+%             function [T,description] = universalCallbackRoutine(this)
+%                 [names,regs] = getRegistrationlink(this);
+%                 [selection] = listdlg('PromptString','In which space do you want it?','ListString',names);
+%                 
+%                 %possibly abort?
+%                 if isempty(selection);return;end
+%                 if selection==1;return;end
+%                 
+%                 %first Transformation (registerable to reglink)
+%                 reglink = regs{selection};
+%                 Ttoreglink = this.session.gettransformfromto(this,reglink);
+%                 
+%                 %Second Transformation (reglink to arena)
+%                 Tfromreglink = getSecondTransformation(reglink);
+%                 
+%                 T = round(Ttoreglink*Tfromreglink,6);
+%                 description = names{selection};
+%             end
             
             
             

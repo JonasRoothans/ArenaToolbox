@@ -927,20 +927,20 @@ classdef ArenaScene < handle
                         obj_stn = ObjFile(fullfile(legacypath,'LH_STN-ON-pmMR.obj'));
                         obj_rn = ObjFile(fullfile(legacypath,'LH_RU-ON-pmMR.obj'));
                         obj_sn = ObjFile(fullfile(legacypath,'LH_SN-ON-pmMR.obj'));
+%                         
+                        obj_stn_left = obj_stn.transform(T.stu2mni_leftSTN);
+                        obj_stn_right = obj_stn.transform(T.stu2mni_rightSTN);
+                        obj_rn_left = obj_rn.transform(T.stu2mni_leftSTN);
+                        obj_rn_right = obj_rn.transform(T.stu2mni_rightSTN);
+                        obj_sn_left = obj_sn.transform(T.stu2mni_leftSTN);
+                        obj_sn_right = obj_sn.transform(T.stu2mni_rightSTN);
                         
-                        obj_stn_left = obj_stn.transform(T.leftstn2mni);
-                        obj_stn_right = obj_stn.transform(T.rightstn2mni);
-                        obj_rn_left = obj_rn.transform(T.leftstn2mni);
-                        obj_rn_right = obj_rn.transform(T.rightstn2mni);
-                        obj_sn_left = obj_sn.transform(T.leftstn2mni);
-                        obj_sn_right = obj_sn.transform(T.rightstn2mni);
-                        
-%                         obj_stn_left = obj_stn.transform(T.stu2mni_leftSTN);
-%                         obj_stn_right = obj_stn.transform(T.stu2mni_rightSTN);
-%                         obj_rn_left = obj_rn.transform(T.stu2mni_leftSTN);
-%                         obj_rn_right = obj_rn.transform(T.stu2mni_rightSTN);
-%                         obj_sn_left = obj_sn.transform(T.stu2mni_leftSTN);
-%                         obj_sn_right = obj_sn.transform(T.stu2mni_rightSTN);
+%                         obj_stn_left = obj_stn.transform(T.leftstn2mni);
+%                         obj_stn_right = obj_stn.transform(T.rightstn2mni);
+%                         obj_rn_left = obj_rn.transform(T.leftstn2mni);
+%                         obj_rn_right = obj_rn.transform(T.rightstn2mni);
+%                         obj_sn_left = obj_sn.transform(T.leftstn2mni);
+%                         obj_sn_right = obj_sn.transform(T.rightstn2mni);
                         
                         [thisScene.handles.atlas.legacy.Actor_stnleft,scene] = obj_stn_left.see(thisScene);
                         [thisScene.handles.atlas.legacy.Actor_snleft,scene] = obj_sn_left.see(thisScene);
@@ -968,11 +968,16 @@ classdef ArenaScene < handle
                     case 'GPi'
                         obj_gpi = ObjFile(fullfile(legacypath,'LH_IGP-ON-pmMR.obj'));
                         obj_gpe = ObjFile(fullfile(legacypath,'LH_EGP-ON-pmMR.obj'));
-                        
+%                         
                         obj_gpi_left = obj_gpi.transform(T.stu2mni_leftGPI);
                         obj_gpe_left = obj_gpe.transform(T.stu2mni_leftGPI);
                         obj_gpi_right = obj_gpi.transform(T.stu2mni_rightGPI);
                         obj_gpe_right = obj_gpe.transform(T.stu2mni_rightGPI);
+                        
+%                         obj_gpi_left = obj_gpi.transform(T.leftgpi2mni);
+%                         obj_gpe_left = obj_gpe.transform(T.leftgpi2mni);
+%                         obj_gpi_right = obj_gpi.transform(T.rightgpi2mni);
+%                         obj_gpe_right = obj_gpe.transform(T.rightgpi2mni);
                         
                         [thisScene.handles.atlas.legacy.Actor_gpileft,scene] = obj_gpi_left.see(thisScene);
                         [thisScene.handles.atlas.legacy.Actor_gpeleft,scene] = obj_gpe_left.see(thisScene);
