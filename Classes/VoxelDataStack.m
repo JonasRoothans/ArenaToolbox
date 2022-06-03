@@ -731,7 +731,7 @@ classdef VoxelDataStack < handle
             for i =  relevantVoxels'
                 
                 if any(serialized(i,:)>1)
-                    weightsweights = [obj.Weights,obj.Weights]
+                    weightsweights = [obj.Weights,obj.Weights];
                     serializedcombi = [serialized(i,:)>0.5,serialized(i,:)>1.5];
                     [~,p,~,stat] = ttest2(weightsweights(serializedcombi),weightsweights(~serializedcombi));
                     t = stat.tstat;
