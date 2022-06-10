@@ -108,9 +108,13 @@ classdef GPiDystonia < HeatmapModelSupport & handle
             VTA_voxelData = VTA_voxelData.imwarp(Tvta);
         end
         
-        function filterSettings = definePostProcessingSettings()
+        
+        
+        %%
+        
+         function filterSettings = definePostProcessingSettings()
             filterSettings = nan;
-            if 0 %temporarily switched off
+            if 0  %temporarily switched off
                 userinput = inputdlg({'Minimal confidence of the heatmap [0-1]',...
                     'Amplitude optimization based on  n = ',...
                     'Maximal accepted amplitude deviation (sigma)'},...
