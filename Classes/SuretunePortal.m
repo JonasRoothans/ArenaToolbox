@@ -168,7 +168,7 @@ classdef SuretunePortal < SuretuneTransformationTools
             function cb_dataset(hObject,b)
                 this = hObject.UserData;
                 
-                [T,reglinkdescription] = universalCallbackRoutine(this);
+                [T,reglinkdescription] = SuretuneTransformationTools.universalCallbackRoutine(this);
                 
                 %create VoxelData and warp
                 vd = VoxelData();
@@ -195,7 +195,7 @@ classdef SuretunePortal < SuretuneTransformationTools
             
             function cb_mss(hObject,h)
                 this = hObject.UserData;
-                [T,reglinkdescription] = universalCallbackRoutine(this);
+                [T,reglinkdescription] = SuretuneTransformationTools.universalCallbackRoutine(this);
                 m = this.computemesh;
                 %[V,F] = SDK_smoothedges(m,10,100,8,0.7)
                 % maxMaxEdgeLength,maxVertices,maxConnections,buldgeFactor)
@@ -209,7 +209,7 @@ classdef SuretunePortal < SuretuneTransformationTools
             
             function cb_ibs(hObject,h)
                 this = hObject.UserData;
-                [T,reglinkdescription] = universalCallbackRoutine(this);
+                [T,reglinkdescription] = SuretuneTransformationTools.universalCallbackRoutine(this);
                 
                 %create VoxelData and warp
                 vd = VoxelData();
@@ -247,7 +247,7 @@ classdef SuretunePortal < SuretuneTransformationTools
             
             function cb_ACPC(hObject,b)
                 this = hObject.UserData;
-                [T,reglinkdescription] = universalCallbackRoutine(this);
+                [T,reglinkdescription] = SuretuneTransformationTools.universalCallbackRoutine(this);
                 
                 %create VectorCloud and warp
                 AC = -1*Vector3D(this.ac-this.pc).norm/2;
@@ -312,7 +312,7 @@ classdef SuretunePortal < SuretuneTransformationTools
                             actor.changeName([this.label,' ',this.stimPlan{iStimplan}.label])
                             actor_vta = vd.getmesh(0.5).see(obj.scene);
                             actor_vta.changeName(['[VTA] ',this.label,' ',this.stimPlan{iStimplan}.label])
-                            
+                         
                             VTAObject.Electrode = e;
                             VTAObject.ActorElectrode = actor;
                             VTAObject.Volume = vd;
@@ -343,7 +343,7 @@ classdef SuretunePortal < SuretuneTransformationTools
             
             function cb_atlas(hObject,b)
                 this = hObject.UserData;
-                [T,reglinkdescription] = universalCallbackRoutine(this);
+                [T,reglinkdescription] = SuretuneTransformationTools.universalCallbackRoutine(this);
                 
                 %load atlases
                 rootdir = fileparts(fileparts(mfilename('fullpath')))
