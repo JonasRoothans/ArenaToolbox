@@ -1,5 +1,7 @@
-classdef VoxelDataStack < handle
-    
+classdef VoxelDataStack < handle  
+
+
+
     properties
         Voxels %4D or sparse but always serialized
         R
@@ -35,6 +37,19 @@ classdef VoxelDataStack < handle
                 obj.Weights = Weights;
             end
             
+        end
+        
+%         function out = subsref(obj,indx)
+%             if strcmp(indx.type,'()')
+%                 out = obj.select(indx.subs{1});
+%             end
+%             
+%         end
+        function out = select(obj,indx)
+            out = VoxelDataStack;
+            out.Voxels = obj.Voxels(:,indx);
+            out.R = obj.R;
+            out.Weights = obj.Weights(indx);
         end
         
         function weights = get.Weights(obj)
@@ -372,6 +387,28 @@ classdef VoxelDataStack < handle
             end
         end
         
+        function obj = addNiiWithScore(obj,niiPath,score)
+            
+            VD = VoxelData(niiPath);
+            [~,j] = size(obj.Voxels);
+            
+            if j == 0
+                obj.R = VD.R;
+            end
+            obj.Voxels(:,j+1) = VD.Voxels(:);
+            obj.Weights(j+1) = score;
+            
+        end
+            
+            
+        function index(obj)
+            disp('yes')
+        end
+        
+        
+        
+        
+        
         
         
         
@@ -665,6 +702,18 @@ classdef VoxelDataStack < handle
             
         end
         
+        function corr_values = corrWithVD(obj,vd)
+              
+              corr_values = [];
+              for iPatient = 1:numel(obj.Weights)
+                  thisPatient = obj.getVoxelDataAtPosition(iPatient);
+                  
+                  score = thisPatient.corr(vd,'Pearson');
+                  corr_values(iPatient) = score;
+              end
+              
+        end
+          
         function amap = average(obj,varargin)
             
             p=inputParser;
@@ -676,12 +725,22 @@ classdef VoxelDataStack < handle
             end
             averageVoxels = nanmean(obj.Voxels,2);
             
-            if ~isempty(varargin) && ~isempty(intersect(averageType,{'weighted'})) % only if varargin is empty, is the second statement 
+            if ~isempty(varargin) && ~isempty(intersect(averageType,{'weighted_hazem'})) % only if varargin is empty, is the second statement 
                 averageVoxels=(obj.Voxels*obj.Weights')./nansum(obj.Voxels);
+            elseif ~isempty(varargin) && ~isempty(intersect(averageType,{'weighted_jonas_dangerous'})) 
+                averageVoxels = (obj.Voxels*obj.Weights')./nansum(obj.Voxels')';
+            elseif ~isempty(varargin) && ~isempty(intersect(averageType,{'weighted'})) 
+                averageVoxels = (obj.Voxels*obj.Weights') / abs(sum(obj.Weights));
             end
-            amap = obj.reshape(averageVoxels);
-        end
+            amapvoxels = obj.reshape(averageVoxels);
             
+            amap = VoxelData;
+            amap.Voxels = amapvoxels;
+            amap.R = obj.R;
+        end
+        
+        
+          
         
 
         function [tmap,pmap,signedpmap,bfmap] = ttest2(obj,varargin)

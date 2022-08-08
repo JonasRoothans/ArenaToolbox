@@ -466,6 +466,24 @@ classdef VoxelData <handle
             
         end
         
+        function val = corr(o1,o2,statmethod)
+            v1 = o1.Voxels(:);
+            v2 = o2.Voxels(:);
+            
+            remove = or(isnan(v1),isnan(v2));
+            v1(remove) = [];
+            v2(remove) = [];
+            
+            if nargin==3
+                %Statmethod can be Pearson, Spearmann, Kendall
+                val = corr(v1,v2,'Type',statmethod);
+            else
+                val = corr(v1,v2);
+            end
+                
+        end
+            
+        
         function o3 = minus(o1,o2)
             img1 = o1.Voxels;
             img2 = o2.Voxels;
