@@ -1058,14 +1058,22 @@ classdef ArenaScene < handle
                   
                 ActiveContacts_pc = PointCloud;
                 for iRow = 1:length(table.amplitude)
-
-                    Ttolegacy = eval(table.Tlead2MNI{iRow});
+                    try
+                        Ttolegacy = eval(table.Tlead2MNI{iRow});
+                    catch
+                        disp('Reached empty line')
+                        break
+                    end
+                    
+                    %T2022 = load('T2022.mat');
+                    %TtoMNI = T2022.(['stu2mni_',table.hemisphere{iRow},upper(table.target{iRow})]);
 
 
                     cathode = str2num(table.activecontact{iRow});
                     leadname = [table.id{iRow},'_',table.leadname{iRow}];
                     
                     T = Ttolegacy*[-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1]; %to real MNI
+                    %T = Ttolegacy*TtoMNI;
                     [modified,T] = A_rigidT(T);
 
                     

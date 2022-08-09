@@ -114,7 +114,7 @@ function Interference(menuhandle,eventdata,roi,scene)
 % think this would make most sense, with the amount of samples all pvalues
 % are NaN - either decide for less tracts or use single linear regressions
 % for each tract?
-%     mdl = fitlm(x(:,find(sum(x))),y);
+     mdl = fitlm(x(:,find(sum(x))),y)
 % 
 
 %Option 2 R-squared
@@ -142,18 +142,18 @@ function Interference(menuhandle,eventdata,roi,scene)
 %     end
 %     
 %Option 4 pvalue from linear regression + R2 
-    results = [];
-    nms = {};
-    for i=1:length(x)
-        if any(x(:,i))
-            mdl = fitlm(x(:,i),y);
-            results(end+1,1) = mdl.Coefficients.pValue(2);
-            nms(end+1) = fiber_list(i);
-            r = corrcoef(x(:,i),y);
-            r2 = r.*r;
-            results(end,2) = r2(1,2);
-        end
-    end
+%     results = [];
+%     nms = {};
+%     for i=1:length(x)
+%       
+%             mdl = fitlm(x,y);
+%             results(end+1,1) = mdl.Coefficients.pValue(2);
+%             nms(end+1) = fiber_list(i);
+%             r = corrcoef(x(:,i),y);
+%             r2 = r.*r;
+%             results(end,2) = r2(1,2);
+%        
+%     end
 
     writetable(array2table(transpose(results),'RowNames',{'p-value','r-squared'},'VariableNames',nms),fullfile(results_path,strcat(scene.Title,'_p_r2.xls')),'WriteRowNames',true');
 end

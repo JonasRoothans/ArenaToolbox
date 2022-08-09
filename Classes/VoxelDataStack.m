@@ -39,17 +39,37 @@ classdef VoxelDataStack < handle
             
         end
         
-%         function out = subsref(obj,indx)
-%             if strcmp(indx.type,'()')
-%                 out = obj.select(indx.subs{1});
-%             end
-%             
-%         end
+        function varargout = subsref(obj,s)
+            switch s(1).type
+                case '.'
+
+                    [varargout{1:nargout}] = builtin('subsref',obj,s);
+
+                case '()'
+                    if length(s) == 1
+                        [varargout{1:nargout}] = obj.select(s.subs{1});
+                     
+                    else
+                        [varargout{1:nargout}] = builtin('subsref',obj,s);
+                    end
+                case '{}'
+                    
+                    [varargout{1:nargout}] = builtin('subsref',obj,s);
+                otherwise
+                    error('Not a valid indexing expression')
+            end
+        end
+        
+            
         function out = select(obj,indx)
             out = VoxelDataStack;
             out.Voxels = obj.Voxels(:,indx);
             out.R = obj.R;
+            try
             out.Weights = obj.Weights(indx);
+            catch
+                out.Weights = nan;
+            end
         end
         
         function weights = get.Weights(obj)

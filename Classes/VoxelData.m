@@ -899,6 +899,12 @@ classdef VoxelData <handle
             
             
         end
+        function savenii_withSourceHeader(obj,filename)
+            
+            nii.img = double(permute(obj.Voxels,[2 1 3]));
+            nii.hdr = load_nii_hdr(obj.SourceFile);
+            save_nii(nii,filename)
+        end
         
         function saveToFolder(obj,outdir,tag)
             savenii(obj,fullfile(outdir,[tag,'.nii']))
