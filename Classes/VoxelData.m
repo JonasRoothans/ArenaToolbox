@@ -90,6 +90,20 @@ classdef VoxelData <handle
             
         end
         
+        function out = mask(obj,maskVD)
+            maskVD_w=maskVD.warpto(obj);
+            if nargout ==1
+                out = VoxelData();
+                out.Voxels = obj.Voxels;
+                out.R = obj.R;
+                
+                out.Voxels(not(maskVD_w.Voxels))=nan;
+            else
+                
+            obj.Voxels(not(maskVD_w.Voxels))=nan;
+            end
+        end
+        
         function objout = move(obj,v3D)
             %does not overwrite the obj, unless no output is requested.
                 newVoxelData = VoxelData;
