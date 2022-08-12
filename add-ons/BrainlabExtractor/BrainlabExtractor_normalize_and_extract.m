@@ -28,12 +28,32 @@ diffdir = fullfile(BIfoldername,'temp');
 calculateDifferenceAndExportTo(diffdir)
 %step 2
 warpToMNI(diffdir)
+%step 3
+importWarped(diffdir)
 
+    function importWarped(diffdir)
+        files = A_getfiles(fullfile(diffdir,'temp_*.nii'));
+        for iFile = 1:numel(files)
+            thisFile = files(iFile);
+            thisPath = fullfile(diffdir,thisFile.name);
+            vd = VoxelData(thisPath);
+            percent0 = total(round(vd)<=0)/numvox(vd)*100;
+            if percent0>70
+               vd.round()
+               vd.Voxels(isnan(vd.Voxels)) =0;
+               vd.Voxels(vd.Voxels<0) = 0;
+               vd.getmesh(100).see(scene)
+            else
+                vd.getslice.see(scene);
+            end
+            
+        end
+    end
 
     function calculateDifferenceAndExportTo(tempdir)
         
         vd_template_noreslice = VoxelData;
-        vd_template_noreslice.loadnii(nativeTemplate,1);
+        vd_template_noreslice.loadnii(nativeTemplate,1); %"1" indicates no reslicing is applied.
         vd_template_noreslice.Voxels = uint16(vd_template_noreslice.Voxels);
         mkdir(tempdir);
         vd_template_noreslice.savenii_withSourceHeader(fullfile(tempdir,'master.nii'));
@@ -121,12 +141,12 @@ warpToMNI(diffdir)
         spm_jobman('run', matlabbatch);
         
         tempnames = {};
-        for i = 1:numel(acpcFilenames)
-            [folder,name] = fileparts(acpcFilenames{i});
-            
-            tempnames{i} = fullfile(folder,['temp_',name]);
-        end
-        
+%         for i = 1:numel(acpcFilenames)
+%             [folder,name] = fileparts(acpcFilenames{i});
+%             
+%             tempnames{i} = fullfile(folder,['temp_',name]);
+%         end
+%         
         
         
         

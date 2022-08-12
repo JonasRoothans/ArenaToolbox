@@ -268,7 +268,7 @@ classdef VoxelData <handle
             
             if noreslice %for heatmaps: reslicing might alter voxelvalues slightly. 
                 warning('Reslicing is turned off.')
-                loadednifti = load_nii(niifile);
+                loadednifti = load_untouch_nii(niifile);
             else %reslicing might change your data slightly, but rotates the data when a rotation is saved in the header. 
                     % reslicing is recommended for normal use.
                 reslice_nii(niifile,fullfile(tempdir,tempname));
@@ -386,6 +386,10 @@ classdef VoxelData <handle
         end
         
         function meshobj = getmesh(obj,T)
+            if not(isdouble(obj))
+                obj = obj.double();
+            end
+            
             if nargin==2
                 meshobj = Mesh(obj,T);
             else
@@ -517,6 +521,20 @@ classdef VoxelData <handle
           o3=Stack.sum; 
         end
         
+        
+        
+        function out = round(o1)
+            if nargout==1
+                out = VoxelData(round(o1.Voxels), o1.R);
+            else
+                o1.Voxels = round(o1.Voxels);
+            end
+        end
+        
+        function out = total(o1)
+            out = nansum(o1.Voxels(:));
+        end
+        
         function out = gt(o1,o2)
             switch class(o2)
                 case 'VoxelData'
@@ -526,11 +544,51 @@ classdef VoxelData <handle
             end
         end
         
-
+        function out = ge(o1,o2)
+            switch class(o2)
+                case 'VoxelData'
+                    out = VoxelData(o1.Voxels >= o2.warpto(o1).Voxels,o1.R);
+                case 'double'
+                    out = VoxelData(o1.Voxels >= o2, o1.R);
+            end
+        end
+        
+        function out = le(o1,o2)
+            switch class(o2)
+                case 'VoxelData'
+                    out = VoxelData(o1.Voxels <= o2.warpto(o1).Voxels,o1.R);
+                case 'double'
+                    out = VoxelData(o1.Voxels <= o2, o1.R);
+            end
+        end
+        
+        function out = mean(obj)
+            out = nanmean(obj.Voxels(:));
+        end
+            
+        function out = numvox(obj)
+            out = numel(obj.Voxels);
+        end
         function maxvalue = max(obj)
             maxvalue = max(obj.Voxels(:));
         end
 
+        function bool = isdouble(obj)
+            bool = strcmp(class(obj.Voxels),'double');
+        end
+        
+        
+        function out = double(obj)
+            if nargout==1
+                out = VoxelData(double(obj.Voxels),obj.R);
+            else
+                obj.Voxels = double(obj.Voxels);
+            end
+        end
+                
+        
+        
+        
         function o3=combineBinary(o1,o2);
             img1 = o1.Voxels;
             img2 = o2.Voxels;
