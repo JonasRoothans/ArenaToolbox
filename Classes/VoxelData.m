@@ -104,6 +104,7 @@ classdef VoxelData <handle
             end
         end
         
+       
         function objout = move(obj,v3D)
             %does not overwrite the obj, unless no output is requested.
                 newVoxelData = VoxelData;
@@ -395,6 +396,10 @@ classdef VoxelData <handle
             else
                 meshobj = Mesh(obj);
             end
+            
+            if not(isempty(inputname(1)))
+                meshobj.Label = inputname(1);
+            end
         end
         
         function sliceobj = getslice(obj)
@@ -519,6 +524,23 @@ classdef VoxelData <handle
           end
           
           o3=Stack.sum; 
+        end
+        
+        
+        function out = zeros(obj)
+            if nargout ==1
+                out = VoxelData(zeros(size(obj.Voxels)),obj.R);
+            else
+                obj.Voxels = zeros(size(obj.Voxels));
+            end
+        end
+        
+       function out = ones(obj)
+            if nargout ==1
+                out = VoxelData(ones(size(obj.Voxels)),obj.R);
+            else
+                obj.Voxels = zeros(size(obj.Voxels));
+            end
         end
         
         
@@ -669,7 +691,25 @@ classdef VoxelData <handle
             se = strel('sphere',width);
             obj.Voxels = imdilate(obj.Voxels,se);
         end
+        
+        
+        function setValueAtWorldLocation(obj,value,location)
+            if isa(location,'Vector3D')
+                location = location.getArray();
+            end
             
+            [x,y,z] = obj.R.worldToSubscript(location(1),location(2),location(3));
+            obj.Voxels(x,y,z) = value;
+        end
+        
+        function value = getValueAtWorldLocation(obj,location)
+             if isa(location,'Vector3D')
+                location = location.getArray();
+            end
+            
+            [x,y,z] = obj.R.worldToSubscript(location(1),location(2),location(3));
+            value = obj.Voxels(x,y,z);
+        end
         
         
         function [fwhm,f] = getDensityDistribution(obj)
