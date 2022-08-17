@@ -8,11 +8,13 @@ if isempty(menu.Parent.UserData.master)
 
 end
 
-%open ui
+%run the ui
+electrode(menu.Parent.UserData.electrodes) %ui
 
-electrode(menu.Parent.UserData.electrodes)
+%the output is sent to the base workspace. this retrieves it.
+menu.Parent.UserData.electrodes = evalin('base', 'electrodes'); 
 
-menu.Parent.UserData.electrodes = evalin('base', 'electrodes');
+%update menu text
 if iscell(menu.Parent.UserData.electrodes )
     nElectrodes = sum(sum(not(cellfun(@isempty,menu.Parent.UserData.electrodes))))/6;
     menu.Text = ['Electrodes: ',num2str(nElectrodes)];

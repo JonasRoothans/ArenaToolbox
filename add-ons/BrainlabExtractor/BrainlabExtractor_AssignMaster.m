@@ -9,7 +9,6 @@ end
     
 %update the menu text
 splt = strsplit(foldername(1:end-1),'/');
-
 menuname = [splt{end},filesep,filename];
 menu.Text = ['Master: ',menuname];
 

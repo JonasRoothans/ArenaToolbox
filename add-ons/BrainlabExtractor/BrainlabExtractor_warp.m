@@ -42,22 +42,6 @@ function [outputArg1,outputArg2] = BrainlabExtractor_warp(master,folder)
         
         
         spm_jobman('run', matlabbatch);
-        
-        tempnames = {};
-%         for i = 1:numel(acpcFilenames)
-%             [folder,name] = fileparts(acpcFilenames{i});
-%             
-%             tempnames{i} = fullfile(folder,['temp_',name]);
-%         end
-%         
-        
-        
-        
-        
-        
-        
-        
-
 
 
 end
