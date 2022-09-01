@@ -23,7 +23,11 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
         
         function VTAObject = makeVTA(obj,vtaname)
             global arena
+            try
              VTA_raw = load(fullfile(arena.Settings.VTApool,vtaname));
+            catch
+                error('It looks like VTApool cannot be found. Maybe this folder is moved, or you have recently updated Arena. To fix this delete config.mat and restart MATLAB. Arena will then ask for the folder');
+            end
              VTA_raw.Rvta.XWorldLimits = VTA_raw.Rvta.YWorldLimits - VTA_raw.Rvta.PixelExtentInWorldX;
              VTA_raw.Rvta.YWorldLimits = VTA_raw.Rvta.YWorldLimits - VTA_raw.Rvta.PixelExtentInWorldY;
              VTA_raw.Rvta.ZWorldLimits = VTA_raw.Rvta.ZWorldLimits - VTA_raw.Rvta.PixelExtentInWorldZ;
