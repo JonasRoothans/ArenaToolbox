@@ -210,6 +210,7 @@ classdef ArenaScene < handle
             obj.handles.menu.file.export.blender = uimenu(obj.handles.menu.file.export.main,'Text','Blender (*.obj)','callback',{@menu_exporttoblender});
             obj.handles.menu.file.export.handlestoworkspace = uimenu(obj.handles.menu.file.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
             obj.handles.menu.file.export.saveSelection = uimenu(obj.handles.menu.file.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
+            obj.handles.menu.file.settings = uimenu(obj.handles.menu.file.main,'Text','Reset to factory settings','callback',{@menu_resetSettings});
             
             
             obj.handles.menu.stusessions.main = uimenu(obj.handles.figure,'Text','Suretune sessions','Visible','off','Separator','on');
@@ -430,6 +431,13 @@ classdef ArenaScene < handle
                 
                 %set background to black
                 scene.handles.figure.Color
+            end
+            
+            function menu_resetSettings(hObject,eventdata,custom)
+                global arena
+                arena.setup();
+                msgbox('Reset succesful, please restart MATLAB','Warning','warn')
+                
             end
             
             function menu_refreshAddOnsList(hObject,eventdata,custom)
