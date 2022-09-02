@@ -26,7 +26,11 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
             try
              VTA_raw = load(fullfile(arena.Settings.VTApool,vtaname));
             catch
-                error('It looks like VTApool cannot be found. Maybe this folder is moved, or you have recently updated Arena. To fix this delete config.mat and restart MATLAB. Arena will then ask for the folder');
+                if isfolder(arena.Settings.VTApool)
+                    error(['Hmm. It looks like the following VTA does not exist in your VTApool: ',vtaname])
+                else
+                    error('It looks like VTApool cannot be found. Maybe this folder is moved, or you have recently updated Arena. To fix this delete config.mat and restart MATLAB. Arena will then ask for the folder');
+                end
             end
              VTA_raw.Rvta.XWorldLimits = VTA_raw.Rvta.YWorldLimits - VTA_raw.Rvta.PixelExtentInWorldX;
              VTA_raw.Rvta.YWorldLimits = VTA_raw.Rvta.YWorldLimits - VTA_raw.Rvta.PixelExtentInWorldY;
@@ -95,8 +99,16 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
         end
         
         function obj = legacy2MNI(obj)
+            %redirects to method of Vector3D
             POL = obj.getPOL.legacy2MNI();
             obj.C0 = obj.C0.legacy2MNI();
+            obj.PointOnLead(POL);
+        end
+        
+        function obj = stu2MNI(obj,MNItag)
+            %redirects to method of Vector3D
+            POL = obj.getPOL.stu2MNI(MNItag);
+            obj.C0 = obj.C0.stu2MNI(MNItag);
             obj.PointOnLead(POL);
         end
         

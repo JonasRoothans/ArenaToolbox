@@ -217,6 +217,20 @@ classdef Vector3D
             obj = obj.transform(T);
         end
         
+        function obj = stu2MNI(obj, anatomicalReference)
+            T = load('T2022.mat');
+            switch anatomicalReference
+                case 'yebstnleft' 
+                    obj.transform(T.stu2mni_leftSTN);
+                case 'yebstnright'
+                    obj.transform(T.stu2mni_rightSTN);
+                case 'yebgpileft' 
+                    obj.transform(T.stu2mni_leftGPI);
+                case 'yebgpiright' 
+                    obj.transform(T.stu2mni_rightGPI);
+            end
+        end
+        
         function rad = getAxiAngle(obj)
             rad = atan(obj.x/obj.y);
             if obj.y>0

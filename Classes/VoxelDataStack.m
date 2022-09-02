@@ -222,6 +222,7 @@ classdef VoxelDataStack < handle
                 activevector = obj.Recipe.activecontact{i};
                 groundedcontact = obj.Recipe.groundedcontact{i};
                 voltagecontrolled = obj.Recipe.voltage{i};
+                MNI = obj.Recipe.MNI{i};
                 T = eval(obj.Recipe.Tlead2MNI{i});
                 
                 %make a VTA name
@@ -230,7 +231,7 @@ classdef VoxelDataStack < handle
                 %create an electrode in MNI space, and generate the VTA.
                 e = Electrode;
                 e.transform(T); %move lead from default position to legacy MNI
-                e.legacy2MNI; %move lead to MNI space.
+                e.stu2MNI(MNI); %move lead to MNI space.
                 if ~e.isLeft()
                     e.mirror()
                 end
