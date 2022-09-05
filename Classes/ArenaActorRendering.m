@@ -359,6 +359,9 @@ classdef ArenaActorRendering < handle
                     end
                     
                     for iFiber = 1:obj.ActorHandle.Visualisation.settings.numberOfFibers
+                        if iFiber >numel(obj.Vertices)
+                            break
+                        end
                         drawNewFiberInScene(obj,iFiber)
                     end
                     

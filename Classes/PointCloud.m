@@ -60,6 +60,11 @@ classdef PointCloud < ArenaActorRendering
         
         end
         
+        function out = length(obj)
+            out = length(obj.Vectors);
+        end
+            
+        
         function obj = saveToFolder(obj,outdir, tag)
             pointcloud = obj;
             save(fullfile(outdir,tag),'pointcloud')

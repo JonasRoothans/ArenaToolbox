@@ -99,10 +99,13 @@ classdef Fibers < handle & matlab.mixin.Copyable & ArenaActorRendering
             
         end
         
-        function obj = addFiber(obj,vertices,fiberindex)
+        function obj = addFiber(obj,vertices,fiberindex,OPTIONALweight)
                     n = numel(obj.Vertices)+1;
                     obj.Vertices(n) = PointCloud(vertices);
                     obj.Indices(n) = fiberindex;
+                    if nargin==4
+                        obj.Weight(n) = OPTIONALweight;
+                    end
         end
 
             
@@ -187,8 +190,20 @@ classdef Fibers < handle & matlab.mixin.Copyable & ArenaActorRendering
                [-134.2500, 99.2500],... %y world
                [-72.2500, 117.2500])); %z world 
            
-           
+           try
            fibervertices = obj.Connectome.quickFibersPassingThroughMesh(obj.IncludeSeed,obj.ActorHandle.Scene);
+           catch
+               lengths = arrayfun(@(x) x.length,obj.Vertices);
+               n = sum(lengths);
+               indx = [1,cumsum(lengths)+1];
+               fibervertices = zeros(n,3);
+              fibervertices = [];
+              for iFib = 1:numel(obj.Vertices)
+                  
+                  fibervertices(indx(iFib):indx(iFib+1)-1,:) = obj.Vertices(iFib).Vectors.getArray;
+              end
+              
+           end
            
            % get the voxels where fibers are passing
            disp('Projecting to MNI')

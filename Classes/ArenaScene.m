@@ -1198,9 +1198,38 @@ classdef ArenaScene < handle
                 
             end
             
+            function import_leadDBSfibers(thisScene,loaded)
+                f_left = Fibers;
+                f_right = Fibers;
+                for iFib = 1:numel(loaded.fibcell{1})
+                    f_right.addFiber(loaded.fibcell{1}{iFib},iFib,loaded.vals{1}(iFib));
+                end
+                for iFib = 1:numel(loaded.fibcell{2})
+                    f_left.addFiber(loaded.fibcell{2}{iFib},iFib,loaded.vals{2}(iFib));
+                end
+                
+                h_right = f_right.see(thisScene);
+                h_right.changeName(['Fibers (',num2str(numel(loaded.fibcell{1})),')'])
+                h_left = f_left.see(thisScene);
+                h_left.changeName(['Fibers (',num2str(numel(loaded.fibcell{2})),')'])
+                
+                h_right.changeSetting('colorFace2',loaded.fibcolor(1,:),'colorFace',loaded.fibcolor(2,:),'colorByDirection',0,'colorByWeight',1)
+                h_left.changeSetting('colorFace2',loaded.fibcolor(1,:),'colorFace',loaded.fibcolor(2,:),'colorByDirection',0,'colorByWeight',1)
+            
+                
+                
+            end
+            
             function import_mat(thisScene,filename)
 
                 loaded = load(filename);
+                
+                if isfield(loaded,'fibcell')
+                    import_leadDBSfibers(thisScene,loaded)
+                    return
+                end
+                
+                
                 names = {};
                 data = {};
                 
