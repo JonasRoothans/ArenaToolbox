@@ -7,6 +7,8 @@ classdef Therapy < handle
         Predictions = Prediction.empty;
         ReviewOutcome = Prediction.empty;
         ReviewData
+        RecommendedSettings 
+        AlternativeSettings 
         Tag
     end
     
@@ -172,15 +174,86 @@ classdef Therapy < handle
 
             end
             
+            %sort list according to improvement as well as confidence and
+            %asign recommended settings
+            
+            sortedList = sortImproConf(obj, predictionList);
+            if numel(sortedList)
+            obj.RecommendedSettings = sortedList(1,1);
+            else
+                obj.RecommendedSettings = {'No recommendation based on this model possible'};
+                
+            end
+            
+            %create alternative settings
+            obj.AlternativeSettings = reduceSE(obj,predictionList);
+            
+            %% print reccomendations
+            
+            fileID = HeatmapModelSupport.makeFile(obj.Tag);
+            HeatmapModelSupport.printtext(fileID,'\n')
+            HeatmapModelSupport.printtext(fileID,'Recommended Settings\n')
+            HeatmapModelSupport.printtext(fileID,'\n')
+            if iscell(obj.RecommendedSettings)
+                HeatmapModelSupport.printtext(fileID,'No recommendation based on this model possible\n')
+                HeatmapModelSupport.printtext(fileID,'\n')
+            else
+                HeatmapModelSupport.printPredictionList(obj.Tag,obj.RecommendedSettings,pairs,nan)
+            end
+            
+            if ~iscell(obj.AlternativeSettings.universal)
+                HeatmapModelSupport.printtext(fileID,'\n')
+                HeatmapModelSupport.printtext(fileID,'Alternative settings reducing side effects from both hemispheres is\n')
+                HeatmapModelSupport.printtext(fileID,'\n')
+                HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.universal,pairs,nan)
+            else
+                if ~iscell(obj.AlternativeSettings.leftHemisphereSE)
+                    HeatmapModelSupport.printtext(fileID,'\n')
+                     HeatmapModelSupport.printtext(fileID,'Alternative settings reducing side effects from left hemisphere is\n')
+                     HeatmapModelSupport.printtext(fileID,'\n')
+                HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.leftHemisphereSE,pairs,nan)
+                end
+                
+                 if ~iscell(obj.AlternativeSettings.rightHemisphereSE)
+                     HeatmapModelSupport.printtext(fileID,'\n')
+                     HeatmapModelSupport.printtext(fileID,'Alternatice settings reducing side effects from right hemisphere hemispheres is\n')
+                     HeatmapModelSupport.printtext(fileID,'\n')
+                HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.rightHemisphereSE,pairs,nan)
+                 end
+                    
+                if ~iscell(obj.AlternativeSettings.ampReduction)
+                    HeatmapModelSupport.printtext(fileID,'\n')
+                    HeatmapModelSupport.printtext(fileID,'Alternative settings with reduced amplitudes is\n')
+                    HeatmapModelSupport.printtext(fileID,'\n')
+                    HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.ampReduction,pairs,nan)
+                    HeatmapModelSupport.printtext(fileID,'\n')
+                end
+                
+                if iscell(obj.AlternativeSettings.ampReduction)&iscell(obj.AlternativeSettings.rightHemisphereSE)&...
+                        iscell(obj.AlternativeSettings.leftHemisphereSE)&iscell(obj.AlternativeSettings.universal)
+                    HeatmapModelSupport.printtext(fileID,'\n')
+                    HeatmapModelSupport.printtext(fileID,'No side effects reducing suggestion possible, consider manual ampitude reduction\n')
+                    HeatmapModelSupport.printtext(fileID,'\n')
+                end
+            end
+            HeatmapModelSupport.printtext(fileID,'WHOLE REVIEW\n')
+            HeatmapModelSupport.printtext(fileID,'\n')
+            
+            %%
+                    
             
             
+          
             
             %run the postprocessing in the model.
             heatmap.performReviewPostProcessing(obj.Tag,predictionList,PostSettings,pairs)
             
             %order and filter the suggestions
             %-- sort on improvement
+            
             [sorted,order] = sort(vertcat(predictionList.Output),'descend');
+            
+          
             ReviewData.predictionList = predictionList;
             ReviewData.order = order;
             ReviewData.filterSettings = PostSettings;
@@ -277,6 +350,134 @@ classdef Therapy < handle
   
             
         end
+        
+        %% Postprocessing Pavel
+        
+        function sortedPredictionList = sortImproConf(obj,predictionList) %this function sorts out low confidences, orders in respect to confidence and impro
+            
+            if ~numel(predictionList)
+                sortedPredictionList = [];
+            else
+         
+            highConf = min(vertcat(predictionList(:).Confidence)')>0.85;
+            TopConfList = predictionList(highConf);
+            
+            lowConf = min(vertcat(predictionList(:).Confidence)')>0.55;
+            LowConfList = predictionList(lowConf);
+            
+            if numel(TopConfList)>1
+            
+            [~,orderTop] = sort(vertcat(TopConfList.Output),'descend');
+            orderTop = orderTop';
+            TopConfList = TopConfList(orderTop(:));
+            
+            
+            end
+            
+            ConfSum = sum(vertcat(LowConfList(:).Confidence),2);
+          
+            [~,orderLow] = sort(vertcat(LowConfList(:).Output).*ConfSum);
+            orderLow = orderLow';
+            LowConfList = LowConfList(orderLow(:));
+            
+            sortedPredictionList = horzcat(TopConfList,LowConfList);
+            
+            end
+   
+            
+        end
+        
+        function AlternativeSettings = reduceSE(obj,predictionList) %finds alternatives to reduce side effects
+            
+            % first constructs indeces based on contact position and
+            % ampitude in respect to reccommended settings
+            
+            for iList = 1:numel(predictionList)
+                
+                leftProx = zeros(1,iList);
+                rightProx = zeros(1,iList);
+                leftLowAmp = zeros(1,iList);
+                rightLowAmp = zeros(1,iList);
+                left_Prox = zeros(1,iList);
+                right_Prox = zeros(1,iList);
+                left_LowAmp = zeros(1,iList);
+                right_LowAmp = zeros(1,iList);
+                
+                
+            leftProx(iList) = predictionList(iList).Input.VTAs(1,1).Settings.activecontact...
+            > obj.RecommendedSettings.Input.VTAs(1,1).Settings.activecontact;
+            
+            rightProx(iList) = predictionList(iList).Input.VTAs(1,2).Settings.activecontact...
+            > obj.RecommendedSettings.Input.VTAs(1,2).Settings.activecontact;
+        
+            leftLowAmp(iList) = (predictionList(iList).Input.VTAs(1,1).Settings.amplitude...
+            - obj.RecommendedSettings.Input.VTAs(1,1).Settings.amplitude) < 1;
+            
+            rightLowAmp(iList) = (predictionList(iList).Input.VTAs(1,2).Settings.amplitude...
+            - obj.RecommendedSettings.Input.VTAs(1,2).Settings.amplitude) < 1;
+        
+            left_Prox(iList) = predictionList(iList).Input.VTAs(1,1).Settings.activecontact...
+            >= obj.RecommendedSettings.Input.VTAs(1,1).Settings.activecontact;
+            
+            right_Prox(iList) = predictionList(iList).Input.VTAs(1,2).Settings.activecontact...
+            >= obj.RecommendedSettings.Input.VTAs(1,2).Settings.activecontact;
+        
+            left_LowAmp(iList) = (predictionList(iList).Input.VTAs(1,1).Settings.amplitude...
+            - obj.RecommendedSettings.Input.VTAs(1,1).Settings.amplitude) < 0.5;
+        
+            right_LowAmp(iList) = (predictionList(iList).Input.VTAs(1,2).Settings.amplitude...
+            - obj.RecommendedSettings.Input.VTAs(1,2).Settings.amplitude) < 0.5;
+        
+            end
+        
+            Prox = leftProx&rightProx;
+            LowAmp = leftLowAmp&rightLowAmp;
+            filter1 = Prox&LowAmp;
+            
+            filterL = leftProx&leftLowAmp;
+            filterR = rightProx&rightLowAmp;
+            filterAmp = (left_LowAmp&right_LowAmp)&(left_Prox&right_Prox);
+            
+            %if there is a settigns with proximal contacts bilat take it
+           if numel(obj.sortImproConf(predictionList(filter1))) > 0
+               filtered=obj.sortImproConf(predictionList(filter1));
+               AlternativeSettings.universal=filtered(1,1);
+               
+           else % if not, do it for sides separately
+               
+               AlternativeSettings.universal = {'Universal side effects reducing settings not found'};
+               
+               if numel(obj.sortImproConf(predictionList(filterL))) > 0
+                   filteredL = obj.sortImproConf(predictionList(filterL));
+                   AlternativeSettings.leftHemisphereSE = filteredL(1,1);
+               else
+                   AlternativeSettings.leftHemisphereSE = {'Alternative settings for left hemisphere side effects not found'};
+                   
+               end
+               
+               if numel(obj.sortImproConf(predictionList(filterR))) > 0
+                   filteredR = sortIproConf(predictionList(filterR));
+                   AlternativeSettings.rightHemisphereSE = filteredR(1,1);
+               else 
+                   AlternativeSettings.rightHemisphereSE = {'Alternative settings for right hemisphere side effects not found'};
+                   
+               end
+               
+           end
+            
+           % take best settings with lower amp
+           if numel(obj.sortImproConf(predictionList(filterAmp))) > 0
+               filteredAmp = obj.sortImproConf(predictionList(filterAmp));
+               AlternativeSettings.ampReduction = filteredAmp(1,1);
+               
+           else
+               
+               AlternativeSettings.ampReduction = {'Alternative settings with reduced amplitude not found, reduce amplitude of recommended settings manually'};
+           end
+           
+        end
+        
+        %%
         
         function exploreReview(obj)
             

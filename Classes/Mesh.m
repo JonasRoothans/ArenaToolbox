@@ -8,6 +8,10 @@ classdef Mesh < handle & matlab.mixin.Copyable & ArenaActorRendering
         Source
     end
     
+    properties (Hidden)
+        Label
+    end
+    
     methods
         function obj = Mesh(varargin)
             %MESH Construct an instance of this class
@@ -45,28 +49,28 @@ classdef Mesh < handle & matlab.mixin.Copyable & ArenaActorRendering
             %will be visualized
             if VoxelData.R.PixelExtentInWorldX>0.5 && sum(VoxelData.Voxels(:)>T)< 70
                 %interpolating
-                Xo = VoxelData.R.XWorldLimits(1)+VoxelData.R.PixelExtentInWorldX/2:VoxelData.R.PixelExtentInWorldX:VoxelData.R.XWorldLimits(2);
-                Yo = VoxelData.R.YWorldLimits(1)+VoxelData.R.PixelExtentInWorldY/2:VoxelData.R.PixelExtentInWorldY:VoxelData.R.YWorldLimits(2);
-                Zo = VoxelData.R.ZWorldLimits(1)+VoxelData.R.PixelExtentInWorldZ/2:VoxelData.R.PixelExtentInWorldZ:VoxelData.R.ZWorldLimits(2);
-                Xq = VoxelData.R.XWorldLimits(1):0.5:VoxelData.R.XWorldLimits(2);
-                Yq = VoxelData.R.YWorldLimits(1):0.5:VoxelData.R.XWorldLimits(2);
-                Zq = VoxelData.R.ZWorldLimits(1):0.5:VoxelData.R.XWorldLimits(2);
-                
-                [Xm,Ym,Zm] = meshgrid(Xo,Yo,Zo);
-                [Xqq,Yqq,Zqq] = meshgrid(Xq,Yq,Zq);
-                disp('Interpolating source data on 0.5mm grid')
-                Vin = VoxelData.Voxels;
-                Vin(isnan(Vin)) = 0.0;
-                try
-                    Vq = interp3(Xm,Ym,Zm,Vin,Xqq,Yqq,Zqq,'nearest');
-                    X = Xqq;
-                    Y = Yqq;
-                    Z = Zqq;
-                    V  = Vq;
-                catch
-                    [X,Y,Z] = A_imref2meshgrid(VoxelData.R);
-                    V = VoxelData.Voxels;
-                end
+%                 Xo = VoxelData.R.XWorldLimits(1)+VoxelData.R.PixelExtentInWorldX/2:VoxelData.R.PixelExtentInWorldX:VoxelData.R.XWorldLimits(2);
+%                 Yo = VoxelData.R.YWorldLimits(1)+VoxelData.R.PixelExtentInWorldY/2:VoxelData.R.PixelExtentInWorldY:VoxelData.R.YWorldLimits(2);
+%                 Zo = VoxelData.R.ZWorldLimits(1)+VoxelData.R.PixelExtentInWorldZ/2:VoxelData.R.PixelExtentInWorldZ:VoxelData.R.ZWorldLimits(2);
+%                 Xq = VoxelData.R.XWorldLimits(1):0.5:VoxelData.R.XWorldLimits(2);
+%                 Yq = VoxelData.R.YWorldLimits(1):0.5:VoxelData.R.XWorldLimits(2);
+%                 Zq = VoxelData.R.ZWorldLimits(1):0.5:VoxelData.R.XWorldLimits(2);
+%                 
+%                 [Xm,Ym,Zm] = meshgrid(Xo,Yo,Zo);
+%                 [Xqq,Yqq,Zqq] = meshgrid(Xq,Yq,Zq);
+%                 disp('Interpolating source data on 0.5mm grid')
+%                 Vin = VoxelData.Voxels;
+%                 Vin(isnan(Vin)) = 0.0;
+%                 try
+%                     Vq = interp3(Xm,Ym,Zm,Vin,Xqq,Yqq,Zqq,'nearest');
+%                     X = Xqq;
+%                     Y = Yqq;
+%                     Z = Zqq;
+%                     V  = Vq;
+%                 catch
+%                     [X,Y,Z] = A_imref2meshgrid(VoxelData.R);
+%                     V = VoxelData.Voxels;
+%                 end
                     
             else
                 [X,Y,Z] = A_imref2meshgrid(VoxelData.R);
@@ -154,6 +158,10 @@ classdef Mesh < handle & matlab.mixin.Copyable & ArenaActorRendering
             thisActor = thisScene.newActor(obj);
             if not(isempty(inputname(1)))
                 thisActor.changeName(inputname(1))
+            elseif not(isempty(obj.Label))
+                thisActor.changeName(obj.Label)
+            
+                
             end
         end
         

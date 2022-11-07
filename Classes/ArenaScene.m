@@ -210,6 +210,7 @@ classdef ArenaScene < handle
             obj.handles.menu.file.export.blender = uimenu(obj.handles.menu.file.export.main,'Text','Blender (*.obj)','callback',{@menu_exporttoblender});
             obj.handles.menu.file.export.handlestoworkspace = uimenu(obj.handles.menu.file.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
             obj.handles.menu.file.export.saveSelection = uimenu(obj.handles.menu.file.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
+            obj.handles.menu.file.settings = uimenu(obj.handles.menu.file.main,'Text','Reset to factory settings','callback',{@menu_resetSettings});
             
             
             obj.handles.menu.stusessions.main = uimenu(obj.handles.figure,'Text','Suretune sessions','Visible','off','Separator','on');
@@ -430,6 +431,13 @@ classdef ArenaScene < handle
                 
                 %set background to black
                 scene.handles.figure.Color
+            end
+            
+            function menu_resetSettings(hObject,eventdata,custom)
+                global arena
+                arena.setup();
+                msgbox('Reset succesful, please restart MATLAB','Warning','warn')
+                
             end
             
             function menu_refreshAddOnsList(hObject,eventdata,custom)
@@ -1058,14 +1066,22 @@ classdef ArenaScene < handle
                   
                 ActiveContacts_pc = PointCloud;
                 for iRow = 1:length(table.amplitude)
-
-                    Ttolegacy = eval(table.Tlead2MNI{iRow});
+                    try
+                        Ttolegacy = eval(table.Tlead2MNI{iRow});
+                    catch
+                        disp('Reached empty line')
+                        break
+                    end
+                    
+                    %T2022 = load('T2022.mat');
+                    %TtoMNI = T2022.(['stu2mni_',table.hemisphere{iRow},upper(table.target{iRow})]);
 
 
                     cathode = str2num(table.activecontact{iRow});
                     leadname = [table.id{iRow},'_',table.leadname{iRow}];
                     
                     T = Ttolegacy*[-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1]; %to real MNI
+                    %T = Ttolegacy*TtoMNI;
                     [modified,T] = A_rigidT(T);
 
                     
@@ -1182,9 +1198,38 @@ classdef ArenaScene < handle
                 
             end
             
+            function import_leadDBSfibers(thisScene,loaded)
+                f_left = Fibers;
+                f_right = Fibers;
+                for iFib = 1:numel(loaded.fibcell{1})
+                    f_right.addFiber(loaded.fibcell{1}{iFib},iFib,loaded.vals{1}(iFib));
+                end
+                for iFib = 1:numel(loaded.fibcell{2})
+                    f_left.addFiber(loaded.fibcell{2}{iFib},iFib,loaded.vals{2}(iFib));
+                end
+                
+                h_right = f_right.see(thisScene);
+                h_right.changeName(['Fibers (',num2str(numel(loaded.fibcell{1})),')'])
+                h_left = f_left.see(thisScene);
+                h_left.changeName(['Fibers (',num2str(numel(loaded.fibcell{2})),')'])
+                
+                h_right.changeSetting('colorFace2',loaded.fibcolor(1,:),'colorFace',loaded.fibcolor(2,:),'colorByDirection',0,'colorByWeight',1)
+                h_left.changeSetting('colorFace2',loaded.fibcolor(1,:),'colorFace',loaded.fibcolor(2,:),'colorByDirection',0,'colorByWeight',1)
+            
+                
+                
+            end
+            
             function import_mat(thisScene,filename)
 
                 loaded = load(filename);
+                
+                if isfield(loaded,'fibcell')
+                    import_leadDBSfibers(thisScene,loaded)
+                    return
+                end
+                
+                
                 names = {};
                 data = {};
                 

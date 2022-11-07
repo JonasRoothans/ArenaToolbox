@@ -90,6 +90,21 @@ classdef VoxelData <handle
             
         end
         
+        function out = mask(obj,maskVD)
+            maskVD_w=maskVD.warpto(obj);
+            if nargout ==1
+                out = VoxelData();
+                out.Voxels = obj.Voxels;
+                out.R = obj.R;
+                
+                out.Voxels(not(maskVD_w.Voxels))=nan;
+            else
+                
+            obj.Voxels(not(maskVD_w.Voxels))=nan;
+            end
+        end
+        
+       
         function objout = move(obj,v3D)
             %does not overwrite the obj, unless no output is requested.
                 newVoxelData = VoxelData;
@@ -254,7 +269,7 @@ classdef VoxelData <handle
             
             if noreslice %for heatmaps: reslicing might alter voxelvalues slightly. 
                 warning('Reslicing is turned off.')
-                loadednifti = load_nii(niifile);
+                loadednifti = load_untouch_nii(niifile);
             else %reslicing might change your data slightly, but rotates the data when a rotation is saved in the header. 
                     % reslicing is recommended for normal use.
                 reslice_nii(niifile,fullfile(tempdir,tempname));
@@ -372,10 +387,18 @@ classdef VoxelData <handle
         end
         
         function meshobj = getmesh(obj,T)
+            if not(isdouble(obj))
+                obj = obj.double();
+            end
+            
             if nargin==2
                 meshobj = Mesh(obj,T);
             else
                 meshobj = Mesh(obj);
+            end
+            
+            if not(isempty(inputname(1)))
+                meshobj.Label = inputname(1);
             end
         end
         
@@ -466,6 +489,24 @@ classdef VoxelData <handle
             
         end
         
+        function val = corr(o1,o2,statmethod)
+            v1 = o1.Voxels(:);
+            v2 = o2.Voxels(:);
+            
+            remove = or(isnan(v1),isnan(v2));
+            v1(remove) = [];
+            v2(remove) = [];
+            
+            if nargin==3
+                %Statmethod can be Pearson, Spearmann, Kendall
+                val = corr(v1,v2,'Type',statmethod);
+            else
+                val = corr(v1,v2);
+            end
+                
+        end
+            
+        
         function o3 = minus(o1,o2)
             img1 = o1.Voxels;
             img2 = o2.Voxels;
@@ -485,6 +526,37 @@ classdef VoxelData <handle
           o3=Stack.sum; 
         end
         
+        
+        function out = zeros(obj)
+            if nargout ==1
+                out = VoxelData(zeros(size(obj.Voxels)),obj.R);
+            else
+                obj.Voxels = zeros(size(obj.Voxels));
+            end
+        end
+        
+       function out = ones(obj)
+            if nargout ==1
+                out = VoxelData(ones(size(obj.Voxels)),obj.R);
+            else
+                obj.Voxels = zeros(size(obj.Voxels));
+            end
+        end
+        
+        
+        
+        function out = round(o1)
+            if nargout==1
+                out = VoxelData(round(o1.Voxels), o1.R);
+            else
+                o1.Voxels = round(o1.Voxels);
+            end
+        end
+        
+        function out = total(o1)
+            out = nansum(o1.Voxels(:));
+        end
+        
         function out = gt(o1,o2)
             switch class(o2)
                 case 'VoxelData'
@@ -494,11 +566,51 @@ classdef VoxelData <handle
             end
         end
         
-
+        function out = ge(o1,o2)
+            switch class(o2)
+                case 'VoxelData'
+                    out = VoxelData(o1.Voxels >= o2.warpto(o1).Voxels,o1.R);
+                case 'double'
+                    out = VoxelData(o1.Voxels >= o2, o1.R);
+            end
+        end
+        
+        function out = le(o1,o2)
+            switch class(o2)
+                case 'VoxelData'
+                    out = VoxelData(o1.Voxels <= o2.warpto(o1).Voxels,o1.R);
+                case 'double'
+                    out = VoxelData(o1.Voxels <= o2, o1.R);
+            end
+        end
+        
+        function out = mean(obj)
+            out = nanmean(obj.Voxels(:));
+        end
+            
+        function out = numvox(obj)
+            out = numel(obj.Voxels);
+        end
         function maxvalue = max(obj)
             maxvalue = max(obj.Voxels(:));
         end
 
+        function bool = isdouble(obj)
+            bool = strcmp(class(obj.Voxels),'double');
+        end
+        
+        
+        function out = double(obj)
+            if nargout==1
+                out = VoxelData(double(obj.Voxels),obj.R);
+            else
+                obj.Voxels = double(obj.Voxels);
+            end
+        end
+                
+        
+        
+        
         function o3=combineBinary(o1,o2);
             img1 = o1.Voxels;
             img2 = o2.Voxels;
@@ -579,7 +691,25 @@ classdef VoxelData <handle
             se = strel('sphere',width);
             obj.Voxels = imdilate(obj.Voxels,se);
         end
+        
+        
+        function setValueAtWorldLocation(obj,value,location)
+            if isa(location,'Vector3D')
+                location = location.getArray();
+            end
             
+            [x,y,z] = obj.R.worldToSubscript(location(1),location(2),location(3));
+            obj.Voxels(x,y,z) = value;
+        end
+        
+        function value = getValueAtWorldLocation(obj,location)
+             if isa(location,'Vector3D')
+                location = location.getArray();
+            end
+            
+            [x,y,z] = obj.R.worldToSubscript(location(1),location(2),location(3));
+            value = obj.Voxels(x,y,z);
+        end
         
         
         function [fwhm,f] = getDensityDistribution(obj)
@@ -880,6 +1010,12 @@ classdef VoxelData <handle
             scalaroutput = VoxelData(L,obj.R);
             
             
+        end
+        function savenii_withSourceHeader(obj,filename)
+            
+            nii.img = double(permute(obj.Voxels,[2 1 3]));
+            nii.hdr = load_nii_hdr(obj.SourceFile);
+            save_nii(nii,filename)
         end
         
         function saveToFolder(obj,outdir,tag)
