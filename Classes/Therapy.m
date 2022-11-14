@@ -48,7 +48,7 @@ classdef Therapy < handle
         end
         
         
-        function obj = executeReview(obj)
+        function [obj,predictionlist] = executeReview(obj,OptionalInput)
             %check available electrodes:
             Electrode_list = {obj.VTAs(:).Electrode};
             Electrode_present = not(cellfun(@isempty,{obj.VTAs(:).Electrode}));
@@ -66,21 +66,34 @@ classdef Therapy < handle
                 return
             end
             
-            %ask for heatmap/model
-            global predictionmanager
-            heatmap = predictionmanager.selectHeatmap();
+            if nargin>1 %use provided input to skip user dialogs
+                heatmap = OptionalInput.heatmap;
+                VTAset = OptionalInput.VTAset;
+                PostSettings = OptionalInput.PostSettings;
+            else %ask for user input
+                
+                %ask for heatmap/model
+                global predictionmanager
+                heatmap = predictionmanager.selectHeatmap();
+
+                %Ask for mode
+                options = {'60 us - 1,2,3,4,5 mA - MDT3389',...
+                    '60 us - 0.1mA steps - MDT3389',...
+                    '60 us - 0.5 mA steps - MDT3389',...
+                    '60 us - just 2.5 mA - MDT3389',...
+                    '120 us - 0.5 mA steps - MDT3389',...
+                    '60 us - just 2 and 4 mA- MDT3389',...
+                    '60 us - 3.2 mA steps - MDT3389 (cogn. decline monopolar review)'};
+
+                answer = listdlg('PromptString','Select monopolar review preset (can be updated in Therapy.m):','ListString',options,'ListSize',[400,100]);
+                VTAset = options{answer};
+
+                %Ask for postprocessing filter settings. (heatmap specific)
+                PostSettings = heatmap.definePostProcessingSettings();
+            end
             
-            %Ask for mode
-            options = {'60 us - 1,2,3,4,5 mA - MDT3389',...
-                '60 us - 0.1mA steps - MDT3389',...
-                '60 us - 0.5 mA steps - MDT3389',...
-                '60 us - just 2.5 mA - MDT3389',...
-                '120 us - 0.5 mA steps - MDT3389',...
-                '60 us - just 2 and 4 mA- MDT3389',...
-                '60 us - 3.2 mA steps - MDT3389 (cogn. decline monopolar review)'};
-            
-            answer = listdlg('PromptString','Select monopolar review preset (can be updated in Therapy.m):','ListString',options,'ListSize',[400,100]);
-            switch options{answer}
+            %generate VTA options based on user or machine selection.
+            switch VTAset
                 case '60 us - 1,2,3,4,5 mA - MDT3389'
                     leadtype = {'Medtronic3389'};
                     voltagecontrolled = {'False'};
@@ -127,9 +140,6 @@ classdef Therapy < handle
                     keyboard
             end
             
-            %Ask for postprocessing filter settings. (heatmap specific)
-            PostSettings = heatmap.definePostProcessingSettings();
-            
             %define VTAnames
             [VTAnames,settings] = generateVTAnames(leadtype,amplitudes,pulsewidths,voltagecontrolled);
             
@@ -144,12 +154,13 @@ classdef Therapy < handle
             
             %Loop over pairs
             predictionList = Prediction.empty;
-            if ~isempty(PostSettings.heatmap)
-                PredictionList2 = Prediction.empty;
-                Secondmap=1;
-            end
             
-            for iPair = 1:length(pairs)
+
+            fwait = waitbar(0,['Running monopolar review: ',heatmap.Tag]);
+            
+            
+            for iPair = 1:5%length(pairs)
+                waitbar(iPair/(length(pairs)+1),fwait);
                 thisPair = pairs(iPair,:);
                 newTherapy = Therapy;
                 
@@ -175,13 +186,34 @@ classdef Therapy < handle
                 
                 p = newTherapy.executePrediction(heatmap);
                 predictionList(iPair) = p;
-                if Secondmap
-                    p2 = newTherapy.executePrediction(PostSettings.heatmap); % runs prediction on second map
-                    PredictionList2(iPair) = p2;
-                end
 
-            end
+
+            end %loop
             
+            %close waitbar
+            close(fwait) 
+            %add predictionlist to therapyObject
+            obj.ReviewData.predictionList = predictionList;
+            
+            
+            %Now there are 2 options for postprocessing: 
+            % 1) do a custom postprocessing for the heatmapmodel
+            % 2) simply perform basics of printing the data.
+
+%--- option 1: do a custom postprocessing for the heatmapmodel
+            if isa(PostSettings,'struct')
+            
+                %add self to postsettings. Might come in handy
+                PostSettings.Therapy = obj;
+                PostSettings.UserInput.heatmap = heatmap;
+                PostSettings.UserInput.VTAset = VTAset;
+
+                %run the postprocessing in the model. 
+                heatmap.performReviewPostProcessing(obj.Tag,predictionList,PostSettings,pairs)
+            
+ %--- option 2: simply perform basics of printing the data.
+            else
+                
             %sort list according to improvement as well as confidence and
             %asign recommended settings
             
@@ -193,10 +225,9 @@ classdef Therapy < handle
                 
             end
             sortedList2 = sortImproConf(obj, predictionList2);
-            %create alternative settings
-%            obj.AlternativeSettings = reduceSE(obj,predictionList);
             
-            %% print reccomendations
+            
+            %% print recommendations
             
             fileID = HeatmapModelSupport.makeFile(obj.Tag);
             HeatmapModelSupport.printtext(fileID,'\n')
@@ -248,23 +279,14 @@ classdef Therapy < handle
             HeatmapModelSupport.printtext(fileID,'\n')
             
             %%
-                    
-            
-            
-          
-            
-            %run the postprocessing in the model.
-            heatmap.performReviewPostProcessing(obj.Tag,predictionList,PostSettings,pairs)
             
             %order and filter the suggestions
             %-- sort on improvement
             
             [sorted,order] = sort(vertcat(predictionList.Output),'descend');
             
-          
-            ReviewData.predictionList = predictionList;
-            ReviewData.order = order;
-            ReviewData.filterSettings = PostSettings;
+            obj.ReviewData.order = order;
+            obj.ReviewData.filterSettings = PostSettings;
             
 
 % 
@@ -309,7 +331,7 @@ classdef Therapy < handle
             obj.ReviewOutcome(end+1) = predictionList(order(2));
             obj.ReviewOutcome(end+1) = predictionList(order(3));
             
-            
+            end
             
 
             

@@ -1,12 +1,13 @@
 classdef FreezingofGait < HeatmapModelSupport & handle
-    %Freezing of Gait parkinson Summary of this class goes here
-    %   Detailed explanation goes here
+    %Some functions are required. Others are specific to this heatmap.
+    % Essential functions and paramters are labeled with *REQ*
+    % 
     events
       callonHeatmapfilter
     end
     properties
-        Tag = 'FreezingofGait [beta]'
-        HeatmapModel
+        Tag = 'FreezingofGait [beta]' %*REQ*
+        HeatmapModel %*REQ*
         b=[-0.634200000000000;0.144400000000000;...
             -1.07900000000000;0.960900000000000;-0.0974000000000000;0.783700000000000;...
             0.722300000000000;-0.627400000000000;-0.327400000000000;-1.98830000000000;0.831400000000000;-0.531100000000000;...
@@ -16,19 +17,19 @@ classdef FreezingofGait < HeatmapModelSupport & handle
     
      methods
             
-        function obj = FreezingofGait()
+        function obj = FreezingofGait() %*REQ*
             addpath(fileparts(mfilename('fullpath'))); %adds the path including the sweetspotfiles
         end
        
         
-        function obj = load(obj)
+        function obj = load(obj) %*REQ*
             map  = load('FreezingofGait_heatmap.heatmap','-mat');
             map=map.heatmap.Signedpmap;
             obj.HeatmapModel = map;
             
         end
         
-        function [prediction, confidence comments] = predictionForVTAs(obj,VTAlist)
+        function [prediction, confidence comments] = predictionForVTAs(obj,VTAlist) %*REQ*
             sample = [];
             comments = {};
             confidence = [];
@@ -102,7 +103,7 @@ classdef FreezingofGait < HeatmapModelSupport & handle
 methods(Static)
      
 
-    function out = fixSpace(oldspace,voxeldata)
+    function out = fixSpace(oldspace,voxeldata) 
     switch oldspace
         case Space.Legacy
             T = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
@@ -114,7 +115,7 @@ methods(Static)
     end
     end
     
-    function  [filtersettings,cancelled] = definePostProcessingSettings(obj)
+    function  [filtersettings,cancelled] = definePostProcessingSettings(obj) %*REQ*
         
         
         Prompt = {};
@@ -159,7 +160,7 @@ Title='filter sets window, to be applied after monopolar review';
         Prompt(end+1,:)={'filtering based on secondary heatmap', 'heatmap',[]};
         formats(4,1).type = 'edit';
         formats(4,1).format = 'file';
-        formats(4,1).items = {'*.swtspt';'*.mat';'*.heatmap';'*.nii'};
+        formats(4,1).items = {'*.m'};% was: {'*.swtspt';'*.mat';'*.heatmap';'*.nii'};
         formats(4,1).limits = [0 1]; % single file get
         formats(4,1).size = [-1 0];
          DefAns.heatmap= pwd;
@@ -192,20 +193,52 @@ Title='filter sets window, to be applied after monopolar review';
         if ~isempty(filtersettings)
             disp('not empty')
         end
+        
+        %test to expedite crashed
+            [folder,heatmapname,ext] = fileparts(filtersettings.heatmap);
+            try
+            testrun = eval(heatmapname);
+            catch
+                error('Seems like an invalid heatmapfile was selected')
+            end
 
       
 
       
     end
     
-    function performReviewPostProcessing(tag,predictionList,filterSettings,pairs)
-        
-        
-            
-        
-    secondaryHeatmap=Heatmap;
-    secondaryHeatmap.loadHeatmap(filtersettings.heatmap);
+    function performReviewPostProcessing(tag,predictionList,filterSettings,pairs) %*REQ*
     
+    %rename variable    
+    predictionlist_fog = predictionList;
+    clear predictionlist;
+    
+    %get functionname for heatmap
+    [folder,heatmapname,ext] = fileparts(filterSettings.heatmap);
+    secondaryHeatmap = eval(heatmapname);
+    
+    %set up Optional Input in order skip UI dialog boxes
+    OptionalInput =[];
+    OptionalInput.heatmap = secondaryHeatmap;
+    OptionalInput.VTAset = filterSettings.UserInput.VTAset;
+    OptionalInput.PostSettings.FOGroutineFilteringRoutine = 1;
+    
+    %%%% Again run the review. Based on PostopSettings as defined earlier
+    therapy_object = filterSettings.Therapy.executeReview(OptionalInput);
+    predictionlist_secondary = therapy_object.ReviewData.predictionList;
+    %%%%
+    
+    
+    %--> Hazem, at this point you have 2 predictionslists.
+    keyboard
+    % predictionlist_fog for the FOG map
+    % predictionlist_secondary for the secondary map. (probably UPDRS)
+    %example:  
+    % scores_a = arrayfun(@(x) x.Output, predictionlist_fog)
+    % scores_b = arrayfun(@(x) x.Output, predictionlist_secondary)
+    % etc.
+    
+
     
     HeatmapModelSupport.printPredictionList(tag,predictionList,pairs);
     

@@ -187,6 +187,11 @@ Title='filter sets window, to be applied after monopolar review';
     
     function performReviewPostProcessing(tag,predictionList,filterSettings,pairs)
     
+        if isfield(filterSettings,'FOGroutineFilteringRoutine')
+            %this routine requires to do nothing here.. All postprocessing
+            %is within "FreezingOfGait.m"  in "performReviewPostProcessing"
+            return
+        end
     
     HeatmapModelSupport.printPredictionList(tag,predictionList,pairs);
     
