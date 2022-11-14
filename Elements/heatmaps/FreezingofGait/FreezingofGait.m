@@ -19,10 +19,7 @@ classdef FreezingofGait < HeatmapModelSupport & handle
         function obj = FreezingofGait()
             addpath(fileparts(mfilename('fullpath'))); %adds the path including the sweetspotfiles
         end
-        function toggle_callonHeatmapfilter(obj,heatmap,filter)
-            callonHeatmapfilter_ED=callonHeatmapfilter_eventdata(heatmap,filter);
-            notify(obj,'callonHeatmapfilter',callonHeatmapfilter_ED);
-        end
+       
         
         function obj = load(obj)
             map  = load('FreezingofGait_heatmap.heatmap','-mat');
@@ -103,6 +100,7 @@ classdef FreezingofGait < HeatmapModelSupport & handle
 
 
 methods(Static)
+     
 
     function out = fixSpace(oldspace,voxeldata)
     switch oldspace
@@ -116,7 +114,7 @@ methods(Static)
     end
     end
     
-    function  [filterSettings,cancelled] = definePostProcessingSettings(obj)
+    function  [filtersettings,cancelled] = definePostProcessingSettings(obj)
         
         
         Prompt = {};
@@ -174,27 +172,39 @@ Title='filter sets window, to be applied after monopolar review';
         formats(5,1).items = {'positive (improvement)';'negative (worsening)';'no change '};
         formats(5,1).limits = [0 4]; % multi-select
         formats(5,1).size = [140 80];
+        
+        
+        Prompt(end+1,:)={'select filtering heatmap', 'secondaryheatmapchoice',[]};
+        formats(6,1).type = 'list';
+        formats(6,1).style = 'listbox';
+        formats(6,1).format = 'text'; % Answer will give value shown in items, disable to get integer
+        formats(6,1).items = {'positive (improvement)';'negative (worsening)';'no change '};
+        formats(6,1).limits = [0 4]; % multi-select
+        formats(6,1).size = [140 80];
+        
        
         DefAns.heatmapchoice = {'positive (improvement)'};
+        DefAns.secondaryheatmapchoice = {'positive (improvement)'};
 
         
-        [answer, cancelled] = inputsdlg(Prompt, Title, formats, DefAns,Options);
+        [filtersettings, cancelled] = inputsdlg(Prompt, Title, formats, DefAns,Options);
         
         if ~isempty(filtersettings)
             disp('not empty')
         end
 
-        if ~cancelled
-            obj.toggle_callonHeatmapfilter(answer.heatmap, answer.heatmapchoice);
-        else
-            return
-        end
-        
+      
 
       
     end
     
     function performReviewPostProcessing(tag,predictionList,filterSettings,pairs)
+        
+        
+            
+        
+    secondaryHeatmap=Heatmap;
+    secondaryHeatmap.loadHeatmap(filtersettings.heatmap);
     
     
     HeatmapModelSupport.printPredictionList(tag,predictionList,pairs);

@@ -144,6 +144,10 @@ classdef Therapy < handle
             
             %Loop over pairs
             predictionList = Prediction.empty;
+            if ~isempty(PostSettings.heatmap)
+                PredictionList2 = Prediction.empty;
+                Secondmap=1;
+            end
             
             for iPair = 1:length(pairs)
                 thisPair = pairs(iPair,:);
@@ -171,6 +175,10 @@ classdef Therapy < handle
                 
                 p = newTherapy.executePrediction(heatmap);
                 predictionList(iPair) = p;
+                if Secondmap
+                    p2 = newTherapy.executePrediction(PostSettings.heatmap); % runs prediction on second map
+                    PredictionList2(iPair) = p2;
+                end
 
             end
             
@@ -184,9 +192,9 @@ classdef Therapy < handle
                 obj.RecommendedSettings = {'No recommendation based on this model possible'};
                 
             end
-            
+            sortedList2 = sortImproConf(obj, predictionList2);
             %create alternative settings
-            obj.AlternativeSettings = reduceSE(obj,predictionList);
+%            obj.AlternativeSettings = reduceSE(obj,predictionList);
             
             %% print reccomendations
             
@@ -201,41 +209,41 @@ classdef Therapy < handle
                 HeatmapModelSupport.printPredictionList(obj.Tag,obj.RecommendedSettings,pairs,nan)
             end
             
-            if ~iscell(obj.AlternativeSettings.universal)
-                HeatmapModelSupport.printtext(fileID,'\n')
-                HeatmapModelSupport.printtext(fileID,'Alternative settings reducing side effects from both hemispheres is\n')
-                HeatmapModelSupport.printtext(fileID,'\n')
-                HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.universal,pairs,nan)
-            else
-                if ~iscell(obj.AlternativeSettings.leftHemisphereSE)
-                    HeatmapModelSupport.printtext(fileID,'\n')
-                     HeatmapModelSupport.printtext(fileID,'Alternative settings reducing side effects from left hemisphere is\n')
-                     HeatmapModelSupport.printtext(fileID,'\n')
-                HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.leftHemisphereSE,pairs,nan)
-                end
-                
-                 if ~iscell(obj.AlternativeSettings.rightHemisphereSE)
-                     HeatmapModelSupport.printtext(fileID,'\n')
-                     HeatmapModelSupport.printtext(fileID,'Alternatice settings reducing side effects from right hemisphere hemispheres is\n')
-                     HeatmapModelSupport.printtext(fileID,'\n')
-                HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.rightHemisphereSE,pairs,nan)
-                 end
-                    
-                if ~iscell(obj.AlternativeSettings.ampReduction)
-                    HeatmapModelSupport.printtext(fileID,'\n')
-                    HeatmapModelSupport.printtext(fileID,'Alternative settings with reduced amplitudes is\n')
-                    HeatmapModelSupport.printtext(fileID,'\n')
-                    HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.ampReduction,pairs,nan)
-                    HeatmapModelSupport.printtext(fileID,'\n')
-                end
-                
-                if iscell(obj.AlternativeSettings.ampReduction)&iscell(obj.AlternativeSettings.rightHemisphereSE)&...
-                        iscell(obj.AlternativeSettings.leftHemisphereSE)&iscell(obj.AlternativeSettings.universal)
-                    HeatmapModelSupport.printtext(fileID,'\n')
-                    HeatmapModelSupport.printtext(fileID,'No side effects reducing suggestion possible, consider manual ampitude reduction\n')
-                    HeatmapModelSupport.printtext(fileID,'\n')
-                end
-            end
+%             if ~iscell(obj.AlternativeSettings.universal)
+%                 HeatmapModelSupport.printtext(fileID,'\n')
+%                 HeatmapModelSupport.printtext(fileID,'Alternative settings reducing side effects from both hemispheres is\n')
+%                 HeatmapModelSupport.printtext(fileID,'\n')
+%                 HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.universal,pairs,nan)
+%             else
+%                 if ~iscell(obj.AlternativeSettings.leftHemisphereSE)
+%                     HeatmapModelSupport.printtext(fileID,'\n')
+%                      HeatmapModelSupport.printtext(fileID,'Alternative settings reducing side effects from left hemisphere is\n')
+%                      HeatmapModelSupport.printtext(fileID,'\n')
+%                 HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.leftHemisphereSE,pairs,nan)
+%                 end
+%                 
+%                  if ~iscell(obj.AlternativeSettings.rightHemisphereSE)
+%                      HeatmapModelSupport.printtext(fileID,'\n')
+%                      HeatmapModelSupport.printtext(fileID,'Alternatice settings reducing side effects from right hemisphere hemispheres is\n')
+%                      HeatmapModelSupport.printtext(fileID,'\n')
+%                 HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.rightHemisphereSE,pairs,nan)
+%                  end
+%                     
+%                 if ~iscell(obj.AlternativeSettings.ampReduction)
+%                     HeatmapModelSupport.printtext(fileID,'\n')
+%                     HeatmapModelSupport.printtext(fileID,'Alternative settings with reduced amplitudes is\n')
+%                     HeatmapModelSupport.printtext(fileID,'\n')
+%                     HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.ampReduction,pairs,nan)
+%                     HeatmapModelSupport.printtext(fileID,'\n')
+%                 end
+%                 
+%                 if iscell(obj.AlternativeSettings.ampReduction)&iscell(obj.AlternativeSettings.rightHemisphereSE)&...
+%                         iscell(obj.AlternativeSettings.leftHemisphereSE)&iscell(obj.AlternativeSettings.universal)
+%                     HeatmapModelSupport.printtext(fileID,'\n')
+%                     HeatmapModelSupport.printtext(fileID,'No side effects reducing suggestion possible, consider manual ampitude reduction\n')
+%                     HeatmapModelSupport.printtext(fileID,'\n')
+%                 end
+%             end
             HeatmapModelSupport.printtext(fileID,'WHOLE REVIEW\n')
             HeatmapModelSupport.printtext(fileID,'\n')
             
@@ -403,7 +411,7 @@ classdef Therapy < handle
                 left_LowAmp = zeros(1,iList);
                 right_LowAmp = zeros(1,iList);
                 
-                
+                 
             leftProx(iList) = predictionList(iList).Input.VTAs(1,1).Settings.activecontact...
             > obj.RecommendedSettings.Input.VTAs(1,1).Settings.activecontact;
             
