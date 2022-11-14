@@ -365,7 +365,9 @@ classdef ArenaScene < handle
             
             obj.handles.menu.dynamic.Fibers.interferenceWithMap = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: interference with map','callback',{@menu_fiberMapInterference},'Enable','off');
             obj.handles.menu.dynamic.Fibers.exportSummary = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: export fiber summary','callback',{@menu_fiberSummary},'Enable','off');
-            
+            obj.handles.menu.dynamic.Fibers.exportSummary = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Fibers: generate ROI from endpoints','callback',{@menu_fibersToROI},'Enable','off');
+                      
+                      
             %obj.handles.cameratoolbar = cameratoolbar(obj.handles.figure,'Show');
             obj.handles.cameratoolbar = A_cameratoolbar(obj.handles.figure);
             obj.handles.lightSun = light('Position',[0 0 1],'Style','infinite');
@@ -2823,6 +2825,64 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 assignin('base','summary',summary)
                 Done;
 
+                
+            end
+            
+            function menu_fibersToROI(hObject,eventdata)
+                 scene = ArenaScene.getscenedata(hObject);
+                    currentActors = ArenaScene.getSelectedActors(scene);
+                    
+                    classes = arrayfun(@(x) class(x.Data), scene.Actors,'UniformOutput',0);
+                    templateSpace = strcat(classes,{'  : '},{scene.Actors.Tag});
+                
+                templateSpace{end+1} = '..Load';
+                    
+                [indx] = listdlg('ListString',templateSpace,'PromptString','Select the template space','ListSize',[300 160]);
+                
+                if indx==numel(templateSpace)
+                    template = VoxelData;
+                    template.loadnii;
+                else
+                    template = scene.Actors(indx).Data;
+                    if not(isa(templateSpace,'VoxelData'))
+                        try
+                            template = template.parent;
+                        catch
+                            error('Need to select a VoxelData')
+                        end
+                    end
+                end
+                    blank = zeros(size(template.Voxels));
+                    
+                    for iActor = 1:numel(currentActors)
+                        %get start and endings
+                        thisActor = currentActors(iActor).Data;
+                        for iFiber = 1:numel(thisActor.Vertices)
+                            thisFiber = thisActor.Vertices(iFiber);
+                            first = thisFiber.Vectors(1);
+                            last = thisFiber.Vectors(end);
+                            [fx,fy,fz] =template.R.worldToSubscript(first.x,first.y,first.z);
+                            [lx,ly,lz] =template.R.worldToSubscript(last.x,last.y,last.z);
+                            
+                            blank(fx,fy,fz) = blank(fx,fy,fz)+1;
+                            blank(lx,ly,lz) = blank(lx,ly,lz)+1;
+                        end
+                     
+                        
+                    end
+                    
+                    output = VoxelData(blank,template.R);
+                    outputdir = output.saveniidlg;
+                    [a,b,c] = fileparts(outputdir);
+                    output.makeBinary(0.5).imdilate(1).savenii(fullfile(a,[b,'_dilated_1',c]))
+                    output.makeBinary(0.5).imdilate(2).savenii(fullfile(a,[b,'_dilated_2',c]))
+                    output.makeBinary(0.5).imdilate(3).savenii(fullfile(a,[b,'_dilated_3',c]))
+                    output.makeBinary(0.5).imdilate(4).savenii(fullfile(a,[b,'_dilated_4',c]))
+                    output.makeBinary(0.5).imdilate(5).savenii(fullfile(a,[b,'_dilated_5',c]))
+                    Done;
+                    disp(['file saved at: ',outputdir])
+                        
+                
                 
             end
                 

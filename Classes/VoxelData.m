@@ -142,6 +142,15 @@ classdef VoxelData <handle
             save_nii(nii,filename);
         end
         
+        
+        function outdir = saveniidlg(obj)
+            [name,folder] = uiputfile('*.nii');
+            outdir = fullfile(folder,name);
+           obj.savenii(outdir) 
+
+           
+        end
+        
         function obj = importSuretuneDataset(obj,dataset)
             if isa(dataset,'Dataset')
                 volume = dataset.volume;
@@ -687,9 +696,16 @@ classdef VoxelData <handle
             obj.Voxels = imerode(obj.Voxels,se);
         end
             
-        function imdilate(obj,width)
+        function out = imdilate(obj,width)
             se = strel('sphere',width);
-            obj.Voxels = imdilate(obj.Voxels,se);
+           
+            
+            if nargout==0
+                 obj.Voxels = imdilate(obj.Voxels,se);
+            else
+                out= VoxelData(imdilate(obj.Voxels,se),obj.R);
+            end
+              
         end
         
         

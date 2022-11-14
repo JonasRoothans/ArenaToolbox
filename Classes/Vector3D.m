@@ -218,15 +218,26 @@ classdef Vector3D
         end
         
         function obj = stu2MNI(obj, anatomicalReference)
+            Tapproved = load('Tapproved.mat');
             T = load('T2022.mat');
+            Tfake2mni = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
+            
+            %the idea is to first strip of the Tapproved to get the
+            %registration to anatomy. (stu space)
+            %and then apply the T2022
             switch anatomicalReference
                 case 'yebstnleft' 
+                    obj.transform(inv(Tapproved.mni2leftstn));
+                    obj.transform(Tfake2mni);
                     obj.transform(T.stu2mni_leftSTN);
                 case 'yebstnright'
+                    %obj.transform(inv(Tapproved.rightstn2mni))
                     obj.transform(T.stu2mni_rightSTN);
                 case 'yebgpileft' 
+                    %obj.transform(inv(Tapproved.leftgpi2mni))
                     obj.transform(T.stu2mni_leftGPI);
                 case 'yebgpiright' 
+                    %obj.transform(inv(Tapproved.rightgpi2mni))
                     obj.transform(T.stu2mni_rightGPI);
             end
         end

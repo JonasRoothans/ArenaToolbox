@@ -16,7 +16,7 @@ function Interference(menuhandle,eventdata,roi,scene)
     prompt = {sprintf('You are calculating the interference of \n  %s Fibers \nwith all loaded Meshes. Please enter the corresponding clinical outcome(%%) for the follwing Meshes: \n 1. %s',roi, mesh_labels{1})};
     dlgtitle = 'Meshes vs Fibers';
     
-   if not(isempty(fieldnames(vertcat(scene.Actors(mesh_idx).Meta))))
+   if not(isempty(vertcat(scene.Actors(mesh_idx').Meta)))
        if length(fieldnames(vertcat(scene.Actors(mesh_idx).Meta)))==1
            %if there is one meta tag
            clinical_outcome = [];
@@ -67,7 +67,8 @@ function Interference(menuhandle,eventdata,roi,scene)
     
     
     
-    if strcmp(roi,'all'); roi='**';end;
+    if strcmp(roi,'all'); roi='**';end
+    
     folder_name = fullfile(vtk_path,roi,'/*.vtk');
     vtk_files = A_getfiles(folder_name); %all vtk files
     loaded_actors = {scene.Actors.Tag};
