@@ -43,6 +43,8 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
             VTAObject = VTA();                                                 %#ok<CPROPLC>
             VTAObject.Electrode = obj;
             VTAObject.Volume = VTA_vd;
+            VTAObject.Tag = vtaname;
+            
             
             obj.VTA(end+1) = VTAObject;
             

@@ -224,7 +224,6 @@ classdef Therapy < handle
                 obj.RecommendedSettings = {'No recommendation based on this model possible'};
                 
             end
-            sortedList2 = sortImproConf(obj, predictionList2);
             
             
             %% print recommendations

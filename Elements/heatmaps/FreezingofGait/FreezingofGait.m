@@ -117,90 +117,146 @@ methods(Static)
     
     function  [filtersettings,cancelled] = definePostProcessingSettings(obj) %*REQ*
         
-        
-        Prompt = {};
-        DefAns = struct([]);
-       formats = struct('type', {}, 'style', {}, 'items', {}, ...
-            'format', {}, 'limits', {}, 'size', {});
-
-
-
-        Options.Resize = 'on';
-        Options.Interpreter = 'tex';
-        Options.CancelButton = 'on';
-        Options.ApplyButton = 'on';
-        Options.ButtonNames = {'Continue','Cancel'}; %<- default names, included here just for illustration
-        Options.Dim = 4; % Horizontal dimension in fields
-
-Title='filter sets window, to be applied after monopolar review';
-   
-      
+        %default
+        filtersettings.confidence = 0.45;
+        filtersettings.useSecondaryMap = 'Y';
+        filtersettings.secondaryMap = '';
+        filtersettings.sort = 'descending';
+        filtersettings.filter = '';
         
         
-        Prompt(1,:) = {'Minimal confidence of the heatmap [0-1]', 'minimal',[]};
-
-        formats(1,1).type   = 'edit';
-        formats(1,1).format = 'float';
-        formats(1,1).limits = [0 1];
-        DefAns(1).minimal=0.85;
+%--- pop-up 1
+        prompt = {'Minimum confidence:','Use secondary map for filtering? [Y/N]'};
+        dlgtitle = 'Post Processing settings';
+        dims = [1 35];
+        definput = {num2str(filtersettings.confidence),filtersettings.useSecondaryMap};
+        answer = inputdlg(prompt,dlgtitle,dims,definput);
         
-        Prompt(end+1,:)={'Amplitude optimization based on  n = ', 'Amplitude',[]};
-        formats(2,1).type   = 'edit';
-        formats(2,1).format = 'float';
-        formats(2,1).limits = [0 5];
-        DefAns.Amplitude=2;
+        filtersettings.confidence = str2num(answer{1});
+        filtersettings.useSecondaryMap = answer{2};
         
-        
-        Prompt(end+1,:)={'Maximal accepted amplitude deviation (sigma)', 'Sigma',[]};
-        formats(3,1).type   = 'edit';
-        formats(3,1).format = 'integer';
-        formats(3,1).limits = [0 4];
-        DefAns.Sigma= 3;
-        
-        Prompt(end+1,:)={'filtering based on secondary heatmap', 'heatmap',[]};
-        formats(4,1).type = 'edit';
-        formats(4,1).format = 'file';
-        formats(4,1).items = {'*.m'};% was: {'*.swtspt';'*.mat';'*.heatmap';'*.nii'};
-        formats(4,1).limits = [0 1]; % single file get
-        formats(4,1).size = [-1 0];
-         DefAns.heatmap= pwd;
-        
-   
-        Prompt(end+1,:)={'select heatmap', 'heatmapchoice',[]};
-        formats(5,1).type = 'list';
-        formats(5,1).style = 'listbox';
-        formats(5,1).format = 'text'; % Answer will give value shown in items, disable to get integer
-        formats(5,1).items = {'positive (improvement)';'negative (worsening)';'no change '};
-        formats(5,1).limits = [0 4]; % multi-select
-        formats(5,1).size = [140 80];
-        
-        
-        Prompt(end+1,:)={'select filtering heatmap', 'secondaryheatmapchoice',[]};
-        formats(6,1).type = 'list';
-        formats(6,1).style = 'listbox';
-        formats(6,1).format = 'text'; % Answer will give value shown in items, disable to get integer
-        formats(6,1).items = {'positive (improvement)';'negative (worsening)';'no change '};
-        formats(6,1).limits = [0 4]; % multi-select
-        formats(6,1).size = [140 80];
-        
-       
-        DefAns.heatmapchoice = {'positive (improvement)'};
-        DefAns.secondaryheatmapchoice = {'positive (improvement)'};
-
-        
-        [filtersettings, cancelled] = inputsdlg(Prompt, Title, formats, DefAns,Options);
-        
-        if ~isempty(filtersettings)
-            disp('not empty')
+    %--- pop-up 2
+        askForMap = strcmpi(filtersettings.useSecondaryMap,'Y');
+        while askForMap
+           
+          
+                [filename,pathname] = uigetfile('*.m', 'get the heatmap class');
+                addpath(pathname)
+                heatmappath = fullfile(pathname,filename);
+                
+                try
+                    [~,fn]= fileparts(filename);
+                    testrun = eval(fn);
+                    filtersettings.secondaryMap = heatmappath;
+                    askForMap = 0;
+                catch
+                   answer = questdlg('Looks like the heatmap is invalid','Oops','Try again','Abort','Try again');
+                   switch answer
+                       case 'Try again'
+                           askForMap = 1;
+                       case 'abort'
+                           error('aborted by user');
+                           
+                           
+                   end
+                end
         end
         
-        %test to expedite crashed
-            [folder,heatmapname,ext] = fileparts(filtersettings.heatmap);
-            try
-            testrun = eval(heatmapname);
-            catch
-                error('Seems like an invalid heatmapfile was selected')
-            end
+%--- pop-up 3
+        if ~isempty(filtersettings.secondaryMap)
+            options = {'Method 1: same UPDRS, FoG Improvement'};
+            [indx] = listdlg('PromptString',{'Select postprocessing routine'},...
+                                'SelectionMode','single',...
+                            'ListString',options,...
+                            'ListSize',[400,50]);
+                        filtersettings.filter = options{indx};
+        end
+                
+        
+        
+%         Prompt = {};
+%         DefAns = struct([]);
+%        formats = struct('type', {}, 'style', {}, 'items', {}, ...
+%             'format', {}, 'limits', {}, 'size', {});
+% 
+% 
+% 
+%         Options.Resize = 'on';
+%         Options.Interpreter = 'tex';
+%         Options.CancelButton = 'on';
+%         Options.ApplyButton = 'on';
+%         Options.ButtonNames = {'Continue','Cancel'}; %<- default names, included here just for illustration
+%         Options.Dim = 4; % Horizontal dimension in fields
+% 
+% Title='filter sets window, to be applied after monopolar review';
+%    
+%       
+%         
+%         
+%         Prompt(1,:) = {'Minimal confidence of the heatmap [0-1]', 'minimal',[]};
+% 
+%         formats(1,1).type   = 'edit';
+%         formats(1,1).format = 'float';
+%         formats(1,1).limits = [0 1];
+%         DefAns(1).minimal=0.85;
+%         
+%         Prompt(end+1,:)={'Amplitude optimization based on  n = ', 'Amplitude',[]};
+%         formats(2,1).type   = 'edit';
+%         formats(2,1).format = 'float';
+%         formats(2,1).limits = [0 5];
+%         DefAns.Amplitude=2;
+%         
+%         
+%         Prompt(end+1,:)={'Use a secondary map for filtering', 'Sigma',[]};
+%         formats(3,1).type   = 'edit';
+%         formats(3,1).format = 'integer';
+%         formats(3,1).limits = [0 4];
+%         DefAns.Sigma= 3;
+%         
+%         Prompt(end+1,:)={'filtering based on secondary heatmap', 'heatmap',[]};
+%         formats(4,1).type = 'edit';
+%         formats(4,1).format = 'file';
+%         formats(4,1).items = {'*.m'};% was: {'*.swtspt';'*.mat';'*.heatmap';'*.nii'};
+%         formats(4,1).limits = [0 1]; % single file get
+%         formats(4,1).size = [-1 0];
+%          DefAns.heatmap= pwd;
+%         
+%    
+%         Prompt(end+1,:)={'select heatmap', 'heatmapchoice',[]};
+%         formats(5,1).type = 'list';
+%         formats(5,1).style = 'listbox';
+%         formats(5,1).format = 'text'; % Answer will give value shown in items, disable to get integer
+%         formats(5,1).items = {'positive (improvement)';'negative (worsening)';'no change '};
+%         formats(5,1).limits = [0 4]; % multi-select
+%         formats(5,1).size = [140 80];
+%         
+%         
+%         Prompt(end+1,:)={'select filtering heatmap', 'secondaryheatmapchoice',[]};
+%         formats(6,1).type = 'list';
+%         formats(6,1).style = 'listbox';
+%         formats(6,1).format = 'text'; % Answer will give value shown in items, disable to get integer
+%         formats(6,1).items = {'positive (improvement)';'negative (worsening)';'no change '};
+%         formats(6,1).limits = [0 4]; % multi-select
+%         formats(6,1).size = [140 80];
+%         
+%        
+%         DefAns.heatmapchoice = {'positive (improvement)'};
+%         DefAns.secondaryheatmapchoice = {'positive (improvement)'};
+% 
+%         
+%         [filtersettings, cancelled] = inputsdlg(Prompt, Title, formats, DefAns,Options);
+%         
+%         if ~isempty(filtersettings)
+%             disp('not empty')
+%         end
+%         
+%         %test to expedite crashed
+%             [folder,heatmapname,ext] = fileparts(filtersettings.heatmap);
+%             try
+%             testrun = eval(heatmapname);
+%             catch
+%                 error('Seems like an invalid heatmapfile was selected')
+%             end
 
       
 
@@ -214,7 +270,7 @@ Title='filter sets window, to be applied after monopolar review';
     clear predictionlist;
     
     %get functionname for heatmap
-    [folder,heatmapname,ext] = fileparts(filterSettings.heatmap);
+    [folder,heatmapname,ext] = fileparts(filterSettings.secondaryMap);
     secondaryHeatmap = eval(heatmapname);
     
     %set up Optional Input in order skip UI dialog boxes
@@ -231,6 +287,32 @@ Title='filter sets window, to be applied after monopolar review';
     
     %--> Hazem, at this point you have 2 predictionslists.
     keyboard
+    
+    switch filterSettings.filter
+        case 'Method 1: same UPDRS, FoG Improvement'
+            %settings
+            lower_UPDRS = -0.5;
+            upper_UPDRS = 0.5;
+   %----- gate 1: confidence check
+            confidence_primary = arrayfun(@(x) x.Confidence, predictionlist_fog,'UniformOutput',false);
+            PassedConfideceCheck_primary = all(cell2mat(confidence_primary')>filterSettings.confidence,2);
+            confidence_secondary = arrayfun(@(x) x.Confidence, predictionlist_fog,'UniformOutput',false);
+            PassedConfideceCheck_secondary = all(cell2mat(confidence_secondary')>filterSettings.confidence,2);
+            
+            PassedConfidence = and(PassedConfideceCheck_primary,PassedConfideceCheck_secondary);
+   %---- gate 2: same UPDRS
+            scores_secondary = arrayfun(@(x) x.Output, predictionlist_secondary);
+            PassedUPDRS = and(scores_secondary >= lower_UPDRS, scores_secondary <= upper_UPDRS);
+            
+   %--- gate 3: high FoG improvement
+            PassedFilters = and(PassedConfidence,PassedUPDRS)
+            score_primary = arrayfun(@(x) x.Output, predictionlist_fog);
+            %make a table,
+            %add settigns left, right, score and filters
+            %sort
+            %print
+            
+    end
     % predictionlist_fog for the FOG map
     % predictionlist_secondary for the secondary map. (probably UPDRS)
     %example:  
