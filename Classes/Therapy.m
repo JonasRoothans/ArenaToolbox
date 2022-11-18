@@ -159,7 +159,7 @@ classdef Therapy < handle
             fwait = waitbar(0,['Running monopolar review: ',heatmap.Tag]);
             
             
-            for iPair = 1:5%length(pairs)
+            for iPair = 1:length(pairs)
                 waitbar(iPair/(length(pairs)+1),fwait);
                 thisPair = pairs(iPair,:);
                 newTherapy = Therapy;

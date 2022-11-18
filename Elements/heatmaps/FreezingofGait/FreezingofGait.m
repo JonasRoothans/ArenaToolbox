@@ -285,8 +285,6 @@ methods(Static)
     %%%%
     
     
-    %--> Hazem, at this point you have 2 predictionslists.
-    keyboard
     
     switch filterSettings.filter
         case 'Method 1: same UPDRS, FoG Improvement'
@@ -305,8 +303,24 @@ methods(Static)
             PassedUPDRS = and(scores_secondary >= lower_UPDRS, scores_secondary <= upper_UPDRS);
             
    %--- gate 3: high FoG improvement
-            PassedFilters = and(PassedConfidence,PassedUPDRS)
-            score_primary = arrayfun(@(x) x.Output, predictionlist_fog);
+            PassedFilters = and(PassedConfidence,PassedUPDRS);
+            
+            confidence = PassedConfidence;
+            nochangeUPDRS = PassedUPDRS';
+            score_primary = arrayfun(@(x) x.Output, predictionlist_fog)';
+            
+            Amplitude_1 = arrayfun(@(x) x.Input.VTAs(1).Settings.amplitude,predictionlist_fog)';
+            Contact_1 = arrayfun(@(x) x.Input.VTAs(1).Settings.activecontact,predictionlist_fog)';
+            Amplitude_2 = arrayfun(@(x) x.Input.VTAs(2).Settings.amplitude,predictionlist_fog)';
+            Contact_2 = arrayfun(@(x) x.Input.VTAs(2).Settings.activecontact,predictionlist_fog)';
+            
+            t = table(score_primary,confidence,nochangeUPDRS,Contact_1,Amplitude_1,Contact_2,Amplitude_2);
+            t_sorted = sortrows(t,'score_primary','descend')
+            
+            disp(['Electrode 1: ',predictionlist_fog(1).Input.VTAs(1).ActorElectrode.Tag])
+            disp(['Electrode 2: ',predictionlist_fog(1).Input.VTAs(2).ActorElectrode.Tag])
+            
+
             %make a table,
             %add settigns left, right, score and filters
             %sort
