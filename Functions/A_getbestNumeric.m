@@ -1,5 +1,5 @@
 function BestNumeric=A_getbestNumeric(varargin); 
-% incomplete-non functional
+% functional
 if ispc
  
     [CurrentMemory, Totalmemory]=memory;
