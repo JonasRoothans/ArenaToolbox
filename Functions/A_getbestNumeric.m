@@ -7,9 +7,13 @@ if ispc
     CurrentMemory=CurrentMemory.MemUsedMATLAB/1e6;
     Totalmemory=Totalmemory.PhysicalMemory/1e6;
 else 
-
-[CurrentMemory, memorybySystem,  Totalmemory]=memoryForMac(); %get current memory Status
-
+try
+[CurrentMemory, memorybySystem,  Totalmemory]=memoryForMac();%get current memory Status
+catch
+    warning('you are using Linux no memory optimisation possible, choosing double format')
+    BestNumeric='double';
+    return
+end
 end
      
 sum=prod(varargin{:}); % get number of Array elements
@@ -55,6 +59,7 @@ for i=1:numel(numericValues)
     else
         if condition~=1
         warning(['using lower precision numeric Value:', numericValues{condition}])
+        warning(['using lower precision numeric Value:', numericValues{condition},' may not be suitable for obligate continous data e.g functional MRI data '])
         end
         break
     end
