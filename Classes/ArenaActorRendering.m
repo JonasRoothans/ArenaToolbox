@@ -52,6 +52,11 @@ classdef ArenaActorRendering < handle
                     settings.faceOpacity = 50;
                     settings.edgeOpacity = 0;
                     settings.smooth = 1;
+                case 'Shape'
+                    settings.colorFace = scene.getNewColor(scene);%[0 188 216]/255;
+                    settings.colorEdge = scene.getNewColor(scene)/2;%[0 188 216]/255;
+                    settings.faceOpacity = 10;
+                    settings.edgeOpacity = 100;
                 case 'ObjFile'
                     settings.colorFace = scene.getNewColor(scene);
                     settings.colorEdge = scene.getNewColor(scene);
@@ -106,6 +111,10 @@ classdef ArenaActorRendering < handle
                     
                     scene.newconfigcontrol(actor,'button',{'crop','slice'},{'crop','slice'})
                     scene.newconfigcontrol(actor,'checkbox',settings.smooth,'smooth')
+                case 'Shape'
+                    scene.newconfigcontrol(actor,'color',{settings.colorFace,settings.colorEdge},{'colorFace','colorEdge'});
+                    scene.newconfigcontrol(actor,'edit',{settings.faceOpacity,settings.edgeOpacity},{'faceOpacity','edgeOpacity'})
+
                 case 'ObjFile'
                     scene.newconfigcontrol(actor,'color',{settings.colorFace,settings.colorEdge},{'colorFace','colorEdge'});
                     scene.newconfigcontrol(actor,'edit',{settings.complexity},{'complexity'});
@@ -128,7 +137,7 @@ classdef ArenaActorRendering < handle
                     scene.newconfigcontrol(actor,'color',{settings.colorCathode,settings.colorAnode},{'colorCathode','colorAnode'});
                     scene.newconfigcontrol(actor,'vector',{settings.cathode,settings.anode},{'cathode','anode'});
                     scene.newconfigcontrol(actor,'edit',{settings.opacity},{'opacity'});
-                    scene.newconfigcontrol(actor,'list',{settings.type},{'type'},{'Medtronic3389','Medtronic3387','Medtronic3391','BostonScientific'})
+                    scene.newconfigcontrol(actor,'list',{settings.type},{'type'},{'Medtronic3389','Medtronic3387','Medtronic3391','BostonScientific','Directional'})
                 case 'Slicei'
                     scene.newconfigcontrol(actor,'color',{settings.colorDark,settings.colorMiddle,settings.colorLight},{'colorDark','colorMiddle','colorLight'});
                     scene.newconfigcontrol(actor,'edit',{settings.valueDark,settings.valueLight},{'valueDark','valueLight'});
@@ -171,6 +180,8 @@ classdef ArenaActorRendering < handle
                     visualizeFibers() %done
                 case 'Mesh'
                     visualizeMesh() %done
+                case 'Shape'
+                    visualizeShape()
                 case 'ObjFile'
                     visualizeObjFile()
                 case 'PointCloud'
@@ -216,13 +227,16 @@ classdef ArenaActorRendering < handle
                 elseif strcmp(settings.type,'BostonScientific')
                     leadmodel = load('Arena_BostonScientific.mat');
                     strucname = 'BostonScientific';
+                elseif strcmp(settings.type,'Directional')
+                    leadmodel = load('Arena_mdt3389.mat');
+                    strucname = 'mdt3389';
                 else
                     error('leadtype is currently not yet supported!')
                 end
                 
                 handle = gobjects(0);
                 
-                T = A_transformationmatriforleadmesh(obj.C0,obj.Direction);
+                T = A_transformationmatriforleadmesh(obj.C0,obj.Direction,obj.Roll);
                 body = leadmodel.(strucname).body.transform(T);
                 figure(scene.handles.figure) %set active figure to scene
                 handle(end+1) = patch('Faces',body.Faces,'Vertices',body.Vertices,'FaceColor',settings.colorBase ,'EdgeColor','none','Clipping',0,'SpecularStrength',0,'FaceAlpha',settings.opacity/100);
@@ -248,6 +262,15 @@ classdef ArenaActorRendering < handle
                     end
                 end
                 
+                
+                if strcmp(settings.type,'Directional')
+                    %make arrow
+                    handle(end+1) = mArrow3([0 0 6],[0 5 6],'tipWidth',0.3);
+                    handle(end).FaceColor = settings.colorBase;
+                    handle(end).Vertices= SDK_transform3d(handle(end).Vertices,T);
+                    %transform with T
+                    
+                end
                 
                 
                 actor.Visualisation.handle = handle;
@@ -448,7 +471,25 @@ classdef ArenaActorRendering < handle
                 end
             end
             
-            
+            function visualizeShape()
+                %get axes
+                axes(scene.handles.axes)
+                handle = patch('Faces',obj.Faces,'Vertices',obj.Vertices);
+                
+                %apply settings
+                handle.FaceColor = settings.colorFace;
+                handle.EdgeColor = settings.colorEdge;
+                handle.FaceAlpha = settings.faceOpacity/100;
+                handle.EdgeAlpha = settings.edgeOpacity/100;
+                
+                material(handle,obj.MATERIAL_Mesh)
+                
+                actor.Visualisation.handle = handle;
+                actor.Visualisation.settings = settings;
+                
+                %update
+                updateCC(actor,scene)
+            end
             
             function visualizeMesh()
                 %load default settings at creation

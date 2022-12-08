@@ -223,7 +223,7 @@ classdef ArenaScene < handle
             obj.handles.menu.vtas.list = gobjects;
             obj.handles.menu.vtas.therapylist = gobjects;
             
-            obj.handles.menu.view.main = uimenu(obj.handles.figure,'Text','View');
+            obj.handles.menu.view.main = uimenu(obj.handles.figure,'Text','View','callback',{@menu_surgicalview});
             obj.handles.menu.view.camera.main = uimenu(obj.handles.menu.view.main,'Text','Camera');
             obj.handles.menu.view.camera.focus.main = uimenu(obj.handles.menu.view.camera.main,'Text','Focus on');
             
@@ -235,6 +235,9 @@ classdef ArenaScene < handle
             obj.handles.menu.view.camera.orthogonal.axial = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Axial [shift+1]','callback',{@menu_orthogonal});
             obj.handles.menu.view.camera.orthogonal.sagittal = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Sagittal [shift+2]','callback',{@menu_orthogonal});
             obj.handles.menu.view.camera.orthogonal.coronal = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Coronal [shift+3]','callback',{@menu_orthogonal});
+            
+            obj.handles.menu.view.camera.surgical.main = uimenu(obj.handles.menu.view.camera.main,'Text','Surgical');
+            obj.handles.menu.view.camera.surgical.electrodes = []; %will be filled by view main call back.
             
             obj.handles.menu.view.camera.smart.main = uimenu(obj.handles.menu.view.camera.main,'Text','Smart Perspective');
             obj.handles.menu.view.camera.smart.vertical = uimenu(obj.handles.menu.view.camera.smart.main,'Text','based on selection','callback',{@menu_smartcamperspective});
@@ -307,10 +310,13 @@ classdef ArenaScene < handle
             
             
             
-            obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform selection'); %relocated
+            obj.handles.menu.transform.main = uimenu(obj.handles.menu.edit.main,'Text','Transform selection','callback',{@menu_electrodespace}); %relocated
             %obj.handles.menu.transform.selectedlayer.main = uimenu(obj.handles.menu.transform.main,'Text','Selected Layer');
             obj.handles.menu.transform.selectedlayer.old.main = uimenu(obj.handles.menu.transform.main,'Text','historical');
             obj.handles.menu.transform.selectedlayer.simple.main = uimenu(obj.handles.menu.transform.main,'Text','simple');
+            obj.handles.menu.transform.selectedlayer.transformInElectrodeSpace.main = uimenu(obj.handles.menu.transform.main,'Text','move / rotate in electrode space');
+            obj.handles.menu.transform.selectedlayer.transformInElectrodeSpace.electrodes=[]; %will be added automatically with the menu_electrodespace function.
+            
             obj.handles.menu.transform.selectedlayer.lps2ras = uimenu(obj.handles.menu.transform.selectedlayer.old.main,'Text','LPS <> RAS','callback',{@menu_lps2ras});
             obj.handles.menu.transform.selectedlayer.mirror = uimenu(obj.handles.menu.transform.selectedlayer.simple.main,'Text','mirror left/right','callback',{@menu_mirror});
             obj.handles.menu.transform.selectedlayer.yeb2mni = uimenu(obj.handles.menu.transform.selectedlayer.old.main,'Text','Legacy 2019 --> arena2021','callback',{@menu_Fake2MNI});
@@ -321,6 +327,7 @@ classdef ArenaScene < handle
             obj.handles.menu.transform.selectedlayer.arena2leadmni.leftgpi = uimenu(obj.handles.menu.transform.selectedlayer.arena2leadmni.main, 'Text','leftGPI','callback',{@menu_MNI2leaddbsMNI});
             obj.handles.menu.transform.selectedlayer.arena2leadmni.rightgpi = uimenu(obj.handles.menu.transform.selectedlayer.arena2leadmni.main, 'Text','rightGPI','callback',{@menu_MNI2leaddbsMNI});
             obj.handles.menu.transform.selectedlayer.move =  uimenu(obj.handles.menu.transform.selectedlayer.simple.main,'Text','Move','callback',{@menu_move});
+            obj.handles.menu.transform.selectedlayer.transformationmatrix =  uimenu(obj.handles.menu.transform.selectedlayer.simple.main,'Text','Transformation matrix from workspace','callback',{@menu_moveTransformationMatrix});
             
             obj.handles.menu.addons.main = uimenu(obj.handles.figure,'Text','Add-ons');
             menu_refreshAddOnsList(obj,[],'startup');
@@ -355,8 +362,10 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Mesh.makeBinarySlice = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: convert to binary slice','callback',{@menu_mesh2binaryslice},'Enable','off');
             obj.handles.menu.dynamic.Mesh.SpatialCorrelation = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','VoxelData: spatial correlation','callback',{@menu_spatialcorrelation},'Enable','off');
             obj.handles.menu.dynamic.Mesh.seperate = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: separate clusters','callback',{@menu_seperateClusters},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.addToVTApool = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: add to VTApool','callback',{@menu_addToVTApool},'Enable','off');
             obj.handles.menu.dynamic.Mesh.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: source data','callback',{@menu_smoothVoxelData},'Enable','off');
             obj.handles.menu.dynamic.Mesh.takeBite = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: take a sample from slice or mesh','callback',{@menu_takeSample},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.detectElectrode = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: convert to electrode','callback',{@menu_detectElectrode},'Enable','off');
             obj.handles.menu.dynamic.Slicei.SpatialCorrelation = obj.handles.menu.dynamic.Mesh.SpatialCorrelation;
             
             obj.handles.menu.dynamic.Slicei.multiply = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: multiply images','callback',{@menu_multiplyslices},'Enable','off');
@@ -656,6 +665,99 @@ classdef ArenaScene < handle
                 disp('handles saved to workspace: scene, actors')
             end
             
+            function menu_surgicalview_electrode(hObject,evendata,e)
+                scene = ArenaScene.getscenedata(hObject);
+              
+                
+                current_campos = campos;
+                current_target = camtarget;
+                %current_camup = camup;
+                
+                distance = norm(current_target-current_campos);
+                
+                
+              
+                
+                new_target = e.Data.C0;
+                new_campos = e.Data.C0 + e.Data.Direction * distance;
+                %new_camup = cross(e.Data.Direction,Vector3D([1 0 0]));
+                
+                axes(scene.handles.axesOrientation)
+                
+                %camup([1 0 0])
+                campos(new_campos.getArray())
+                camtarget(new_target.getArray())
+                
+                axes(scene.handles.axes)
+                %camup([1 0 0])
+                campos(new_campos.getArray())
+                camtarget(new_target.getArray())
+                
+            end
+            
+            
+            function menu_surgicalview(hObject,eventdata)
+                
+                 %get electrodes
+                scene = ArenaScene.getscenedata(hObject);
+                 arrayfun(@(x) delete(x), obj.handles.menu.view.camera.surgical.electrodes);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                [actorlist,namelist,indexlist] =  ArenaScene.getActorsOfClass(scene,'Electrode');
+                
+                for iActor = 1:numel(actorlist)
+                %list all the electrodes here. with a callback to
+                %move/rotate with respect to this electrode.
+                    obj.handles.menu.view.camera.surgical.electrodes(iActor) = uimenu(obj.handles.menu.view.camera.surgical.main,'Text',namelist{iActor},'callback',{@menu_surgicalview_electrode,actorlist(iActor)});
+                
+                
+                end
+                
+            end
+            
+            function menu_electrodespace(hObject,eventdata)
+                %get electrodes
+                scene = ArenaScene.getscenedata(hObject);
+                 arrayfun(@(x) delete(x), scene.handles.menu.transform.selectedlayer.transformInElectrodeSpace.electrodes);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                [actorlist,namelist,indexlist] =  ArenaScene.getActorsOfClass(scene,'Electrode');
+                
+                for iActor = 1:numel(actorlist)
+                %list all the electrodes here. with a callback to
+                %move/rotate with respect to this electrode.
+                    obj.handles.menu.transform.selectedlayer.transformInElectrodeSpace.electrodes(iActor) = uimenu(obj.handles.menu.transform.selectedlayer.transformInElectrodeSpace.main,'Text',namelist{iActor},'callback',{@menu_transformInLeadSpace,actorlist(iActor)});
+                
+                
+                end
+            end
+            
+            function menu_transformInLeadSpace(hObject,eventdata,e)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                T = e.Data.getTransformToRoot;
+                Ti = e.Data.getTransformFromRoot;
+                
+                input = newid({'Rotation clockwise in deg:','Followed by a translation: '},'Arena',1,{'0','[0 0 0]'});
+                    translation = eval(input{2});
+                    
+                    alpha = deg2rad(str2double(input{1}));
+                    Tuser = [cos(alpha), -1*sin(alpha), 0 ,0;...
+                        sin(alpha),cos(alpha), 0, 0;...
+                        0 0 1 0;...
+                       translation(1),translation(2),translation(3),1];
+                
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    
+                    
+                    Tfinal = round(T*Tuser*Ti,5);
+                    
+                    thisActor.transform(scene,'T',Tfinal)
+                    
+                    
+                    
+                end
+            end
+            
             function menu_lps2ras(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
@@ -737,7 +839,38 @@ classdef ArenaScene < handle
                 end
                 
             end
-            
+        
+            function menu_moveTransformationMatrix(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                allVariables = evalin('base','whos'); 
+                
+                matchesdouble= strcmp({allVariables.class}, 'double');
+                matchesaffine= strcmp({allVariables.class}, 'affine3d');
+                my_variables = {allVariables(or(matchesdouble,matchesaffine)).name};
+                
+                indx = listdlg('ListString',my_variables);
+                
+                transformation_matrix = evalin('base',my_variables{indx});
+                
+                if isnumeric(transformation_matrix)
+                    if not(numel(transformation_matrix)==16)
+                        error('Transformation matrix has to be 4x4')
+                    end
+                else
+                    transformation_matrix = transformation_matrix.T;
+                end
+                
+                for i = 1:numel(currentActors)
+                    thisActor = currentActors(i);
+                    thisActor.transform(scene,'T',transformation_matrix);
+                end
+                
+                
+
+                
+            end
             
             function menu_move(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
@@ -3067,6 +3200,16 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 
             end
             
+            function menu_addToVTApool(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    A_addToVTApool(thisActor,scene)
+                end
+            end
+            
             function menu_seperateClusters(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
@@ -3095,6 +3238,16 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                              
                     end
                 end
+                
+            end
+            
+            function menu_detectElectrode(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                %take vertices
+                %apply PCA
+                %get the deepest point.
                 
             end
             

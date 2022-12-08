@@ -36,9 +36,9 @@ classdef Mesh < handle & matlab.mixin.Copyable & ArenaActorRendering
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             varargin = varargin{1}; %get rid of double nesting
-            VoxelData= varargin{1};
+            VoxelData_= varargin{1};
             if numel(varargin)==1
-                T = obj.uithreshold(VoxelData.Voxels);
+                T = obj.uithreshold(VoxelData_.Voxels);
             else
                 T = varargin{2};
             end
@@ -47,38 +47,39 @@ classdef Mesh < handle & matlab.mixin.Copyable & ArenaActorRendering
             
             %increase resolution if resolution is bad, and only few voxels
             %will be visualized
-            if VoxelData.R.PixelExtentInWorldX>0.5 && sum(VoxelData.Voxels(:)>T)< 70
+            if VoxelData_.R.PixelExtentInWorldX>0.5 && sum(VoxelData_.Voxels(:)>T)< 70
                 %interpolating
-%                 Xo = VoxelData.R.XWorldLimits(1)+VoxelData.R.PixelExtentInWorldX/2:VoxelData.R.PixelExtentInWorldX:VoxelData.R.XWorldLimits(2);
-%                 Yo = VoxelData.R.YWorldLimits(1)+VoxelData.R.PixelExtentInWorldY/2:VoxelData.R.PixelExtentInWorldY:VoxelData.R.YWorldLimits(2);
-%                 Zo = VoxelData.R.ZWorldLimits(1)+VoxelData.R.PixelExtentInWorldZ/2:VoxelData.R.PixelExtentInWorldZ:VoxelData.R.ZWorldLimits(2);
-%                 Xq = VoxelData.R.XWorldLimits(1):0.5:VoxelData.R.XWorldLimits(2);
-%                 Yq = VoxelData.R.YWorldLimits(1):0.5:VoxelData.R.XWorldLimits(2);
-%                 Zq = VoxelData.R.ZWorldLimits(1):0.5:VoxelData.R.XWorldLimits(2);
-%                 
-%                 [Xm,Ym,Zm] = meshgrid(Xo,Yo,Zo);
-%                 [Xqq,Yqq,Zqq] = meshgrid(Xq,Yq,Zq);
-%                 disp('Interpolating source data on 0.5mm grid')
-%                 Vin = VoxelData.Voxels;
-%                 Vin(isnan(Vin)) = 0.0;
-%                 try
-%                     Vq = interp3(Xm,Ym,Zm,Vin,Xqq,Yqq,Zqq,'nearest');
-%                     X = Xqq;
-%                     Y = Yqq;
-%                     Z = Zqq;
-%                     V  = Vq;
-%                 catch
-%                     [X,Y,Z] = A_imref2meshgrid(VoxelData.R);
-%                     V = VoxelData.Voxels;
-%                 end
+                Xo = VoxelData_.R.XWorldLimits(1)+VoxelData_.R.PixelExtentInWorldX/2:VoxelData_.R.PixelExtentInWorldX:VoxelData_.R.XWorldLimits(2);
+                Yo = VoxelData_.R.YWorldLimits(1)+VoxelData_.R.PixelExtentInWorldY/2:VoxelData_.R.PixelExtentInWorldY:VoxelData_.R.YWorldLimits(2);
+                Zo = VoxelData_.R.ZWorldLimits(1)+VoxelData_.R.PixelExtentInWorldZ/2:VoxelData_.R.PixelExtentInWorldZ:VoxelData_.R.ZWorldLimits(2);
+                Xq = VoxelData_.R.XWorldLimits(1):0.5:VoxelData_.R.XWorldLimits(2);
+                Yq = VoxelData_.R.YWorldLimits(1):0.5:VoxelData_.R.XWorldLimits(2);
+                Zq = VoxelData_.R.ZWorldLimits(1):0.5:VoxelData_.R.XWorldLimits(2);
+                
+                [Xm,Ym,Zm] = meshgrid(Xo,Yo,Zo);
+                [Xqq,Yqq,Zqq] = meshgrid(Xq,Yq,Zq);
+                disp('Interpolating source data on 0.5mm grid')
+                Vin = VoxelData_.Voxels;
+                Vin(isnan(Vin)) = 0.0;
+                try
+                    Vq = interp3(Xm,Ym,Zm,Vin,Xqq,Yqq,Zqq,'nearest');
+                    X = Xqq;
+                    Y = Yqq;
+                    Z = Zqq;
+                    V  = Vq;
+                catch
+                    [X,Y,Z] = A_imref2meshgrid(VoxelData_.R);
+                    V = VoxelData_.Voxels;
+                end
                     
             else
-                [X,Y,Z] = A_imref2meshgrid(VoxelData.R);
-                V = VoxelData.Voxels;
+                [X,Y,Z] = A_imref2meshgrid(VoxelData_.R);
+                V = VoxelData_.Voxels;
             end
                 
              disp('Arena Mesh: computing...')
-             
+%              test = VoxelData(V,VoxelData_.R);
+%              test.getslice.see()
              [obj.Faces, obj.Vertices] = isosurface(X,Y,Z,V,T);
              obj.Settings.T = T;
         end

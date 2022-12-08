@@ -205,11 +205,13 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                         obj.Data.Vertices = v_transformed;
                         obj.updateActor(scene,obj.Visualisation.settings);
                     case 'Electrode'
-                        obj.Data.C0 = obj.Data.C0.transform(T);
-                        delete(obj.Visualisation.handle)
-                        obj.visualizeElectrode(obj.Visualisation.settings,obj.Data,scene)
                         
-                        warning('Electrode can not be transformed like this')
+                        obj.Data.transform(T)
+                        delete(obj.Visualisation.handle)
+                        
+                        obj.updateActor(scene,obj.Visualisation.settings);
+                        
+                     
                 
                         
                         %obj.updateActor(scene,obj.Visualisation.settings);
@@ -220,6 +222,13 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                         end
                         obj.updateActor(scene,obj.Visualisation.settings);
                         
+                    case 'Shape'
+                        v = obj.Data.Vertices;
+                        v_transformed = SDK_transform3d(v,T);
+                        obj.Data.Vertices = v_transformed;
+                        delete(obj.Visualisation.handle)
+                        obj.Visualisation.handle = []; %remove old handle
+                        obj.updateActor(scene,obj.Visualisation.settings);
                     otherwise
                         
                         keyboard

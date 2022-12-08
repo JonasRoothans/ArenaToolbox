@@ -5,6 +5,7 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
     properties
         C0 = Vector3D([0 0 0]);
         Direction = Vector3D([0 0 1]);
+        Roll = 0; % degrees, 0: C2 is anterior. 90: C2 is right
         Type = 'Medtronic3389'
         VTA = VTA.empty()
         Source
@@ -113,6 +114,25 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
             obj.C0 = obj.C0.stu2MNI(MNItag);
             obj.PointOnLead(POL);
         end
+        
+        function T = getTransformFromRoot(obj)
+            
+            ez = obj.Direction.unit;
+            ex = cross(Vector3D([sin(rad2deg(obj.Roll)), cos(rad2deg(obj.Roll)), 0]),ez);
+            ey = cross(ez,ex);
+            
+                T = [ex.unit.getArray',0;
+                ey.unit.getArray',0;
+                ez.unit.getArray',0;
+                obj.C0.x obj.C0.y obj.C0.z 1];
+        end
+        
+        function T = getTransformToRoot(obj)
+                T = inv(obj.getTransformFromRoot);
+        end
+        
+        
+        
         
         function bool = isLeft(obj)
             bool = obj.C0.x<0;
