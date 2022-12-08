@@ -371,6 +371,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Slicei.multiply = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: multiply images','callback',{@menu_multiplyslices},'Enable','off');
             obj.handles.menu.dynamic.Slicei.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: smooth','callback',{@menu_smoothslice},'Enable','off');
             obj.handles.menu.dynamic.Slicei.mask = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: apply mask','callback',{@menu_applyMask},'Enable','off');
+            obj.handles.menu.dynamic.Slicei.segmentElectrode = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Slice: extract Lead From CT','callback',{@menu_extractLeadFromCT},'Enable','off');
             
             obj.handles.menu.dynamic.Fibers.interferenceWithMap = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: interference with map','callback',{@menu_fiberMapInterference},'Enable','off');
             obj.handles.menu.dynamic.Fibers.exportSummary = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: export fiber summary','callback',{@menu_fiberSummary},'Enable','off');
@@ -2344,11 +2345,108 @@ classdef ArenaScene < handle
                 for iActor = 1:numel(currentActors)
                     thisActor = currentActors(iActor);
                     thisActor.saveToFolder(outdir)
+                    voxels = thisActor.Data.parent.Voxels;
                     
                 end
                 
                 
             end
+            
+            function menu_extractLeadFromCT(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    
+                    vd = thisActor.Data.parent;
+                    Voxels = vd.Voxels;
+                    
+                    skull = Voxels > 700;
+                    cables = Voxels > 2000;
+                    
+                    %get COG of skull
+                    indxskull = find(skull);
+                    [x,y,z] = ind2sub(size(skull),indxskull);
+                    cog_head_imagespace = [mean(x),mean(y),mean(z)];
+                    
+                    %get tips in image space
+                    skeleton = bwskel(cables);
+                    indxtips = find(bwmorph3(skeleton,'endpoints'));
+                    [xtips,ytips,ztips] = ind2sub(size(cables),indxtips);
+                    
+                    tips = [xtips,ytips,ztips];
+                    distances = sum(abs(tips-cog_head_imagespace),2);
+                    
+                    [b,i] = sort(distances,'ascend');
+                    tip1 = tips(i(1),:);
+                    tip2 = tips(i(2),:);
+                    
+                    %tips in worldspace
+                    [t1x,t1y,t1z] = vd.R.intrinsicToWorld(tip1(2),tip1(1),tip1(3));
+                    [t2x,t2y,t2z] = vd.R.intrinsicToWorld(tip2(2),tip2(1),tip2(3));
+                    
+                    e1 = Electrode;
+                    e1.C0 = Vector3D([t1x,t1y,t1z]);
+                    
+                    
+                    e2 = Electrode;
+                    e2.C0 = Vector3D([t2x,t2y,t2z]);
+          
+                    
+                    %
+                    [skeletonpointsX,skeletonpointsY,skeletonpointsZ] = ind2sub(size(skeleton),find(skeleton));
+                    skeletonpoints = [skeletonpointsX,skeletonpointsY,skeletonpointsZ];
+                    
+                    %e1
+                    step = makeStepFrom(skeletonpoints,tip1,10);
+                    step = makeStepFrom(skeletonpoints,step,10);
+                    [pol1,pol2,pol3] = vd.R.intrinsicToWorld(step(2),step(1),step(3));
+                    
+                    e1.PointOnLead(Vector3D([pol1,pol2,pol3]))
+                    e1.C0 = e1.C0+e1.Direction/2;
+                    e1.see(scene)
+                    
+                    %e2
+                    step = makeStepFrom(skeletonpoints,tip2,10);
+                    step = makeStepFrom(skeletonpoints,step,10);
+                    [pol1,pol2,pol3] = vd.R.intrinsicToWorld(step(2),step(1),step(3));
+                   
+                    e2.PointOnLead(Vector3D([pol1,pol2,pol3]))
+                    e2.C0 = e2.C0+e2.Direction/2;
+                    e2.see(scene)
+                    
+                    
+                    
+                   
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                end
+                 function point = makeStepFrom(skeletonpoints,from,l)
+                        %never walk down
+                        height = skeletonpoints(:,3);
+                        height(height < from(3)) = inf;
+                        skeletonpoints(:,3) =  height;
+                        %--
+
+                        d = sum(abs(skeletonpoints-from),2);
+                        search = abs(d-l);
+                        point = skeletonpoints(search==min(search),:);
+                        
+                    end
+                
+            end
+            
+            
             
             function menu_applyMask(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);

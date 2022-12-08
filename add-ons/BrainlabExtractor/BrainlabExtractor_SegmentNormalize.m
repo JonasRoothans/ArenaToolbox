@@ -7,6 +7,8 @@ function BrainlabExtractor_SegmentNormalize(menu,eventdata,scene)
 nativeTemplate = menu.Parent.UserData.master;
 BIfilename = menu.Parent.UserData.BIfilename;
 BIfoldername = menu.Parent.UserData.BIfoldername;
+CTfilename = menu.Parent.UserData.CTfilename;
+CTfoldername = menu.Parent.UserData.CTfoldername;
 
 %make dir for segmented files
 segdir = fullfile(BIfoldername,'segmented');
@@ -17,6 +19,11 @@ BrainlabExtractor_segment(nativeTemplate,BIfilename,BIfoldername,segdir);
 %step 1b?
 if iscell(menu.Parent.UserData.electrodes)
     BrainlabExtractor_makeLeadMarker(nativeTemplate,menu.Parent.UserData.electrodes,segdir)
+end
+
+%step 1c?
+if iscell(CTfilename)
+    copyfile(fullfile(CTfoldername,CTfilename{1}),fullfile(segdir,'CT.nii'))
 end
 
 %step 2
