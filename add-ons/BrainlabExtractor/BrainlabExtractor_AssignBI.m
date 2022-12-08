@@ -6,12 +6,14 @@ function [outputArg1,outputArg2] = BrainlabExtractor_AssignBI(menu,eventdata,sce
 
 [BIfilename,BIfoldername] = uigetfile('*.nii','Get Burned-in images','MultiSelect','on');
     if ~iscell(BIfilename)
-        if BIfile==0
+        if BIfilename==0
             return
         end
     end
     
-%update the menu text
+    if not(iscell(BIfilename))
+        BIfilename = {BIfilename};
+    end
 menu.Text = ['Burned-in: ',num2str(numel(BIfilename))];
 
 
