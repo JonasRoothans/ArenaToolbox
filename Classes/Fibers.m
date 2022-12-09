@@ -38,6 +38,15 @@ classdef Fibers < handle & matlab.mixin.Copyable & ArenaActorRendering
             cog = obj.Vertices(1).getCOG;
         end
         
+        
+        function newFibers = filter(obj,boolean)
+            newFibers = Fibers;
+            newFibers.Vertices = obj.Vertices(boolean);
+            newFibers.Indices = obj.Indices(boolean);
+            newFibers.Weight = obj.Weight(boolean);
+            
+        end
+            
 
         
         
