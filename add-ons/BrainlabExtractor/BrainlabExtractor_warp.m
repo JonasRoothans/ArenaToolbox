@@ -1,4 +1,4 @@
-function [outputArg1,outputArg2] = BrainlabExtractor_warp(master,folder)
+function [outputArg1,outputArg2] = BrainlabExtractor_warp(master,folder,outputfolder)
 %BRAINLABEXTRACTOR_WARP Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -43,6 +43,13 @@ function [outputArg1,outputArg2] = BrainlabExtractor_warp(master,folder)
         
         spm_jobman('run', matlabbatch);
 
+        %--- moving files
+     mkdir(outputfolder);
+     mni_files = A_getfiles(fullfile(folder,'mni*'));
+     for iFile = 1:numel(mni_files)
+         movefile(fullfile(mni_files(iFile).folder,mni_files(iFile).name),...
+             fullfile(outputfolder,mni_files(iFile).name));
+     end
 
 end
 

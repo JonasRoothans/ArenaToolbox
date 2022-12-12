@@ -12,6 +12,7 @@ CTfoldername = menu.Parent.UserData.CTfoldername;
 
 %make dir for segmented files
 segdir = fullfile(BIfoldername,'segmented');
+warpeddir = fullfile(BIfoldername,'segmented_and_warped');
 mkdir(segdir)
 
 %step 1
@@ -27,15 +28,15 @@ if iscell(CTfilename)
 end
 
 %step 2
-BrainlabExtractor_warp(nativeTemplate,segdir)
+BrainlabExtractor_warp(nativeTemplate,segdir,warpeddir)
 
 %step 3 - visualisation
-importWarped(segdir)
-importLead(segdir)
+importWarped(warpeddir)
+importLead(warpeddir)
 
 
     function importWarped(diffdir)
-        files = A_getfiles(fullfile(diffdir,'mni_*.nii'));
+        files = A_getfiles('*.nii');
         for iFile = 1:numel(files)
             thisFile = files(iFile);
             if contains(thisFile.name,'lead')
