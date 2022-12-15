@@ -5,8 +5,9 @@ classdef GlobalUPDRS < HeatmapModelSupport & handle
     properties
         Tag = 'GlobalUPDRS [beta]'
         HeatmapModel
-        b=[0;-0.0257;-0.334; -0.0487;0.3151;-0.0198;-0.2735;-0.3101; -0.2684
-         0;0.2608;-0.3608; -0.3218; -0.2052;0.2308;-0.0830]; % removed first b value with zero
+%         b=[0;-0.0257;-0.334; -0.0487;0.3151;-0.0198;-0.2735;-0.3101; -0.2684
+%          0;0.2608;-0.3608; -0.3218; -0.2052;0.2308;-0.0830]; 
+        b=[0;52.8276;2.4813;1.4668;-0.9377;-4.1356;4.8413;3.3430;-4.0142;0;-3.1444;-7.2003;4.1323;9.8561;13.0352;-9.9589;-1.0060] % removed first b value with zero
         edges = -1:0.13333333333:1;
     end
     
@@ -87,7 +88,7 @@ classdef GlobalUPDRS < HeatmapModelSupport & handle
         
         function y = predictForSample(obj,sample)
             h = histogram(sample,obj.edges);
-            X = [1,zscore(h.Values)];
+            X = [1,1,zscore(h.Values)];
             y = X*obj.b;
             delete(h)
         end

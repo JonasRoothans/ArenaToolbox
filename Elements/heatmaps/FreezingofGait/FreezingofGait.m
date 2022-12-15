@@ -8,10 +8,11 @@ classdef FreezingofGait < HeatmapModelSupport & handle
     properties
         Tag = 'FreezingofGait [beta]' %*REQ*
         HeatmapModel %*REQ*
-        b=[-0.634200000000000;0.144400000000000;...
-            -1.07900000000000;0.960900000000000;-0.0974000000000000;0.783700000000000;...
-            0.722300000000000;-0.627400000000000;-0.327400000000000;-1.98830000000000;0.831400000000000;-0.531100000000000;...
-            0;1.80780000000000;-1.18860000000000;1.37500000000000]; % removed first b value with zero
+%         b=[-0.634200000000000;0.144400000000000;...
+%             -1.07900000000000;0.960900000000000;-0.0974000000000000;0.783700000000000;...
+%             0.722300000000000;-0.627400000000000;-0.327400000000000;-1.98830000000000;0.831400000000000;-0.531100000000000;...
+%             0;1.80780000000000;-1.18860000000000;1.37500000000000];
+b=[ 0;2.4908;0.7444;-1.2646;-2.9704;-4.0697;-1.9006;0;-0.7328;-1.3470;-2.6856;-2.9568;-2.0681;-2.9058;-1.7828;-0.6680;-0.8519];% removed first b value with zero
         edges = -1:0.13333333333:1;
     end
     
@@ -90,7 +91,7 @@ classdef FreezingofGait < HeatmapModelSupport & handle
         
         function y = predictForSample(obj,sample)
             h = histogram(sample,obj.edges);
-            X = [1,zscore(h.Values)];
+            X = [1,1,zscore(h.Values)];
             y = X*obj.b;
             delete(h)
         end
@@ -289,8 +290,8 @@ methods(Static)
     switch filterSettings.filter
         case 'Method 1: same UPDRS, FoG Improvement'
             %settings
-            lower_UPDRS = -0.5;
-            upper_UPDRS = 0.5;
+            lower_UPDRS = -10;
+            upper_UPDRS = 10;
    %----- gate 1: confidence check
             confidence_primary = arrayfun(@(x) x.Confidence, predictionlist_fog,'UniformOutput',false);
             PassedConfideceCheck_primary = all(cell2mat(confidence_primary')>filterSettings.confidence,2);
