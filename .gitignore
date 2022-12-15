@@ -6,5 +6,5 @@ config.mat
 .DS_Store
 *.vtk
 **/UserData
-
-
+add-ons/BrainlabExtractor/lead_MNI_dir.mat
+histoConfig.mat
