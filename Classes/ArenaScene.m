@@ -3342,6 +3342,27 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
             function menu_detectElectrode(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
+                electrode={};
+                
+                if numel(currentActors)>2
+                    disp('please select only two meshes')
+                    return
+                end
+                for iSelectActor=1:numel(currentActors)
+                    COG=currentActors(iSelectActor).Data.getCOG;
+                    electrode{iSelectActor}=COG;
+                end
+                if electrode{1}.z> electrode{2}.z
+                    tip=electrode{2};
+                    PointonLead=electrode{1};
+                else
+                    tip=electrode{1};
+                    PointonLead=electrode{2};
+                end
+                E=Electrode;
+                E.C0=tip;
+                E.Direction=PointonLead-tip;
+                E.see;
                 
                 %take vertices
                 %apply PCA
