@@ -18,6 +18,10 @@ classdef Slicei < handle & ArenaActorRendering
         useAlphaMap
     end
     
+    properties(Hidden)
+        Tag
+    end
+    
     properties (Access = private)
         startray
         startidx
@@ -61,6 +65,10 @@ classdef Slicei < handle & ArenaActorRendering
            
             obj.update_slice(thisScene);
             thisActor = thisScene.newActor(obj);
+            if not(isempty(obj.Tag))
+                thisActor.changeName(obj.Tag)
+            end
+                
         end
         
         function saveToFolder(obj,outdir,tag)

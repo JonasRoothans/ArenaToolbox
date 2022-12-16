@@ -406,8 +406,12 @@ classdef VoxelData <handle
                 meshobj = Mesh(obj);
             end
             
-            if not(isempty(inputname(1)))
-                meshobj.Label = inputname(1);
+            if not(isempty(obj.Tag))
+                meshobj.Label = obj.Tag;
+            else
+                if not(isempty(inputname(1)))
+                    meshobj.Label = inputname(1);
+                end
             end
         end
         
@@ -420,7 +424,16 @@ classdef VoxelData <handle
 %             else
 %                 sliceobj = Slice(obj);
 %             end
+
+        if not(isempty(obj.Tag))
+                sliceobj.Tag = obj.Tag;
+        else
+            if not(isempty(inputname(1)))
+                sliceobj.Tag = inputname(1);
+            end
         end
+        end
+    
         
         function [x,y,z] = getMeshgrid(obj)
             [x_coords,y_coords,z_coords]= obj.getlinspace;
@@ -612,6 +625,7 @@ classdef VoxelData <handle
         function out = double(obj)
             if nargout==1
                 out = VoxelData(double(obj.Voxels),obj.R);
+                out.Tag = obj.Tag;
             else
                 obj.Voxels = double(obj.Voxels);
             end
