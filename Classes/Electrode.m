@@ -99,6 +99,8 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
             POL = obj.getPOL.transform(T);
             obj.C0 = obj.C0.transform(T);
             obj.PointOnLead(POL);
+            
+            obj.Roll = obj.Roll+rad2deg(acos(Vector3D([0 1 0]).transform(T).unit()*Vector3D([0 1 0])));
         end
         
         function obj = legacy2MNI(obj)
