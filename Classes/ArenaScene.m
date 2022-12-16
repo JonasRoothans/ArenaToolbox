@@ -3362,7 +3362,7 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 E=Electrode;
                 E.C0=tip;
                 E.Direction=PointonLead-tip;
-                E.see;
+                E.see(scene);
                 
                 %take vertices
                 %apply PCA

@@ -31,44 +31,7 @@ end
 BrainlabExtractor_warp(nativeTemplate,segdir,warpeddir)
 
 %step 3 - visualisation
-importWarped(warpeddir)
-importLead(warpeddir)
-
-
-
-    function importWarped(diffdir)
-        files = A_getfiles(fullfile(diffdir,'*.nii'));
-        for iFile = 1:numel(files)
-            thisFile = files(iFile);
-            if contains(thisFile.name,'lead')
-                continue %those will be done in the next step
-            end
-            thisPath = fullfile(diffdir,thisFile.name);
-            vd = VoxelData(thisPath);
-            percent0 = total(round(vd)<=0)/numvox(vd)*100;
-            if percent0>70
-                vd.round()
-                vd.Voxels(isnan(vd.Voxels)) =0;
-                vd.Voxels(vd.Voxels<0) = 0;
-                vd.getmesh(100).see(scene)
-            else
-                vd.getslice.see(scene);
-            end
-            
-        end
-    end
-
-    function importLead(diffdir)
-        files = A_getfiles(fullfile(diffdir,'mni_lead*.nii'));
-        for iLead = 1:numel(files)/2
-            
-            tip = VoxelData(['mni_lead',num2str(iLead),'_tip.nii']).getmesh(100).getCOG;
-            top = VoxelData(['mni_lead',num2str(iLead),'_top.nii']).getmesh(100).getCOG;
-            direction = top-tip;
-            e = Electrode(tip,direction.unit);
-            e.see(scene)
-        end
-    end
+BrainlabExtractor_see(menu,eventdata,scene,warpeddir)
 
 
 end

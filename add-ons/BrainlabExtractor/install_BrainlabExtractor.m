@@ -7,6 +7,7 @@ scene.addon_addmenuitem('BrainlabExtractor','post-op CT: [none]',str2func('@Brai
 %------
 sephere = scene.addon_addmenuitem('BrainlabExtractor','Segment only',str2func('@BrainlabExtractor_SegmentOnly'));
 scene.addon_addmenuitem('BrainlabExtractor','Segment and normalize (SPM)',str2func('@BrainlabExtractor_SegmentNormalize'))
+scene.addon_addmenuitem('BrainlabExtractor','Import previously processed files',str2func('@BrainlabExtractor_see'))
 
 
 %add separator
