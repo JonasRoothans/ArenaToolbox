@@ -265,7 +265,7 @@ classdef ArenaActorRendering < handle
                 
                 if strcmp(settings.type,'Directional')
                     %make arrow
-                    handle(end+1) = mArrow3([0 0 6],[0 5 6],'tipWidth',0.3);
+                    handle(end+1) = mArrow3([0 0 6],[0 5 6],'tipWidth',0.3, 'stemWidth', 0.1);
                     handle(end).FaceColor = settings.colorBase;
                     handle(end).Vertices= SDK_transform3d(handle(end).Vertices,T);
                     %transform with T
