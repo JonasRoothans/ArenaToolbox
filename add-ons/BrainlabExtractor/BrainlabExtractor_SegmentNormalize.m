@@ -35,8 +35,9 @@ importWarped(warpeddir)
 importLead(warpeddir)
 
 
+
     function importWarped(diffdir)
-        files = A_getfiles('*.nii');
+        files = A_getfiles(fullfile(diffdir,'*.nii'));
         for iFile = 1:numel(files)
             thisFile = files(iFile);
             if contains(thisFile.name,'lead')
