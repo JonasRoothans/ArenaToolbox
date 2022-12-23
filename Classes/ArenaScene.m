@@ -376,6 +376,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Slicei.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: smooth','callback',{@menu_smoothslice},'Enable','off');
             obj.handles.menu.dynamic.Slicei.mask = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: apply mask','callback',{@menu_applyMask},'Enable','off');
             obj.handles.menu.dynamic.Slicei.segmentElectrode = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Slice: extract Lead From CT','callback',{@menu_extractLeadFromCT},'Enable','off');
+            obj.handles.menu.dynamic.Slicei.SPM = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: Use SPM to warp image to.. ','callback',{@menu_SPM},'Enable','off');
             
             obj.handles.menu.dynamic.Fibers.interferenceWithMap = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: interference with map','callback',{@menu_fiberMapInterference},'Enable','off');
             obj.handles.menu.dynamic.Fibers.exportSummary = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: export fiber summary','callback',{@menu_fiberSummary},'Enable','off');
@@ -2402,6 +2403,55 @@ classdef ArenaScene < handle
                     voxels = thisActor.Data.parent.Voxels;
                     
                 end
+                
+                
+            end
+            
+            function menu_SPM(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                [~,meshcandidate_name,meshcandidate_indx] = ArenaScene.getActorsOfClass(scene,'Mesh');
+                [~,slicecandidate_name,slicecandidate_indx] = ArenaScene.getActorsOfClass(scene,'Slicei');
+                
+                meshcandidate_name  = cellfun(@(c)['Mesh: ' c],meshcandidate_name,'uni',false);
+                slicecandidate_name  = cellfun(@(c)['Slice: ' c],slicecandidate_name,'uni',false);
+                
+                [indx] = listdlg('ListString',[meshcandidate_name,slicecandidate_name],'PromptString','Select the reference');
+                candidate_indx = [meshcandidate_indx,slicecandidate_indx];
+                reference_index = candidate_indx(indx);
+                
+                
+                %master image 
+                tempfolder = tempname;
+                mkdir(tempfolder);
+                
+                tempin = fullfile(tempfolder,'in');
+                mkdir(tempin)
+                
+                tempout = fullfile(tempfolder,'out');
+                mkdir(tempout)
+                
+                
+                scene.Actors(reference_index).Data.parent.savenii(fullfile(tempfolder,'ref.nii'))
+                
+                for iActor = 1:numel(currentActors)
+                    
+                    thisActor = currentActors(iActor);
+                    thisActor.Data.parent.savenii(fullfile(tempin,[thisActor.Tag,'.nii']))
+                    
+                end
+                
+                %this code will warp to MNI. that's wrong..
+                %make a copy of this code and make sure to warp to the
+                %MASTER.
+                BrainlabExtractor_warp(fullfile(tempfolder,'ref.nii'),tempin,tempout)
+                
+ 
+                % post:
+                %import all nii files in 'tempout' as slices to scene.
+                
+                
                 
                 
             end
