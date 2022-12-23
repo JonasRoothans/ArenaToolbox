@@ -1838,14 +1838,24 @@ classdef ArenaScene < handle
             function menu_runbatch_bilateraltherapy(hObject,eventdata)
                 if numel(scene.Therapystorage)<2
                     error('for batch review, at least two electrodes/VTAs are needed');
-                    return
-                end
-                 for ii=1:numel(scene.Therapystorage)
-                     for jj=1:numel(scene.Therapystorage.VTAs(jj));
-                     menu_vta_review(hObject,eventdata,scene.Therapystorage.VTAs(jj));
-                     end
                     
                 end
+                %ask for settings once:
+                UserChoices = Therapy.UserInputModule();
+                
+                
+                 for iTherapy=1:numel(scene.Therapystorage)
+                     therapyObject = scene.Therapystorage(iTherapy);
+                     therapyObject.executeReview(UserChoices)
+                      assignin('base',['Therapy_',num2str(iTherapy)],therapyObject);
+                 end
+                
+%                     menu_therapy_prediction(hObject,eventdata,scene.Therapystorage(iTherapy))
+%                      for jj=1:numel(scene.Therapystorage.VTAs(jj))
+%                      menu_vta_review(hObject,eventdata,scene.Therapystorage.VTAs(jj));
+%                      end
+                    
+                
                 
                 
                 
