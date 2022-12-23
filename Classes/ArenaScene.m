@@ -2495,6 +2495,7 @@ classdef ArenaScene < handle
                         d = sum(abs(skeletonpoints-from),2);
                         search = abs(d-l);
                         point = skeletonpoints(search==min(search),:);
+                        point = point(1,:); %take the first in case more are equidistant.
                         
                     end
                 
