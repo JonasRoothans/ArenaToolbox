@@ -220,6 +220,10 @@ classdef ArenaScene < handle
             obj.handles.menu.vtas.assignVTA = uimenu(obj.handles.menu.vtas.main,'Text','assign host for predictions','callback',{@menu_constructVTA});
             %obj.handles.menu.vtas.placeElectrode = uimenu(obj.handles.menu.vtas.main,'Text','+place electrode','callback',{@menu_placeElectrode});
             obj.handles.menu.vtas.constructtherapy = uimenu(obj.handles.menu.vtas.main,'Text','construct (bilateral) therapy','callback',{@menu_constructTherapy});
+            obj.handles.menu.vtas.batchprediction.main = uimenu(obj.handles.menu.vtas.main,'Text','run batch prediction');
+            obj.handles.menu.vtas.batchprediction.electrodes = uimenu(obj.handles.menu.vtas.batchprediction.main,'Text','run batch on electrodes','callback',{@menu_runbatch_electrodes});
+            obj.handles.menu.vtas.batchprediction.bilateraltherapy = uimenu(obj.handles.menu.vtas.batchprediction.main,'Text','run batch on bilateral therapy','callback',{@menu_runbatch_bilateraltherapy});
+            scene.handles.menu.vtas.batchprediction.main.Enable='off';
             obj.handles.menu.vtas.list = gobjects;
             obj.handles.menu.vtas.therapylist = gobjects;
             
@@ -1680,9 +1684,16 @@ classdef ArenaScene < handle
                     scene.handles.menu.vtas.list(n).delete = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Delete from this list','callback',{@menu_vta_delete,scene.VTAstorage(i)});
                 end
                 scene.handles.menu.vtas.constructtherapy.Enable = 'off';
+%                 scene.handles.menu.vtas.batchprediction.main.Enable='off';
                 if i>0
                     scene.handles.menu.vtas.list(1).main.Separator = 'on';
                     scene.handles.menu.vtas.constructtherapy.Enable = 'on';
+                    scene.handles.menu.vtas.batchprediction.main.Enable='on';
+                    scene.handles.menu.vtas.batchprediction.electrodes.Enable='on';
+                end
+                 if i>2
+                    scene.handles.menu.vtas.batchprediction.main.Enable='on';
+                    scene.handles.menu.vtas.batchprediction.bilateraltherapy.Enable='on';
                 end
                 
                 %rebuild all Therapy items
@@ -1806,8 +1817,41 @@ classdef ArenaScene < handle
                 disp('- new_lead.PointOnLead = .... ')
                 disp('Show in your scene using: new_lead.see(scene)')
             end
-                
             
+            function menu_runbatch_electrodes(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                if numel(scene.VTAstorage)<2
+                    error('for batch review, at least two electrodes/VTAs are needed');
+                    return
+                end
+                for ii=1:numel(scene.VTAstorage)
+                    menu_vta_review(hObject,eventdata, scene.VTAstorage(ii));
+                    
+                end
+                    
+                    
+                    
+%                    menu_vta_review,scene.VTAstorage(i)}
+                  
+            end
+            
+            function menu_runbatch_bilateraltherapy(hObject,eventdata)
+                if numel(scene.Therapystorage)<2
+                    error('for batch review, at least two electrodes/VTAs are needed');
+                    return
+                end
+                 for ii=1:numel(scene.Therapystorage)
+                     for jj=1:numel(scene.Therapystorage.VTAs(jj));
+                     menu_vta_review(hObject,eventdata,scene.Therapystorage.VTAs(jj));
+                     end
+                    
+                end
+                
+                
+                
+            end
+            
+           
             function menu_generateVTA(hObject,eventdata)
                 %ask for electrode
                 if numel(obj.Actors)==0
