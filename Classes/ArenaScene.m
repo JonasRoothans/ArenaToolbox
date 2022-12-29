@@ -2434,23 +2434,35 @@ classdef ArenaScene < handle
                 
                 
                 scene.Actors(reference_index).Data.parent.savenii(fullfile(tempfolder,'ref.nii'))
+                targetcog = scene.Actors(reference_index).Data.parent.getcog;
                 
                 for iActor = 1:numel(currentActors)
                     
                     thisActor = currentActors(iActor);
-                    thisActor.Data.parent.savenii(fullfile(tempin,[thisActor.Tag,'.nii']))
+                    slaveCOG = thisActor.Data.parent.getcog;
+                    
+                    movecog = slaveCOG - targetcog;
+                    slavecopy = thisActor.Data.parent.copy;
+                    
+                    slavecopy.R.XWorldLimits = slavecopy.R.XWorldLimits-movecog.x;
+                    slavecopy.R.YWorldLimits = slavecopy.R.YWorldLimits-movecog.y;
+                    slavecopy.R.ZWorldLimits = slavecopy.R.ZWorldLimits-movecog.z;
+                    
+                    slavecopy.savenii(fullfile(tempin,[thisActor.Tag,'.nii']))
                     
                 end
                 
-                %this code will warp to MNI. that's wrong..
-                %make a copy of this code and make sure to warp to the
-                %MASTER.
-                BrainlabExtractor_warp(fullfile(tempfolder,'ref.nii'),tempin,tempout)
+                BrainlabExtractor_coreg(fullfile(tempfolder,'ref.nii'),tempin,tempout)
                 
- 
-                % post:
-                %import all nii files in 'tempout' as slices to scene.
                 
+                outfiles = A_getfiles(tempout);
+                for i = 1:numel(outfiles)
+                    thisfile = fullfile(outfiles(i).folder,outfiles(i).name);
+                    vd = VoxelData(thisfile);
+                    vd.getslice.see(scene)
+                end
+                
+
                 
                 
                 
