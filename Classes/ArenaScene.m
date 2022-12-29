@@ -2479,7 +2479,7 @@ classdef ArenaScene < handle
                     Voxels = vd.Voxels;
                     
                     skull = Voxels > 700;
-                    cables = Voxels > 2000;
+                    cables = Voxels > 1800;
                     
                     %get COG of skull
                     indxskull = find(skull);
@@ -2492,7 +2492,7 @@ classdef ArenaScene < handle
                     [xtips,ytips,ztips] = ind2sub(size(cables),indxtips);
                     
                     tips = [xtips,ytips,ztips];
-                    distances = sum(abs(tips-cog_head_imagespace),2);
+                    distances =sum(abs(tips-cog_head_imagespace),2);
                     
                     [b,i] = sort(distances,'ascend');
                     tip1 = tips(i(1),:);
