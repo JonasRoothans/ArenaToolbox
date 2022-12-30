@@ -2498,6 +2498,8 @@ classdef ArenaScene < handle
                     tip1 = tips(i(1),:);
                     tip2 = tips(i(2),:);
                     
+                    
+                    
                     %tips in worldspace
                     [t1x,t1y,t1z] = vd.R.intrinsicToWorld(tip1(2),tip1(1),tip1(3));
                     [t2x,t2y,t2z] = vd.R.intrinsicToWorld(tip2(2),tip2(1),tip2(3));
@@ -2698,6 +2700,7 @@ classdef ArenaScene < handle
                 end
                  v1  = VoxelDatas{1}.Voxels(:);
                  v2 = VoxelDatas{2}.warpto(VoxelDatas{1}).Voxels(:);
+                 f = A_imhist2(VoxelDatas{1},VoxelDatas{2})
                  nans = or(isnan(v1),isnan(v2));
                  v1(nans)=[];
                  v2(nans)= [];
@@ -2706,11 +2709,14 @@ classdef ArenaScene < handle
                  end
                 
                  
+                 
+                 
                  [pearson_r,pearson_p] = corr(v1,v2);
                  [spearman_r,spearman_p] = corr(v1,v2,'Type','Spearman');
                 disp(['Pearson correlation: ',num2str(pearson_r),' (correlation P-value: ',num2str(pearson_p),')']);
                 disp(['Spearman correlation: ',num2str(spearman_r),' (correlation P-value: ',num2str(spearman_p),')']);
-
+            figure(f)
+                title(['Pearson R2: ',num2str(pearson_r)])
 disp('Pearson checks if it is on a line while spearman checks if they move in a same direction.')
 disp('Therefore pearson is more conservative. If your data is ordinal: do not use pearson but spearman.')
                 
