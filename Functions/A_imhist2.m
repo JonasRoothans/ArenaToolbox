@@ -56,5 +56,8 @@ xt = xt-min(abs(xt));
 N = floor( log10( max(abs(xt))))*-1;
 xt = round(xt,N);
 bestticks = unique(xt);
+if numel(bestticks)==2
+     bestticks = [bestticks(1), mean(bestticks),bestticks(2)];
+end
 bestticks_str = cellfun(@num2str,num2cell(bestticks),'UniformOutput',false);
 end
