@@ -916,7 +916,9 @@ classdef VoxelData <handle
                 error('input requirments: obj, target, T.  Your target seems invalid.')
             end
             
-            newVoxels = imwarp(double(obj.Voxels),obj.R,T,'OutputView',R);
+            inputVoxels = double(obj.Voxels);
+            inputVoxels(isnan(inputVoxels)) = 0;
+            newVoxels = imwarp(inputVoxels,obj.R,T,'OutputView',R);
             
             %restore binary data if it was binary
             if islogical(obj.Voxels)

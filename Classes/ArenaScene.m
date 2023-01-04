@@ -376,6 +376,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Slicei.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: smooth','callback',{@menu_smoothslice},'Enable','off');
             obj.handles.menu.dynamic.Slicei.mask = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: apply mask','callback',{@menu_applyMask},'Enable','off');
             obj.handles.menu.dynamic.Slicei.segmentElectrode = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Slice: extract Lead From CT','callback',{@menu_extractLeadFromCT},'Enable','off');
+            obj.handles.menu.dynamic.Slicei.SPM = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: Use SPM to warp image to.. ','callback',{@menu_SPM},'Enable','off');
             
             obj.handles.menu.dynamic.Fibers.interferenceWithMap = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: interference with map','callback',{@menu_fiberMapInterference},'Enable','off');
             obj.handles.menu.dynamic.Fibers.exportSummary = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: export fiber summary','callback',{@menu_fiberSummary},'Enable','off');
@@ -1838,14 +1839,24 @@ classdef ArenaScene < handle
             function menu_runbatch_bilateraltherapy(hObject,eventdata)
                 if numel(scene.Therapystorage)<2
                     error('for batch review, at least two electrodes/VTAs are needed');
-                    return
-                end
-                 for ii=1:numel(scene.Therapystorage)
-                     for jj=1:numel(scene.Therapystorage.VTAs(jj));
-                     menu_vta_review(hObject,eventdata,scene.Therapystorage.VTAs(jj));
-                     end
                     
                 end
+                %ask for settings once:
+                UserChoices = Therapy.UserInputModule();
+                
+                
+                 for iTherapy=1:numel(scene.Therapystorage)
+                     therapyObject = scene.Therapystorage(iTherapy);
+                     therapyObject.executeReview(UserChoices)
+                      assignin('base',['Therapy_',num2str(iTherapy)],therapyObject);
+                 end
+                
+%                     menu_therapy_prediction(hObject,eventdata,scene.Therapystorage(iTherapy))
+%                      for jj=1:numel(scene.Therapystorage.VTAs(jj))
+%                      menu_vta_review(hObject,eventdata,scene.Therapystorage.VTAs(jj));
+%                      end
+                    
+                
                 
                 
                 
@@ -2396,6 +2407,67 @@ classdef ArenaScene < handle
                 
             end
             
+            function menu_SPM(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                [~,meshcandidate_name,meshcandidate_indx] = ArenaScene.getActorsOfClass(scene,'Mesh');
+                [~,slicecandidate_name,slicecandidate_indx] = ArenaScene.getActorsOfClass(scene,'Slicei');
+                
+                meshcandidate_name  = cellfun(@(c)['Mesh: ' c],meshcandidate_name,'uni',false);
+                slicecandidate_name  = cellfun(@(c)['Slice: ' c],slicecandidate_name,'uni',false);
+                
+                [indx] = listdlg('ListString',[meshcandidate_name,slicecandidate_name],'PromptString','Select the reference');
+                candidate_indx = [meshcandidate_indx,slicecandidate_indx];
+                reference_index = candidate_indx(indx);
+                
+                
+                %master image 
+                tempfolder = tempname;
+                mkdir(tempfolder);
+                
+                tempin = fullfile(tempfolder,'in');
+                mkdir(tempin)
+                
+                tempout = fullfile(tempfolder,'out');
+                mkdir(tempout)
+                
+                
+                scene.Actors(reference_index).Data.parent.savenii(fullfile(tempfolder,'ref.nii'))
+                targetcog = scene.Actors(reference_index).Data.parent.getcog;
+                
+                for iActor = 1:numel(currentActors)
+                    
+                    thisActor = currentActors(iActor);
+                    slaveCOG = thisActor.Data.parent.getcog;
+                    
+                    movecog = slaveCOG - targetcog;
+                    slavecopy = thisActor.Data.parent.copy;
+                    
+                    slavecopy.R.XWorldLimits = slavecopy.R.XWorldLimits-movecog.x;
+                    slavecopy.R.YWorldLimits = slavecopy.R.YWorldLimits-movecog.y;
+                    slavecopy.R.ZWorldLimits = slavecopy.R.ZWorldLimits-movecog.z;
+                    
+                    slavecopy.savenii(fullfile(tempin,[thisActor.Tag,'.nii']))
+                    
+                end
+                
+                BrainlabExtractor_coreg(fullfile(tempfolder,'ref.nii'),tempin,tempout)
+                
+                
+                outfiles = A_getfiles(tempout);
+                for i = 1:numel(outfiles)
+                    thisfile = fullfile(outfiles(i).folder,outfiles(i).name);
+                    vd = VoxelData(thisfile);
+                    vd.getslice.see(scene)
+                end
+                
+
+                
+                
+                
+            end
+            
             function menu_extractLeadFromCT(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
@@ -2407,7 +2479,7 @@ classdef ArenaScene < handle
                     Voxels = vd.Voxels;
                     
                     skull = Voxels > 700;
-                    cables = Voxels > 2000;
+                    cables = Voxels > 1800;
                     
                     %get COG of skull
                     indxskull = find(skull);
@@ -2420,11 +2492,13 @@ classdef ArenaScene < handle
                     [xtips,ytips,ztips] = ind2sub(size(cables),indxtips);
                     
                     tips = [xtips,ytips,ztips];
-                    distances = sum(abs(tips-cog_head_imagespace),2);
+                    distances =sum(abs(tips-cog_head_imagespace),2);
                     
                     [b,i] = sort(distances,'ascend');
                     tip1 = tips(i(1),:);
                     tip2 = tips(i(2),:);
+                    
+                    
                     
                     %tips in worldspace
                     [t1x,t1y,t1z] = vd.R.intrinsicToWorld(tip1(2),tip1(1),tip1(3));
@@ -2485,6 +2559,7 @@ classdef ArenaScene < handle
                         d = sum(abs(skeletonpoints-from),2);
                         search = abs(d-l);
                         point = skeletonpoints(search==min(search),:);
+                        point = point(1,:); %take the first in case more are equidistant.
                         
                     end
                 
@@ -2625,6 +2700,7 @@ classdef ArenaScene < handle
                 end
                  v1  = VoxelDatas{1}.Voxels(:);
                  v2 = VoxelDatas{2}.warpto(VoxelDatas{1}).Voxels(:);
+                 f = A_imhist2(VoxelDatas{1},VoxelDatas{2})
                  nans = or(isnan(v1),isnan(v2));
                  v1(nans)=[];
                  v2(nans)= [];
@@ -2633,11 +2709,14 @@ classdef ArenaScene < handle
                  end
                 
                  
+                 
+                 
                  [pearson_r,pearson_p] = corr(v1,v2);
                  [spearman_r,spearman_p] = corr(v1,v2,'Type','Spearman');
                 disp(['Pearson correlation: ',num2str(pearson_r),' (correlation P-value: ',num2str(pearson_p),')']);
                 disp(['Spearman correlation: ',num2str(spearman_r),' (correlation P-value: ',num2str(spearman_p),')']);
-
+            figure(f)
+                title(['Pearson R2: ',num2str(pearson_r)])
 disp('Pearson checks if it is on a line while spearman checks if they move in a same direction.')
 disp('Therefore pearson is more conservative. If your data is ordinal: do not use pearson but spearman.')
                 

@@ -48,6 +48,7 @@ classdef Therapy < handle
         end
         
         
+        
         function [obj,predictionlist] = executeReview(obj,OptionalInput)
             %check available electrodes:
             Electrode_list = {obj.VTAs(:).Electrode};
@@ -67,30 +68,13 @@ classdef Therapy < handle
             end
             
             if nargin>1 %use provided input to skip user dialogs
-                heatmap = OptionalInput.heatmap;
-                VTAset = OptionalInput.VTAset;
-                PostSettings = OptionalInput.PostSettings;
+                UserChoices = OptionalInput;
             else %ask for user input
-                
-                %ask for heatmap/model
-                global predictionmanager
-                heatmap = predictionmanager.selectHeatmap();
-
-                %Ask for mode
-                options = {'60 us - 1,2,3,4,5 mA - MDT3389',...
-                    '60 us - 0.1mA steps - MDT3389',...
-                    '60 us - 0.5 mA steps - MDT3389',...
-                    '60 us - just 2.5 mA - MDT3389',...
-                    '120 us - 0.5 mA steps - MDT3389',...
-                    '60 us - just 2 and 4 mA- MDT3389',...
-                    '60 us - 3.2 mA steps - MDT3389 (cogn. decline monopolar review)'};
-
-                answer = listdlg('PromptString','Select monopolar review preset (can be updated in Therapy.m):','ListString',options,'ListSize',[400,100]);
-                VTAset = options{answer};
-
-                %Ask for postprocessing filter settings. (heatmap specific)
-                PostSettings = heatmap.definePostProcessingSettings();
+                UserChoices = Therapy.UserInputModule();
             end
+            heatmap = UserChoices.heatmap;
+            VTAset = UserChoices.VTAset;
+            PostSettings = UserChoices.PostSettings;
             
             %generate VTA options based on user or machine selection.
             switch VTAset
@@ -548,5 +532,34 @@ classdef Therapy < handle
         end
         
     end
+    
+    methods (Static)
+        function UserChoices = UserInputModule()
+            %ask for heatmap/model
+                global predictionmanager
+                heatmap = predictionmanager.selectHeatmap();
+
+                %Ask for mode
+                options = {'60 us - 1,2,3,4,5 mA - MDT3389',...
+                    '60 us - 0.1mA steps - MDT3389',...
+                    '60 us - 0.5 mA steps - MDT3389',...
+                    '60 us - just 2.5 mA - MDT3389',...
+                    '120 us - 0.5 mA steps - MDT3389',...
+                    '60 us - just 2 and 4 mA- MDT3389',...
+                    '60 us - 3.2 mA steps - MDT3389 (cogn. decline monopolar review)'};
+
+                answer = listdlg('PromptString','Select monopolar review preset (can be updated in Therapy.m):','ListString',options,'ListSize',[400,100]);
+                VTAset = options{answer};
+
+                %Ask for postprocessing filter settings. (heatmap specific)
+                PostSettings = heatmap.definePostProcessingSettings();
+            
+            UserChoices.heatmap = heatmap;
+            UserChoices.VTAset = VTAset;
+            UserChoices.PostSettings = PostSettings;
+        end
+    end
+    
+       
 end
 
