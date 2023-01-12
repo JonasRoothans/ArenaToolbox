@@ -30,6 +30,9 @@ end
 %step 2
 BrainlabExtractor_warp(nativeTemplate,segdir,warpeddir)
 
+%step 3
+BrainlabExtractor_cleanWarpArtifact(warpeddir)
+
 %step 3 - visualisation
 BrainlabExtractor_see(menu,eventdata,scene,warpeddir)
 
