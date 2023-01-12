@@ -3294,15 +3294,15 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 median_tract=zeros(numel(currentActors),1);
                 percentageofFiber_hit=zeros(numel(currentActors),1);
                 
-                %save_answer = questdlg('Do you want to export the fiber values to the currently active folder?','save','yes','no','save to custom directory','yes');
+                save_answer = questdlg('Do you want to export the fiber values to the currently active folder?','save','yes','no','save to custom directory','yes');
                 
-                %switch save_answer
-                  %  case 'yes'
-                 %       folder_selected=pwd;
-                 %   case 'save to custom directory'
-                 %       [folder_selected] = uigetdir;
+                switch save_answer
+                   case 'yes'
+                       folder_selected=pwd;
+                   case 'save to custom directory'
+                       [folder_selected] = uigetdir;
                         
-               % end
+               end
                 
                  
                 for iCurrent=1:numel(currentActors)
@@ -3329,25 +3329,37 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                 end
                 
              
-            
+                    weights_positive=zeros(1,numel(currentActors(iCurrent).Data.Vertices));
+                    weights_negative=zeros(1,numel(currentActors(iCurrent).Data.Vertices));
+                    weights_percentage=zeros(1,numel(currentActors(iCurrent).Data.Vertices));
                 
                 
                 for iFiber = 1:numel(currentActors(iCurrent).Data.Vertices)
                     weights = mapvalue(FiberIndices(iFiber):FiberIndices(iFiber+1)-1);
+                    weights_percentage(iFiber)=100*(nnz(weights)/numel(weights));
                     
                     switch samplingMethod
                         case 'Min value'
                             currentActors(iCurrent).Data.Weight(iFiber) = min(weights);
+                            weights_positive(iFiber) = min(weights(weights>0));
+                            weights_negative(iFiber)=min(weights(weights<0));
+                            weights_percentage(iFiber)=100*(nnz(weights)/numel(weights));
 %                             TractInterference(iFiber)=min(currentActors.Data.Weight,'omitnan');
                            
                         case {'Max value','Check if fiber hits mesh'}
                             currentActors(iCurrent).Data.Weight(iFiber) = max(weights);
+                            weights_positive(iFiber) = max(weights(weights>0));
+                            weights_negative(iFiber)=max(weights(weights<0));
                             
                         case 'Average Value'
                             currentActors(iCurrent).Data.Weight(iFiber) = mean(weights,'omitnan');
+                             weights_positive(iFiber) = mean(weights(weights>0),'omitnan');
+                            weights_negative(iFiber)=mean(weights(weights<0),'omitnan');
                            
                         case 'Sum'
-                            currentActors(iCurrent).Data.Weight(iFiber) = nansum(weights); 
+                            currentActors(iCurrent).Data.Weight(iFiber) = sum(weights,'omitnan'); 
+                            weights_positive(iFiber) = sum(weights(weights>0),'omitnan');
+                            weights_negative(iFiber)=sum(weights(weights<0),'omitnan');
                                   
                     end
                 end
@@ -3358,9 +3370,10 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
 % %                 FibersHit=num2cell(FibersHit',1);
 % %                 T=table(meshes(:),FibersHit{:}, 'VariableNames', {'ROI', fibersLoaded{:}});
                  currentActors(iCurrent).changeSetting('colorByWeight',true);
-                 weights = currentActors(iCurrent).Data.Weight;
-       %          save(fullfile(folder_selected,[currentActors(iCurrent).Tag,'.mat']),'weights')
-                   
+                weights = currentActors(iCurrent).Data.Weight;
+                save(fullfile(folder_selected,[currentActors(iCurrent).Tag,'_positive','.mat']),'weights_positive')
+                save(fullfile(folder_selected,[currentActors(iCurrent).Tag,'_negative','.mat']),'weights_negative')
+                save(fullfile(folder_selected,[currentActors(iCurrent).Tag,'_percentageHit','.mat']),'weights_percentage')  
                 end
                 
                 
