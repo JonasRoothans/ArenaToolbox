@@ -150,7 +150,7 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
             cog = obj.C0;
         end
         
-        function AC_location = getLocationOfAC(obj,AC)
+        function distance = contactSpacing(obj)
             switch obj.Type
                 case 'Medtronic3389'
                     distance = 2;
@@ -162,7 +162,11 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
                     keyboard
             end
             
-            AC_location = obj.C0 + obj.Direction * mean(find(AC)-1) * distance;
+        end
+        
+        function AC_location = getLocationOfAC(obj,AC)
+            
+            AC_location = obj.C0 + obj.Direction * mean(find(AC)-1) * obj.contactSpacing;
         end
        
     end
