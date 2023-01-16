@@ -290,8 +290,8 @@ methods(Static)
     switch filterSettings.filter
         case 'Method 1: same UPDRS, FoG Improvement'
             %settings
-            lower_UPDRS = -10;
-            upper_UPDRS = 10;
+            lower_UPDRS = -40;
+            upper_UPDRS = 40;
    %----- gate 1: confidence check
             confidence_primary = arrayfun(@(x) x.Confidence, predictionlist_fog,'UniformOutput',false);
             PassedConfideceCheck_primary = all(cell2mat(confidence_primary')>filterSettings.confidence,2);
@@ -307,6 +307,7 @@ methods(Static)
             PassedFilters = and(PassedConfidence,PassedUPDRS);
             
             confidence = PassedConfidence;
+            Global_UPDRS_change=scores_secondary';
             nochangeUPDRS = PassedUPDRS';
             score_primary = arrayfun(@(x) x.Output, predictionlist_fog)';
             
@@ -315,8 +316,13 @@ methods(Static)
             Amplitude_2 = arrayfun(@(x) x.Input.VTAs(2).Settings.amplitude,predictionlist_fog)';
             Contact_2 = arrayfun(@(x) x.Input.VTAs(2).Settings.activecontact,predictionlist_fog)';
             
-            t = table(score_primary,confidence,nochangeUPDRS,Contact_1,Amplitude_1,Contact_2,Amplitude_2);
-            t_sorted = sortrows(t,'score_primary','descend')
+            t = table(score_primary,confidence,Global_UPDRS_change,nochangeUPDRS,Contact_1,Amplitude_1,Contact_2,Amplitude_2);
+            t_sorted = sortrows(t,'score_primary','descend');
+            pathname=mfilename('fullpath');
+            ArenaRoot=strfind(pathname,'ArenaToolbox');
+            savepath=pathname(1:ArenaRoot+11);
+            writetable(t_sorted,[savepath,filesep,'UserData',filesep,'Monpolar Review',filesep,'Electrode 1',...
+                predictionlist_fog(1).Input.VTAs(1).ActorElectrode.Tag,' Electrode 2:',predictionlist_fog(1).Input.VTAs(2).ActorElectrode.Tag,'.xlsx']);
             
             disp(['Electrode 1: ',predictionlist_fog(1).Input.VTAs(1).ActorElectrode.Tag])
             disp(['Electrode 2: ',predictionlist_fog(1).Input.VTAs(2).ActorElectrode.Tag])
