@@ -419,7 +419,17 @@ classdef VoxelDataStack < handle
                 otherwise
                     individual_sampling = false;
             end
-            
+             answer_2 = questdlg('Are the files made of binary data ? for example VTAs, lesions or binary tracts',...
+                'Arena',...
+                'Yes, they are binary files, please threshold to remove interpolation artifacts',...
+                'no, the files are not binary, do not threshold',...
+                'no, the files are not binary, do not threshold');
+            switch answer_2
+                case 'Yes, they are binary files, please threshold to remove interpolation artifacts'
+                    binarizeData =true;
+                otherwise
+                    binarizeData=false;
+            end
             else
                 individual_sampling = false;  
             end
@@ -449,11 +459,20 @@ classdef VoxelDataStack < handle
                             vd.mirror;
                         end
                         
-                        %Add subfolders together
+                        %Add subfolders together %% problematic if you want to do single sample tests.
+                        %no Binarisation of files in case of bilateral therapy
                         if iFile==1
+                            if binarizeData
                             together = vd.warpto(obj.R).makeBinary(0.5);
+                            else
+                              together=vd.warpto(obj.R); 
+                            end
                         else
+                            if binarizeData
                             together = together+vd.warpto(obj.R).makeBinary(0.5);
+                            else
+                            together = together+vd.warpto(obj.R);
+                            end
                         end
                         
                     end
@@ -734,7 +753,9 @@ classdef VoxelDataStack < handle
             heatmap.Signedpmap = signedpmap;
 %             heatmap.Raw = raw;
             heatmap.Description = description;
-            heatmap.Amap= VoxelData(obj.reshape(obj.average),obj.R);   
+            amap=obj.average;
+            amap.Voxels=obj.reshape(amap.Voxels);
+            heatmap.Amap= amap;   
             
             
         end
