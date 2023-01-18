@@ -407,6 +407,7 @@ classdef VoxelDataStack < handle
             
             %subfolder or one folder?
             data_is_in_subfolders = any(ismember(recipe.Properties.VariableNames,'folderID'));
+            if data_is_in_subfolders
             answer = questdlg('You have organized your data in subfolders. How should the folders be interpreted? Are you dealing with bilateral therapy?',...
                 'Arena',...
                 'Yes, this is bilateral. Keep the files seperate in the sampling',...
@@ -417,6 +418,10 @@ classdef VoxelDataStack < handle
                     individual_sampling = true;
                 otherwise
                     individual_sampling = false;
+            end
+            
+            else
+                individual_sampling = false;  
             end
             
             
