@@ -89,7 +89,11 @@ classdef PredictionModel < handle
             try
             prediction = [1,predictors]*obj.B;
             catch
-                error('please train model before applying prediction');
+                if isnan(predictors)
+                    prediction = nan;
+                else % no B
+                    error('please train model before applying prediction');
+                end
             end
         end
         
