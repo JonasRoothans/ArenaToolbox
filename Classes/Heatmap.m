@@ -88,7 +88,7 @@ classdef Heatmap < handle
              if nargin<5
 
                 
-                 if nnz(Stack.Voxels)/numel(Stack.Voxels) < 0.5 || Stack.SparseOptimization
+                 if Stack.BinarizeData ||  Stack.SparseOptimization % can add later in or statement 'nnz(Stack.Voxels)/numel(Stack.Voxels) < 0.5)'
                      List={'Tstatistic pipeline (dystonia Brain 2019 paper)','Tstatistic pipeline with Bayesian Stats'};
                  else
                      
