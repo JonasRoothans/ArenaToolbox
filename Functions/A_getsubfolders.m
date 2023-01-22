@@ -6,7 +6,7 @@ dirinfo = dir(mainfolder);
 
 deletethese = zeros(1,numel(dirinfo));
 for i = 1:numel(dirinfo)
-    if contains(dirinfo(i).name,'.') %when something starts with a dot, ignore it!
+    if strcmp(dirinfo(i).name(1),'.') %when something starts with a dot, ignore it!
         deletethese(i) = 1;
     end
     if not(dirinfo(i).isdir)
