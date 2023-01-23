@@ -119,10 +119,11 @@ classdef Heatmap < handle
                    end
                    
                end
-                
+             elseif  ~isempty(intersect(mapSelection,{'Amap'})) || ~isempty(intersect(mapSelection,{'Nmap'})) 
+                     mapSelection={'Correlation Stats'};
                
 
-             end
+            end
              
              
              %n-map will always be computed.
@@ -155,12 +156,14 @@ classdef Heatmap < handle
             %Berlin-workflow
             if ~isempty(intersect(mapSelection,{'Correlation Stats'}))
                 [amapweighted]=Stack.average('averageType', 'weighted');
+                [amap]=Stack.average();
                 [rmap] = Stack.berlinWorkflow;
                 cmap=amapweighted;
                 cmap(rmap<0)=0;
                 obj.Amapweighted=amapweighted;
                 obj.Rmap = rmap;
                 obj.Cmap=cmap;
+                obj.Amap=amap;
                 
             end
           
