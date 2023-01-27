@@ -279,14 +279,19 @@ classdef VoxelData <handle
             if noreslice %for heatmaps: reslicing might alter voxelvalues slightly. 
                 warning('Reslicing is turned off.')
                 loadednifti = load_untouch_nii(niifile);
+                slope = loadednifti.hdr.dime.scl_slope;
+                intercept = loadednifti.hdr.dime.scl_inter;
+                
             else %reslicing might change your data slightly, but rotates the data when a rotation is saved in the header. 
                     % reslicing is recommended for normal use.
                 reslice_nii(niifile,fullfile(tempdir,tempname));
                 loadednifti = load_nii(fullfile(tempdir,tempname));
                 delete(fullfile(tempdir,tempname));
+                slope = 1;
+                intercept = 0;
             end
             
-            obj.Voxels = permute(loadednifti.img,[2 1 3]);
+            obj.Voxels = permute(loadednifti.img,[2 1 3])*slope+intercept;
             
             dimensions = loadednifti.hdr.dime.dim(2:4);
             voxelsize = loadednifti.hdr.dime.pixdim(2:4);
