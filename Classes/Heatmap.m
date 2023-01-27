@@ -88,7 +88,7 @@ classdef Heatmap < handle
              if nargin<5
 
                 
-                 if nnz(Stack.Voxels)/numel(Stack.Voxels) < 0.5 || Stack.SparseOptimization
+                 if Stack.BinarizeData ||  Stack.SparseOptimization % can add later in or statement 'nnz(Stack.Voxels)/numel(Stack.Voxels) < 0.5)'
                      List={'Tstatistic pipeline (dystonia Brain 2019 paper)','Tstatistic pipeline with Bayesian Stats'};
                  else
                      
@@ -119,10 +119,11 @@ classdef Heatmap < handle
                    end
                    
                end
-                
+             elseif  ~isempty(intersect(mapSelection,{'Amap'})) || ~isempty(intersect(mapSelection,{'Nmap'})) 
+                     mapSelection={'Correlation Stats'};
                
 
-             end
+            end
              
              
              %n-map will always be computed.
@@ -155,12 +156,14 @@ classdef Heatmap < handle
             %Berlin-workflow
             if ~isempty(intersect(mapSelection,{'Correlation Stats'}))
                 [amapweighted]=Stack.average('averageType', 'weighted');
+                [amap]=Stack.average();
                 [rmap] = Stack.berlinWorkflow;
                 cmap=amapweighted;
                 cmap(rmap<0)=0;
                 obj.Amapweighted=amapweighted;
                 obj.Rmap = rmap;
                 obj.Cmap=cmap;
+                obj.Amap=amap;
                 
             end
           

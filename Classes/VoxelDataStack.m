@@ -15,6 +15,7 @@ classdef VoxelDataStack < handle
         LayerLabels
         ScoreLabel
         SparseOptimization = true;
+        BinarizeData=false;
     end
     
     methods
@@ -426,9 +427,9 @@ classdef VoxelDataStack < handle
                 'no, the files are not binary, do not threshold');
             switch answer_2
                 case 'Yes, they are binary files, please threshold to remove interpolation artifacts'
-                    binarizeData =true;
+                    obj.BinarizeData =true;
                 otherwise
-                    binarizeData=false;
+                    obj.BinarizeData=false;
             end
             else
                 individual_sampling = false;  
@@ -462,13 +463,13 @@ classdef VoxelDataStack < handle
                         %Add subfolders together %% problematic if you want to do single sample tests.
                         %no Binarisation of files in case of bilateral therapy
                         if iFile==1
-                            if binarizeData
+                            if obj.BinarizeData
                             together = vd.warpto(obj.R).makeBinary(0.5);
                             else
                               together=vd.warpto(obj.R); 
                             end
                         else
-                            if binarizeData
+                            if obj.BinarizeData
                             together = together+vd.warpto(obj.R).makeBinary(0.5);
                             else
                             together = together+vd.warpto(obj.R);
