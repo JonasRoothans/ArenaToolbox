@@ -1050,8 +1050,11 @@ classdef VoxelData <handle
         end
         function savenii_withSourceHeader(obj,filename)
             
+            disp('Saving nii with source header. Note: voxelvalues are unaffected.')
             nii.img = double(permute(obj.Voxels,[2 1 3]));
             nii.hdr = load_nii_hdr(obj.SourceFile);
+            
+            nii.hdr.dime.scl_slope = 0;
             save_nii(nii,filename)
         end
         
