@@ -59,7 +59,7 @@ for i = indx
     vd = hm.(thisProp);
     slice = vd.getslice;
     if any(contains(options,'Nmap'))
-        amap = hm.Nmap.makeBinary(1.5); %at least 2
+        amap = hm.Nmap.makeBinary(0.5); %at least 1
         slice.addAlphaMap(amap)
     end
     actor = slice.see(scene);
