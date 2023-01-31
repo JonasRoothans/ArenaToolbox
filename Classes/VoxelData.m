@@ -1,4 +1,4 @@
-classdef VoxelData <handle
+classdef VoxelData <handle &  matlab.mixin.Copyable
     %VOXELDATA contains Voxels [3D array], R [imref], can load nii.
     %   Detailed explanation goes here
     
@@ -246,11 +246,11 @@ classdef VoxelData <handle
             cropped = CroppedVoxelData(obj.Voxels,obj.R,leftdown,rightup,obj);
         end
         
-        function newVD = copy(obj)
-            newVD = VoxelData(obj.Voxels,obj.R);
-            newVD.SourceFile = obj.SourceFile;
-            newVD.Tag = obj.Tag;
-        end
+%         function newVD = copy(obj)
+%             newVD = VoxelData(obj.Voxels,obj.R);
+%             newVD.SourceFile = obj.SourceFile;
+%             newVD.Tag = obj.Tag;
+%         end
         
         function [obj,filename] = loadnii(obj,niifile,noreslice)
 
