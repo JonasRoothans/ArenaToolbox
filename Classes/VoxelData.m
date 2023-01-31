@@ -133,6 +133,14 @@ classdef VoxelData <handle
         
         
         function savenii(obj,filename)
+            if nargin==1
+                filename = obj.Tag;
+                
+                while exist(fullfile(cd,[filename,'.nii']))==2
+                    filename = [filename,'_copy'];
+                end
+                filename = [filename,'.nii'];
+            end
             
             [x,y,z] = obj.R.worldToIntrinsic(0,0,0);
             spacing = [obj.R.PixelExtentInWorldX,obj.R.PixelExtentInWorldY,obj.R.PixelExtentInWorldZ];
@@ -147,8 +155,6 @@ classdef VoxelData <handle
             [name,folder] = uiputfile('*.nii');
             outdir = fullfile(folder,name);
            obj.savenii(outdir) 
-
-           
         end
         
         function obj = importSuretuneDataset(obj,dataset)
@@ -242,6 +248,8 @@ classdef VoxelData <handle
         
         function newVD = copy(obj)
             newVD = VoxelData(obj.Voxels,obj.R);
+            newVD.SourceFile = obj.SourceFile;
+            newVD.Tag = obj.Tag;
         end
         
         function [obj,filename] = loadnii(obj,niifile,noreslice)
@@ -977,6 +985,24 @@ classdef VoxelData <handle
             
         end
         
+        function binaryObj = makeBinaryPos(obj)
+            if nargout==1
+                binaryObj = obj.copy;
+                binaryObj.Voxels = obj.Voxels>0;
+            else
+                obj.Voxels = obj.Voxels>0;
+            end
+        end
+        
+        function binaryObj = makeBinaryNeg(obj)
+            if nargout==1
+               binaryObj = obj.copy;
+                binaryObj.Voxels = obj.Voxels<0;
+            else
+                obj.Voxels = obj.Voxels<0;
+            end
+        end
+        
         function binaryObj = makeBinary(obj,T)
             if nargin==1
                 
@@ -1000,7 +1026,8 @@ classdef VoxelData <handle
             end
             
             if nargout==1
-                binaryObj = VoxelData(obj.Voxels>T,obj.R);
+                binaryObj = obj.copy;
+                binaryObj.Voxels = obj.Voxels>T;
             else
                 obj.Voxels = obj.Voxels>T;
             end
