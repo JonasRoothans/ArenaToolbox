@@ -890,6 +890,15 @@ classdef VoxelDataStack < handle
                 averageVoxels = (obj.Voxels*obj.Weights')./nansum(obj.Voxels')';
             elseif ~isempty(varargin) && ~isempty(intersect(averageType,{'weighted'})) 
                 averageVoxels = (obj.Voxels*obj.Weights') / abs(sum(obj.Weights));
+            elseif ~isempty(varargin) && ~isempty(intersect(averageType,{'vtaweight'})) 
+                %first binarize
+                v = obj.Voxels>0.5;
+                
+                %get the number of VTAs on each location
+                count = sum(v,2);
+                
+                %calculate the average weight
+                averageVoxels= v*obj.Weights' ./ count;
             end
             amapvoxels = obj.reshape(averageVoxels);
             
@@ -1032,7 +1041,7 @@ classdef VoxelDataStack < handle
                 r_voxels(i) = rho;
               
                 if isnan(rho)
-                    keyboard
+                    disp('rho is nan')
                 end
                 
             end
