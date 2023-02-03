@@ -183,6 +183,8 @@ classdef ArenaScene < handle
                 'Value',0,...
                 'callback',{@btn_layeroptions});
             
+
+            
             obj.handles.configcontrols = [];
             
             %refresh menu
@@ -212,6 +214,13 @@ classdef ArenaScene < handle
             obj.handles.menu.file.export.saveSelection = uimenu(obj.handles.menu.file.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
             obj.handles.menu.file.settings = uimenu(obj.handles.menu.file.main,'Text','Reset to factory settings','callback',{@menu_resetSettings});
             
+            global arena
+            if arena.DIPS
+                 set(obj.handles.figure,'Color',[255, 207, 158]/255)   
+                obj.handles.menu.file.DIPSmode = uimenu(obj.handles.menu.file.main,'Text','Enable DIPS mode','callback',{@menu_DIPSmode},'Checked','on');
+            else
+                obj.handles.menu.file.DIPSmode = uimenu(obj.handles.menu.file.main,'Text','Enable DIPS mode','callback',{@menu_DIPSmode},'Checked','off');
+            end
             
             obj.handles.menu.stusessions.main = uimenu(obj.handles.figure,'Text','Suretune sessions','Visible','off','Separator','on');
             obj.handles.menu.stusessions.openwindows = {};
@@ -451,9 +460,15 @@ classdef ArenaScene < handle
             end
             
             function menu_resetSettings(hObject,eventdata,custom)
-                global arena
+                
                 arena.setup();
                 msgbox('Reset succesful, please restart MATLAB','Warning','warn')
+                
+            end
+            
+            function menu_DIPSmode(hObject,eventdata,custom)
+                
+                arena.triggerDIPS;
                 
             end
             
@@ -999,7 +1014,6 @@ classdef ArenaScene < handle
             
             function menu_atlasleaddbs(hObject,eventdata)
                 %get the rootdir to load the config file
-                global arena;
                 root = arena.getrootdir;
                 loaded = load(fullfile(root,'config.mat'));
                 
@@ -4220,7 +4234,6 @@ disp('Therefore pearson is more conservative. If your data is ordinal: do not us
                     'Yes','No','Yes');
                 switch selection
                     case 'Yes'
-                        global arena
                         try
                             %delete suretuneportals when still open
                             for iPortal = 1:numel(src.UserData.handles.menu.stusessions.openwindows)

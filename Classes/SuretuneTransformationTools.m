@@ -5,7 +5,12 @@ classdef SuretuneTransformationTools
     methods (Static)
         function  [T,description]= universalCallbackRoutine(this,OPTIONAL_anatomy)
             [names,regs] = SuretuneTransformationTools.getRegistrationlink(this);
-            if nargin == 1
+            if nargin==1
+                anatomy = '';
+            else
+                anatomy = OPTIONAL_anatomy;
+            end
+            if isempty(anatomy)
                  [selection] = listdlg('PromptString','In which space do you want it?','ListString',names);
             else
                 selection = SuretuneTransformationTools.findItAutomatically(this,names,OPTIONAL_anatomy);
@@ -20,21 +25,28 @@ classdef SuretuneTransformationTools
         Ttoreglink = this.session.gettransformfromto(this,reglink);
         
         %Second Transformation (reglink to arena)
-        Tfromreglink = SuretuneTransformationTools.getSecondTransformation(reglink);
+        Tfromreglink = SuretuneTransformationTools.getSecondTransformation(reglink,this);
         
         T = round(Ttoreglink*Tfromreglink,6);
         description = names{selection};
          
         end
         
-        function  Tfromreglink = getSecondTransformation(reglink)
+        function  Tfromreglink = getSecondTransformation(reglink,this)
+            global arena
             switch class(reglink)
             case 'Atlas'
-                T = load('T2022.mat');
-                atlasname = ['stu2mni_',lower(reglink.hemisphere),upper(reglink.group)];
-                %Tatlas2fake = T.(atlasname);
-                %Tfake2mni = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
-                Tfromreglink = T.(atlasname);
+                if arena.DIPS 
+                    T = load('Tapproved.mat');
+                    atlasname = [lower(reglink.hemisphere),lower(reglink.group),'2mni'];
+                    Tatlas2fake = T.(atlasname);
+                    Tfake2mni = [-1 0 0 0; 0 -1 0 0; 0 0 1 0;0 -37.5 0 1];
+                    Tfromreglink = Tatlas2fake*Tfake2mni;
+                else
+                    T = load('T2022.mat');
+                    atlasname = ['stu2mni_',lower(reglink.hemisphere),upper(reglink.group)];
+                    Tfromreglink = T.(atlasname);
+                end
             case 'ACPCIH'
                 Tlps2ras = diag([-1 -1 1 1]);
                 MCP2AC = Vector3D(reglink.ac-reglink.pc).norm*-0.5;

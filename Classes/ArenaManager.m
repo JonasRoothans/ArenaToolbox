@@ -7,6 +7,7 @@ classdef ArenaManager < handle
     end
     
     properties(Hidden)
+        DIPS = false;
         Settings
     end
     
@@ -91,8 +92,30 @@ classdef ArenaManager < handle
             end
            
                 scenehandle = obj.Scenes(index);
+        end
+            
+        function triggerDIPS(obj)
+           
+            for iScene = 1:numel(obj.Scenes)
+                thisScene = obj.Scenes(iScene);
+                menuHandle = obj.Scenes(iScene).handles.menu.file.DIPSmode;
+                if obj.DIPS
+                    set(thisScene.handles.figure,'Color',[1 1 1])       
+                    menuHandle.Checked = 'off';
+                else
+                    set(thisScene.handles.figure,'Color',[255, 207, 158]/255)   
+                    menuHandle.Checked = 'on';
+                    
+                end
+               
+            end
+            if obj.DIPS
+                obj.DIPS = false;
+            else
+                obj.DIPS = true;
             end
             
+        end
         
         
     end
@@ -139,6 +162,8 @@ classdef ArenaManager < handle
         function rootdir = getrootdir()
             rootdir = fileparts(fileparts(mfilename('fullpath')));
         end
+        
+        
     end
 end
 

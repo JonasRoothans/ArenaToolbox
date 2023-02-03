@@ -265,8 +265,9 @@ classdef SuretunePortal < SuretuneTransformationTools
             
             
             function cb_lead(hObject,b)
+                global arena
                 this = hObject.UserData;
-                [T,reglinkdescription] = SuretuneTransformationTools.universalCallbackRoutine(this);
+                [T,reglinkdescription] = SuretuneTransformationTools.universalCallbackRoutine(this,'');
                 
                 %generate Electrode
                 e = Electrode;
@@ -332,8 +333,11 @@ classdef SuretunePortal < SuretuneTransformationTools
                         
                         actor.changeSetting('cathode',str2num(this.stimPlan{iStimplan}.activeRings),'anode', str2num(this.stimPlan{iStimplan}.contactsGrounded));
                         
-                        
-                        actor_vta.changeSetting('colorFace',[1 0.5 0])
+                        if arena.DIPS
+                            actor_vta.changeSetting('colorFace',[1 0 0.5])
+                        else
+                            actor_vta.changeSetting('colorFace',[1 0.5 0])
+                        end
                     end
                    
                         

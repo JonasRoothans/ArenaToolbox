@@ -33,9 +33,11 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
                     error('It looks like VTApool cannot be found. Maybe this folder is moved, or you have recently updated Arena. To fix this delete config.mat and restart MATLAB. Arena will then ask for the folder');
                 end
             end
+            if ~arena.DIPS
              VTA_raw.Rvta.XWorldLimits = VTA_raw.Rvta.YWorldLimits - VTA_raw.Rvta.PixelExtentInWorldX;
              VTA_raw.Rvta.YWorldLimits = VTA_raw.Rvta.YWorldLimits - VTA_raw.Rvta.PixelExtentInWorldY;
              VTA_raw.Rvta.ZWorldLimits = VTA_raw.Rvta.ZWorldLimits - VTA_raw.Rvta.PixelExtentInWorldZ;
+            end
              VTA_vd = VoxelData(VTA_raw.Ivta,VTA_raw.Rvta);
              
              T = A_transformationmatriforleadmesh(obj.C0,obj.Direction);
