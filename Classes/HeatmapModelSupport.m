@@ -23,7 +23,7 @@ classdef HeatmapModelSupport < handle
             [sorted,order] = sort(vertcat(predictionList.Output),'descend');
                         
         %----two leads
-            if length(size(pairs))==2
+            if length(pairs)~=numel(pairs)
                 HeatmapModelSupport.printtext(fileID,'\t\t\t%s\t%s\n',predictionList(1).Input.VTAs(1).ActorElectrode.Tag,predictionList(1).Input.VTAs(2).ActorElectrode.Tag);
                 HeatmapModelSupport.printtext(fileID,'-------------------------------------------\n')
                 for iShortlist = 1:length(order)
