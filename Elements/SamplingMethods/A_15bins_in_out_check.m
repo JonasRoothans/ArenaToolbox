@@ -12,7 +12,9 @@ classdef A_15bins_in_out_check < SamplingMethod
         Output = []
         MinimumOverlapPercentage = 50%
     end
-    
+    properties (Hidden)
+        Overlap=[]
+    end
     
     methods
         function [obj] = A_15bins_in_out_check(Map, IndividualProfile)
@@ -38,13 +40,15 @@ classdef A_15bins_in_out_check < SamplingMethod
                 roi = IndividualProfile.Voxels>(0.5+lowerthreshold);
 
                 %mask
-                mask = Map.Tmap.Voxels~=0;
+                mask = Map.Nmap.Voxels > 0; 
 
                 %
                 bite=[bite;map(and(roi,mask))];
+              
                
                 % IN/OUT CHECK
                 overlap = and(roi,mask);
+                Overlap_percent=(sum(overlap(:)) / sum(roi(:)))*100;
                 if sum(overlap(:)) / sum(roi(:)) < obj.MinimumOverlapPercentage/100
                     reject = true;
                 else
@@ -59,13 +63,14 @@ classdef A_15bins_in_out_check < SamplingMethod
             end
             f = figure;
             h = histogram(bite,edges);
-            predictors = [1,zscore(h.Values)];
+            predictors = zscore(h.Values);
             obj.Output = predictors;
+            obj.Overlap=Overlap_percent;
             if reject
                 obj.Output = nan;
             end
             close(f);
-            
+           
             
         end
     end
