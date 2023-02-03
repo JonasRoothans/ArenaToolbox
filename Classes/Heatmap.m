@@ -119,10 +119,11 @@ classdef Heatmap < handle
                    end
                    
                end
-             elseif  ~isempty(intersect(mapSelection,{'Amap'})) || ~isempty(intersect(mapSelection,{'Nmap'})) 
+             elseif  ~isempty(intersect(mapSelection,{'Amap'})) && ~isempty(intersect(mapSelection,{'Nmap'})) 
                      mapSelection={'Correlation Stats'};
                
-
+             elseif  ~isempty(intersect(mapSelection,{'Amap'}))
+                    mapSelection = {'SimpleAverage'};
             end
              
              
@@ -165,6 +166,12 @@ classdef Heatmap < handle
                 obj.Cmap=cmap;
                 obj.Amap=amap;
                 
+            end
+            
+            %average workflow
+            if ~isempty(intersect(mapSelection,{'SimpleAverage'}))
+                [amap]=Stack.average('averageType', 'vtaweight');
+                obj.Amap=amap;
             end
           
             
