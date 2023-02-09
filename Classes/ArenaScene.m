@@ -214,8 +214,13 @@ classdef ArenaScene < handle
             obj.handles.menu.file.export.saveSelection = uimenu(obj.handles.menu.file.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
             obj.handles.menu.file.settings = uimenu(obj.handles.menu.file.main,'Text','Reset to factory settings','callback',{@menu_resetSettings});
             
-            global arena
-            if arena.DIPS
+            try 
+                global arena
+                DIPS = arena.DIPS;
+            catch
+                DIPS = false;
+            end
+            if DIPS
                  set(obj.handles.figure,'Color',[255, 207, 158]/255)   
                 obj.handles.menu.file.DIPSmode = uimenu(obj.handles.menu.file.main,'Text','Enable DIPS mode','callback',{@menu_DIPSmode},'Checked','on');
             else
@@ -1586,7 +1591,8 @@ classdef ArenaScene < handle
                         '*.swtspt','sweetspots (*.swtspt)';...
                         '*.scn','scenes (*.scn)';...
                         '*.mat','matlab data (*.mat)';....
-                        '*.xls*','recipe(*.xls)'},...
+                        '*.xls*','recipe(*.xls)',...
+                        '*.graphml','Graph XML(*.graphml)'},...
                         'import actors','MultiSelect','on');
                 else
                     [filename,pathname] = uigetfile('*.*',...
@@ -1645,6 +1651,8 @@ classdef ArenaScene < handle
                             import_vtk(scene,fullfile(pathname,filename{iFile}))
                         case '.heatmap'
                             A_loadheatmap(scene,fullfile(pathname,filename{iFile}));
+                        case '.graphml'
+                            A_loadgraphml(scene,fullfile(pathname,filename{iFile}));
                             
                             
                             
