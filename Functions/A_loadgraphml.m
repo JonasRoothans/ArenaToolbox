@@ -50,7 +50,8 @@ nodes_pc = PointCloud([[nodes(:).dn_position_x]',[nodes(:).dn_position_y]',[node
 actor = nodes_pc.see(scene);
 actor.changeName(['nodes: ',filename])
 
-f = Fibers;
+f1 = Fibers;
+f2 = Fibers;
 for i = 1:numel(xml.graphml.graph.edge)
     thisedge = xml.graphml.graph.edge{i};
     edge = struct();
@@ -80,7 +81,8 @@ for i = 1:numel(xml.graphml.graph.edge)
     fiber.addVectors(nodes(edge.source).vector3D);
     fiber.addVectors(nodes(edge.target).vector3D);
     
-    f.addFiber(fiber,i,edge.FA_mean);
+    f1.addFiber(fiber,i,edge.FA_mean);
+    f2.addFiber(fiber,i,edge.number_of_fibers);
     
     if i==1
         edges = edge;
@@ -91,9 +93,13 @@ for i = 1:numel(xml.graphml.graph.edge)
     
 end
 
-actor = f.see(scene);
+actor = f1.see(scene);
 actor.changeSetting('numberOfFibers',numel(edges),'colorByWeight',1);
-actor.changeName(['fibers: ',filename]);
+actor.changeName(['fibers FA_mean: ',filename]);
+
+actor = f2.see(scene);
+actor.changeSetting('numberOfFibers',numel(edges),'colorByWeight',1);
+actor.changeName(['fibers Number: ',filename]);
 
 
 
