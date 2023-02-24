@@ -71,7 +71,10 @@ classdef RegressionRoutine < handle
             disp(['Regression method: ', func2str(obj.SamplingMethod)])
 
             for line = 1:length(samplingMethod.Description)
-                disp(['   ',samplingMethod.Description{line}])
+                try
+                    disp(['   ',samplingMethod.Description{line}])
+                catch
+                end
             end
             disp(' ')
             disp('Regression begins')

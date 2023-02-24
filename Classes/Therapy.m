@@ -7,8 +7,8 @@ classdef Therapy < handle
         Predictions = Prediction.empty;
         ReviewOutcome = Prediction.empty;
         ReviewData
-        RecommendedSettings 
-        AlternativeSettings 
+        RecommendedSettings
+        AlternativeSettings
         Tag
     end
     
@@ -139,7 +139,7 @@ classdef Therapy < handle
             %Loop over pairs
             predictionList = Prediction.empty;
             
-
+            
             fwait = waitbar(0,['Running monopolar review: ',heatmap.Tag]);
             
             
@@ -170,153 +170,166 @@ classdef Therapy < handle
                 
                 p = newTherapy.executePrediction(heatmap);
                 predictionList(iPair) = p;
-
-
+                
+                
             end %loop
             
             %close waitbar
-            close(fwait) 
+            close(fwait)
             %add predictionlist to therapyObject
             obj.ReviewData.predictionList = predictionList;
             
             
-            %Now there are 2 options for postprocessing: 
+            %Now there are 2 options for postprocessing:
             % 1) do a custom postprocessing for the heatmapmodel
             % 2) simply perform basics of printing the data.
-
-%--- option 1: do a custom postprocessing for the heatmapmodel
-            if isa(PostSettings,'struct')
             
+            %--- option 1: do a custom postprocessing for the heatmapmodel
+            if isa(PostSettings,'struct')
+                
                 %add self to postsettings. Might come in handy
                 PostSettings.Therapy = obj;
                 PostSettings.UserInput.heatmap = heatmap;
                 PostSettings.UserInput.VTAset = VTAset;
-
-                %run the postprocessing in the model. 
+                
+                %run the postprocessing in the model.
                 heatmap.performReviewPostProcessing(obj.Tag,predictionList,PostSettings,pairs)
-            
- %--- option 2: simply perform basics of printing the data.
+                
+                %--- option 2: simply perform basics of printing the data.
             else
                 
-            %sort list according to improvement as well as confidence and
-            %asign recommended settings
-            
-            sortedList = sortImproConf(obj, predictionList);
-            if numel(sortedList)
-            obj.RecommendedSettings = sortedList(1,1);
-            else
-                obj.RecommendedSettings = {'No recommendation based on this model possible'};
+                %sort list according to improvement as well as confidence and
+                %asign recommended settings
+                
+                if false
+                    
+                    [~,order] = sort([predictionList.Output],'descend');
+                    for iPrint = 1:length(order)
+                        disp([num2str(iPrint),...
+                            '. ',num2str(predictionList(order(iPrint)).Output),...
+                            ', contact: ',num2str(predictionList(order(iPrint)).Input.VTAs.Settings.activecontact),...
+                            ', amplitude: ',num2str(predictionList(order(iPrint)).Input.VTAs.Settings.amplitude)])
+                    end
+                    
+                else
+                    sortedList = sortImproConf(obj, predictionList);
+                    if numel(sortedList)
+                        obj.RecommendedSettings = sortedList(1,1);
+                    else
+                        obj.RecommendedSettings = {'No recommendation based on this model possible'};
+                        
+                    end
+                    
+                    
+                    
+                    %% print recommendations
+                    
+                    fileID = HeatmapModelSupport.makeFile(obj.Tag);
+                    HeatmapModelSupport.printtext(fileID,'\n')
+                    HeatmapModelSupport.printtext(fileID,'Recommended Settings\n')
+                    HeatmapModelSupport.printtext(fileID,'\n')
+                    if iscell(obj.RecommendedSettings)
+                        HeatmapModelSupport.printtext(fileID,'No recommendation based on this model possible\n')
+                        HeatmapModelSupport.printtext(fileID,'\n')
+                    else
+                        HeatmapModelSupport.printPredictionList(obj.Tag,obj.RecommendedSettings,pairs,nan)
+                    end
+                    
+                    %             if ~iscell(obj.AlternativeSettings.universal)
+                    %                 HeatmapModelSupport.printtext(fileID,'\n')
+                    %                 HeatmapModelSupport.printtext(fileID,'Alternative settings reducing side effects from both hemispheres is\n')
+                    %                 HeatmapModelSupport.printtext(fileID,'\n')
+                    %                 HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.universal,pairs,nan)
+                    %             else
+                    %                 if ~iscell(obj.AlternativeSettings.leftHemisphereSE)
+                    %                     HeatmapModelSupport.printtext(fileID,'\n')
+                    %                      HeatmapModelSupport.printtext(fileID,'Alternative settings reducing side effects from left hemisphere is\n')
+                    %                      HeatmapModelSupport.printtext(fileID,'\n')
+                    %                 HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.leftHemisphereSE,pairs,nan)
+                    %                 end
+                    %
+                    %                  if ~iscell(obj.AlternativeSettings.rightHemisphereSE)
+                    %                      HeatmapModelSupport.printtext(fileID,'\n')
+                    %                      HeatmapModelSupport.printtext(fileID,'Alternatice settings reducing side effects from right hemisphere hemispheres is\n')
+                    %                      HeatmapModelSupport.printtext(fileID,'\n')
+                    %                 HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.rightHemisphereSE,pairs,nan)
+                    %                  end
+                    %
+                    %                 if ~iscell(obj.AlternativeSettings.ampReduction)
+                    %                     HeatmapModelSupport.printtext(fileID,'\n')
+                    %                     HeatmapModelSupport.printtext(fileID,'Alternative settings with reduced amplitudes is\n')
+                    %                     HeatmapModelSupport.printtext(fileID,'\n')
+                    %                     HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.ampReduction,pairs,nan)
+                    %                     HeatmapModelSupport.printtext(fileID,'\n')
+                    %                 end
+                    %
+                    %                 if iscell(obj.AlternativeSettings.ampReduction)&iscell(obj.AlternativeSettings.rightHemisphereSE)&...
+                    %                         iscell(obj.AlternativeSettings.leftHemisphereSE)&iscell(obj.AlternativeSettings.universal)
+                    %                     HeatmapModelSupport.printtext(fileID,'\n')
+                    %                     HeatmapModelSupport.printtext(fileID,'No side effects reducing suggestion possible, consider manual ampitude reduction\n')
+                    %                     HeatmapModelSupport.printtext(fileID,'\n')
+                    %                 end
+                    %             end
+                    HeatmapModelSupport.printtext(fileID,'WHOLE REVIEW\n')
+                    HeatmapModelSupport.printtext(fileID,'\n')
+                    
+                    %%
+                
+                    %order and filter the suggestions
+                    %-- sort on improvement
+                    
+                    [sorted,order] = sort(vertcat(predictionList.Output),'descend');
+                    
+                    obj.ReviewData.order = order;
+                    obj.ReviewData.filterSettings = PostSettings;
+                    
+                end
+                %
+                %
+                %         %----two leads
+                %             if length(thisPair)==2
+                %                 printtext(fileID,'\t\t\t%s\t%s\n',obj.VTAs(1).ActorElectrode.Tag,obj.VTAs(2).ActorElectrode.Tag);
+                %                 printtext(fileID,'-------------------------------------------\n')
+                %                 for iShortlist = 1:length(order)
+                %                     item = order(iShortlist);
+                %                     Improv = predictionList(item).Output;
+                %                     c_e1 = predictionList(item).Input.VTAs(1).Settings.activecontact;
+                %                     c_e2 = predictionList(item).Input.VTAs(2).Settings.activecontact;
+                %                     a_e1 = predictionList(item).Input.VTAs(1).Settings.amplitude;
+                %                     a_e2 = predictionList(item).Input.VTAs(2).Settings.amplitude;
+                %                     conf_e1 = predictionList(item).Confidence(1);
+                %                     conf_e2 = predictionList(item).Confidence(2);
+                %
+                %                     printtext(fileID,'%i.\t %2.1f \t C%i - %2.1f mA\t C%i - %2.1f mA \t (%2.2f / %2.2f) \n',iShortlist,Improv, c_e1,a_e1,c_e2,a_e2,conf_e1,conf_e2);
+                %
+                %                 end
+                %             else
+                %
+                %     %----one lead
+                %                 for iShortlist = 1:length(order)
+                %                     %                 thisPair = ReviewData.pairs(order(iShortlist),:);
+                %                     item = order(iShortlist);
+                %                     Improv = predictionList(item).Output;
+                %                     c_e1 = predictionList(item).Input.VTAs(1).Settings.activecontact;
+                %                     a_e1 = predictionList(item).Input.VTAs(1).Settings.amplitude;
+                %                     conf_e1 = predictionList(item).Confidence(1);
+                %
+                %                     printtext(fileID,'%i.\t %2.1f \t C%i - %2.1f mA\t (%2.2f) \n',iShortlist,Improv, c_e1,a_e1,conf_e1);
+                %
+                %                 end
+                %             end
+                %
+                %             fclose(fileID);
+                
+                %Store best therapy
+                obj.ReviewOutcome(end+1) = predictionList(order(1));
+                obj.ReviewOutcome(end+1) = predictionList(order(2));
+                obj.ReviewOutcome(end+1) = predictionList(order(3));
                 
             end
+        
             
             
-            %% print recommendations
-            
-            fileID = HeatmapModelSupport.makeFile(obj.Tag);
-            HeatmapModelSupport.printtext(fileID,'\n')
-            HeatmapModelSupport.printtext(fileID,'Recommended Settings\n')
-            HeatmapModelSupport.printtext(fileID,'\n')
-            if iscell(obj.RecommendedSettings)
-                HeatmapModelSupport.printtext(fileID,'No recommendation based on this model possible\n')
-                HeatmapModelSupport.printtext(fileID,'\n')
-            else
-                HeatmapModelSupport.printPredictionList(obj.Tag,obj.RecommendedSettings,pairs,nan)
-            end
-            
-%             if ~iscell(obj.AlternativeSettings.universal)
-%                 HeatmapModelSupport.printtext(fileID,'\n')
-%                 HeatmapModelSupport.printtext(fileID,'Alternative settings reducing side effects from both hemispheres is\n')
-%                 HeatmapModelSupport.printtext(fileID,'\n')
-%                 HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.universal,pairs,nan)
-%             else
-%                 if ~iscell(obj.AlternativeSettings.leftHemisphereSE)
-%                     HeatmapModelSupport.printtext(fileID,'\n')
-%                      HeatmapModelSupport.printtext(fileID,'Alternative settings reducing side effects from left hemisphere is\n')
-%                      HeatmapModelSupport.printtext(fileID,'\n')
-%                 HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.leftHemisphereSE,pairs,nan)
-%                 end
-%                 
-%                  if ~iscell(obj.AlternativeSettings.rightHemisphereSE)
-%                      HeatmapModelSupport.printtext(fileID,'\n')
-%                      HeatmapModelSupport.printtext(fileID,'Alternatice settings reducing side effects from right hemisphere hemispheres is\n')
-%                      HeatmapModelSupport.printtext(fileID,'\n')
-%                 HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.rightHemisphereSE,pairs,nan)
-%                  end
-%                     
-%                 if ~iscell(obj.AlternativeSettings.ampReduction)
-%                     HeatmapModelSupport.printtext(fileID,'\n')
-%                     HeatmapModelSupport.printtext(fileID,'Alternative settings with reduced amplitudes is\n')
-%                     HeatmapModelSupport.printtext(fileID,'\n')
-%                     HeatmapModelSupport.printPredictionList(obj.Tag,obj.AlternativeSettings.ampReduction,pairs,nan)
-%                     HeatmapModelSupport.printtext(fileID,'\n')
-%                 end
-%                 
-%                 if iscell(obj.AlternativeSettings.ampReduction)&iscell(obj.AlternativeSettings.rightHemisphereSE)&...
-%                         iscell(obj.AlternativeSettings.leftHemisphereSE)&iscell(obj.AlternativeSettings.universal)
-%                     HeatmapModelSupport.printtext(fileID,'\n')
-%                     HeatmapModelSupport.printtext(fileID,'No side effects reducing suggestion possible, consider manual ampitude reduction\n')
-%                     HeatmapModelSupport.printtext(fileID,'\n')
-%                 end
-%             end
-            HeatmapModelSupport.printtext(fileID,'WHOLE REVIEW\n')
-            HeatmapModelSupport.printtext(fileID,'\n')
-            
-            %%
-            
-            %order and filter the suggestions
-            %-- sort on improvement
-            
-            [sorted,order] = sort(vertcat(predictionList.Output),'descend');
-            
-            obj.ReviewData.order = order;
-            obj.ReviewData.filterSettings = PostSettings;
-            
-
-% 
-%            
-%         %----two leads
-%             if length(thisPair)==2
-%                 printtext(fileID,'\t\t\t%s\t%s\n',obj.VTAs(1).ActorElectrode.Tag,obj.VTAs(2).ActorElectrode.Tag);
-%                 printtext(fileID,'-------------------------------------------\n')
-%                 for iShortlist = 1:length(order)
-%                     item = order(iShortlist);
-%                     Improv = predictionList(item).Output;
-%                     c_e1 = predictionList(item).Input.VTAs(1).Settings.activecontact;
-%                     c_e2 = predictionList(item).Input.VTAs(2).Settings.activecontact;
-%                     a_e1 = predictionList(item).Input.VTAs(1).Settings.amplitude;
-%                     a_e2 = predictionList(item).Input.VTAs(2).Settings.amplitude;
-%                     conf_e1 = predictionList(item).Confidence(1);
-%                     conf_e2 = predictionList(item).Confidence(2);
-%                    
-%                     printtext(fileID,'%i.\t %2.1f \t C%i - %2.1f mA\t C%i - %2.1f mA \t (%2.2f / %2.2f) \n',iShortlist,Improv, c_e1,a_e1,c_e2,a_e2,conf_e1,conf_e2);
-% 
-%                 end
-%             else
-%                 
-%     %----one lead
-%                 for iShortlist = 1:length(order)
-%                     %                 thisPair = ReviewData.pairs(order(iShortlist),:);
-%                     item = order(iShortlist);
-%                     Improv = predictionList(item).Output;
-%                     c_e1 = predictionList(item).Input.VTAs(1).Settings.activecontact;
-%                     a_e1 = predictionList(item).Input.VTAs(1).Settings.amplitude;
-%                     conf_e1 = predictionList(item).Confidence(1);
-%                     
-%                     printtext(fileID,'%i.\t %2.1f \t C%i - %2.1f mA\t (%2.2f) \n',iShortlist,Improv, c_e1,a_e1,conf_e1);
-%                     
-%                 end
-%             end
-%             
-%             fclose(fileID);
-            
-            %Store best therapy
-            obj.ReviewOutcome(end+1) = predictionList(order(1));
-            obj.ReviewOutcome(end+1) = predictionList(order(2));
-            obj.ReviewOutcome(end+1) = predictionList(order(3));
-            
-            end
-            
-
             
             function [VTAnames,Settings] = generateVTAnames(leadtype,amplitudes,pulsewidths,voltagecontrolled)
                 VTAnames = {};
@@ -360,7 +373,7 @@ classdef Therapy < handle
                 end
             end
             
-  
+            
             
         end
         
@@ -371,32 +384,32 @@ classdef Therapy < handle
             if ~numel(predictionList)
                 sortedPredictionList = [];
             else
-         
-            highConf = min(vertcat(predictionList(:).Confidence)')>0.85;
-            TopConfList = predictionList(highConf);
-            
-            lowConf = min(vertcat(predictionList(:).Confidence)')>0.55;
-            LowConfList = predictionList(lowConf);
-            
-            if numel(TopConfList)>1
-            
-            [~,orderTop] = sort(vertcat(TopConfList.Output),'descend');
-            orderTop = orderTop';
-            TopConfList = TopConfList(orderTop(:));
-            
-            
+                
+                highConf = min(vertcat(predictionList(:).Confidence)')>0.85;
+                TopConfList = predictionList(highConf);
+                
+                lowConf = min(vertcat(predictionList(:).Confidence)')>0.55;
+                LowConfList = predictionList(lowConf);
+                
+                if numel(TopConfList)>1
+                    
+                    [~,orderTop] = sort(vertcat(TopConfList.Output),'descend');
+                    orderTop = orderTop';
+                    TopConfList = TopConfList(orderTop(:));
+                    
+                    
+                end
+                
+                ConfSum = sum(vertcat(LowConfList(:).Confidence),2);
+                
+                [~,orderLow] = sort(vertcat(LowConfList(:).Output).*ConfSum);
+                orderLow = orderLow';
+                LowConfList = LowConfList(orderLow(:));
+                
+                sortedPredictionList = horzcat(TopConfList,LowConfList);
+                
             end
             
-            ConfSum = sum(vertcat(LowConfList(:).Confidence),2);
-          
-            [~,orderLow] = sort(vertcat(LowConfList(:).Output).*ConfSum);
-            orderLow = orderLow';
-            LowConfList = LowConfList(orderLow(:));
-            
-            sortedPredictionList = horzcat(TopConfList,LowConfList);
-            
-            end
-   
             
         end
         
@@ -416,33 +429,33 @@ classdef Therapy < handle
                 left_LowAmp = zeros(1,iList);
                 right_LowAmp = zeros(1,iList);
                 
-                 
-            leftProx(iList) = predictionList(iList).Input.VTAs(1,1).Settings.activecontact...
-            > obj.RecommendedSettings.Input.VTAs(1,1).Settings.activecontact;
-            
-            rightProx(iList) = predictionList(iList).Input.VTAs(1,2).Settings.activecontact...
-            > obj.RecommendedSettings.Input.VTAs(1,2).Settings.activecontact;
-        
-            leftLowAmp(iList) = (predictionList(iList).Input.VTAs(1,1).Settings.amplitude...
-            - obj.RecommendedSettings.Input.VTAs(1,1).Settings.amplitude) < 1;
-            
-            rightLowAmp(iList) = (predictionList(iList).Input.VTAs(1,2).Settings.amplitude...
-            - obj.RecommendedSettings.Input.VTAs(1,2).Settings.amplitude) < 1;
-        
-            left_Prox(iList) = predictionList(iList).Input.VTAs(1,1).Settings.activecontact...
-            >= obj.RecommendedSettings.Input.VTAs(1,1).Settings.activecontact;
-            
-            right_Prox(iList) = predictionList(iList).Input.VTAs(1,2).Settings.activecontact...
-            >= obj.RecommendedSettings.Input.VTAs(1,2).Settings.activecontact;
-        
-            left_LowAmp(iList) = (predictionList(iList).Input.VTAs(1,1).Settings.amplitude...
-            - obj.RecommendedSettings.Input.VTAs(1,1).Settings.amplitude) < 0.5;
-        
-            right_LowAmp(iList) = (predictionList(iList).Input.VTAs(1,2).Settings.amplitude...
-            - obj.RecommendedSettings.Input.VTAs(1,2).Settings.amplitude) < 0.5;
-        
+                
+                leftProx(iList) = predictionList(iList).Input.VTAs(1,1).Settings.activecontact...
+                    > obj.RecommendedSettings.Input.VTAs(1,1).Settings.activecontact;
+                
+                rightProx(iList) = predictionList(iList).Input.VTAs(1,2).Settings.activecontact...
+                    > obj.RecommendedSettings.Input.VTAs(1,2).Settings.activecontact;
+                
+                leftLowAmp(iList) = (predictionList(iList).Input.VTAs(1,1).Settings.amplitude...
+                    - obj.RecommendedSettings.Input.VTAs(1,1).Settings.amplitude) < 1;
+                
+                rightLowAmp(iList) = (predictionList(iList).Input.VTAs(1,2).Settings.amplitude...
+                    - obj.RecommendedSettings.Input.VTAs(1,2).Settings.amplitude) < 1;
+                
+                left_Prox(iList) = predictionList(iList).Input.VTAs(1,1).Settings.activecontact...
+                    >= obj.RecommendedSettings.Input.VTAs(1,1).Settings.activecontact;
+                
+                right_Prox(iList) = predictionList(iList).Input.VTAs(1,2).Settings.activecontact...
+                    >= obj.RecommendedSettings.Input.VTAs(1,2).Settings.activecontact;
+                
+                left_LowAmp(iList) = (predictionList(iList).Input.VTAs(1,1).Settings.amplitude...
+                    - obj.RecommendedSettings.Input.VTAs(1,1).Settings.amplitude) < 0.5;
+                
+                right_LowAmp(iList) = (predictionList(iList).Input.VTAs(1,2).Settings.amplitude...
+                    - obj.RecommendedSettings.Input.VTAs(1,2).Settings.amplitude) < 0.5;
+                
             end
-        
+            
             Prox = leftProx&rightProx;
             LowAmp = leftLowAmp&rightLowAmp;
             filter1 = Prox&LowAmp;
@@ -452,42 +465,42 @@ classdef Therapy < handle
             filterAmp = (left_LowAmp&right_LowAmp)&(left_Prox&right_Prox);
             
             %if there is a settigns with proximal contacts bilat take it
-           if numel(obj.sortImproConf(predictionList(filter1))) > 0
-               filtered=obj.sortImproConf(predictionList(filter1));
-               AlternativeSettings.universal=filtered(1,1);
-               
-           else % if not, do it for sides separately
-               
-               AlternativeSettings.universal = {'Universal side effects reducing settings not found'};
-               
-               if numel(obj.sortImproConf(predictionList(filterL))) > 0
-                   filteredL = obj.sortImproConf(predictionList(filterL));
-                   AlternativeSettings.leftHemisphereSE = filteredL(1,1);
-               else
-                   AlternativeSettings.leftHemisphereSE = {'Alternative settings for left hemisphere side effects not found'};
-                   
-               end
-               
-               if numel(obj.sortImproConf(predictionList(filterR))) > 0
-                   filteredR = sortIproConf(predictionList(filterR));
-                   AlternativeSettings.rightHemisphereSE = filteredR(1,1);
-               else 
-                   AlternativeSettings.rightHemisphereSE = {'Alternative settings for right hemisphere side effects not found'};
-                   
-               end
-               
-           end
+            if numel(obj.sortImproConf(predictionList(filter1))) > 0
+                filtered=obj.sortImproConf(predictionList(filter1));
+                AlternativeSettings.universal=filtered(1,1);
+                
+            else % if not, do it for sides separately
+                
+                AlternativeSettings.universal = {'Universal side effects reducing settings not found'};
+                
+                if numel(obj.sortImproConf(predictionList(filterL))) > 0
+                    filteredL = obj.sortImproConf(predictionList(filterL));
+                    AlternativeSettings.leftHemisphereSE = filteredL(1,1);
+                else
+                    AlternativeSettings.leftHemisphereSE = {'Alternative settings for left hemisphere side effects not found'};
+                    
+                end
+                
+                if numel(obj.sortImproConf(predictionList(filterR))) > 0
+                    filteredR = sortIproConf(predictionList(filterR));
+                    AlternativeSettings.rightHemisphereSE = filteredR(1,1);
+                else
+                    AlternativeSettings.rightHemisphereSE = {'Alternative settings for right hemisphere side effects not found'};
+                    
+                end
+                
+            end
             
-           % take best settings with lower amp
-           if numel(obj.sortImproConf(predictionList(filterAmp))) > 0
-               filteredAmp = obj.sortImproConf(predictionList(filterAmp));
-               AlternativeSettings.ampReduction = filteredAmp(1,1);
-               
-           else
-               
-               AlternativeSettings.ampReduction = {'Alternative settings with reduced amplitude not found, reduce amplitude of recommended settings manually'};
-           end
-           
+            % take best settings with lower amp
+            if numel(obj.sortImproConf(predictionList(filterAmp))) > 0
+                filteredAmp = obj.sortImproConf(predictionList(filterAmp));
+                AlternativeSettings.ampReduction = filteredAmp(1,1);
+                
+            else
+                
+                AlternativeSettings.ampReduction = {'Alternative settings with reduced amplitude not found, reduce amplitude of recommended settings manually'};
+            end
+            
         end
         
         %%
@@ -536,23 +549,23 @@ classdef Therapy < handle
     methods (Static)
         function UserChoices = UserInputModule()
             %ask for heatmap/model
-                global predictionmanager
-                heatmap = predictionmanager.selectHeatmap();
-
-                %Ask for mode
-                options = {'60 us - 1,2,3,4,5 mA - MDT3389',...
-                    '60 us - 0.1mA steps - MDT3389',...
-                    '60 us - 0.5 mA steps - MDT3389',...
-                    '60 us - just 2.5 mA - MDT3389',...
-                    '120 us - 0.5 mA steps - MDT3389',...
-                    '60 us - just 2 and 4 mA- MDT3389',...
-                    '60 us - 3.2 mA steps - MDT3389 (cogn. decline monopolar review)'};
-
-                answer = listdlg('PromptString','Select monopolar review preset (can be updated in Therapy.m):','ListString',options,'ListSize',[400,100]);
-                VTAset = options{answer};
-
-                %Ask for postprocessing filter settings. (heatmap specific)
-                PostSettings = heatmap.definePostProcessingSettings();
+            global predictionmanager
+            heatmap = predictionmanager.selectHeatmap();
+            
+            %Ask for mode
+            options = {'60 us - 1,2,3,4,5 mA - MDT3389',...
+                '60 us - 0.1mA steps - MDT3389',...
+                '60 us - 0.5 mA steps - MDT3389',...
+                '60 us - just 2.5 mA - MDT3389',...
+                '120 us - 0.5 mA steps - MDT3389',...
+                '60 us - just 2 and 4 mA- MDT3389',...
+                '60 us - 3.2 mA steps - MDT3389 (cogn. decline monopolar review)'};
+            
+            answer = listdlg('PromptString','Select monopolar review preset (can be updated in Therapy.m):','ListString',options,'ListSize',[400,100]);
+            VTAset = options{answer};
+            
+            %Ask for postprocessing filter settings. (heatmap specific)
+            PostSettings = heatmap.definePostProcessingSettings();
             
             UserChoices.heatmap = heatmap;
             UserChoices.VTAset = VTAset;
@@ -560,6 +573,6 @@ classdef Therapy < handle
         end
     end
     
-       
+    
 end
 
