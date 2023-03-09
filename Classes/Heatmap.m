@@ -155,9 +155,11 @@ classdef Heatmap < handle
                 
                 
             %Berlin-workflow
-            if ~isempty(intersect(mapSelection,{'Correlation Stats'}))
+            if ~isempty(intersect(mapSelection,{'Correlation Stats','Rmap'}))
+                disp('~running average')
                 [amapweighted]=Stack.average('averageType', 'weighted');
                 [amap]=Stack.average();
+                disp('~running correlation')
                 [rmap] = Stack.berlinWorkflow;
                 cmap=amapweighted;
                 cmap(rmap<0)=0;
