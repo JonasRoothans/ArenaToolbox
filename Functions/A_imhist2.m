@@ -45,8 +45,16 @@ xticks(xpos)
 xticklabels(bestticks_x_str)
 yticks(ypos)
 yticklabels(bestticks_y_str)
+try
 xlabel(sprintf(vd1.Tag))
+catch
+    xlabel('[no name]')
+end
+try
 ylabel(sprintf(vd2.Tag))
+catch
+     ylabel('[no name]')
+end
 end
 
 function [bestticks,bestticks_str] = findBestTicks(min1,max1,steps)
