@@ -38,6 +38,7 @@ switch discriminative_statistic
         p_sign = sign(mean(sample1) - mean(sample2));
     case 'correlation'
         	[test_statistic,ptest] = corr(sample1(:),sample2(:));
+            test_statistic = test_statistic^2;
             disp (['p will approximate : ', num2str(ptest)])
             p_sign = sign(test_statistic);
     case 'linear regression'
@@ -76,7 +77,7 @@ for iP = 1:p
         case 'mean'
             tslist(iP) = abs(mean(shuffle(1:numel(sample1))) - mean(shuffle(numel(sample1)+1:end)));
         case 'correlation'
-            tslist(iP) = corr(shuffle1(:),sample2(:));
+            tslist(iP) = corr(shuffle1(:),sample2(:))^2;
         case 'linear regression'
             L = fitlm( shuffle1(:), sample2(:));
             tslist(iP)= L.Coefficients.tStat(2);
