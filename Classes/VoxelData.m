@@ -408,7 +408,7 @@ classdef VoxelData <handle &  matlab.mixin.Copyable
             ax.YDir = 'normal';
         end
         
-        function meshobj = getmesh(obj,T)
+        function [meshobj,T] = getmesh(obj,T)
             if not(isdouble(obj))
                 obj = obj.double();
             end
@@ -417,6 +417,7 @@ classdef VoxelData <handle &  matlab.mixin.Copyable
                 meshobj = Mesh(obj,T);
             else
                 meshobj = Mesh(obj);
+                T = meshobj.Settings.T;
             end
             
             if not(isempty(obj.Tag))
