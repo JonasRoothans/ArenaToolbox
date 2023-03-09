@@ -1216,10 +1216,38 @@ classdef ArenaScene < handle
             function importExcel(thisScene,filename)
                 table = readtable(filename);
                 try table.amplitude
+                    importLegacyRecipe(thisScene,filename)
                 catch
-                    disp('Only excepts "recipe" files')
-                    return
+                    importRecipe(thisScene,filename)
                 end
+                
+            end
+            
+            function importRecipe(thisScene,filename)
+                Data = VoxelDataStack();
+                Data.loadStudyDataFromRecipe(filename);
+                
+                for i = 1:Data.length
+                    vd = Data.getVoxelDataAtPosition(i);
+                    if i==1
+                        [mesh,T] = vd.getmesh;
+                        
+                    else
+                        mesh = vd.getmesh(T);
+                    end
+                    actor = mesh.see(scene);
+                    actor.Meta.Score= Data.Weights(i);
+
+                    actor.changeName(strjoin(Data.LayerLabels{i},'_'))
+                    
+                    
+                    
+                    
+                end
+            end
+            
+            function importLegacyRecipe(thisScene,filename)
+                warning('This function is not compatible with DIPS or nonDIPS mode')
                 
                 electrodeorcontact = questdlg('Visualize the electrode,the active contact or VTAs?','Arena load recipe','Full electrode','Active contacts','VTAs','Active contacts');
                 if isempty(electrodeorcontact);return;end
@@ -1319,6 +1347,7 @@ classdef ArenaScene < handle
                          ActiveContacts_pc.see(thisScene);
                 end
             end
+            
             
             function import_vtk(thisScene,filename,fibers_visual)
                 disp('loading a VTK with a custom script. (debug: ArenaScene / import_vtk)')
@@ -2727,13 +2756,16 @@ classdef ArenaScene < handle
                                 error('Data does not contain VoxelData information')
                             end
                             VoxelDatas{iActor} = thisActor.Data.Source;
+                            VoxelDatas{iActor}.Tag = thisActor.Tag;
                             
                         case 'Slicei'
                             VoxelDatas{iActor} = thisActor.Data.parent;
+                            VoxelDatas{iActor}.Tag = thisActor.Tag;
                     end
                 end
                  v1  = VoxelDatas{1}.Voxels(:);
                  v2 = VoxelDatas{2}.warpto(VoxelDatas{1}).Voxels(:);
+                 
                  f = A_imhist2(VoxelDatas{1},VoxelDatas{2})
                  nans = or(isnan(v1),isnan(v2));
                  v1(nans)=[];
@@ -2750,12 +2782,27 @@ classdef ArenaScene < handle
                 disp(['Pearson correlation: ',num2str(pearson_r),' (correlation P-value: ',num2str(pearson_p),')']);
                 disp(['Spearman correlation: ',num2str(spearman_r),' (correlation P-value: ',num2str(spearman_p),')']);
             figure(f)
-                title(['Pearson R2: ',num2str(pearson_r)])
+                title(['Pearson R2: ',num2str(pearson_r^2)])
 disp('Pearson checks if it is on a line while spearman checks if they move in a same direction.')
 disp('Therefore pearson is more conservative. If your data is ordinal: do not use pearson but spearman.')
-                
-                
-                
+
+
+
+disp('---- special cases below ----')
+%test without 0s
+removethese = or(v1==0,v2==0);
+[pearson_r0,pearson_p0] = corr(v1(not(removethese)),v2(not(removethese)));
+disp(['Without the zeroes: rho: ',num2str(pearson_r0),'  p: ',num2str(pearson_p0)])
+
+%positive on both sides
+keepthese = and(v1>0, v2>0);
+[pearson_rpos,pearson_ppos] = corr(v1(keepthese),v2(keepthese));
+disp(['Without positives in both sampples: rho: ',num2str(pearson_rpos),'  p: ',num2str(pearson_ppos)])
+          
+%egative on both sides
+keepthese = and(v1<0, v2<0);
+[pearson_rneg,pearson_pneg] = corr(v1(keepthese),v2(keepthese));
+disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',num2str(pearson_pneg)])
                     
                                 
                 
