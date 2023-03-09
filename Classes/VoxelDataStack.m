@@ -385,14 +385,24 @@ classdef VoxelDataStack < handle
                 end
             end
             
+            obj.RecipePath=recipe;
+            recipe = readtable(recipe);
+            
+            
+            if nargin==2
+                if isempty(obj.R)
+                    firstfile = recipe.fullpath{1};
+                   obj.R = VoxelDataStack.getTemplateSpace(firstfile);
+                end
+            end
+            
             if nargin==3
                 obj.R = VoxelData(templatefile).R;
             end
             
             
             %load excel sheet with scores. Names should match the folders.
-            obj.RecipePath=recipe;
-            recipe = readtable(recipe);
+            
             if isLegacyRecipe(recipe)
                 obj = obj.loadStudyDataFromLegacyRecipe(obj.RecipePath);
                 return
@@ -413,18 +423,25 @@ classdef VoxelDataStack < handle
                 'Arena',...
                 'Yes, this is bilateral. Keep the files seperate in the sampling',...
                 'They can be safely merged and treated as one file',...
+                'Totally ignore folders.',...
                 'Yes, this is bilateral. Keep the files seperate in the sampling');
             switch answer
                 case 'Yes, this is bilateral. Keep the files seperate in the sampling'
                     individual_sampling = true;
+                    combineSubfolders = true;
+                case 'Totally ignore folders.'
+                    combineSubfolders = false;
+                    individual_sampling = true;
+                    insertionCounter=0;
                 otherwise
                     individual_sampling = false;
+                    combineSubfolders = true;
             end
-             answer_2 = questdlg('Are the files made of binary data ? for example VTAs, lesions or binary tracts',...
+             answer_2 = questdlg('Are the files made of binary data? for example VTAs, lesions or binary tracts',...
                 'Arena',...
                 'Yes, they are binary files, please threshold to remove interpolation artifacts',...
-                'no, the files are not binary, do not threshold',...
-                'no, the files are not binary, do not threshold');
+                'no, the files have grayvalues, do not threshold',...
+                'no, the files have grayvalues, do not threshold');
             switch answer_2
                 case 'Yes, they are binary files, please threshold to remove interpolation artifacts'
                     obj.BinarizeData =true;
@@ -443,19 +460,25 @@ classdef VoxelDataStack < handle
                 return
             end
             subfolders.name = 1;
+            
             for i = 1:height(obj.Recipe)
                 
                 if data_is_in_subfolders
                     files = A_getfiles(fullfile(obj.Recipe.fullpath{i},'*.nii'));
                     for iFile = 1:numel(files)
+                        
                         thisFile = fullfile(obj.Recipe.fullpath{i},files(iFile).name);
                         vd = VoxelData(thisFile);
                         if any(isnan(vd.Voxels(:)))
                             vd.Voxels(isnan(vd.Voxels)) = 0;
                         end
                         
+                        if not(combineSubfolders)
+                            iFile=1; %always pretend it's the first one now that has been loaded
+                        end
+                        
                         %Mirror to the left.
-                        cog = vd.getcog;
+                        cog = vd.getmesh(max(vd.Voxels(:))/3).getCOG;
                         if cog.x>1 && obj.Recipe.Move_or_keep_left(i)
                             vd.mirror;
                         end
@@ -476,13 +499,26 @@ classdef VoxelDataStack < handle
                             end
                         end
                         
+                        if not(combineSubfolders)
+                            insertionCounter = insertionCounter+1;
+                            insertAt = insertionCounter;
+                            obj.InsertVoxelDataAt(together,insertAt);
+                            id = obj.Recipe.folderID(i);
+                            obj.Weights(insertAt) = scores(i);
+                            [~,name] = fileparts(thisFile);
+                            obj.LayerLabels{insertAt} = [id,name];
+                        end
+                        
                     end
                     if not(individual_sampling)
                         together = together.makeBinary(0.5);
                     end
                     
-                    obj.InsertVoxelDataAt(together,i);
-                    id = obj.Recipe.folderID(i);
+                    if combineSubfolders
+                        insertAt = i;
+                        obj.InsertVoxelDataAt(together,insertAt);
+                        id = obj.Recipe.folderID(i);
+                    end
                 else
                     vd = VoxelData(obj.Recipe.fullpath{i});
                     if any(isnan(vd.Voxels(:)))
@@ -500,8 +536,10 @@ classdef VoxelDataStack < handle
                 
                 %get the weight
                 
-                obj.Weights(i) = scores(i);
-                obj.LayerLabels{i} = id;
+                if combineSubfolders
+                    obj.Weights(i) = scores(i);
+                    obj.LayerLabels{i} = id;
+                end
             end
             
             
@@ -1171,13 +1209,14 @@ classdef VoxelDataStack < handle
     end
     
     methods (Static)
-        function R = getTemplateSpace()
+        function R = getTemplateSpace(firstfile)
             [selection,ok] = listdlg('PromptString','Select a template space:',...
                 'SelectionMode','single',...
                 'ListString',{...
                     'Basal ganglia unilateral (0.25mm) - 34mb',...
                     'Basal ganglia bilateral (0.25mm) - 57 mb',...
                     'MNI 2009b (0.5mm) - 138mb',...
+                    'Use first file in recipe - ?mb',...
                 '[based on file]'},...
                 'ListSize',[250,100]);
             
@@ -1195,6 +1234,13 @@ classdef VoxelDataStack < handle
                     case 3
                         load(fullfile(templatefolder,'MNI2009b.mat'),'R')
                     case 4
+                        files = A_getfiles(firstfile);
+                        fname = fullfile(files(1).folder,files(1).name);
+                        VD = VoxelData;
+                        
+                        VD.loadnii(fname);
+                        R = VD.R;
+                    case 5
                         VD = VoxelData;
                         VD.loadnii();
                         R = VD.R;
