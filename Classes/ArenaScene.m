@@ -1215,9 +1215,9 @@ classdef ArenaScene < handle
             
             function importExcel(thisScene,filename)
                 table = readtable(filename);
-                try table.amplitude
+                if any(contains(fieldnames(table),'amplitude'))
                     importLegacyRecipe(thisScene,filename)
-                catch
+                else
                     importRecipe(thisScene,filename)
                 end
                 
@@ -1249,6 +1249,7 @@ classdef ArenaScene < handle
             function importLegacyRecipe(thisScene,filename)
                 warning('This function is not compatible with DIPS or nonDIPS mode')
                 
+                 table = readtable(filename);
                 electrodeorcontact = questdlg('Visualize the electrode,the active contact or VTAs?','Arena load recipe','Full electrode','Active contacts','VTAs','Active contacts');
                 if isempty(electrodeorcontact);return;end
                 mirrortoleft = questdlg('Mirror all electrodes to the left side?','Arena load recipe','Yes','No','Yes');
@@ -1263,6 +1264,7 @@ classdef ArenaScene < handle
                             weightlabel = nan;
                         end
                 end
+                
                   
                 ActiveContacts_pc = PointCloud;
                 for iRow = 1:length(table.amplitude)
@@ -1278,7 +1280,7 @@ classdef ArenaScene < handle
 
 
                     cathode = str2num(table.activecontact{iRow});
-                    leadname = [table.id{iRow},'_',table.leadname{iRow}];
+                    leadname = [table.id(iRow),'_',table.leadname{iRow}];
                     
                     T = Ttolegacy*[-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1]; %to real MNI
                     %T = Ttolegacy*TtoMNI;
