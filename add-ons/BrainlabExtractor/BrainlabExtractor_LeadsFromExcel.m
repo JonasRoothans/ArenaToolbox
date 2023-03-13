@@ -54,6 +54,8 @@ e.PointOnLead(Entry)
 actor  = e.see(scene);
 actor.changeName([Name,'_',Side]);
 
+actor.transform(scene,'lps2ras')
+
 
 
 
