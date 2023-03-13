@@ -1,4 +1,4 @@
-function [outputArg1,outputArg2] = BrainlabExtractor_LeadsFromExcel(inputArg1,inputArg2)
+function [outputArg1,outputArg2] = BrainlabExtractor_LeadsFromExcel(menu,eventdata,scene)
 %BRAINLABEXTRACTOR_LEADSFROMEXCEL Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -6,7 +6,8 @@ function [outputArg1,outputArg2] = BrainlabExtractor_LeadsFromExcel(inputArg1,in
 sheet = readtable(fullfile(foldername,filename));
 
 columnNames = sheet{1,:};
-iName = find(contains(columnNames,'Patienntname'));
+iName = find(contains(columnNames,'Patientname'));
+iSide = find(contains(columnNames,'Side'));
 iL = find(contains(columnNames,'target L'));
 iP = find(contains(columnNames,'target P'));
 iS = find(contains(columnNames,'target S'));
@@ -19,6 +20,8 @@ for i = 2:height(sheet)
     S = str2num(sheet{i,iS}{1});
     DL = str2num(sheet{i,iDL}{1});
     DA = str2num(sheet{i,iDA}{1});
+    Name = sheet{i,iName}{1};
+    Side = sheet{i,iSide}{1};
     
     
 Target = [L,P,S];
@@ -43,22 +46,22 @@ tA = [1  0   0;...
 T = tA*tL;
 direction = round(upVector*T,4);
 
-Entry = Target + direction*length;
+Entry = Target + direction;
 
 e = Electrode;
 e.C0 = Target;
 e.PointOnLead(Entry)
+actor  = e.see(scene);
+actor.changeName([Name,'_',Side]);
 
-out = [Target;Entry];
+
+
+
 
     
     
 end
 
-
-
-
-keyboard
 
 
 end

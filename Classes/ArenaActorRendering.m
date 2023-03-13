@@ -14,7 +14,7 @@ classdef ArenaActorRendering < handle
         MATERIAL_ObjFile = [0.8 1 0.2];
         MATERIAL_Mesh =    [0.8 1 0.2];
         MATERIAL_Fiber =   [0.8 0.8 0.2];
-        MATERIAL_Electrode_body = [1 0.5 0.2];
+        MATERIAL_Electrode_body = [0.9 0.5 0.2];
         MATERIAL_Electrode_contact = [1 0.5 0.2];
     end
     
@@ -76,7 +76,7 @@ classdef ArenaActorRendering < handle
                     settings.faceOpacity = 90;
                 case 'Electrode'
                     settings = struct;
-                    settings.colorBase = [0.9 0.9 0.9];
+                    settings.colorBase = [0.7 0.7 0.7];
                     settings.colorInactive = [0.5 0.5 0.5];
                     settings.colorCathode = [1 0.5 0];
                     settings.colorAnode = [0 0.5 1];
