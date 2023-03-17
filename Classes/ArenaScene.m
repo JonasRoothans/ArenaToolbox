@@ -56,17 +56,20 @@ classdef ArenaScene < handle
                     Classdirectory=fileparts(mfilename('fullpath'));
                     idcs   = strfind(Classdirectory,filesep);
                     parentdirectory = Classdirectory(1:idcs(end)-1);
-                    fid = fopen(fullfile([parentdirectory,filesep,'Elements',filesep,'Misc'],'sceneNameSuggestion.txt'));
+                    %fid = fopen(fullfile([parentdirectory,filesep,'Elements',filesep,'Misc'],'sceneNameSuggestion.txt'));
                     try
-                           data = textscan(fid,'%s');
+                           %data = textscan(fid,'%s');
+                           str = fileread('sceneNameSuggestion.txt');
+                           data = regexp(str, '\r\n|\r|\n', 'split');
+                           
                              
                     catch
                         error('cannot find file looks like you have changed the organisation of subfolders in Arena files')
                     end
                   
                    jetzt = now;
-                   randomindex = mod(round(abs(jetzt*1000000-round(jetzt*1000000))*1000),length(data{1}));
-                    randomName = data{1}{randomindex};
+                   randomindex = mod(round(abs(jetzt*1000000-round(jetzt*1000000))*1000),length(data)-1)+1;
+                    randomName = data{randomindex};
                     
                     userinput = newid({'new scene name: '},'Arena',1,{randomName});
                 elseif nargin==2
