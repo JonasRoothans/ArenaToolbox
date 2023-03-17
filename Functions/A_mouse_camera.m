@@ -147,7 +147,20 @@ end
         hObj = hittest(hfig);
         
         for i = 1:numel(hfig.UserData.Actors)
-            if hfig.UserData.Actors(i).Visualisation.handle == hObj
+            hit = 0;
+            if isa(hfig.UserData.Actors(i).Data,'Electrode')
+                for iH = 1:numel(hfig.UserData.Actors(i).Visualisation.handle)
+                    if hfig.UserData.Actors(i).Visualisation.handle(iH) == hObj
+                        hit = 1;
+                        break
+                    end
+                end
+                
+            elseif hfig.UserData.Actors(i).Visualisation.handle == hObj
+                hit = 1;
+            end
+            
+            if hit
                 hfig.UserData.handles.panelright.Value=i;
                 hfig.UserData.Actors(i).updateCC(hfig.UserData)
                 disp(hfig.UserData.Actors(i).Tag)
