@@ -450,6 +450,7 @@ classdef VoxelDataStack < handle
             end
             else
                 individual_sampling = false;  
+                combineSubfolders = true;
             end
             
             
@@ -635,7 +636,7 @@ classdef VoxelDataStack < handle
                         obj.SparseOptimization = false;
                 end
             else
-                obj.insertFull(vd.Voxels,index)
+                obj.insertFull(vd.Voxels,index);
             end
                         
         end
