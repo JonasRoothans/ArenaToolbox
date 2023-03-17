@@ -396,6 +396,8 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Fibers.interferenceWithMap = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: interference with map','callback',{@menu_fiberMapInterference},'Enable','off');
             obj.handles.menu.dynamic.Fibers.exportSummary = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: export fiber summary','callback',{@menu_fiberSummary},'Enable','off');
             obj.handles.menu.dynamic.Fibers.exportSummary = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Fibers: generate ROI from endpoints','callback',{@menu_fibersToROI},'Enable','off');
+            
+            obj.handles.menu.dynamic.Electrode.getAC = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Electrode: get AC location','callback',{@menu_getElectrodeAC},'Enable','off');
                       
                       
             %obj.handles.cameratoolbar = cameratoolbar(obj.handles.figure,'Show');
@@ -3265,6 +3267,30 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
 
                 
             end
+            
+            function menu_getElectrodeAC(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                    currentActors = ArenaScene.getSelectedActors(scene);
+                    
+                    name = {};
+                    y = {};
+                    x = {};
+                    z = {};
+                   
+                    for iActor = 1:numel(currentActors)
+                        thisActor = currentActors(iActor);
+                        AC = thisActor.Data.getLocationOfAC(thisActor.Visualisation.settings.cathode);
+                        name{iActor,1} = thisActor.Tag;
+                        x{iActor,1} = AC.x;
+                        y{iActor,1} = AC.y;
+                        z{iActor,1} = AC.z;
+                        
+                    end
+                    
+                    t = table(name,x,y,z)
+                    assignin('base','t',t)
+                
+           end
             
             function menu_fibersToROI(hObject,eventdata)
                  scene = ArenaScene.getscenedata(hObject);
