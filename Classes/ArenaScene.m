@@ -3289,6 +3289,7 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                     
                     t = table(name,x,y,z)
                     assignin('base','t',t)
+                    disp('to save this, type: writetable(t,''myfile.xlsx'')')
                 
            end
             
