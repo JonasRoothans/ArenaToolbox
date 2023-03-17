@@ -304,7 +304,7 @@ classdef ArenaScene < handle
             
             
             
-            obj.handles.menu.edit.main = uimenu(obj.handles.figure,'Text','Edit');
+            obj.handles.menu.edit.main = uimenu(obj.handles.figure,'Text','Edit','callback',{@menu_meta});
             %            obj.handles.menu.edit.count.main = uimenu(obj.handles.menu.edit.main,'Text','count overlap');
             %             obj.handles.menu.edit.count.toMesh = uimenu(obj.handles.menu.edit.count.main,'Text','as mesh','callback',{@menu_edit_count2mesh});
             %             obj.handles.menu.edit.count.toPlane = uimenu(obj.handles.menu.edit.count.main,'Text','as plane','callback',{@menu_edit_count2plane});
@@ -313,7 +313,8 @@ classdef ArenaScene < handle
             %             obj.handles.menu.edit.add.toPlane = uimenu(obj.handles.menu.edit.add.main,'Text','as plane','callback',{@menu_edit_add2plane});
             obj.handles.menu.edit.getinfo.main = uimenu(obj.handles.menu.edit.main,'Text','get info','callback',{@menu_getinfo});
             obj.handles.menu.edit.analysis.main = uimenu(obj.handles.menu.edit.main,'Text','Analyse selection');
-            
+            obj.handles.menu.edit.meta.main = uimenu(obj.handles.menu.edit.main,'Text','meta tags');
+            obj.handles.menu.edit.meta.submenus = gobjects;%empty submenus
             
             
             obj.handles.menu.edit.analysis.sampleheatmap = uimenu(obj.handles.menu.edit.analysis.main,'Text','sample selection with ... ','callback',{@menu_sampleHeatmap});
@@ -3812,6 +3813,65 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                 
             end
             
+            function menu_meta(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                for iMenu = 1:numel(scene.handles.menu.edit.meta.submenus)
+                    if isempty(fieldnames(scene.handles.menu.edit.meta.submenus))
+                        continue
+                    end
+                    delete(scene.handles.menu.edit.meta.submenus(iMenu));
+                end
+                
+                
+                actorList = scene.Actors;
+                if isempty(actorList)
+                    return
+                end
+                
+                
+                actors = actorList(scene.handles.panelright.Value);
+                for iActor  = 1:numel(actors)
+                    thisActor = actors(iActor);
+                    if not(isempty(thisActor.Meta))
+                        
+                    tags = fieldnames(thisActor.Meta);
+                    
+                        scene.handles.menu.edit.meta.submenus(iActor) = uimenu(scene.handles.menu.edit.meta.main,'Text',thisActor.Tag);
+                       
+                        for iTag = 1:numel(tags)
+                            value = thisActor.Meta.(tags{iTag});
+                            if isnumeric(value)
+                                value = num2str(value);
+                            end
+                            uimenu(scene.handles.menu.edit.meta.submenus(iActor),'Text',[tags{iTag},': ',value],'callback',{@update_meta,thisActor,tags{iTag}});
+                            
+                        end
+                    end
+                    
+                  
+                end
+                
+                
+            end
+            
+            function update_meta(hObject,eventdata,actor,tag)
+                value = actor.Meta.(tag);
+                if isnumeric(value)
+                    value = {num2str(actor.Meta.(tag))};
+                else
+                    value = {actor.Meta.(tag)};
+                end
+                
+                newValue = newid({[tag ,': ']},actor.Tag,1,value);
+                
+                if isnan(str2double(newValue{1}))
+                    newValue = newValue{1};
+                else
+                    newValue = str2double(newValue{1});
+                end
+                actor.Meta.(tag) = newValue;
+                
+            end
             
             
             function menu_getinfo(hObject,eventdata)
