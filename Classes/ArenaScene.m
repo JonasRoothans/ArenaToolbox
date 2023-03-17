@@ -217,6 +217,7 @@ classdef ArenaScene < handle
             obj.handles.menu.file.export.handlestoworkspace = uimenu(obj.handles.menu.file.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
             obj.handles.menu.file.export.saveSelection = uimenu(obj.handles.menu.file.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
             obj.handles.menu.file.settings = uimenu(obj.handles.menu.file.main,'Text','Reset to factory settings','callback',{@menu_resetSettings});
+            obj.handles.menu.file.whois = uimenu(obj.handles.menu.file.main,'Text',['who is ',scene.Title,'?'],'callback',{@menu_whoisthis});
             
             try 
                 global arena
@@ -836,6 +837,12 @@ classdef ArenaScene < handle
                     thisActor.changeName(['[mirror]  ',thisActor.Tag])
                 end
                 
+                
+            end
+            
+            function menu_whoisthis(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                web(['https://en.wikipedia.org/wiki/',scene.Title])
                 
             end
             
