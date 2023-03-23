@@ -1,4 +1,4 @@
-classdef VoxelData <handle &  matlab.mixin.Copyable
+ classdef VoxelData <handle &  matlab.mixin.Copyable
     %VOXELDATA contains Voxels [3D array], R [imref], can load nii.
     %   Detailed explanation goes here
     

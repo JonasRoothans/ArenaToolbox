@@ -5,23 +5,23 @@ function [outputArg1,outputArg2] = BrainlabExtractor_LeadsFromExcel(menu,eventda
 [filename,foldername] = uigetfile('*.xlsx');
 sheet = readtable(fullfile(foldername,filename));
 
-columnNames = sheet{1,:};
+columnNames = sheet.Properties.VariableNames;
 iName = find(contains(columnNames,'Patientname'));
 iSide = find(contains(columnNames,'Side'));
-iL = find(contains(columnNames,'target L'));
-iP = find(contains(columnNames,'target P'));
-iS = find(contains(columnNames,'target S'));
-iDL = find(contains(columnNames,'degrees left'));
-iDA = find(contains(columnNames,'degrees anterior' ));
+iL = find(contains(columnNames,'targetL'));
+iP = find(contains(columnNames,'targetP'));
+iS = find(contains(columnNames,'targetS'));
+iDL = find(contains(columnNames,'degreesLeft'));
+iDA = find(contains(columnNames,'degreesAnterior' ));
 
 for i = 2:height(sheet)
-    L = str2num(sheet{i,iL}{1});
-    P = str2num(sheet{i,iP}{1});
-    S = str2num(sheet{i,iS}{1});
-    DL = str2num(sheet{i,iDL}{1});
-    DA = str2num(sheet{i,iDA}{1});
-    Name = sheet{i,iName}{1};
-    Side = sheet{i,iSide}{1};
+    L = sheet{i,iL}(1);
+    P = sheet{i,iP}(1);
+    S = sheet{i,iS}(1);
+    DL = sheet{i,iDL}(1);
+    DA = sheet{i,iDA}(1);
+    Name = sheet{i,iName}(1);
+    Side = sheet{i,iSide}(1);
     
     
 Target = [L,P,S];
