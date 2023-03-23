@@ -1,7 +1,7 @@
 classdef ArenaScene < handle
     %ARENASCENE Generates UIobjects, and stores Actors.
     %   This class is the central class of the ArenaToolbox.
-    %   You can open a scene with: 
+    %   You can open a scene with:
     %   -   myScene = newScene();
     %   -   or startArena;
     %
@@ -28,47 +28,47 @@ classdef ArenaScene < handle
             %ARENAWINDOW Construct an instance of this class
             %   Detailed explanation goes here
             
-            global predictionmanager 
-                if not(isa(predictionmanager,'PredictionManager'))
-                    [predictionmanager] = PredictionManager();
-                end
-                
+            global predictionmanager
+            if not(isa(predictionmanager,'PredictionManager'))
+                [predictionmanager] = PredictionManager();
+            end
+            
             global connectomes
-                if not(isa(connectomes,'ConnectomeManager'))
-                    connectomes = ConnectomeManager;
-                end
-                
-                
+            if not(isa(connectomes,'ConnectomeManager'))
+                connectomes = ConnectomeManager;
+            end
+            
+            
         end
         
         %this function contains also contains all callbacks as subfunctions
         function obj = create(obj,OPTIONALname)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-           
+            
             debugmode = 0;
             
             if debugmode
                 userinput = {'debug mode'};
             else
                 if nargin==1
-                  
+                    
                     Classdirectory=fileparts(mfilename('fullpath'));
                     idcs   = strfind(Classdirectory,filesep);
                     parentdirectory = Classdirectory(1:idcs(end)-1);
                     %fid = fopen(fullfile([parentdirectory,filesep,'Elements',filesep,'Misc'],'sceneNameSuggestion.txt'));
                     try
-                           %data = textscan(fid,'%s');
-                           str = fileread('sceneNameSuggestion.txt');
-                           data = regexp(str, '\r\n|\r|\n', 'split');
-                           
-                             
+                        %data = textscan(fid,'%s');
+                        str = fileread('sceneNameSuggestion.txt');
+                        data = regexp(str, '\r\n|\r|\n', 'split');
+                        
+                        
                     catch
                         error('cannot find file looks like you have changed the organisation of subfolders in Arena files')
                     end
-                  
-                   jetzt = now;
-                   randomindex = mod(round(abs(jetzt*1000000-round(jetzt*1000000))*1000),length(data)-1)+1;
+                    
+                    jetzt = now;
+                    randomindex = mod(round(abs(jetzt*1000000-round(jetzt*1000000))*1000),length(data)-1)+1;
                     randomName = data{randomindex};
                     
                     userinput = newid({'new scene name: '},'Arena',1,{randomName});
@@ -124,12 +124,12 @@ classdef ArenaScene < handle
             obj.handles.orientationMarker.FaceColor = [0.5 0.5 0.5];
             obj.handles.orientationMarker.FaceAlpha = 1;
             obj.handles.orientationMarker.EdgeAlpha = 0;
-            obj.handles.orientationMarker.FaceLighting = 'gouraud';           
+            obj.handles.orientationMarker.FaceLighting = 'gouraud';
             material(obj.handles.orientationMarker,[0.8 0.5 0]);
             obj.handles.axesOrientation.HitTest = 'off';
             %link to orientation marker
             linkprop([obj.handles.axes,obj.handles.axesOrientation],{'View'});
-             axes(obj.handles.axes)
+            axes(obj.handles.axes)
             
             %----
             
@@ -152,8 +152,8 @@ classdef ArenaScene < handle
                 'callback',{@panelright_callback},...
                 'max',100);
             
-
-
+            
+            
             
             obj.handles.btn_toggleleft = uicontrol('style','togglebutton',...
                 'units','normalized',...
@@ -187,15 +187,15 @@ classdef ArenaScene < handle
                 'Value',0,...
                 'callback',{@btn_layeroptions});
             
-
+            
             
             obj.handles.configcontrols = [];
             
             %refresh menu
             obj.handles.templates =  menu_refreshTemplatelist(obj,[],'startup');
             
-
- 
+            
+            
             
             
             
@@ -207,7 +207,7 @@ classdef ArenaScene < handle
             obj.handles.menu.file.savesceneas.main = uimenu(obj.handles.menu.file.main,'Text','Save scene as','callback',{@menu_savesceneas});
             obj.handles.menu.file.savescene.main = uimenu(obj.handles.menu.file.main,'Text','Save scene','callback',{@menu_savescene});
             obj.handles.menu.file.import.main = uimenu(obj.handles.menu.file.main,'Text','Import actor [cmd+i]','callback',{@menu_importAnything},'Enable','on','Separator','on');
-            obj.handles.menu.file.import.fromworkspace = uimenu(obj.handles.menu.file.main,'Text','Import actor from workspace [cmd+shift+i]','callback',{@menu_importfromworkspace});            
+            obj.handles.menu.file.import.fromworkspace = uimenu(obj.handles.menu.file.main,'Text','Import actor from workspace [cmd+shift+i]','callback',{@menu_importfromworkspace});
             obj.handles.menu.file.new.main = uimenu(obj.handles.menu.file.main,'Text','New actor');
             obj.handles.menu.file.new.electrode = uimenu(obj.handles.menu.file.new.main,'Text','Electrode','callback',{@menu_placeElectrode});
             obj.handles.menu.file.new.vta= uimenu(obj.handles.menu.file.new.main,'Text','Åström VTA','callback',{@menu_generateVTA});
@@ -219,14 +219,14 @@ classdef ArenaScene < handle
             obj.handles.menu.file.settings = uimenu(obj.handles.menu.file.main,'Text','Reset to factory settings','callback',{@menu_resetSettings});
             obj.handles.menu.file.whois = uimenu(obj.handles.menu.file.main,'Text',['who is ',scene.Title,'?'],'callback',{@menu_whoisthis});
             
-            try 
+            try
                 global arena
                 DIPS = arena.DIPS;
             catch
                 DIPS = false;
             end
             if DIPS
-                 set(obj.handles.figure,'Color',[255, 207, 158]/255)   
+                set(obj.handles.figure,'Color',[255, 207, 158]/255)
                 obj.handles.menu.file.DIPSmode = uimenu(obj.handles.menu.file.main,'Text','Enable DIPS mode','callback',{@menu_DIPSmode},'Checked','on');
             else
                 obj.handles.menu.file.DIPSmode = uimenu(obj.handles.menu.file.main,'Text','Enable DIPS mode','callback',{@menu_DIPSmode},'Checked','off');
@@ -304,7 +304,7 @@ classdef ArenaScene < handle
                 obj.handles.menu.atlas.MRI.template(iMRItemplate) = uimenu(obj.handles.menu.atlas.MRI.main,'Text',obj.handles.templates(iMRItemplate).name,'callback',{@menu_addMRItemplate,obj.handles.templates(iMRItemplate)});
             end
             
-           
+            
             
             
             
@@ -390,8 +390,11 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Mesh.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: source data','callback',{@menu_smoothVoxelData},'Enable','off');
             obj.handles.menu.dynamic.Mesh.takeBite = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: take a sample from slice or mesh','callback',{@menu_takeSample},'Enable','off');
             obj.handles.menu.dynamic.Mesh.detectElectrode = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: convert to electrode','callback',{@menu_detectElectrode},'Enable','off');
-            obj.handles.menu.dynamic.Slicei.SpatialCorrelation = obj.handles.menu.dynamic.Mesh.SpatialCorrelation;
+            obj.handles.menu.dynamic.Mesh.dynamicColor = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Any: color based on heatmap','callback',{@menu_dynamicColor},'Enable','off');
+            obj.handles.menu.dynamic.ObjFile.dynamicColor = obj.handles.menu.dynamic.Mesh.dynamicColor;
+            obj.handles.menu.dynamic.Electrode.dynamicColor = obj.handles.menu.dynamic.Mesh.dynamicColor;
             
+            obj.handles.menu.dynamic.Slicei.SpatialCorrelation = obj.handles.menu.dynamic.Mesh.SpatialCorrelation;
             obj.handles.menu.dynamic.Slicei.multiply = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: multiply images','callback',{@menu_multiplyslices},'Enable','off');
             obj.handles.menu.dynamic.Slicei.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: smooth','callback',{@menu_smoothslice},'Enable','off');
             obj.handles.menu.dynamic.Slicei.mask = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: apply mask','callback',{@menu_applyMask},'Enable','off');
@@ -403,8 +406,8 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Fibers.exportSummary = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Fibers: generate ROI from endpoints','callback',{@menu_fibersToROI},'Enable','off');
             
             obj.handles.menu.dynamic.Electrode.getAC = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Electrode: get AC location','callback',{@menu_getElectrodeAC},'Enable','off');
-                      
-                      
+            
+            
             %obj.handles.cameratoolbar = cameratoolbar(obj.handles.figure,'Show');
             obj.handles.cameratoolbar = A_cameratoolbar(obj.handles.figure);
             obj.handles.lightSun = light('Position',[0 0 1],'Style','infinite');
@@ -489,50 +492,50 @@ classdef ArenaScene < handle
                 if strcmp(custom,'startup')
                     scene = hObject;
                 else
-                scene = ArenaScene.getscenedata(hObject);
+                    scene = ArenaScene.getscenedata(hObject);
                 end
                 
                 addondir = fullfile(fileparts(fileparts(mfilename('fullpath'))),'add-ons');
-                 if not(isfolder(addondir))
+                if not(isfolder(addondir))
                     mkdir(addondir)
-                 end
-                 %--- hard refresh when triggered by user
-                 if strcmp(custom,'user') %user triggers a hard refresh
-                     items = fieldnames(scene.handles.menu.addons);
-                     for iItem = 1:numel(items)
-                         switch items{iItem}
-                             case 'main'
-                                 %do nothing
-                             otherwise
-                                 delete(scene.handles.menu.addons.(items{iItem}))
-                         end
-                     end
-                 end
-                 
-                 
-                 %--- loop over subfolders
-                 subfolders = SDK_subfolders(addondir);
-                 for iSubfolder = 1:numel(subfolders)
-                     installationFile = dir(fullfile(addondir,subfolders{iSubfolder},'install_*.m'));
-                     if isempty(installationFile)
-                         disp(['Add-ons: ',subfolders{iSubfolder},' cannot be installed.'])
-                         continue
-                     end
-                     callback = str2func(installationFile(1).name(1:end-2)); %without .m
-                     scene.handles.menu.addons.(subfolders{iSubfolder}).main =  uimenu(scene.handles.menu.addons.main,'Text',['add: ',subfolders{iSubfolder}],'callback',{callback,scene});
-                     disp(['Add-ons: ',subfolders{iSubfolder},' is available.'])
-                     addpath(fullfile(addondir,subfolders{iSubfolder}))
-                 end
-                 
+                end
+                %--- hard refresh when triggered by user
+                if strcmp(custom,'user') %user triggers a hard refresh
+                    items = fieldnames(scene.handles.menu.addons);
+                    for iItem = 1:numel(items)
+                        switch items{iItem}
+                            case 'main'
+                                %do nothing
+                            otherwise
+                                delete(scene.handles.menu.addons.(items{iItem}))
+                        end
+                    end
+                end
+                
+                
+                %--- loop over subfolders
+                subfolders = SDK_subfolders(addondir);
+                for iSubfolder = 1:numel(subfolders)
+                    installationFile = dir(fullfile(addondir,subfolders{iSubfolder},'install_*.m'));
+                    if isempty(installationFile)
+                        disp(['Add-ons: ',subfolders{iSubfolder},' cannot be installed.'])
+                        continue
+                    end
+                    callback = str2func(installationFile(1).name(1:end-2)); %without .m
+                    scene.handles.menu.addons.(subfolders{iSubfolder}).main =  uimenu(scene.handles.menu.addons.main,'Text',['add: ',subfolders{iSubfolder}],'callback',{callback,scene});
+                    disp(['Add-ons: ',subfolders{iSubfolder},' is available.'])
+                    addpath(fullfile(addondir,subfolders{iSubfolder}))
+                end
+                
             end
             
             
-           
+            
             
             
             function templatelist =  menu_refreshTemplatelist(hObject,eventdata,custom)
                 
-                 templatedir = fullfile(fileparts(fileparts(mfilename('fullpath'))),'UserData','Templates');
+                templatedir = fullfile(fileparts(fileparts(mfilename('fullpath'))),'UserData','Templates');
                 if not(isfolder(templatedir))
                     scene = ArenaScene.getscenedata(hObject);
                     
@@ -545,8 +548,8 @@ classdef ArenaScene < handle
                 templates = dir(fullfile(templatedir,'*.nii'));
                 templatelist = [];
                 for iTemplate = 1:numel(templates)
-                   templatelist(iTemplate).path = fullfile(templatedir,templates(iTemplate).name);
-                   templatelist(iTemplate).name = templates(iTemplate).name;
+                    templatelist(iTemplate).path = fullfile(templatedir,templates(iTemplate).name);
+                    templatelist(iTemplate).name = templates(iTemplate).name;
                 end
                 
                 if strcmp(custom,'user')
@@ -557,15 +560,15 @@ classdef ArenaScene < handle
                     end
                     
                     %refresh the handles
-                   for iDelete = 1:numel(obj.handles.menu.atlas.MRI.template)
+                    for iDelete = 1:numel(obj.handles.menu.atlas.MRI.template)
                         delete(obj.handles.menu.atlas.MRI.template(iDelete))
-                   end
-                   for iAdd = 1:numel(templatelist)
+                    end
+                    for iAdd = 1:numel(templatelist)
                         scene.handles.menu.atlas.MRI.template(iAdd) = uimenu(scene.handles.menu.atlas.MRI.main,'Text',templatelist(iAdd).name,'callback',{@menu_addMRItemplate,templatelist(iAdd)});
                     end
                     
                 end
-
+                
             end
             
             function menu_showLight_sun(hObject,eventdata)
@@ -581,7 +584,7 @@ classdef ArenaScene < handle
             end
             
             
-             function menu_showLight_ground(hObject,eventdata)
+            function menu_showLight_ground(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 switch hObject.Checked
                     case 'on'
@@ -701,7 +704,7 @@ classdef ArenaScene < handle
             
             function menu_surgicalview_electrode(hObject,evendata,e)
                 scene = ArenaScene.getscenedata(hObject);
-              
+                
                 
                 current_campos = campos;
                 current_target = camtarget;
@@ -710,7 +713,7 @@ classdef ArenaScene < handle
                 distance = norm(current_target-current_campos);
                 
                 
-              
+                
                 
                 new_target = e.Data.C0;
                 new_campos = e.Data.C0 + e.Data.Direction * distance;
@@ -732,18 +735,18 @@ classdef ArenaScene < handle
             
             function menu_surgicalview(hObject,eventdata)
                 
-                 %get electrodes
+                %get electrodes
                 scene = ArenaScene.getscenedata(hObject);
-                 arrayfun(@(x) delete(x), obj.handles.menu.view.camera.surgical.electrodes);
+                arrayfun(@(x) delete(x), obj.handles.menu.view.camera.surgical.electrodes);
                 currentActors = ArenaScene.getSelectedActors(scene);
                 [actorlist,namelist,indexlist] =  ArenaScene.getActorsOfClass(scene,'Electrode');
                 
                 for iActor = 1:numel(actorlist)
-                %list all the electrodes here. with a callback to
-                %move/rotate with respect to this electrode.
+                    %list all the electrodes here. with a callback to
+                    %move/rotate with respect to this electrode.
                     obj.handles.menu.view.camera.surgical.electrodes(iActor) = uimenu(obj.handles.menu.view.camera.surgical.main,'Text',namelist{iActor},'callback',{@menu_surgicalview_electrode,actorlist(iActor)});
-                
-                
+                    
+                    
                 end
                 
             end
@@ -751,16 +754,16 @@ classdef ArenaScene < handle
             function menu_electrodespace(hObject,eventdata)
                 %get electrodes
                 scene = ArenaScene.getscenedata(hObject);
-                 arrayfun(@(x) delete(x), scene.handles.menu.transform.selectedlayer.transformInElectrodeSpace.electrodes);
+                arrayfun(@(x) delete(x), scene.handles.menu.transform.selectedlayer.transformInElectrodeSpace.electrodes);
                 currentActors = ArenaScene.getSelectedActors(scene);
                 [actorlist,namelist,indexlist] =  ArenaScene.getActorsOfClass(scene,'Electrode');
                 
                 for iActor = 1:numel(actorlist)
-                %list all the electrodes here. with a callback to
-                %move/rotate with respect to this electrode.
+                    %list all the electrodes here. with a callback to
+                    %move/rotate with respect to this electrode.
                     obj.handles.menu.transform.selectedlayer.transformInElectrodeSpace.electrodes(iActor) = uimenu(obj.handles.menu.transform.selectedlayer.transformInElectrodeSpace.main,'Text',namelist{iActor},'callback',{@menu_transformInLeadSpace,actorlist(iActor)});
-                
-                
+                    
+                    
                 end
             end
             
@@ -771,13 +774,13 @@ classdef ArenaScene < handle
                 Ti = e.Data.getTransformFromRoot;
                 
                 input = newid({'Rotation clockwise in deg:','Followed by a translation: '},'Arena',1,{'0','[0 0 0]'});
-                    translation = eval(input{2});
-                    
-                    alpha = deg2rad(str2double(input{1}));
-                    Tuser = [cos(alpha), -1*sin(alpha), 0 ,0;...
-                        sin(alpha),cos(alpha), 0, 0;...
-                        0 0 1 0;...
-                       translation(1),translation(2),translation(3),1];
+                translation = eval(input{2});
+                
+                alpha = deg2rad(str2double(input{1}));
+                Tuser = [cos(alpha), -1*sin(alpha), 0 ,0;...
+                    sin(alpha),cos(alpha), 0, 0;...
+                    0 0 1 0;...
+                    translation(1),translation(2),translation(3),1];
                 
                 for iActor = 1:numel(currentActors)
                     thisActor = currentActors(iActor);
@@ -863,7 +866,7 @@ classdef ArenaScene < handle
                 for iActor = 1:numel(actorList)
                     thisActor = actorList(iActor);
                     thisActor.obj2mesh(scene);
-                end 
+                end
             end
             
             function menu_showCOG(hObject,eventdata)
@@ -879,12 +882,12 @@ classdef ArenaScene < handle
                 end
                 
             end
-        
+            
             function menu_moveTransformationMatrix(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
                 
-                allVariables = evalin('base','whos'); 
+                allVariables = evalin('base','whos');
                 
                 matchesdouble= strcmp({allVariables.class}, 'double');
                 matchesaffine= strcmp({allVariables.class}, 'affine3d');
@@ -908,7 +911,7 @@ classdef ArenaScene < handle
                 end
                 
                 
-
+                
                 
             end
             
@@ -936,7 +939,7 @@ classdef ArenaScene < handle
                 T = load('T2022');
                 
                 
-                    
+                
                 
                 for i = 1:numel(currentActors)
                     thisActor = currentActors(i);
@@ -1037,15 +1040,15 @@ classdef ArenaScene < handle
                 loaded = load(fullfile(root,'config.mat'));
                 
                 leadDBSatlasdir = fullfile('templates','space','MNI_ICBM_2009b_NLIN_ASYM','atlases');
-  
+                
                 subfolders = A_getsubfolders(fullfile(loaded.config.leadDBS,leadDBSatlasdir));
                 options = {subfolders.name};
                 options{end+1} = '[Cracked] Distal Atlas - 100% virus free - aXXo';
                 [indx,tf] = listdlg('ListString',options,'ListSize',[400,320]);
                 if indx ~= length(options)
                     newAtlasPath = fullfile(loaded.config.leadDBS,...
-                    leadDBSatlasdir,...
-                    subfolders(indx).name,'atlas_index.mat');
+                        leadDBSatlasdir,...
+                        subfolders(indx).name,'atlas_index.mat');
                 else
                     newAtlasPath = fullfile(arena.getrootdir,'Elements/Misc/Distal_Medium','atlas_index.mat');
                 end
@@ -1101,7 +1104,7 @@ classdef ArenaScene < handle
                 
                 if arena.DIPS
                     T = load('Tapproved.mat'); %--> changed feb 24 2022, after
-                %call with Andy. 
+                    %call with Andy.
                 else
                     T = load('T2022.mat');
                 end
@@ -1113,22 +1116,22 @@ classdef ArenaScene < handle
                         obj_stn = ObjFile(fullfile(legacypath,'LH_STN-ON-pmMR.obj'));
                         obj_rn = ObjFile(fullfile(legacypath,'LH_RU-ON-pmMR.obj'));
                         obj_sn = ObjFile(fullfile(legacypath,'LH_SN-ON-pmMR.obj'));
-%                         
-
+                        %
+                        
                         if ~arena.DIPS
-                        obj_stn_left = obj_stn.transform(T.stu2mni_leftSTN);
-                        obj_stn_right = obj_stn.transform(T.stu2mni_rightSTN);
-                        obj_rn_left = obj_rn.transform(T.stu2mni_leftSTN);
-                        obj_rn_right = obj_rn.transform(T.stu2mni_rightSTN);
-                        obj_sn_left = obj_sn.transform(T.stu2mni_leftSTN);
-                        obj_sn_right = obj_sn.transform(T.stu2mni_rightSTN);
+                            obj_stn_left = obj_stn.transform(T.stu2mni_leftSTN);
+                            obj_stn_right = obj_stn.transform(T.stu2mni_rightSTN);
+                            obj_rn_left = obj_rn.transform(T.stu2mni_leftSTN);
+                            obj_rn_right = obj_rn.transform(T.stu2mni_rightSTN);
+                            obj_sn_left = obj_sn.transform(T.stu2mni_leftSTN);
+                            obj_sn_right = obj_sn.transform(T.stu2mni_rightSTN);
                         else
-                        obj_stn_left = obj_stn.transform(T.leftstn2mni);
-                        obj_stn_right = obj_stn.transform(T.rightstn2mni);
-                        obj_rn_left = obj_rn.transform(T.leftstn2mni);
-                        obj_rn_right = obj_rn.transform(T.rightstn2mni);
-                        obj_sn_left = obj_sn.transform(T.leftstn2mni);
-                        obj_sn_right = obj_sn.transform(T.rightstn2mni);
+                            obj_stn_left = obj_stn.transform(T.leftstn2mni);
+                            obj_stn_right = obj_stn.transform(T.rightstn2mni);
+                            obj_rn_left = obj_rn.transform(T.leftstn2mni);
+                            obj_rn_right = obj_rn.transform(T.rightstn2mni);
+                            obj_sn_left = obj_sn.transform(T.leftstn2mni);
+                            obj_sn_right = obj_sn.transform(T.rightstn2mni);
                         end
                         
                         [thisScene.handles.atlas.legacy.Actor_stnleft,scene] = obj_stn_left.see(thisScene);
@@ -1157,19 +1160,19 @@ classdef ArenaScene < handle
                     case 'GPi'
                         obj_gpi = ObjFile(fullfile(legacypath,'LH_IGP-ON-pmMR.obj'));
                         obj_gpe = ObjFile(fullfile(legacypath,'LH_EGP-ON-pmMR.obj'));
-%                         
-
-                         if ~arena.DIPS
-                        obj_gpi_left = obj_gpi.transform(T.stu2mni_leftGPI);
-                        obj_gpe_left = obj_gpe.transform(T.stu2mni_leftGPI);
-                        obj_gpi_right = obj_gpi.transform(T.stu2mni_rightGPI);
-                        obj_gpe_right = obj_gpe.transform(T.stu2mni_rightGPI);
-                         else
-                        obj_gpi_left = obj_gpi.transform(T.leftgpi2mni);
-                        obj_gpe_left = obj_gpe.transform(T.leftgpi2mni);
-                        obj_gpi_right = obj_gpi.transform(T.rightgpi2mni);
-                        obj_gpe_right = obj_gpe.transform(T.rightgpi2mni);
-                         end
+                        %
+                        
+                        if ~arena.DIPS
+                            obj_gpi_left = obj_gpi.transform(T.stu2mni_leftGPI);
+                            obj_gpe_left = obj_gpe.transform(T.stu2mni_leftGPI);
+                            obj_gpi_right = obj_gpi.transform(T.stu2mni_rightGPI);
+                            obj_gpe_right = obj_gpe.transform(T.stu2mni_rightGPI);
+                        else
+                            obj_gpi_left = obj_gpi.transform(T.leftgpi2mni);
+                            obj_gpe_left = obj_gpe.transform(T.leftgpi2mni);
+                            obj_gpi_right = obj_gpi.transform(T.rightgpi2mni);
+                            obj_gpe_right = obj_gpe.transform(T.rightgpi2mni);
+                        end
                         
                         [thisScene.handles.atlas.legacy.Actor_gpileft,scene] = obj_gpi_left.see(thisScene);
                         [thisScene.handles.atlas.legacy.Actor_gpeleft,scene] = obj_gpe_left.see(thisScene);
@@ -1251,7 +1254,7 @@ classdef ArenaScene < handle
                     end
                     actor = mesh.see(scene);
                     actor.Meta.Score= Data.Weights(i);
-
+                    
                     actor.changeName(strjoin(Data.LayerLabels{i},'_'))
                     
                     
@@ -1263,7 +1266,7 @@ classdef ArenaScene < handle
             function importLegacyRecipe(thisScene,filename)
                 warning('This function is not compatible with DIPS or nonDIPS mode')
                 
-                 table = readtable(filename);
+                table = readtable(filename);
                 electrodeorcontact = questdlg('Visualize the electrode,the active contact or VTAs?','Arena load recipe','Full electrode','Active contacts','VTAs','Active contacts');
                 if isempty(electrodeorcontact);return;end
                 mirrortoleft = questdlg('Mirror all electrodes to the left side?','Arena load recipe','Yes','No','Yes');
@@ -1279,7 +1282,7 @@ classdef ArenaScene < handle
                         end
                 end
                 
-                  
+                
                 ActiveContacts_pc = PointCloud;
                 for iRow = 1:length(table.amplitude)
                     try
@@ -1291,32 +1294,32 @@ classdef ArenaScene < handle
                     
                     %T2022 = load('T2022.mat');
                     %TtoMNI = T2022.(['stu2mni_',table.hemisphere{iRow},upper(table.target{iRow})]);
-
-
+                    
+                    
                     cathode = str2num(table.activecontact{iRow});
                     leadname = [table.id(iRow),'_',table.leadname{iRow}];
                     
                     T = Ttolegacy*[-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1]; %to real MNI
                     %T = Ttolegacy*TtoMNI;
                     [modified,T] = A_rigidT(T);
-
+                    
                     
                     
                     e = Electrode;
                     c0 = SDK_transform3d([0 0 0],T);
                     c3 = SDK_transform3d([0 0 6],T);
-
+                    
                     
                     switch mirrortoleft
                         case 'Yes'
                             c0(1) = abs(c0(1))*-1;
                             c3(1) = abs(c3(1))*-1;
                     end
-                        
-                
-                e.Direction = Vector3D(c3-c0).unit.getArray';
-                e.C0 = c0;
-                e.Type = table.leadtype{iRow};
+                    
+                    
+                    e.Direction = Vector3D(c3-c0).unit.getArray';
+                    e.C0 = c0;
+                    e.Type = table.leadtype{iRow};
                     
                     switch electrodeorcontact
                         case 'Full electrode'
@@ -1325,42 +1328,42 @@ classdef ArenaScene < handle
                             %actor.transform(thisScene,'Fake2MNI')
                             actor.changeName(leadname)
                         case 'Active contacts'
-                           
-                           if isnan(weightlabel)
-                               weight  = 1;
-                           else
-                               weight = table.(weightlabel)(iRow);
-                           end
-                           ActiveContacts_pc.addVectors(e.getLocationOfAC(cathode),weight);
+                            
+                            if isnan(weightlabel)
+                                weight  = 1;
+                            else
+                                weight = table.(weightlabel)(iRow);
+                            end
+                            ActiveContacts_pc.addVectors(e.getLocationOfAC(cathode),weight);
                         case 'VTAs'
                             if isnan(weightlabel)
-                               weight  = 1;
-                           else
-                               weight = table.(weightlabel)(iRow);
-                           end
-                             vtaname = VTA.constructVTAname(table.leadtype{iRow},...
-                                 table.amplitude(iRow),...
-                                 table.pulsewidth(iRow),...
-                                  table.activecontact{iRow},...
-                                  table.groundedcontact{iRow},...
-                                   table.voltage{iRow});
-                                  
-                                  
-                      vta = e.makeVTA(vtaname);
-                             actor = vta.see(thisScene);
-                             actor.Meta.(weightlabel) = weight;
-                             
-                             vtaname = [table.name{iRow},'_',table.leadname{iRow}];
-                             actor.changeName(vtaname)
-                             
-                             
+                                weight  = 1;
+                            else
+                                weight = table.(weightlabel)(iRow);
+                            end
+                            vtaname = VTA.constructVTAname(table.leadtype{iRow},...
+                                table.amplitude(iRow),...
+                                table.pulsewidth(iRow),...
+                                table.activecontact{iRow},...
+                                table.groundedcontact{iRow},...
+                                table.voltage{iRow});
+                            
+                            
+                            vta = e.makeVTA(vtaname);
+                            actor = vta.see(thisScene);
+                            actor.Meta.(weightlabel) = weight;
+                            
+                            vtaname = [table.name{iRow},'_',table.leadname{iRow}];
+                            actor.changeName(vtaname)
+                            
+                            
                             
                     end
                 end
                 
                 switch electrodeorcontact
                     case 'Active contacts'
-                         ActiveContacts_pc.see(thisScene);
+                        ActiveContacts_pc.see(thisScene);
                 end
             end
             
@@ -1372,46 +1375,46 @@ classdef ArenaScene < handle
                 V = [];
                 Fib = {};
                 %read the file:
-                    while ischar(tline)
-                       nums = str2num(tline);
-                            if length(nums)==3 %3D coordinate
-                                   V(end+1,:) = nums;
-                            elseif length(nums)==0 %Text
-                                    disp(tline)
-                            elseif length(nums)==nums(1)+1 %Fiber
-                                    Fib{end+1} = nums(2:end)+1;
-                            end
-                            tline = fgetl(fid);
+                while ischar(tline)
+                    nums = str2num(tline);
+                    if length(nums)==3 %3D coordinate
+                        V(end+1,:) = nums;
+                    elseif length(nums)==0 %Text
+                        disp(tline)
+                    elseif length(nums)==nums(1)+1 %Fiber
+                        Fib{end+1} = nums(2:end)+1;
                     end
-                    fclose(fid);
-                    %show the fibers
-                    f = Fibers;
-                    
-                    if nargin == 2
-                            %dialog box
-                            prompt = {['You are loading a VTK file with ',num2str(numel(Fib)),' elements. How many do you want to visualize?'] };
-                            dlgtitle = 'Arena VTK loader';
-                            definput = {num2str(min([100, numel(Fib)]))};
-                            dims = [1 40];
-                            opts.Interpreter = 'tex';
-                            answer = inputdlg(prompt,dlgtitle,dims,definput,opts);
-                            fibers_visual = str2num(answer{1});
-                    elseif strcmp(fibers_visual,'all')
-                            fibers_visual = numel(Fib);
-                    elseif strcmp(fibers_visual,'some')
-                            fibers_visual = numel(Fib)/5;
-                    end
-                    
-                    for i = 1:numel(Fib)
-                        points = V(Fib{i},:);
-                        pc = points;
-                        f.addFiber(pc,i);
-                    end
-                    
-                    actor = f.see(thisScene,fibers_visual);
-                    [pn,fn] = fileparts(filename);
-                    actor.changeName(fn);
-
+                    tline = fgetl(fid);
+                end
+                fclose(fid);
+                %show the fibers
+                f = Fibers;
+                
+                if nargin == 2
+                    %dialog box
+                    prompt = {['You are loading a VTK file with ',num2str(numel(Fib)),' elements. How many do you want to visualize?'] };
+                    dlgtitle = 'Arena VTK loader';
+                    definput = {num2str(min([100, numel(Fib)]))};
+                    dims = [1 40];
+                    opts.Interpreter = 'tex';
+                    answer = inputdlg(prompt,dlgtitle,dims,definput,opts);
+                    fibers_visual = str2num(answer{1});
+                elseif strcmp(fibers_visual,'all')
+                    fibers_visual = numel(Fib);
+                elseif strcmp(fibers_visual,'some')
+                    fibers_visual = numel(Fib)/5;
+                end
+                
+                for i = 1:numel(Fib)
+                    points = V(Fib{i},:);
+                    pc = points;
+                    f.addFiber(pc,i);
+                end
+                
+                actor = f.see(thisScene,fibers_visual);
+                [pn,fn] = fileparts(filename);
+                actor.changeName(fn);
+                
                 
             end
             
@@ -1432,13 +1435,13 @@ classdef ArenaScene < handle
                 
                 h_right.changeSetting('colorFace2',loaded.fibcolor(1,:),'colorFace',loaded.fibcolor(2,:),'colorByDirection',0,'colorByWeight',1)
                 h_left.changeSetting('colorFace2',loaded.fibcolor(1,:),'colorFace',loaded.fibcolor(2,:),'colorByDirection',0,'colorByWeight',1)
-            
+                
                 
                 
             end
             
             function import_mat(thisScene,filename)
-
+                
                 loaded = load(filename);
                 
                 if isfield(loaded,'fibcell')
@@ -1494,10 +1497,10 @@ classdef ArenaScene < handle
                             end
                         case 'ArenaScene'
                             continue
-                        otherwise   
+                        otherwise
                             names{end+1} = basevariables(iVariable).name;
                             data{end+1} = thisVariable;
-                    
+                            
                     end
                 end
                 
@@ -1508,23 +1511,23 @@ classdef ArenaScene < handle
                 
                 [indx] = listdlg('ListString',names);
                 for index = indx
-                   this = data{index};
-                   switch class(data{index})
-                       case 'VoxelData'
-                           if this.isBinary(80)
-                               actor = this.getmesh.see(thisScene);
-                           else
-                               actor = this.getslice.see(thisScene);
-                           end
-                       otherwise
-                           try
-                               actor = this.see(thisScene);
-                           catch
-                               disp(['Don''t know how to load ',names{index}])
-                               continue
-                           end
-                   end
-                        actor.changeName(names{index})
+                    this = data{index};
+                    switch class(data{index})
+                        case 'VoxelData'
+                            if this.isBinary(80)
+                                actor = this.getmesh.see(thisScene);
+                            else
+                                actor = this.getslice.see(thisScene);
+                            end
+                        otherwise
+                            try
+                                actor = this.see(thisScene);
+                            catch
+                                disp(['Don''t know how to load ',names{index}])
+                                continue
+                            end
+                    end
+                    actor.changeName(names{index})
                     
                     
                 end
@@ -1663,19 +1666,19 @@ classdef ArenaScene < handle
                             v.loadnii(fullfile(pathname,filename{iFile}));
                             if v.isProbablyAMesh
                                 
-%                              [pointlist] = v.detectPoints();
-%                                 if length(pointlist)==2
-%                                     import_leadfromnii(scene,v,name)
-%                                 else
+                                %                              [pointlist] = v.detectPoints();
+                                %                                 if length(pointlist)==2
+                                %                                     import_leadfromnii(scene,v,name)
+                                %                                 else
                                 
                                 [~,nii_mesh_threshold] = import_nii_mesh(scene,v,name,nii_mesh_threshold);
                                 %end
                             else
-                                    %check if it has two dots
-%                                 [pointlist] = v.detectPoints();
-%                                 if length(pointlist)==2
-%                                     import_leadfromnii(scene,v,name)
-%                                 else
+                                %check if it has two dots
+                                %                                 [pointlist] = v.detectPoints();
+                                %                                 if length(pointlist)==2
+                                %                                     import_leadfromnii(scene,v,name)
+                                %                                 else
                                 import_nii_plane(scene,v,name);
                                 %end
                             end
@@ -1725,8 +1728,8 @@ classdef ArenaScene < handle
             
             function menu_updateVTAlist(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
-                 %delete all menu items
-                 
+                %delete all menu items
+                
                 if isfield(scene.handles.menu.vtas.list,'main')
                     for i = 1:numel(scene.handles.menu.vtas.list)
                         fns = fieldnames(scene.handles.menu.vtas.list(i));
@@ -1742,7 +1745,7 @@ classdef ArenaScene < handle
                         fns = fieldnames(scene.handles.menu.vtas.therapylist(i));
                         for fn = 1:numel(fns)
                             try
-                            delete(scene.handles.menu.vtas.therapylist(i).(fns{fn}))
+                                delete(scene.handles.menu.vtas.therapylist(i).(fns{fn}))
                             catch
                                 %it cant delete structures.. but doesn't
                                 %cause trouble. -JR
@@ -1764,14 +1767,14 @@ classdef ArenaScene < handle
                     scene.handles.menu.vtas.list(n).delete = uimenu(scene.handles.menu.vtas.list(n).main,'Text','Delete from this list','callback',{@menu_vta_delete,scene.VTAstorage(i)});
                 end
                 scene.handles.menu.vtas.constructtherapy.Enable = 'off';
-%                 scene.handles.menu.vtas.batchprediction.main.Enable='off';
+                %                 scene.handles.menu.vtas.batchprediction.main.Enable='off';
                 if i>0
                     scene.handles.menu.vtas.list(1).main.Separator = 'on';
                     scene.handles.menu.vtas.constructtherapy.Enable = 'on';
                     scene.handles.menu.vtas.batchprediction.main.Enable='on';
                     scene.handles.menu.vtas.batchprediction.electrodes.Enable='on';
                 end
-                 if i>2
+                if i>2
                     scene.handles.menu.vtas.batchprediction.main.Enable='on';
                     scene.handles.menu.vtas.batchprediction.bilateraltherapy.Enable='on';
                 end
@@ -1787,28 +1790,28 @@ classdef ArenaScene < handle
                         unibi = 'uni';
                     end
                     %show buttons for prediction
-                     scene.handles.menu.vtas.therapylist(n).predictions = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text',['run prediction (',unibi,'lateral)'],'callback',{@menu_therapy_prediction,scene.Therapystorage(i)});
-                     for iPrediction = 1:numel(scene.Therapystorage(n).Predictions)
-                         if iPrediction==1
-                         scene.handles.menu.vtas.therapylist(n).predictionlist.main = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','Show details for prediction:');
-                         end
-                         p = scene.Therapystorage(n).Predictions(iPrediction);
-                         buttontext = [p.Model.Tag,': ',num2str(p.Output)];
-                         scene.handles.menu.vtas.therapylist(n).predictionlist.p(iPrediction) = uimenu(scene.handles.menu.vtas.therapylist(n).predictionlist.main,'Text',buttontext,'callback',{@menu_therapy_showinfo,p});
-                     end
-                     
-                     %show buttons for review
-                     scene.handles.menu.vtas.therapylist(n).monopolar = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text',['run monopolar review (',unibi,'lateral)'],'callback',{@menu_therapy_review,scene.Therapystorage(i)});
-                     for iReview = 1:numel(scene.Therapystorage(n).ReviewOutcome)
-                         if iReview==1
-                             scene.handles.menu.vtas.therapylist(n).reviewlistlist.main = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','Show details for Review:');
-                         end
-                         p = scene.Therapystorage(n).ReviewOutcome(iReview);
-                         buttontext = [p.Model.Tag,': ',num2str(p.Output), '  (Conf: ',num2str(round(p.Confidence*100)),'%)'];
-                         scene.handles.menu.vtas.therapylist(n).reviewlistlist.p(iPrediction) = uimenu(scene.handles.menu.vtas.therapylist(n).reviewlistlist.main,'Text',buttontext,'callback',{@menu_therapy_see,p});
-                     end
-
-                     
+                    scene.handles.menu.vtas.therapylist(n).predictions = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text',['run prediction (',unibi,'lateral)'],'callback',{@menu_therapy_prediction,scene.Therapystorage(i)});
+                    for iPrediction = 1:numel(scene.Therapystorage(n).Predictions)
+                        if iPrediction==1
+                            scene.handles.menu.vtas.therapylist(n).predictionlist.main = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','Show details for prediction:');
+                        end
+                        p = scene.Therapystorage(n).Predictions(iPrediction);
+                        buttontext = [p.Model.Tag,': ',num2str(p.Output)];
+                        scene.handles.menu.vtas.therapylist(n).predictionlist.p(iPrediction) = uimenu(scene.handles.menu.vtas.therapylist(n).predictionlist.main,'Text',buttontext,'callback',{@menu_therapy_showinfo,p});
+                    end
+                    
+                    %show buttons for review
+                    scene.handles.menu.vtas.therapylist(n).monopolar = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text',['run monopolar review (',unibi,'lateral)'],'callback',{@menu_therapy_review,scene.Therapystorage(i)});
+                    for iReview = 1:numel(scene.Therapystorage(n).ReviewOutcome)
+                        if iReview==1
+                            scene.handles.menu.vtas.therapylist(n).reviewlistlist.main = uimenu(scene.handles.menu.vtas.therapylist(n).main,'Text','Show details for Review:');
+                        end
+                        p = scene.Therapystorage(n).ReviewOutcome(iReview);
+                        buttontext = [p.Model.Tag,': ',num2str(p.Output), '  (Conf: ',num2str(round(p.Confidence*100)),'%)'];
+                        scene.handles.menu.vtas.therapylist(n).reviewlistlist.p(iPrediction) = uimenu(scene.handles.menu.vtas.therapylist(n).reviewlistlist.main,'Text',buttontext,'callback',{@menu_therapy_see,p});
+                    end
+                    
+                    
                 end
                 if i>0
                     scene.handles.menu.vtas.therapylist(1).main.Separator = 'on';
@@ -1828,7 +1831,7 @@ classdef ArenaScene < handle
                 end
                 
             end
-                
+            
             
             function menu_vta_prediction(hObject,eventdata,vta)
                 p = vta.prediction();
@@ -1908,11 +1911,11 @@ classdef ArenaScene < handle
                     menu_vta_review(hObject,eventdata, scene.VTAstorage(ii));
                     
                 end
-                    
-                    
-                    
-%                    menu_vta_review,scene.VTAstorage(i)}
-                  
+                
+                
+                
+                %                    menu_vta_review,scene.VTAstorage(i)}
+                
             end
             
             function menu_runbatch_bilateraltherapy(hObject,eventdata)
@@ -1924,24 +1927,24 @@ classdef ArenaScene < handle
                 UserChoices = Therapy.UserInputModule();
                 
                 
-                 for iTherapy=1:numel(scene.Therapystorage)
-                     therapyObject = scene.Therapystorage(iTherapy);
-                     therapyObject.executeReview(UserChoices)
-                      assignin('base',['Therapy_',num2str(iTherapy)],therapyObject);
-                 end
+                for iTherapy=1:numel(scene.Therapystorage)
+                    therapyObject = scene.Therapystorage(iTherapy);
+                    therapyObject.executeReview(UserChoices)
+                    assignin('base',['Therapy_',num2str(iTherapy)],therapyObject);
+                end
                 
-%                     menu_therapy_prediction(hObject,eventdata,scene.Therapystorage(iTherapy))
-%                      for jj=1:numel(scene.Therapystorage.VTAs(jj))
-%                      menu_vta_review(hObject,eventdata,scene.Therapystorage.VTAs(jj));
-%                      end
-                    
+                %                     menu_therapy_prediction(hObject,eventdata,scene.Therapystorage(iTherapy))
+                %                      for jj=1:numel(scene.Therapystorage.VTAs(jj))
+                %                      menu_vta_review(hObject,eventdata,scene.Therapystorage.VTAs(jj));
+                %                      end
+                
                 
                 
                 
                 
             end
             
-           
+            
             function menu_generateVTA(hObject,eventdata)
                 %ask for electrode
                 if numel(obj.Actors)==0
@@ -1959,25 +1962,25 @@ classdef ArenaScene < handle
                 if sum(onlyLead)==0
                     return
                 end
-
+                
                 [indx] = listdlg('ListString',VTAobjects,'PromptString','Select the Electrode','ListSize',[300 160],'SelectionMode','single');
                 
                 E_actor = obj.Actors(layerids(indx));
                 E = E_actor.Data;
-
+                
                 
                 %ask for settings:
                 vtasettings = inputdlg({'Cathodes [c0 c1 c2 c3]',...
-                'Anodes [c0 c1 c2 c3]',...
-                'Amplitude (mA)',...
-                'PulseWidth (us)'},...
-                'Settings',...
-                1,...
-                {'1 0 0 0','0 0 0 0','1','90'});
-            
+                    'Anodes [c0 c1 c2 c3]',...
+                    'Amplitude (mA)',...
+                    'PulseWidth (us)'},...
+                    'Settings',...
+                    1,...
+                    {'1 0 0 0','0 0 0 0','1','90'});
+                
                 vtaname = VTA.constructVTAname('Medtronic3389',str2double(vtasettings{3}),str2double(vtasettings{4}),vtasettings{1},vtasettings{2},'False');
                 try
-                VTAObject = makeVTA(E,vtaname);
+                    VTAObject = makeVTA(E,vtaname);
                 catch
                     warning ('on','all');
                     warning('VTA not available in pool')
@@ -1986,16 +1989,16 @@ classdef ArenaScene < handle
                 
                 %Ask for Space
                 VTAObject.Space = Space.dialog('In which space is this electrode Currently?');
-               
+                
                 VTAObject.Tag = [E_actor.Tag,' C',num2str(find(str2num(vtasettings{1}))-1),' ',vtasettings{3},'mA (',vtasettings{4},'us)'];
                 VTAObject.connectTo(obj)
                 VTAObject.ActorElectrode = E_actor;
                 actor = VTAObject.see(obj);
                 VTAObject.ActorVolume = actor;
                 
-                   
-            
-            
+                
+                
+                
                 
             end
             
@@ -2009,7 +2012,7 @@ classdef ArenaScene < handle
                     VTAobjects = strcat(classes,{'  : '},{obj.Actors.Tag});
                 end
                 VTAobjects{end+1} = '..Load';
-                    
+                
                 [indx] = listdlg('ListString',VTAobjects,'PromptString','Select the VTA and/or Electrode that belong together','ListSize',[300 160]);
                 
                 
@@ -2020,13 +2023,13 @@ classdef ArenaScene < handle
                     if nActors > length(obj.Actors)
                         indx = nActors+1:length(obj.Actors);
                     end
-                   
+                    
                     classes = arrayfun(@(x) class(x.Data), obj.Actors,'UniformOutput',0);
                 end
                 
-            
                 
-                %checking for senseless combination. 
+                
+                %checking for senseless combination.
                 if length(unique(classes(indx)))<length(indx)
                     error('It looks like you selected a strange combination. Select only one VTA at a time. (may include both mesh and electrode object)')
                 end
@@ -2050,16 +2053,16 @@ classdef ArenaScene < handle
                     waitfor(msgbox('If the space is unknown, prediction models will not be very helpful. :-)'))
                 end
                 
-                % 
+                %
                 VTAname = newid({'VTA name: '},'Arena',1,{obj.Actors(indx(1)).Tag});
                 thisVTA.Tag = VTAname{1};
                 thisVTA.connectTo(obj)
                 
                 
             end
-
             
-                
+            
+            
             function menu_vta(hObject,eventdata,vta)
                 keyboard
             end
@@ -2111,7 +2114,7 @@ classdef ArenaScene < handle
                 actor.changeName(incommon)
                 changeLayerName(hObject,eventdata)
                 
-   
+                
             end
             
             function menu_camTargetActor(hObject,eventdata)
@@ -2501,7 +2504,7 @@ classdef ArenaScene < handle
                 reference_index = candidate_indx(indx);
                 
                 
-                %master image 
+                %master image
                 tempfolder = tempname;
                 mkdir(tempfolder);
                 
@@ -2541,7 +2544,7 @@ classdef ArenaScene < handle
                     vd.getslice.see(scene)
                 end
                 
-
+                
                 
                 
                 
@@ -2589,7 +2592,7 @@ classdef ArenaScene < handle
                     
                     e2 = Electrode;
                     e2.C0 = Vector3D([t2x,t2y,t2z]);
-          
+                    
                     
                     %
                     [skeletonpointsX,skeletonpointsY,skeletonpointsZ] = ind2sub(size(skeleton),find(skeleton));
@@ -2608,14 +2611,14 @@ classdef ArenaScene < handle
                     step = makeStepFrom(skeletonpoints,tip2,10);
                     step = makeStepFrom(skeletonpoints,step,10);
                     [pol1,pol2,pol3] = vd.R.intrinsicToWorld(step(2),step(1),step(3));
-                   
+                    
                     e2.PointOnLead(Vector3D([pol1,pol2,pol3]))
                     e2.C0 = e2.C0+e2.Direction/2;
                     e2.see(scene)
                     
                     
                     
-                   
+                    
                     
                     
                     
@@ -2628,19 +2631,19 @@ classdef ArenaScene < handle
                     
                     
                 end
-                 function point = makeStepFrom(skeletonpoints,from,l)
-                        %never walk down
-                        height = skeletonpoints(:,3);
-                        height(height < from(3)) = inf;
-                        skeletonpoints(:,3) =  height;
-                        %--
-
-                        d = sum(abs(skeletonpoints-from),2);
-                        search = abs(d-l);
-                        point = skeletonpoints(search==min(search),:);
-                        point = point(1,:); %take the first in case more are equidistant.
-                        
-                    end
+                function point = makeStepFrom(skeletonpoints,from,l)
+                    %never walk down
+                    height = skeletonpoints(:,3);
+                    height(height < from(3)) = inf;
+                    skeletonpoints(:,3) =  height;
+                    %--
+                    
+                    d = sum(abs(skeletonpoints-from),2);
+                    search = abs(d-l);
+                    point = skeletonpoints(search==min(search),:);
+                    point = point(1,:); %take the first in case more are equidistant.
+                    
+                end
                 
             end
             
@@ -2685,7 +2688,7 @@ classdef ArenaScene < handle
                 
                 
                 
-                        
+                
                 
                 
             end
@@ -2715,42 +2718,42 @@ classdef ArenaScene < handle
                 end
                 
                 %choose the template.
-
+                
                 
                 R_1= [currentActors(1).Data.parent.R.XWorldLimits,...
                     currentActors(1).Data.parent.R.YWorldLimits,...
                     currentActors(1).Data.parent.R.ZWorldLimits,...
                     currentActors(1).Data.parent.R.PixelExtentInWorldX,...
                     currentActors(1).Data.parent.R.PixelExtentInWorldY,...
-                      currentActors(1).Data.parent.R.PixelExtentInWorldZ];
-                  
-                  R_2 = [currentActors(2).Data.parent.R.XWorldLimits,...
+                    currentActors(1).Data.parent.R.PixelExtentInWorldZ];
+                
+                R_2 = [currentActors(2).Data.parent.R.XWorldLimits,...
                     currentActors(2).Data.parent.R.YWorldLimits,...
                     currentActors(2).Data.parent.R.ZWorldLimits,...
                     currentActors(2).Data.parent.R.PixelExtentInWorldX,...
                     currentActors(2).Data.parent.R.PixelExtentInWorldY,...
-                      currentActors(2).Data.parent.R.PixelExtentInWorldZ];
-                  
-                  if not(all(R_1==R_2))
-                      [indx] = listdlg('ListString',{currentActors(:).Tag},PromptString','Select the template space:');
-                      switch indx
-                          case 1
-                              img1 = currentActors(1).Data.parent;
-                              img2 = currentActors(1).Data.parent.warpto(img1);
-                          case 2
-                              img2 = currentActors(2).Data.parent;
-                              img1 = currentActors(1).Data.parent.warpto(img2);
-                      end
-                  else
-                      img1 = currentActors(1).Data.parent;
-                      img2 = currentActors(2).Data.parent;
-                  end
-                  
-                  
-                  newimg = img1.*img2;
-                  newactor = newimg.getslice.see(scene);
-                  newactor.changeName([currentActors(1).Tag,' X ',currentActors(2).Tag])
- 
+                    currentActors(2).Data.parent.R.PixelExtentInWorldZ];
+                
+                if not(all(R_1==R_2))
+                    [indx] = listdlg('ListString',{currentActors(:).Tag},PromptString','Select the template space:');
+                    switch indx
+                        case 1
+                            img1 = currentActors(1).Data.parent;
+                            img2 = currentActors(1).Data.parent.warpto(img1);
+                        case 2
+                            img2 = currentActors(2).Data.parent;
+                            img1 = currentActors(1).Data.parent.warpto(img2);
+                    end
+                else
+                    img1 = currentActors(1).Data.parent;
+                    img2 = currentActors(2).Data.parent;
+                end
+                
+                
+                newimg = img1.*img2;
+                newactor = newimg.getslice.see(scene);
+                newactor.changeName([currentActors(1).Tag,' X ',currentActors(2).Tag])
+                
             end
             
             function menu_spatialcorrelation(hObject,eventdata)
@@ -2760,7 +2763,7 @@ classdef ArenaScene < handle
                     error('correlation needs two actors to be selected in the layer panel!')
                 end
                 
-                %if 
+                %if
                 
                 %check is data contains VoxelData
                 VoxelDatas = {};
@@ -2779,55 +2782,55 @@ classdef ArenaScene < handle
                             VoxelDatas{iActor}.Tag = thisActor.Tag;
                     end
                 end
-                 v1  = VoxelDatas{1}.Voxels(:);
-                 v2 = VoxelDatas{2}.warpto(VoxelDatas{1}).Voxels(:);
-                 
-                 f = A_imhist2(VoxelDatas{1},VoxelDatas{2})
-                 nans = or(isnan(v1),isnan(v2));
-                 v1(nans)=[];
-                 v2(nans)= [];
-                 if any(nans)
-                    disp(['NaNs were removed from analysis (',num2str(round(mean(nans)*100),3),'%)'])
-                 end
+                v1  = VoxelDatas{1}.Voxels(:);
+                v2 = VoxelDatas{2}.warpto(VoxelDatas{1}).Voxels(:);
                 
-                 
-                 
-                 
-                 [pearson_r,pearson_p] = corr(v1,v2);
-                 [spearman_r,spearman_p] = corr(v1,v2,'Type','Spearman');
+                f = A_imhist2(VoxelDatas{1},VoxelDatas{2})
+                nans = or(isnan(v1),isnan(v2));
+                v1(nans)=[];
+                v2(nans)= [];
+                if any(nans)
+                    disp(['NaNs were removed from analysis (',num2str(round(mean(nans)*100),3),'%)'])
+                end
+                
+                
+                
+                
+                [pearson_r,pearson_p] = corr(v1,v2);
+                [spearman_r,spearman_p] = corr(v1,v2,'Type','Spearman');
                 disp(['Pearson correlation: ',num2str(pearson_r),' (correlation P-value: ',num2str(pearson_p),')']);
                 disp(['Spearman correlation: ',num2str(spearman_r),' (correlation P-value: ',num2str(spearman_p),')']);
-            figure(f)
+                figure(f)
                 title(['Pearson R2: ',num2str(pearson_r^2)])
-disp('Pearson checks if it is on a line while spearman checks if they move in a same direction.')
-disp('Therefore pearson is more conservative. If your data is ordinal: do not use pearson but spearman.')
-
-
-
-disp('---- special cases below ----')
-%test without 0s
-removethese = or(v1==0,v2==0);
-[pearson_r0,pearson_p0] = corr(v1(not(removethese)),v2(not(removethese)));
-disp(['Without the zeroes: rho: ',num2str(pearson_r0),'  p: ',num2str(pearson_p0)])
-
-%positive on both sides
-keepthese = and(v1>0, v2>0);
-[pearson_rpos,pearson_ppos] = corr(v1(keepthese),v2(keepthese));
-disp(['Without positives in both sampples: rho: ',num2str(pearson_rpos),'  p: ',num2str(pearson_ppos)])
-          
-%egative on both sides
-keepthese = and(v1<0, v2<0);
-[pearson_rneg,pearson_pneg] = corr(v1(keepthese),v2(keepthese));
-disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',num2str(pearson_pneg)])
-                    
-                                
+                disp('Pearson checks if it is on a line while spearman checks if they move in a same direction.')
+                disp('Therefore pearson is more conservative. If your data is ordinal: do not use pearson but spearman.')
+                
+                
+                
+                disp('---- special cases below ----')
+                %test without 0s
+                removethese = or(v1==0,v2==0);
+                [pearson_r0,pearson_p0] = corr(v1(not(removethese)),v2(not(removethese)));
+                disp(['Without the zeroes: rho: ',num2str(pearson_r0),'  p: ',num2str(pearson_p0)])
+                
+                %positive on both sides
+                keepthese = and(v1>0, v2>0);
+                [pearson_rpos,pearson_ppos] = corr(v1(keepthese),v2(keepthese));
+                disp(['Without positives in both sampples: rho: ',num2str(pearson_rpos),'  p: ',num2str(pearson_ppos)])
+                
+                %egative on both sides
+                keepthese = and(v1<0, v2<0);
+                [pearson_rneg,pearson_pneg] = corr(v1(keepthese),v2(keepthese));
+                disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',num2str(pearson_pneg)])
+                
+                
                 
                 
                 
             end
             
             function menu_mesh2binaryslice(hObject,eventdata)
-                 scene = ArenaScene.getscenedata(hObject);
+                scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
                 
                 
@@ -3026,7 +3029,7 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                 
                 %make a copy of that Voxeldata
                 temp = scene.Actors(nr(indx)).Data.parent;
-               
+                
                 
                 balls = makeBallMesh(currentActors.Data,str2num(blobsize{1}));
                 
@@ -3034,15 +3037,15 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                     
                     thisBall = balls{iball};
                     if iball ==1
-                       sumVDs = thisBall.convertToVoxelsInTemplate(temp);
+                        sumVDs = thisBall.convertToVoxelsInTemplate(temp);
                     else
                         sumVDs = sumVDs+thisBall.convertToVoxelsInTemplate(temp);
                     end
                 end
                 
                 
-
-      
+                
+                
                 actor = sumVDs.getmesh.see(scene);
                 
                 
@@ -3269,50 +3272,50 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                     average(iFiber,1) = nanmean(thisFiber.Data.Weight);
                     totalsum(iFiber,1) = nansum(thisFiber.Data.Weight);
                     nonzeropercent(iFiber,1) = nnz(thisFiber.Data.Weight)/numel(thisFiber.Data.Weight)*100;
-                   
+                    
                 end
                 
                 summary = table(names(:),average,totalsum,nonzeropercent,number)
                 assignin('base','summary',summary)
                 Done;
-
+                
                 
             end
             
             function menu_getElectrodeAC(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
-                    currentActors = ArenaScene.getSelectedActors(scene);
-                    
-                    name = {};
-                    y = {};
-                    x = {};
-                    z = {};
-                   
-                    for iActor = 1:numel(currentActors)
-                        thisActor = currentActors(iActor);
-                        AC = thisActor.Data.getLocationOfAC(thisActor.Visualisation.settings.cathode);
-                        name{iActor,1} = thisActor.Tag;
-                        x{iActor,1} = AC.x;
-                        y{iActor,1} = AC.y;
-                        z{iActor,1} = AC.z;
-                        
-                    end
-                    
-                    t = table(name,x,y,z)
-                    assignin('base','t',t)
-                    disp('to save this, type: writetable(t,''myfile.xlsx'')')
+                currentActors = ArenaScene.getSelectedActors(scene);
                 
-           end
+                name = {};
+                y = {};
+                x = {};
+                z = {};
+                
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    AC = thisActor.Data.getLocationOfAC(thisActor.Visualisation.settings.cathode);
+                    name{iActor,1} = thisActor.Tag;
+                    x{iActor,1} = AC.x;
+                    y{iActor,1} = AC.y;
+                    z{iActor,1} = AC.z;
+                    
+                end
+                
+                t = table(name,x,y,z)
+                assignin('base','t',t)
+                disp('to save this, type: writetable(t,''myfile.xlsx'')')
+                
+            end
             
             function menu_fibersToROI(hObject,eventdata)
-                 scene = ArenaScene.getscenedata(hObject);
-                    currentActors = ArenaScene.getSelectedActors(scene);
-                    
-                    classes = arrayfun(@(x) class(x.Data), scene.Actors,'UniformOutput',0);
-                    templateSpace = strcat(classes,{'  : '},{scene.Actors.Tag});
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                classes = arrayfun(@(x) class(x.Data), scene.Actors,'UniformOutput',0);
+                templateSpace = strcat(classes,{'  : '},{scene.Actors.Tag});
                 
                 templateSpace{end+1} = '..Load';
-                    
+                
                 [indx] = listdlg('ListString',templateSpace,'PromptString','Select the template space','ListSize',[300 160]);
                 
                 if indx==numel(templateSpace)
@@ -3328,52 +3331,52 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                         end
                     end
                 end
-                    blank = zeros(size(template.Voxels));
-                    
-                    for iActor = 1:numel(currentActors)
-                        %get start and endings
-                        thisActor = currentActors(iActor).Data;
-                        for iFiber = 1:numel(thisActor.Vertices)
-                            thisFiber = thisActor.Vertices(iFiber);
-                            first = thisFiber.Vectors(1);
-                            last = thisFiber.Vectors(end);
-                            [fx,fy,fz] =template.R.worldToSubscript(first.x,first.y,first.z);
-                            [lx,ly,lz] =template.R.worldToSubscript(last.x,last.y,last.z);
-                            
-                            blank(fx,fy,fz) = blank(fx,fy,fz)+1;
-                            blank(lx,ly,lz) = blank(lx,ly,lz)+1;
-                        end
-                     
+                blank = zeros(size(template.Voxels));
+                
+                for iActor = 1:numel(currentActors)
+                    %get start and endings
+                    thisActor = currentActors(iActor).Data;
+                    for iFiber = 1:numel(thisActor.Vertices)
+                        thisFiber = thisActor.Vertices(iFiber);
+                        first = thisFiber.Vectors(1);
+                        last = thisFiber.Vectors(end);
+                        [fx,fy,fz] =template.R.worldToSubscript(first.x,first.y,first.z);
+                        [lx,ly,lz] =template.R.worldToSubscript(last.x,last.y,last.z);
                         
+                        blank(fx,fy,fz) = blank(fx,fy,fz)+1;
+                        blank(lx,ly,lz) = blank(lx,ly,lz)+1;
                     end
                     
-                    output = VoxelData(blank,template.R);
-                    outputdir = output.saveniidlg;
-                    [a,b,c] = fileparts(outputdir);
-                    output.makeBinary(0.5).imdilate(1).savenii(fullfile(a,[b,'_dilated_1',c]))
-                    output.makeBinary(0.5).imdilate(2).savenii(fullfile(a,[b,'_dilated_2',c]))
-                    output.makeBinary(0.5).imdilate(3).savenii(fullfile(a,[b,'_dilated_3',c]))
-                    output.makeBinary(0.5).imdilate(4).savenii(fullfile(a,[b,'_dilated_4',c]))
-                    output.makeBinary(0.5).imdilate(5).savenii(fullfile(a,[b,'_dilated_5',c]))
-                    Done;
-                    disp(['file saved at: ',outputdir])
-                        
+                    
+                end
+                
+                output = VoxelData(blank,template.R);
+                outputdir = output.saveniidlg;
+                [a,b,c] = fileparts(outputdir);
+                output.makeBinary(0.5).imdilate(1).savenii(fullfile(a,[b,'_dilated_1',c]))
+                output.makeBinary(0.5).imdilate(2).savenii(fullfile(a,[b,'_dilated_2',c]))
+                output.makeBinary(0.5).imdilate(3).savenii(fullfile(a,[b,'_dilated_3',c]))
+                output.makeBinary(0.5).imdilate(4).savenii(fullfile(a,[b,'_dilated_4',c]))
+                output.makeBinary(0.5).imdilate(5).savenii(fullfile(a,[b,'_dilated_5',c]))
+                Done;
+                disp(['file saved at: ',outputdir])
+                
                 
                 
             end
-                
+            
             
             function menu_fiberMapInterference(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
                 
-
+                
                 %--> to do: only suggest meshes or slices.
                 %get map
                 labels = {scene.Actors.Tag};
                 [indx,tf] = listdlg('PromptString',{'Select one map'},'ListString',labels);
                 
-
+                
                 if isa(scene.Actors(indx).Data,'Mesh')
                     if isempty(scene.Actors(indx).Data.Source)
                         samplingMethod = 'Check if fiber hits mesh';
@@ -3408,8 +3411,8 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                 fiberMapInterference(map,mesh,samplingMethod,currentActors)
             end
             
-
-            function fiberMapInterference(map,mesh,samplingMethod,currentActors) %currentActors == Fibers?, can those be several or 
+            
+            function fiberMapInterference(map,mesh,samplingMethod,currentActors) %currentActors == Fibers?, can those be several or
                 
                 fibers=cell(numel(currentActors),1);
                 average_tract=zeros(numel(currentActors),1);
@@ -3419,90 +3422,90 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                 save_answer = questdlg('Do you want to export the fiber values to the currently active folder?','save','yes','no','save to custom directory','yes');
                 
                 switch save_answer
-                   case 'yes'
-                       folder_selected=pwd;
-                   case 'save to custom directory'
-                       [folder_selected] = uigetdir;
+                    case 'yes'
+                        folder_selected=pwd;
+                    case 'save to custom directory'
+                        [folder_selected] = uigetdir;
                         
-               end
+                end
                 
-                 
+                
                 for iCurrent=1:numel(currentActors)
                     fibers{iCurrent}=currentActors(iCurrent).Tag;
-     
-                %loop. First join all the fibers. For quick processing
-                nVectorsPerFiber = arrayfun(@(x) length(x.Vectors),currentActors(iCurrent).Data.Vertices);
-                Vectors = Vector3D.empty(sum(nVectorsPerFiber),0); %empty allocation
-                FiberIndices = [0,cumsum(nVectorsPerFiber)]+1;
-                weights = [];
-%                 fibIndex = 1;
-                for iFiber = 1:numel(currentActors(iCurrent).Data.Vertices)
-                    Vectors(FiberIndices(iFiber):FiberIndices(iFiber+1)-1) = currentActors(iCurrent).Data.Vertices(iFiber).Vectors;
-                end
-                FiberIndices(iFiber+1) = length(Vectors)+1;
-                 
-                
-                %sample the map
-                switch samplingMethod
-                    case 'Check if fiber hits mesh'
-                        mapvalue = mesh.isInside(Vectors);
-                    otherwise
-                        mapvalue = map.getValueAt(PointCloud(Vectors));
-                end
-                
-             
+                    
+                    %loop. First join all the fibers. For quick processing
+                    nVectorsPerFiber = arrayfun(@(x) length(x.Vectors),currentActors(iCurrent).Data.Vertices);
+                    Vectors = Vector3D.empty(sum(nVectorsPerFiber),0); %empty allocation
+                    FiberIndices = [0,cumsum(nVectorsPerFiber)]+1;
+                    weights = [];
+                    %                 fibIndex = 1;
+                    for iFiber = 1:numel(currentActors(iCurrent).Data.Vertices)
+                        Vectors(FiberIndices(iFiber):FiberIndices(iFiber+1)-1) = currentActors(iCurrent).Data.Vertices(iFiber).Vectors;
+                    end
+                    FiberIndices(iFiber+1) = length(Vectors)+1;
+                    
+                    
+                    %sample the map
+                    switch samplingMethod
+                        case 'Check if fiber hits mesh'
+                            mapvalue = mesh.isInside(Vectors);
+                        otherwise
+                            mapvalue = map.getValueAt(PointCloud(Vectors));
+                    end
+                    
+                    
                     weights_positive=zeros(1,numel(currentActors(iCurrent).Data.Vertices));
                     weights_negative=zeros(1,numel(currentActors(iCurrent).Data.Vertices));
                     weights_percentage=zeros(1,numel(currentActors(iCurrent).Data.Vertices));
-                
-                
-                for iFiber = 1:numel(currentActors(iCurrent).Data.Vertices)
-                    weights = mapvalue(FiberIndices(iFiber):FiberIndices(iFiber+1)-1);
-                    weights_percentage(iFiber)=100*(nnz(weights)/numel(weights));
                     
-                    switch samplingMethod
-                        case 'Min value'
-                            currentActors(iCurrent).Data.Weight(iFiber) = min(weights);
-                            weights_positive(iFiber) = min(weights(weights>0));
-                            weights_negative(iFiber)=min(weights(weights<0));
-                            weights_percentage(iFiber)=100*(nnz(weights)/numel(weights));
-%                             TractInterference(iFiber)=min(currentActors.Data.Weight,'omitnan');
-                           
-                        case {'Max value','Check if fiber hits mesh'}
-                            currentActors(iCurrent).Data.Weight(iFiber) = max(weights);
-                            weights_positive(iFiber) = max(weights(weights>0));
-                            weights_negative(iFiber)=max(weights(weights<0));
-                            
-                        case 'Average Value'
-                            currentActors(iCurrent).Data.Weight(iFiber) = mean(weights,'omitnan');
-                             weights_positive(iFiber) = mean(weights(weights>0),'omitnan');
-                            weights_negative(iFiber)=mean(weights(weights<0),'omitnan');
-                           
-                        case 'Sum'
-                            currentActors(iCurrent).Data.Weight(iFiber) = sum(weights,'omitnan'); 
-                            weights_positive(iFiber) = sum(weights(weights>0),'omitnan');
-                            weights_negative(iFiber)=sum(weights(weights<0),'omitnan');
-                                  
+                    
+                    for iFiber = 1:numel(currentActors(iCurrent).Data.Vertices)
+                        weights = mapvalue(FiberIndices(iFiber):FiberIndices(iFiber+1)-1);
+                        weights_percentage(iFiber)=100*(nnz(weights)/numel(weights));
+                        
+                        switch samplingMethod
+                            case 'Min value'
+                                currentActors(iCurrent).Data.Weight(iFiber) = min(weights);
+                                weights_positive(iFiber) = min(weights(weights>0));
+                                weights_negative(iFiber)=min(weights(weights<0));
+                                weights_percentage(iFiber)=100*(nnz(weights)/numel(weights));
+                                %                             TractInterference(iFiber)=min(currentActors.Data.Weight,'omitnan');
+                                
+                            case {'Max value','Check if fiber hits mesh'}
+                                currentActors(iCurrent).Data.Weight(iFiber) = max(weights);
+                                weights_positive(iFiber) = max(weights(weights>0));
+                                weights_negative(iFiber)=max(weights(weights<0));
+                                
+                            case 'Average Value'
+                                currentActors(iCurrent).Data.Weight(iFiber) = mean(weights,'omitnan');
+                                weights_positive(iFiber) = mean(weights(weights>0),'omitnan');
+                                weights_negative(iFiber)=mean(weights(weights<0),'omitnan');
+                                
+                            case 'Sum'
+                                currentActors(iCurrent).Data.Weight(iFiber) = sum(weights,'omitnan');
+                                weights_positive(iFiber) = sum(weights(weights>0),'omitnan');
+                                weights_negative(iFiber)=sum(weights(weights<0),'omitnan');
+                                
+                        end
                     end
+                    
+                    %                 average_tract(iCurrent)=nanmean(weights{iCurrent},'omitnan');
+                    %                 median_tract(iCurrent)=median(weights{iCurrent},'omitnan');
+                    %                 percentageofFiber_hit(iCurrent)=100*(nnz(weights{iCurrent})/numel(weights{iCurrent}));
+                    % %                 FibersHit=num2cell(FibersHit',1);
+                    % %                 T=table(meshes(:),FibersHit{:}, 'VariableNames', {'ROI', fibersLoaded{:}});
+                    currentActors(iCurrent).changeSetting('colorByWeight',true);
+                    weights = currentActors(iCurrent).Data.Weight;
+                    save(fullfile(folder_selected,[currentActors(iCurrent).Tag,'_positive','.mat']),'weights_positive')
+                    save(fullfile(folder_selected,[currentActors(iCurrent).Tag,'_negative','.mat']),'weights_negative')
+                    save(fullfile(folder_selected,[currentActors(iCurrent).Tag,'_percentageHit','.mat']),'weights_percentage')
                 end
                 
-%                 average_tract(iCurrent)=nanmean(weights{iCurrent},'omitnan');
-%                 median_tract(iCurrent)=median(weights{iCurrent},'omitnan');
-%                 percentageofFiber_hit(iCurrent)=100*(nnz(weights{iCurrent})/numel(weights{iCurrent}));
-% %                 FibersHit=num2cell(FibersHit',1);
-% %                 T=table(meshes(:),FibersHit{:}, 'VariableNames', {'ROI', fibersLoaded{:}});
-                 currentActors(iCurrent).changeSetting('colorByWeight',true);
-                weights = currentActors(iCurrent).Data.Weight;
-                save(fullfile(folder_selected,[currentActors(iCurrent).Tag,'_positive','.mat']),'weights_positive')
-                save(fullfile(folder_selected,[currentActors(iCurrent).Tag,'_negative','.mat']),'weights_negative')
-                save(fullfile(folder_selected,[currentActors(iCurrent).Tag,'_percentageHit','.mat']),'weights_percentage')  
-                end
                 
-                
-                %Done; 
+                %Done;
                 
             end
-
+            
             
             function menu_showFibers(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
@@ -3591,8 +3594,58 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                                 actor = regions{order(iCluster)}.getmesh(0.5).see(scene);
                                 actor.changeName([num2str(sorted(iCluster)),'_',thisActor.Tag])
                             end
-                             
+                            
                     end
+                end
+                
+            end
+            
+            function menu_dynamicColor(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                [actorlist,namelist,indexlist] =  ArenaScene.getActorsOfClass(scene,'Slicei');
+                
+                choice = listdlg('ListString',namelist);
+                actor = actorlist(choice);
+                
+                for iActor= 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    switch class(thisActor.Data)
+                        case {'ObjFile','Mesh'}
+                            p= thisActor.Visualisation.handle;
+                            colorVertex = actor.Data.parent.getValuesAtVerticesOfPatch(p);
+                            p.CData = colorVertex;
+                            p.FaceColor = 'interp';
+                            
+                        case 'Electrode'
+                            answer = questdlg('Show directional, or uniform heat?','Temperature Arena','Uniform','Directional','Uniform');
+                            c = {};
+                            
+                            allbut0 = actor.Data.parent.Voxels(:);
+                            allbut0(allbut0==0) = [];
+                          
+                            minValue = min(allbut0);
+                            maxValue = max(allbut0);
+                            
+                            for iP = 2:numel(thisActor.Visualisation.handle)
+                                p = thisActor.Visualisation.handle(iP);
+                                colorVertex = actor.Data.parent.getValuesAtVerticesOfPatch(p);
+                                
+                                switch answer
+                                    case 'Uniform'
+                                        RGB = A_ApplyColormapToArray(mean(colorVertex),minValue,maxValue);
+                                        p.FaceColor = RGB;                                        
+                                    case 'Directional'
+                                        RGB = A_ApplyColormapToArray(colorVertex,minValue,maxValue);
+                                        p.CDataMapping = 'direct';
+                                        p.FaceVertexCData = RGB;
+                                        p.FaceColor = 'interp';
+                                end
+                                
+                                
+                            end
+                    end
+                    
                 end
                 
             end
@@ -3632,11 +3685,11 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
                 selection = listdlg('ListString',{scene.Actors.Tag},'PromptString','Select source to take a bit from:',...
-                           'SelectionMode','single');
+                    'SelectionMode','single');
                 if isempty(selection)
                     return
                 end
-                switch  class(scene.Actors(selection).Data)      
+                switch  class(scene.Actors(selection).Data)
                     case 'Slicei'
                         mapVD = scene.Actors(selection).Data.parent;
                     case 'Mesh'
@@ -3872,10 +3925,10 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                     thisActor = actors(iActor);
                     if not(isempty(thisActor.Meta))
                         
-                    tags = fieldnames(thisActor.Meta);
-                    
+                        tags = fieldnames(thisActor.Meta);
+                        
                         scene.handles.menu.edit.meta.submenus(iActor) = uimenu(scene.handles.menu.edit.meta.main,'Text',thisActor.Tag);
-                       
+                        
                         for iTag = 1:numel(tags)
                             value = thisActor.Meta.(tags{iTag});
                             if isnumeric(value)
@@ -3886,7 +3939,7 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                         end
                     end
                     
-                  
+                    
                 end
                 
                 
@@ -3983,7 +4036,7 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                         thisOne = currentActors(iActor);
                         thisOne.Tag = [newname{1},thisOne.Tag];
                     end
-                        
+                    
                 else
                     thisActor = currentActors(1);
                     newname = inputdlg('Change name','Arena',[1 40],{thisActor.Tag});
@@ -4051,27 +4104,27 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                 for i = 1:numel(scene.handles.configcontrols)
                     h = get(scene.handles.configcontrols(i));
                     try
-                    switch h.Style
-                        case 'text'
-                            continue
-                        case 'pushbutton'
-                            if contains(h.Tag,'color')
-                                settings.(h.Tag) = h.BackgroundColor;
-                            end
-                        case 'edit'
-                            settings.(h.Tag) = str2num(h.String);
-                            if isempty(settings.(h.Tag))
-                                settings.(h.Tag) = NaN;
-                            end
-                        case 'checkbox'
-                            settings.(h.Tag) = h.Value;
-                        case 'popupmenu'
-                            settings.(h.Tag) = h.String{h.Value};
-                        case 'radiobutton'
-                            settings.(h.Tag) = h.Value;
-                        otherwise
-                            keyboard
-                    end
+                        switch h.Style
+                            case 'text'
+                                continue
+                            case 'pushbutton'
+                                if contains(h.Tag,'color')
+                                    settings.(h.Tag) = h.BackgroundColor;
+                                end
+                            case 'edit'
+                                settings.(h.Tag) = str2num(h.String);
+                                if isempty(settings.(h.Tag))
+                                    settings.(h.Tag) = NaN;
+                                end
+                            case 'checkbox'
+                                settings.(h.Tag) = h.Value;
+                            case 'popupmenu'
+                                settings.(h.Tag) = h.String{h.Value};
+                            case 'radiobutton'
+                                settings.(h.Tag) = h.Value;
+                            otherwise
+                                keyboard
+                        end
                     catch
                         %radioboxes do not have "style" and are skipped
                     end
@@ -4107,40 +4160,40 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                                 viewline = original_pos - original_target;
                                 campos(original_target + viewline / 0.9);
                             case 'leftarrow'
-                               STEPSIZE = pi/60;
+                                STEPSIZE = pi/60;
                                 original_pos = campos;
                                 original_target = camtarget;
-   
+                                
                                 viewline = Vector3D(original_target - original_pos);
-         
+                                
                                 radAxi = viewline.getAxiAngle;
                                 newDirection = Vector3D.setAxiAngle(STEPSIZE+radAxi).getArray';
- 
+                                
                                 viewline.z  = 0;
                                 distance = viewline.norm;
                                 
                                 new_position = original_target + newDirection*distance;
                                 new_position(3) = original_pos(3);
                                 campos(new_position);
-                         
+                                
                                 
                             case 'rightarrow'
-                               STEPSIZE = -pi/60;
+                                STEPSIZE = -pi/60;
                                 original_pos = campos;
                                 original_target = camtarget;
                                 
                                 viewline = Vector3D(original_target - original_pos);
-         
+                                
                                 radAxi = viewline.getAxiAngle;
                                 newDirection = Vector3D.setAxiAngle(STEPSIZE+radAxi).getArray';
- 
+                                
                                 viewline.z  = 0;
                                 distance = viewline.norm;
                                 
                                 new_position = original_target + newDirection*distance;
                                 new_position(3) = original_pos(3);
                                 campos(new_position);
-                        
+                                
                                 
                             case 's'
                                 if numel(eventdata.Modifier)>2
@@ -4148,7 +4201,7 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                                 end
                             case 'i'
                                 if numel(eventdata.Modifier)==1
-                          
+                                    
                                     switch eventdata.Modifier{1}
                                         case {'command','shift'}
                                             menu_importAnything(src)
@@ -4181,7 +4234,7 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                                 end
                                 
                             case 'b'
-                                 set(scene.handles.figure,'Color',1-scene.handles.figure.Color)                                 
+                                set(scene.handles.figure,'Color',1-scene.handles.figure.Color)
                             case 'o'
                                 menu_camTargetOrigin(src,eventdata)
                                 
@@ -4459,7 +4512,7 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                     rgbColour = [0 0 0];
                 end
                 
-                    
+                
                 hexStr = reshape( dec2hex( round(rgbColour), 2 )',1, 6);
                 
                 if obj.Actors(i).Visible
@@ -4524,11 +4577,11 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
         function selectlayer(obj,index)
             if nargin==1
                 try
-                index = obj.handles.panelright.Value(1);
+                    index = obj.handles.panelright.Value(1);
                 catch
-                   index = 1;
+                    index = 1;
                 end
-                   
+                
             end
             
             if ischar(index)
@@ -4733,11 +4786,11 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
                     radiopanel = obj.handles.configcontrols(end);
                     set(radiopanel,'Clipping','off')
                     
-                        left = 10;
+                    left = 10;
                     for i = 1:numel(value)
                         
                         obj.handles.configcontrols(end+1) = uicontrol('style','radiobutton',...
-                            'Parent',radiopanel,... 
+                            'Parent',radiopanel,...
                             'Position',[left,5,radiobuttonwidth,radiobuttonheight],...
                             'String',tag{i},...
                             'Tag',tag{i},...
@@ -4792,30 +4845,30 @@ disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',
             end
         end
         
-         function h = addon_addmenuitem(scene,addon,menuname,callback,parent)
-             if nargin<5
-                 parent = scene.handles.menu.addons.(addon).main;
-             end
-                
-             if not(isfield(scene.handles.menu.addons.(addon),'external'))
-                 scene.handles.menu.addons.(addon).external = [];
-             end
-             %deactivate install method
-             scene.handles.menu.addons.(addon).main.Callback = '';
-
-             %add menu
-             if nargin>3
-                 if not(iscell(callback))
-                     callback = {callback};
-                 end
-                 callback{end+1} = scene; 
-                scene.handles.menu.addons.(addon).external(end+1) =  uimenu(parent,'Text',menuname,'callback',callback);
-             else
-                 scene.handles.menu.addons.(addon).external(end+1) =  uimenu(parent,'Text',menuname);
-             end
-                 
-              h = scene.handles.menu.addons.(addon).external(end);
+        function h = addon_addmenuitem(scene,addon,menuname,callback,parent)
+            if nargin<5
+                parent = scene.handles.menu.addons.(addon).main;
             end
+            
+            if not(isfield(scene.handles.menu.addons.(addon),'external'))
+                scene.handles.menu.addons.(addon).external = [];
+            end
+            %deactivate install method
+            scene.handles.menu.addons.(addon).main.Callback = '';
+            
+            %add menu
+            if nargin>3
+                if not(iscell(callback))
+                    callback = {callback};
+                end
+                callback{end+1} = scene;
+                scene.handles.menu.addons.(addon).external(end+1) =  uimenu(parent,'Text',menuname,'callback',callback);
+            else
+                scene.handles.menu.addons.(addon).external(end+1) =  uimenu(parent,'Text',menuname);
+            end
+            
+            h = scene.handles.menu.addons.(addon).external(end);
+        end
     end
     
     methods(Static)

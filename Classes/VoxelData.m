@@ -746,13 +746,35 @@
             obj.Voxels(x,y,z) = value;
         end
         
-        function value = getValueAtWorldLocation(obj,location)
+        function Vq = getValueAtWorldLocation(obj,location)
              if isa(location,'Vector3D')
                 location = location.getArray();
+             end
+            if numel(location)>3
+            
+            %[Xq,Yq,Zq] = obj.R.worldToIntrinsic(location(:,1),location(:,2),location(:,3));
+            Xq = location(:,1);
+            Yq = location(:,2);
+            Zq = location(:,3);
+            else
+                [Xq,Yq,Zq] = obj.R.worldToIntrinsic(location(1),location(2),location(3));
             end
             
-            [x,y,z] = obj.R.worldToSubscript(location(1),location(2),location(3));
-            value = obj.Voxels(x,y,z);
+            [X,Y,Z] = obj.getMeshgrid;
+            Vq = interp3(X,Y,Z,obj.Voxels,Xq,Yq,Zq);
+            %value = obj.Voxels(x,y,z);
+        end
+        
+        function values = getValuesAtVerticesOfPatch(obj,patch)
+            switch class(patch)
+                case 'matlab.graphics.primitive.Patch'
+                    c = patch.Vertices;
+                case 'PointCloud'
+                 c = patch.getArray;
+   
+            end
+                
+            values = obj.getValueAtWorldLocation(c)
         end
         
         
