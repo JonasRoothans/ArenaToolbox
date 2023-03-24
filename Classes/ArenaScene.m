@@ -845,7 +845,8 @@ classdef ArenaScene < handle
             
             function menu_whoisthis(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
-                web(['https://en.wikipedia.org/wiki/',scene.Title])
+                name = strrep(scene.Title,' ','_');
+                web(['https://en.wikipedia.org/wiki/',name])
                 
             end
             
