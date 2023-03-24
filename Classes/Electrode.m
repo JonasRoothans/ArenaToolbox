@@ -91,6 +91,10 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
             end
             directionvector = POL-obj.C0;
             obj.Direction = directionvector.unit();
+            if isnan(obj.Direction)
+                warning('Direction is NaN, visualising upside down')
+                obj.Direction = Vector3D([0 0 -1]);
+            end
         end
         
         function POL = getPOL(obj)
