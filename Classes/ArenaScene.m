@@ -845,7 +845,8 @@ classdef ArenaScene < handle
             
             function menu_whoisthis(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
-                web(['https://en.wikipedia.org/wiki/',scene.Title])
+                name = strrep(scene.Title,' ','_');
+                web(['https://en.wikipedia.org/wiki/',name])
                 
             end
             
@@ -1418,6 +1419,59 @@ classdef ArenaScene < handle
                 
             end
             
+            function import_leadDBSelectrode(thisScene,loaded)
+                
+                for iElectrode = 1:numel(loaded.reco.native.coords_mm)
+                    
+                    e = Electrode;
+                    switch loaded.reco.props.elmodel
+                        case 'Medtronic 3389'
+                            e.Type = 'Medtronic3389';
+                        otherwise
+                            %please add this case.. and connect it to the
+                            %appropriate arena name for the electrode.
+                            keyboard
+                    end
+                    
+                    
+                    %a trial-and-error tree to find which space to use.
+                    try 
+                        test= loaded.reco.mni.coords_mm{iElectrode};
+                        space = 'mni';
+                    catch
+                        try
+                            test= loaded.reco.acpc.coords_mm{iElectrode};
+                            space = 'acpc';
+                        catch
+                            space = 'native';
+                        end
+                    end
+                    
+                    e.C0 = loaded.reco.(space).coords_mm{iElectrode}(1,:);
+                    e.PointOnLead(loaded.reco.(space).coords_mm{iElectrode}(4,:))
+                    actor = e.see(thisScene);
+                    
+                    if e.C0.x>0
+                        side = 'right';
+                    else
+                        side = 'left';
+                    end
+                    
+                    switch space
+                        case 'acpc'
+                            actor.changeSetting('colorBase',[0.8, 0.8, 0.2])
+                            actor.changeName(['LeadDBS import (ACPC space) - ',side])
+                        case 'native'
+                            actor.changeSetting('colorBase',[0.8, 0.2, 0.2])
+                            actor.changeName(['LeadDBS import (Native space) - ',side])
+                        case 'mni'
+                            actor.changeName(['LeadDBS import (MNI space) - ',side])
+                    end
+   
+                end
+                
+            end
+            
             function import_leadDBSfibers(thisScene,loaded)
                 f_left = Fibers;
                 f_right = Fibers;
@@ -1444,8 +1498,12 @@ classdef ArenaScene < handle
                 
                 loaded = load(filename);
                 
+                
                 if isfield(loaded,'fibcell')
                     import_leadDBSfibers(thisScene,loaded)
+                    return
+                elseif isfield(loaded,'reco')
+                    import_leadDBSelectrode(thisScene,loaded)
                     return
                 end
                 

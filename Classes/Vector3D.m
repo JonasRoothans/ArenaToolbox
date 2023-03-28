@@ -85,6 +85,12 @@ classdef Vector3D
                 isempty(obj.z)]);
         end
         
+        function bool = isnan(obj)
+            bool = any([isnan(obj.x),...
+                isnan(obj.y),...
+                isnan(obj.z)]);
+        end
+        
         function bool = iszero(obj)
             bool = all(obj.getArray==0);
         end
