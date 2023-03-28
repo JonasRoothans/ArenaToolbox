@@ -561,7 +561,23 @@ classdef VoxelDataStack < handle
         
         function obj = addNiiWithScore(obj,niiPath,score,flipped_niiPath) % i changed that, so that it adds the fliped things
             
+            if ischar(niiPath)
+
+
+
+
             VD = VoxelData(niiPath);
+
+            elseif isa(niiPath,VoxelData)
+
+                VD=niiPath;
+
+            else 
+
+                error('"Mother of Got" (T.S.)...your argument must be a path to nii or a VoxelData...people use your brains')
+
+            end
+
             [~,j] = size(obj.Voxels);
             
             if j == 0
@@ -578,8 +594,22 @@ classdef VoxelDataStack < handle
             if nargin == 4
 
 
+                if ischar(flipped_niiPath)
+
+
                 
                 Fl_VD = VoxelData(flipped_niiPath);
+
+                elseif isa(flipped_niiPath,VoxelData)
+
+                    Fl_VD = flipped_niiPath;
+
+                else 
+
+                    error (' "Mother of Got" (T.S) ...your argument must be a path to nii or a VoxelData...people use your brains')
+
+                end
+                    
 
                 if j>0
 

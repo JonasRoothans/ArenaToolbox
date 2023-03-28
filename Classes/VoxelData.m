@@ -42,7 +42,7 @@
             end
         end
         
-        function obj = originToCenter(obj)
+        function obj = originToCenter(obj) %why Jonas??
             obj.R.XWorldLimits = obj.R.XWorldLimits - mean(obj.R.XWorldLimits);
             obj.R.YWorldLimits = obj.R.YWorldLimits - mean(obj.R.YWorldLimits);
             obj.R.ZWorldLimits = obj.R.ZWorldLimits - mean(obj.R.ZWorldLimits);
