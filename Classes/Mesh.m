@@ -125,7 +125,7 @@ classdef Mesh < handle & matlab.mixin.Copyable & ArenaActorRendering
                 
                 
                 [testTheseX,testTheseY,testTheseZ] = meshgrid(gridXvalues,gridYvalues,gridZvalues);
-                white = inpolyhedron(fv, [testTheseX(:),testTheseY(:),testTheseZ(:)],'flipnormals', false);
+                white = inpolyhedron(fv, [testTheseX(:),testTheseY(:),testTheseZ(:)],'flipnormals', true);
                 
                 newVoxelInfo = zeros(size(template.Voxels));
                 newVoxelInfo(gridYtest,gridXtest,gridZtest) = reshape(white,size(testTheseX));

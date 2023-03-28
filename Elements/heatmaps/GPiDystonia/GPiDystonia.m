@@ -112,28 +112,58 @@ classdef GPiDystonia < HeatmapModelSupport & handle
         
         %%
         
-         function filterSettings = definePostProcessingSettings()
-            filterSettings = nan;
-            if 0  %temporarily switched off
+        function PostSettings = definePostProcessingSettings()
+            
+            msg =  'Which pipeline would you like to run?';
+            opt = {'DIPS (one SE Alt)', 'Custom'};
+            
+            choiceIndex = listdlg('ListString',opt,'PromptString',msg);
+            choice = opt{choiceIndex};
+            
+            switch choice
+             
+                case 'Custom'  %temporarily switched off
+                     
+                    f = errordlg('Not available - wait for new version. (You might wait long)','Availibility problem');
+                    
                 userinput = inputdlg({'Minimal confidence of the heatmap [0-1]',...
                     'Amplitude optimization based on  n = ',...
                     'Maximal accepted amplitude deviation (sigma)'},...
                     'Post processing',...
                     1,...
                     {'0.5','5','1'});
-                filterSettings.minConfidence = str2num(userinput{1});
-                filterSettings.n = str2num(userinput{2});
-                filterSettings.sigma = str2num(userinput{3});
+                PostSettings.minConfidence = str2num(userinput{1});
+                PostSettings.n = str2num(userinput{2});
+                PostSettings.sigma = str2num(userinput{3});
+                
+                case 'DIPS (one SE Alt)'
+            
+            PostSettings.Mode = 'DIPS';
+            
             end
         end
         
-        function performReviewPostProcessing(tag,predictionList,filterSettings,pairs)
+        function performReviewPostProcessing(tag,predictionList,PostSettings,pairs)
             
-            blackOrRed = GPiDystonia.filterPredictions(predictionList,filterSettings);
-            HeatmapModelSupport.printPredictionList(tag,predictionList,pairs,blackOrRed);
-            
-            
+            switch PostSettings.Mode
+                case 'DIPS'
+                    
+                    PostSettings.Therapy=GPiDystonia.getAltGPi(PostSettings.Therapy,PostSettings.sortedList);
+                    HeatmapModelSupport.printList(PostSettings.Therapy,pairs)
+                    
+                    
+            end
+                    
+                    
+                    
+                    
         end
+            
+%             blackOrRed = GPiDystonia.filterPredictions(predictionList,filterSettings);
+%             HeatmapModelSupport.printPredictionList(tag,predictionList,pairs,blackOrRed);
+%             
+            
+        
         
         function blackOrRed = filterPredictions(predictionList,filterSettings)
             if isnan(filterSettings)
@@ -180,6 +210,99 @@ classdef GPiDystonia < HeatmapModelSupport & handle
         end
         
         
+    
+    
+     function therapy = getAltGPi(therapy,sortedList)
+         
+         %side effects reducing alternative
+         
+         
+         
+            if numel(sortedList)<2
+                
+               therapy.AlternativeSettings = 'Sorry, but there are no alternative settings available for you. Practise your clinical programming.';
+            else
+            
+            
+            
+            % use sorted list to pick settings with lower amplitudes and
+            % more proximal contacts
+            
+            
+            %  create list of predictions with lower amplitudes
+            
+            lenghtList=numel(sortedList);
+            
+            lowerAmpR=zeros(1,lenghtList);
+            lowerAmpL=lowerAmpR;
+            under3R=lowerAmpR;
+            under3L=lowerAmpR;
+            under4proxR=lowerAmpR;
+            under4proxL=lowerAmpR;
+            
+            for ii=1:lenghtList
+            
+            lowerAmpR(1,ii)=sortedList(1,ii).Input.VTAs(1).Settings.amplitude<therapy.RecommendedSettings.Input.VTAs(1).Settings.amplitude;
+            lowerAmpL(1,ii)=sortedList(1,ii).Input.VTAs(2).Settings.amplitude<therapy.RecommendedSettings.Input.VTAs(2).Settings.amplitude;
+            
+            
+            
+            %  is there something under 3,5 mA bds? 
+            under3R(1,ii) = sortedList(1,ii).Input.VTAs(1).Settings.amplitude<3.5;
+            under3L(1,ii) = sortedList(1,ii).Input.VTAs(2).Settings.amplitude<3.5;
+            
+            
+            % is there something under 4,5 mA with more proximal contacts 
+            
+            under4proxR(1,ii) = (sortedList(1,ii).Input.VTAs(1).Settings.amplitude<4.5)&(therapy.RecommendedSettings.Input.VTAs(1).Settings.activecontact...
+                <sortedList(1,ii).Input.VTAs(1).Settings.activecontact);
+            
+            under4proxL(1,ii) = (sortedList(1,ii).Input.VTAs(2).Settings.amplitude<4.5)&(therapy.RecommendedSettings.Input.VTAs(2).Settings.activecontact...
+                <sortedList(1,ii).Input.VTAs(2).Settings.activecontact);
+            
+            end
+            
+            lowerAmp=lowerAmpR&lowerAmpL;
+            under3 = under3R&under3L;
+            
+            under4prox = under4proxR&under4proxL;
+            
+            if sum(under3&lowerAmp) % if there are settings with lower amplitudes under 3,5, take it
+                
+                altList=sortedList(under3&lowerAmp);
+                
+                
+            elseif sum(under4prox) %if there is something under 4,5 bds more proximal
+                
+                altList=sortedList(under4prox);
+                
+            elseif sum(lowerAmp) % if not just take lower amp bds
+                
+                altList=sortedList(lowerAmp);
+                
+            else
+                
+                altList(1,1)=0;
+                
+            end
+            
+            if altList(1,1) == 0
+                
+                therapy.AlternativeSettings = 'We are very sorry, but it seems that to avoid the side effects, you will need to adjust your stimulation clinicaly.';
+                
+            else
+                
+                therapy.AlternativeSettings = altList(1,1);
+                
+            end
+            
+            end
+            
+         
+            
+     end
+        
     end
+                
 end
 

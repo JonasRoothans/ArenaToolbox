@@ -182,7 +182,10 @@ classdef Therapy < handle
             
             %Now there are 2 options for postprocessing:
             % 1) do a custom postprocessing for the heatmapmodel
-            % 2) simply perform basics of printing the data.
+            % 2) simply perform basics of printing the data, with creating
+            %  recommended settings based on improvement and confidence (this hapens everytime)
+            
+            [obj,sortedList] = obj.getReco;
             
             %--- option 1: do a custom postprocessing for the heatmapmodel
             if isa(PostSettings,'struct')
@@ -191,9 +194,14 @@ classdef Therapy < handle
                 PostSettings.Therapy = obj;
                 PostSettings.UserInput.heatmap = heatmap;
                 PostSettings.UserInput.VTAset = VTAset;
+     
+                PostSettings.sortedList=sortedList;
                 
                 %run the postprocessing in the model.
-                heatmap.performReviewPostProcessing(obj.Tag,predictionList,PostSettings,pairs)
+                
+                
+                heatmap.performReviewPostProcessing(obj.Tag,predictionList,PostSettings,pairs);
+                
                 
                 %--- option 2: simply perform basics of printing the data.
             else
@@ -211,27 +219,20 @@ classdef Therapy < handle
                     end
                     
                 else
-                   
-                   [obj,sortedList] = obj.getReco;  % run the pipeline to get general therapy recommendations (rather specific for GPi) - talk to Jonas
-                   obj.getAlt(sortedList);
-                    
-                    
+                      
                     
                     
                     %% print everything using heatmap support
                     
                    
-                    fileID = HeatmapModelSupport.printPredictionList(obj.Tag,obj.ReviewData.predictionList,pairs);
-                    
-                    HeatmapModelSupport.printtext(fileID,'\n')
-                    HeatmapModelSupport.printtext(fileID,'Therapy Recommendations - First choice and alternative:')
-                    HeatmapModelSupport.printtext(fileID,'\n')
-                    
-                    HeatmapModelSupport.printReco(fileID,obj.RecommendedSettings,pairs)
-                    HeatmapModelSupport.printReco(fileID,obj.AlternativeSettings,pairs)
-                    
-                    fclose(fileID);
-                    
+                   HeatmapModelSupport.printPredictionList(therapy.Tag,therapy.ReviewData.predictionList,pairs);
+                   HeatmapModelSupport.printtext(fileID,'\n')
+                   HeatmapModelSupport.printtext(fileID,'Therapy Recommendation:')
+                   HeatmapModelSupport.printtext(fileID,'\n')
+                   HeatmapModelSupport.printReco(fileID,therapy.RecommendedSettings,pairs)
+                   fclose(fileID);
+                   
+                   
                    
                     %%
                 
@@ -358,91 +359,7 @@ classdef Therapy < handle
         
        
         
-        function obj = getAlt(obj,sortedList) %side effects reducing alternative, makes sense mostly for GPi, can be generalised
-            
-            if numel(sortedList)<2
-                
-                obj.AlternativeSettings = 'Sorry, but there are no alternative settings available for you';
-            else
-            
-            
-            
-            % use sorted list to pick settings with lower amplitudes and
-            % more proximal contacts
-            
-            
-            %  create list of predictions with lower amplitudes
-            
-            lenghtList=numel(sortedList);
-            
-            lowerAmpR=zeros(1,lenghtList);
-            lowerAmpL=lowerAmpR;
-            under3R=lowerAmpR;
-            under3L=lowerAmpR;
-            under4proxR=lowerAmpR;
-            under4proxL=lowerAmpR;
-            
-            for ii=1:lenghtList
-            
-            lowerAmpR(ii)=sortedList(1,ii).Input.VTAs(1).Settings.amplitude<obj.RecommendedSettings.Input.VTAs(1).Settings.amplitude;
-            lowerAmpL(ii)=sortedList(1,ii).Input.VTAs(2).Settings.amplitude<obj.RecommendedSettings.Input.VTAs(2).Settings.amplitude;
-            
-            
-            
-            %  is there something under 3,5 mA bds? 
-            under3R(ii) = sortedList(1,ii).Input.VTAs(1).Settings.amplitude<3.5;
-            under3L(ii) = sortedList(1,ii).Input.VTAs(2).Settings.amplitude<3.5;
-            
-            
-            % is there something under 4,5 mA with more proximal contacts 
-            
-            under4proxR(ii) = (sortedList(1,ii).Input.VTAs(1).Settings.amplitude<4.5)&(obj.RecommendedSettings.Input.VTAs(1).Settings.activecontact...
-                <sortedList(1,ii).Input.VTAs(1).Settings.activecontact);
-            
-            under4proxL(ii) = (sortedList(1,ii).Input.VTAs(2).Settings.amplitude<4.5)&(obj.RecommendedSettings.Input.VTAs(2).Settings.activecontact...
-                <sortedList(1,ii).Input.VTAs(2).Settings.activecontact);
-            
-            end
-            
-            lowerAmp=lowerAmpR&lowerAmpL;
-            under3 = under3R&under3L;
-            
-            under4prox = under4proxR&under4proxL;
-            
-            if sum(under3&lowerAmp) % if there are settings with lower amplitudes under 3,5, take it
-                
-                altList=sortedList(under3&lowerAmp);
-                
-                
-            elseif sum(under4prox) %if there is something under 4,5 bds more proximal
-                
-                altList=sortedList(under4prox);
-                
-            elseif sum(lowerAmp) % if not just take lower amp bds
-                
-                altList=sortedList(lowerAmp);
-                
-            else
-                
-                altList(1,1)=0;
-                
-            end
-            
-            if altList(1,1) == 0
-                
-                obj.AlternativeSettings = 'We are very sorry, but it seems that to avoid the side effects, you will need to adjust your stimulation clinicaly.';
-                
-            else
-                
-                obj.AlternativeSettings = altList(1,1);
-                
-            end
-            
-            end
-            
-        end
-                
-            
+        
             
             
              
