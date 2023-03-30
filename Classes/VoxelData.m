@@ -25,7 +25,7 @@
                         warning(['input (',varargin{1},') is not a valid filename.. (it has to include .nii)'])
 
                     end
-%   work now, you bloody script. from now-infinity fuck the police. ~Flo.
+
                 else
                     if and(isnumeric(varargin{1}),length(size(varargin{1}))==3)
                         %make an imref that centers the volume
