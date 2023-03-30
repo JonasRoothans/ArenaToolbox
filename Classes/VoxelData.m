@@ -620,6 +620,15 @@
             end
         end
         
+        function out = lt(o1,o2)
+            switch class(o2)
+                case 'VoxelData'
+                    out = VoxelData(o1.Voxels < o2.warpto(o1).Voxels,o1.R);
+                case 'double'
+                    out = VoxelData(o1.Voxels < o2, o1.R);
+            end
+        end
+        
         function out = mean(obj)
             out = nanmean(obj.Voxels(:));
         end

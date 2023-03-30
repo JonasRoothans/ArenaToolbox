@@ -5,7 +5,6 @@ classdef Heatmap < handle
         Tmap
         Pmap
         Signedpmap
-        Significantvoxels
         Amap
         Amapweighted
         Cmap
@@ -402,23 +401,14 @@ classdef Heatmap < handle
             
         end
 
-        function obj = makeSignificantvoxels(obj)
-
-            positive = obj.Signedpmap.Voxels>0.95;
-            negative = obj.Signedpmap.Voxels<-0.95;
-
-            mask = positive|negative;
-
-            A = obj.Signedpmap.Voxels;
-            A(~mask) = NaN;
-
-            obj.Significantvoxels = VoxelData;
-            obj.Significantvoxels.R = obj.Signedpmap.R;
-            
-            obj.Significantvoxels.Voxels = A.*1000;
-        
+        function significantVD = significantVoxels(obj,p)
+            if nargin==1
+                p = 0.05;
+            end
+               
+            maskVD = obj.Pmap<p;
+            significantVD = obj.Signedpmap.mask(maskVD);
         end
-
         
     end
 end
