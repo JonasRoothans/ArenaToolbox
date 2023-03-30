@@ -1,6 +1,5 @@
 classdef VoxelDataStack < handle  
 
-% some bullshit
 
     properties
         Voxels %4D or sparse but always serialized
