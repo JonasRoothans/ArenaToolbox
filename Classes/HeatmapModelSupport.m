@@ -113,7 +113,24 @@ classdef HeatmapModelSupport < handle
                 end
             end
 
-end
+        end
+        
+        function printList(therapy,pairs)
+            
+            fileID = HeatmapModelSupport.printPredictionList(therapy.Tag,therapy.ReviewData.predictionList,pairs);
+                    
+                    HeatmapModelSupport.printtext(fileID,'\n')
+                    HeatmapModelSupport.printtext(fileID,'Therapy Recommendations - First choice and alternative:')
+                    HeatmapModelSupport.printtext(fileID,'\n')
+                    
+                    HeatmapModelSupport.printReco(fileID,therapy.RecommendedSettings,pairs)
+                    HeatmapModelSupport.printReco(fileID,therapy.AlternativeSettings,pairs)
+                    
+                    fclose(fileID);
+                    
+         end
+
+        
             
 end
         
