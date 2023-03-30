@@ -568,13 +568,13 @@ classdef VoxelDataStack < handle
 
             VD = VoxelData(niiPath);
 
-            elseif isa(niiPath,VoxelData)
+            elseif isa(niiPath,'VoxelData')
 
                 VD=niiPath;
 
             else 
 
-                error('"Mother of Got" (T.S.)...your argument must be a path to nii or a VoxelData...people use your brains')
+                error('  "Mother of Got" (T.S)...your argument must be a path to nii or a VoxelData...people use your brains')
 
             end
 
@@ -600,7 +600,7 @@ classdef VoxelDataStack < handle
                 
                 Fl_VD = VoxelData(flipped_niiPath);
 
-                elseif isa(flipped_niiPath,VoxelData)
+                elseif isa(flipped_niiPath,'VoxelData')
 
                     Fl_VD = flipped_niiPath;
 
@@ -880,6 +880,7 @@ classdef VoxelDataStack < handle
             pmap = obj.reshape(p);
             tmap = obj.reshape(stat.tstat);
             signedpmap = (1-pmap)./sign(tmap);
+           
             
             hm = Heatmap;
             hm.Tmap = VoxelData(tmap,obj.R);
