@@ -238,7 +238,36 @@ classdef Fibers < handle & matlab.mixin.Copyable & ArenaActorRendering
            
         end
         
+        function percentage = percentageHitByROI(obj,ROI)
+            %first join all fibers for quick processing
+            [Vectors,FiberIndices] = joinBundle;
             
+            if not(isa(ROI,'Mesh'));keyboard;end %add other options here?)
+      
+            %check for all vertices which one is inside the roi if it is a
+            %mes
+            mapvalue = ROI.isInside(Vectors);
+            
+            %deconstruct into hitlist and get percentage
+            hitlist = zeros(size(FiberIndices));
+            for i = 1:numel(obj.Vertices)
+                   hitlist(i)= max(mapvalue(FiberIndices(i):FiberIndices(i+1)-1));
+            end
+            percentage = nnz(hitlist)/numel(hitlist);
+            
+            
+            function [Vectors,FiberIndices] = joinBundle()
+            nVectorsPerFiber = arrayfun(@(x) length(x.Vectors),obj.Vertices);
+                    Vectors = Vector3D.empty(sum(nVectorsPerFiber),0); %empty allocation
+                    FiberIndices = [0,cumsum(nVectorsPerFiber)]+1;
+                    weights = [];
+                    %                 fibIndex = 1;
+                    for iFiber = 1:numel(obj.Vertices)
+                        Vectors(FiberIndices(iFiber):FiberIndices(iFiber+1)-1) = obj.Vertices(iFiber).Vectors;
+                    end
+                    FiberIndices(iFiber+1) = length(Vectors)+1;
+            end
+        end
      
     end
 end
