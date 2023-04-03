@@ -40,6 +40,10 @@
                             vd = VoxelData();
                             vd.importSuretuneDataset(thisLead.stimPlan{iStimplan}.vta.Medium);
                             vd.imwarp(T);
+                            
+                            %temporary
+                            vd.Tag = S.patient.name;
+                            vd.getmesh(0.5).see(scene)
 
                             switch savePref
                                 case 'together in 1 folder'
