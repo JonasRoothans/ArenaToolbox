@@ -43,6 +43,9 @@ scene.addon_addmenuitem('InterferenceHistogram','Calculate Interference with bas
 scene.addon_addmenuitem('InterferenceHistogram','Calculate Interference with motorcortex fibers',{str2func('@Interference'),'motorcortex'},menuInterferenceHistogramAll)
 scene.addon_addmenuitem('InterferenceHistogram','Calculate Interference with prefrontalcortex fibers',{str2func('@Interference'),'prefrontalcortex'},menuInterferenceHistogramAll)
 
+menuInterferenceHistogramFlo= scene.addon_addmenuitem('InterferenceHistogram','Flo-workflow');
+scene.addon_addmenuitem('InterferenceHistogram','Create recipe (using heatmapmaker add-on)','@Interference_recipeportal',menuInterferenceHistogramFlo);
+scene.addon_addmenuitem('InterferenceHistogram','Run interference on all',str2func('@InterferenceFlo'),menuInterferenceHistogramFlo);
 
 
 menuhandle.Text = menuhandle.Text(6:end); 
