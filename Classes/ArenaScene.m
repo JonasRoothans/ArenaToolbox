@@ -3531,8 +3531,13 @@ classdef ArenaScene < handle
                                 
                             case {'Max value','Check if fiber hits mesh'}
                                 currentActors(iCurrent).Data.Weight(iFiber) = max(weights);
-                                weights_positive(iFiber) = max(weights(weights>0));
-                                weights_negative(iFiber)=max(weights(weights<0));
+                                if any(weights~=0)
+                                    weights_positive(iFiber) = max(weights(weights>0));
+                                    weights_negative(iFiber)=max(weights(weights<0));
+                                else
+                                    weights_positive(iFiber) = 0;
+                                    weights_negative(iFiber) =0 ;
+                                end
                                 
                             case 'Average Value'
                                 currentActors(iCurrent).Data.Weight(iFiber) = mean(weights,'omitnan');
