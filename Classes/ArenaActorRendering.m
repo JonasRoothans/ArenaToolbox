@@ -381,7 +381,17 @@ classdef ArenaActorRendering < handle
                         %no fibers were drawn yet
                     end
                     
-                    for iFiber = 1:obj.ActorHandle.Visualisation.settings.numberOfFibers
+                    if numel(obj.ActorHandle.Visualisation.settings.numberOfFibers)==1
+                        iFiberRange = 1:obj.ActorHandle.Visualisation.settings.numberOfFibers;
+                    elseif any(obj.ActorHandle.Visualisation.settings.numberOfFibers)>1
+                        iFiberRage = obj.ActorHandle.Visualisation.settings.numberOfFibers;
+                        obj.ActorHandle.Visualisation.settings.numberOfFibers = numel(iFiberRange);
+                    else
+                        iFiberRange = find(obj.ActorHandle.Visualisation.settings.numberOfFibers);
+                        obj.ActorHandle.Visualisation.settings.numberOfFibers = numel(iFiberRange);
+                    end
+                       
+                    for iFiber = iFiberRange
                         if iFiber >numel(obj.Vertices)
                             break
                         end
@@ -414,6 +424,7 @@ classdef ArenaActorRendering < handle
             function colorFiber(actor)
                 %apply settings
                 for iH = 1:numel(actor.Visualisation.handle)
+                    if isempty(properties(actor.Visualisation.handle(iH)));continue;end
                     if settings.colorByDirection
                         color = PointCloud([abs(diff(mean(actor.Visualisation.handle(iH).XData,2))),...
                             abs(diff(mean(actor.Visualisation.handle(iH).YData,2))),...

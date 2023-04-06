@@ -402,6 +402,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Slicei.SPM = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: Use SPM to warp image to.. ','callback',{@menu_SPM},'Enable','off');
             
             obj.handles.menu.dynamic.Fibers.interferenceWithMap = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: interference with map','callback',{@menu_fiberMapInterference},'Enable','off');
+            obj.handles.menu.dynamic.Fibers.showFibersThatHitROI = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: showFibersThatHitROI','callback',{@menu_fiberROIcheck},'Enable','off');
             obj.handles.menu.dynamic.Fibers.exportSummary = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: export fiber summary','callback',{@menu_fiberSummary},'Enable','off');
             obj.handles.menu.dynamic.Fibers.exportSummary = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Fibers: generate ROI from endpoints','callback',{@menu_fibersToROI},'Enable','off');
             
@@ -3421,6 +3422,23 @@ classdef ArenaScene < handle
                 
                 
                 
+            end
+            
+            function menu_fiberROIcheck(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                [actorlist,namelist,indexlist] =  ArenaScene.getActorsOfClass(scene,'Mesh');
+                [indx,tf] = listdlg('PromptString',{'Select one ROI'},'ListString',namelist);
+                    ROI =actorlist(indx).Data;
+                for iActor = 1:numel(currentActors)
+                    f = currentActors(iActor).Data;
+                    hittest = f.hitsROI(ROI);
+                    
+                     currentActors(iActor).changeSetting('numberOfFibers',hittest)
+                    
+                        
+                    
+                end
             end
             
             

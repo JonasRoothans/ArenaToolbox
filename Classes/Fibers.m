@@ -238,7 +238,7 @@ classdef Fibers < handle & matlab.mixin.Copyable & ArenaActorRendering
            
         end
         
-        function percentage = percentageHitByROI(obj,ROI)
+        function hitlist = hitsROI(obj,ROI)
             %first join all fibers for quick processing
             [Vectors,FiberIndices] = joinBundle;
             
@@ -250,11 +250,10 @@ classdef Fibers < handle & matlab.mixin.Copyable & ArenaActorRendering
             
             %deconstruct into hitlist and get percentage
             hitlist = zeros(size(FiberIndices));
+            
             for i = 1:numel(obj.Vertices)
                    hitlist(i)= max(mapvalue(FiberIndices(i):FiberIndices(i+1)-1));
             end
-            percentage = nnz(hitlist)/numel(hitlist);
-            
             
             function [Vectors,FiberIndices] = joinBundle()
             nVectorsPerFiber = arrayfun(@(x) length(x.Vectors),obj.Vertices);
@@ -267,6 +266,16 @@ classdef Fibers < handle & matlab.mixin.Copyable & ArenaActorRendering
                     end
                     FiberIndices(iFiber+1) = length(Vectors)+1;
             end
+            
+        end
+        
+        function percentage = percentageHitByROI(obj,ROI)
+            
+            hitlist = hitsROI(obj,ROI);
+            percentage = nnz(hitlist)/numel(hitlist);
+            
+            
+            
         end
      
     end
