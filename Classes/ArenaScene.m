@@ -3432,9 +3432,15 @@ classdef ArenaScene < handle
                     ROI =actorlist(indx).Data;
                 for iActor = 1:numel(currentActors)
                     f = currentActors(iActor).Data;
+                    if isempty(f.Connectome)
                     hittest = f.hitsROI(ROI);
                     
                      currentActors(iActor).changeSetting('numberOfFibers',hittest)
+                    else
+                        currentActors(iActor).Data.IncludeSeed = ROI;
+                        %imaginary numbers force a redraw:
+                        currentActors(iActor).changeSetting('numberOfFibers',currentActors(iActor).Visualisation.settings.numberOfFibers*i)
+                    end
                     
                         
                     

@@ -297,9 +297,13 @@ classdef ArenaActorRendering < handle
                 
                 if isempty(obj.Connectome)
                     visualizeFibers_fromFile()
+                    settings.numberOfFibers = sum(settings.numberOfFibers>0.5);
                 else
                     visualizeFibers_fromConnectome();
+                    settings.numberOfFibers = sum(obj.Indices>0.5);
                 end
+                
+                
                 
                 %update actor
                 actor.Visualisation.settings = settings;
@@ -319,6 +323,14 @@ classdef ArenaActorRendering < handle
                     
                     %1.----- Draw all the fibers
                     if settings.numberOfFibers ~= nFibersVisualised
+                        if not(isreal(settings.numberOfFibers))
+                            settings.numberOfFibers = abs(norm(settings.numberOfFibers)); %use imaginary numbers to force total redraw
+                            obj.Vertices(:) = [];
+                            obj.Indices(:) = [];
+                            delete(actor.Visualisation.handle(:))
+                            nFibersVisualised =0 ;
+                        end
+                            
                         if settings.numberOfFibers < nFibersVisualised %show less
                             
                             %delete fibers from the Fibers object
