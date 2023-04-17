@@ -2873,15 +2873,19 @@ classdef ArenaScene < handle
                 disp(['Without the zeroes: rho: ',num2str(pearson_r0),'  p: ',num2str(pearson_p0)])
                 
                 %positive on both sides
+                
                 keepthese = and(v1>0, v2>0);
+                if sum(keepthese)>5
                 [pearson_rpos,pearson_ppos] = corr(v1(keepthese),v2(keepthese));
                 disp(['Without positives in both sampples: rho: ',num2str(pearson_rpos),'  p: ',num2str(pearson_ppos)])
+                end
                 
                 %egative on both sides
                 keepthese = and(v1<0, v2<0);
+                if sum(keepthese)>5
                 [pearson_rneg,pearson_pneg] = corr(v1(keepthese),v2(keepthese));
                 disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',num2str(pearson_pneg)])
-                
+                end
                 
                 
                 

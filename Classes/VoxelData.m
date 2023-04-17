@@ -1025,6 +1025,7 @@
                 obj.Voxels = obj.Voxels>0;
             end
         end
+       
         
         function binaryObj = makeBinaryNeg(obj)
             if nargout==1
@@ -1065,6 +1066,27 @@
             end
         end
         
+        function [PointCloudWorld,PointCloudIntrinsic,indcs] = getCoordinatesOfBinary(obj)
+            if not(obj.isBinary)
+                warning('Input data is not binary. Run function .makeBinary(0.5) first.')
+                PointCloudWorld = nan;
+                PointCloudIntrinsic = nan;
+                return
+            end
+            
+            indcs = find(obj.Voxels);
+            [intrinsic_x,intrinsic_y,intrinsic_z] = ind2sub(obj.size,indcs);
+            [world_x,world_y,world_z] = obj.R.intrinsicToWorld(intrinsic_y,intrinsic_x,intrinsic_z);
+            
+            PointCloudWorld = PointCloud([world_x,world_y,world_z]);
+            PointCloudIntrinsic= PointCloud([intrinsic_x,intrinsic_y,intrinsic_z]);
+            
+            
+        end
+                
+        function dims = size(obj)
+            dims = size(obj.Voxels);
+        end
         function [CubicMM,voxelcount] = getCubicMM(obj,T)
             if not(all(islogical(obj.Voxels)))
                 if nargin==1

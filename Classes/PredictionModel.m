@@ -5,12 +5,13 @@ classdef PredictionModel < handle
     properties
         Heatmap
         SamplingMethod = @A_15bins;
+        TrainingLinearModel
         Tag
         %Description
     end
     
     properties (Hidden)
-        TrainingLinearModel
+        
         B
     end
     
