@@ -18,6 +18,8 @@ scene.addon_addmenuitem('HeatmapMaker','Repair recipe',str2func('@HeatmapMaker_r
 scene.addon_addmenuitem('HeatmapMaker','ttest without clinical scores',str2func('@HeatmapMaker_ttest'),other)
 scene.addon_addmenuitem('HeatmapMaker','Sort folder to subfolders per patient',str2func('@HeatmapMaker_sortPerPatient'),other)
 scene.addon_addmenuitem('HeatmapMaker','Export Suretune Sessions to folder',str2func('@HeatmapMaker_SuretuneSessions'),other)
+scene.addon_addmenuitem('HeatmapMaker','extract all files and store in one folder',str2func('@HeatmapMaker_UnpackFolders'),other)
+
 
 legacy = scene.addon_addmenuitem('HeatmapMaker','Legacy (sweetspotstation)');
 scene.addon_addmenuitem('HeatmapMaker','Make a Suretune based recipe',str2func('@HeatmapMaker_SuretuneSessionsRecipe'),legacy)
