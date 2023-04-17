@@ -1,9 +1,8 @@
-classdef VoxelDataStack < handle  
-
-
+classdef VoxelDataStack < handle
+    
+    
     properties
         Voxels %4D or sparse but always serialized
-        Fl_Voxels %fields which come from flipping the same pat
         R
         Weights
     end
@@ -18,8 +17,10 @@ classdef VoxelDataStack < handle
     end
     
     methods
-        function obj = VoxelDataStack(Voxels,R,Weights,Fl_Voxels)
-
+        function obj = VoxelDataStack(Voxels,R,Weights)
+            
+            
+            
             if nargin>0
                 %serialize
                 if length(size(Voxels))>2
@@ -38,104 +39,95 @@ classdef VoxelDataStack < handle
             if nargin>2
                 obj.Weights = Weights;
             end
-
-            if nargin>3 % costract the possibility of flipping
-
-                %serialize
-                if length(size(Fl_Voxels))>2
-                    obj.Voxels = reshape(single(Fl_Voxels),[],size(Fl_Voxels,4)); %by default to minimize memory consumption
-                else
-                    if not(issparse(Fl_Voxels))
-                        obj.Voxels = single(Fl_Voxels);
-                    else
-                        obj.Fl_Voxels = Fl_Voxels; %sparse does not support single
-                    end
-                end
+            if nargin>3
+                error('Too many input arguments.. Perhaps check out VoxelDataStackExtended class which can contain several VoxelLayers')
             end
-
-
+            
+            
+            
+            
             
         end
-
-
+        
+        
         function obj = loadM(obj,Mpath,fingerPrintType,stimulation,varargin) % this function is designed to load functional connectivi
-            %from Lead group to the VoxelDataStack 
+            %from Lead group to the VoxelDataStack
             %input arg: path to the LeadGpouFile, 'R' or 'R_Fz' determining
             %if you want Fisher or not, name of the stimulation, indexes of
-            %your cohorts( then it loads just subcohrts) 
-
-            load(Mpath)
-
+            %your cohorts( then it loads just subcohrts)
             
-
-           
+            load(Mpath)
+            
+            
+            
+            
             if fingerPrintType == 'R'
-
+                
                 file = 'vat_seed_compound_fMRI_efield_func_seed_AvgR.nii' ;
                 fl_file = 'fl_vat_seed_compound_fMRI_efield_func_seed_AvgR.nii' ;
-
+                
             elseif  fingerPrintType == 'Fz_R'
-
-
-
-
+                
+                
+                
+                
                 file = 'vat_seed_compound_fMRI_efield_func_seed_AvgR_Fz.nii' ;
                 fl_file = 'fl_vat_seed_compound_fMRI_efield_func_seed_AvgR_Fz.nii' ;
-
-
+                
+                
             else
-
+                
                 error('Specify what measure of FC you want to use')
-
+                
             end
-
-
+            
+            
             stimFolder = fullfile('stimulations/MNI_ICBM_2009b_NLIN_ASYM',stimulation);
             filesInFolder  = fullfile (stimFolder,'GSP1000_new_Full');
             firstFile = fullfile (filesInFolder,file );
             fl_firstFile = fullfile (filesInFolder,fl_file);
-
-
-
+            
+            
+            
             if nargin == 4
-
+                
                 for ii = 1:numel(M.patient.list)
-
+                    
                     score = M.clinical.vars{1,1}(ii);
-
+                    
                     obj.addNiiWithScore(fullfile(M.patient.list{ii},firstFile),score,fullfile(M.patient.list{ii},fl_firstFile));
-
+                    
                 end
-
+                
             else
-
+                
                 for iCoh = numel(varargin)
-
+                    
                     for iPat = varargin(iCoh)
-
-
+                        
+                        
                         score = M.clinical.vars{1,1}(iPat);
-
+                        
                         obj.addNiiWithScore(fullfile(M.patient.list{iPat},firstFile),score,fullfile(M.patient.list{iPat},fl_firstFile));
                     end
-
+                    
                 end
-
+                
             end
-
+            
         end
         
-
+        
         function varargout = subsref(obj,s)
             switch s(1).type
                 case '.'
-
+                    
                     [varargout{1:nargout}] = builtin('subsref',obj,s);
-
+                    
                 case '()'
                     if length(s) == 1
                         [varargout{1:nargout}] = obj.select(s.subs{1});
-                     
+                        
                     else
                         [varargout{1:nargout}] = builtin('subsref',obj,s);
                     end
@@ -147,13 +139,13 @@ classdef VoxelDataStack < handle
             end
         end
         
-            
+        
         function out = select(obj,indx)
             out = VoxelDataStack;
             out.Voxels = obj.Voxels(:,indx);
             out.R = obj.R;
             try
-            out.Weights = obj.Weights(indx);
+                out.Weights = obj.Weights(indx);
             catch
                 out.Weights = nan;
             end
@@ -185,10 +177,10 @@ classdef VoxelDataStack < handle
             switch class(reference)
                 case 'double'
                     %empty
-                case 'imref3d'                    
+                case 'imref3d'
                     obj.R = reference;
                 otherwise
-                    obj.R = reference.R;    
+                    obj.R = reference.R;
             end
             BestNUmericType=A_getbestNumeric([obj.R.ImageSize,n_files]);
             obj.Voxels = zeros([prod(obj.R.ImageSize),n_files],BestNUmericType); %% change numeric class to int8 for memory optimisation, not valid for functional data
@@ -268,7 +260,7 @@ classdef VoxelDataStack < handle
                     return
                 end
                 if isempty(obj.R)
-                   obj.R = VoxelDataStack.getTemplateSpace();
+                    obj.R = VoxelDataStack.getTemplateSpace();
                 end
             end
             
@@ -287,7 +279,7 @@ classdef VoxelDataStack < handle
             scoreTag = getScoreTag(recipe);
             scores = obj.Recipe.(scoreTag);
             
-       
+            
             
             
             %-- GRouping data before adding to the stack? build some logic
@@ -377,21 +369,25 @@ classdef VoxelDataStack < handle
                 if filename==0
                     return
                 end
-                recipe = fullfile(foldername,filename);
+                
+                recipe = readtable(fullfile(foldername,filename));
                 
                 if isempty(obj.R)
-                   obj.R = VoxelDataStack.getTemplateSpace();
+                    firstfile = recipe.fullpath{1};
+                    obj.R = VoxelDataStack.getTemplateSpace(firstfile);
                 end
+                obj.RecipePath=fullfile(foldername,filename);
             end
             
-            obj.RecipePath=recipe;
-            recipe = readtable(recipe);
+            
+            
             
             
             if nargin==2
                 if isempty(obj.R)
                     firstfile = recipe.fullpath{1};
-                   obj.R = VoxelDataStack.getTemplateSpace(firstfile);
+                    obj.RecipePath=recipe;
+                    obj.R = VoxelDataStack.getTemplateSpace(firstfile);
                 end
             end
             
@@ -409,7 +405,7 @@ classdef VoxelDataStack < handle
             obj.Recipe = recipe;
             scoreTag = getScoreTag(recipe);
             scores = obj.Recipe.(scoreTag);
-           
+            
             
             %set up Stack
             obj.newEmpty([],length(obj.Recipe.fullpath)); %ref is empty because it is already set.
@@ -418,37 +414,37 @@ classdef VoxelDataStack < handle
             %subfolder or one folder?
             data_is_in_subfolders = any(ismember(recipe.Properties.VariableNames,'folderID'));
             if data_is_in_subfolders
-            answer = questdlg('You have organized your data in subfolders. How should the folders be interpreted? Are you dealing with bilateral therapy?',...
-                'Arena',...
-                'Yes, this is bilateral. Keep the files seperate in the sampling',...
-                'They can be safely merged and treated as one file',...
-                'Totally ignore folders.',...
-                'Yes, this is bilateral. Keep the files seperate in the sampling');
-            switch answer
-                case 'Yes, this is bilateral. Keep the files seperate in the sampling'
-                    individual_sampling = true;
-                    combineSubfolders = true;
-                case 'Totally ignore folders.'
-                    combineSubfolders = false;
-                    individual_sampling = true;
-                    insertionCounter=0;
-                otherwise
-                    individual_sampling = false;
-                    combineSubfolders = true;
-            end
-             answer_2 = questdlg('Are the files made of binary data? for example VTAs, lesions or binary tracts',...
-                'Arena',...
-                'Yes, they are binary files, please threshold to remove interpolation artifacts',...
-                'no, the files have grayvalues, do not threshold',...
-                'no, the files have grayvalues, do not threshold');
-            switch answer_2
-                case 'Yes, they are binary files, please threshold to remove interpolation artifacts'
-                    obj.BinarizeData =true;
-                otherwise
-                    obj.BinarizeData=false;
-            end
+                answer = questdlg('You have organized your data in subfolders. How should the folders be interpreted? Are you dealing with bilateral therapy?',...
+                    'Arena',...
+                    'Yes, this is bilateral. Keep the files seperate in the sampling',...
+                    'They can be safely merged and treated as one file',...
+                    'Totally ignore folders.',...
+                    'Yes, this is bilateral. Keep the files seperate in the sampling');
+                switch answer
+                    case 'Yes, this is bilateral. Keep the files seperate in the sampling'
+                        individual_sampling = true;
+                        combineSubfolders = true;
+                    case 'Totally ignore folders.'
+                        combineSubfolders = false;
+                        individual_sampling = true;
+                        insertionCounter=0;
+                    otherwise
+                        individual_sampling = false;
+                        combineSubfolders = true;
+                end
+                answer_2 = questdlg('Are the files made of binary data? for example VTAs, lesions or binary tracts',...
+                    'Arena',...
+                    'Yes, they are binary files, please threshold to remove interpolation artifacts',...
+                    'no, the files have grayvalues, do not threshold',...
+                    'no, the files have grayvalues, do not threshold');
+                switch answer_2
+                    case 'Yes, they are binary files, please threshold to remove interpolation artifacts'
+                        obj.BinarizeData =true;
+                    otherwise
+                        obj.BinarizeData=false;
+                end
             else
-                individual_sampling = false;  
+                individual_sampling = false;
                 combineSubfolders = true;
             end
             
@@ -460,6 +456,10 @@ classdef VoxelDataStack < handle
                 return
             end
             subfolders.name = 1;
+            printwhendone = {};
+            
+            quickLoad = nan; %it will be tested if quickload is possible. his will skip reslicing.
+            
             
             for i = 1:height(obj.Recipe)
                 
@@ -468,6 +468,9 @@ classdef VoxelDataStack < handle
                     for iFile = 1:numel(files)
                         
                         thisFile = fullfile(obj.Recipe.fullpath{i},files(iFile).name);
+                        
+                        
+                        
                         vd = VoxelData(thisFile);
                         if any(isnan(vd.Voxels(:)))
                             vd.Voxels(isnan(vd.Voxels)) = 0;
@@ -481,21 +484,24 @@ classdef VoxelDataStack < handle
                         cog = vd.getmesh(max(vd.Voxels(:))/3).getCOG;
                         if cog.x>1 && obj.Recipe.Move_or_keep_left(i)
                             vd.mirror;
+                            printwhendone{end+1} = ['____mirrored: ',thisFile];
+                        else
+                            printwhendone{end+1} = ['not_mirrored: ',thisFile];
                         end
                         
                         %Add subfolders together %% problematic if you want to do single sample tests.
                         %no Binarisation of files in case of bilateral therapy
                         if iFile==1
                             if obj.BinarizeData
-                            together = vd.warpto(obj.R).makeBinary(0.5);
+                                together = vd.warpto(obj.R).makeBinary(0.5);
                             else
-                              together=vd.warpto(obj.R); 
+                                together=vd.warpto(obj.R);
                             end
                         else
                             if obj.BinarizeData
-                            together = together+vd.warpto(obj.R).makeBinary(0.5);
+                                together = together+vd.warpto(obj.R).makeBinary(0.5);
                             else
-                            together = together+vd.warpto(obj.R);
+                                together = together+vd.warpto(obj.R);
                             end
                         end
                         
@@ -520,15 +526,44 @@ classdef VoxelDataStack < handle
                         id = obj.Recipe.folderID(i);
                     end
                 else
+                    %%----- this block has been silenced for safety. It can
+                    %%be used to speed up the process at the risk of
+                    %%loading the wrong data..
+                    %                     vd = [];
+                    %
+                    %                     %first iteration will run a test to see if quickloading
+                    %                     % is similar to slow loading (with reslicing)
+                    %                     if isnan(quickLoad)
+                    %                             vd_slow = VoxelData(obj.Recipe.fullpath{i});
+                    %                             vd_quick = VoxelData;
+                    %                             vd_quick.loadnii(obj.Recipe.fullpath{i},'true');
+                    %                             if round(corr(double(vd_quick.Voxels(:)),double(vd_slow.Voxels(:))),3)==1
+                    %                                 quickLoad = true;
+                    %                                 vd = vd_quick;
+                    %                             else
+                    %                                 quickLoad = false;
+                    %                                 vd = vd_slow;
+                    %                             end
+                    %                     end
+                    
+                    %                     if quickLoad && isempty(vd)
+                    %                         vd = VoxelData;
+                    %                         vd.loadnii(obj.Recipe.fullpath{i},'true') %skips reslicing
+                    %                     else
                     vd = VoxelData(obj.Recipe.fullpath{i});
+                    %                     end
+                    %------------
                     if any(isnan(vd.Voxels(:)))
                         vd.Voxels(isnan(vd.Voxels)) = 0;
                     end
                     
                     %Mirror to the left.
-                    cog = vd.getcog;
+                    cog = vd.getmesh(max(vd.Voxels(:))/3).getCOG;
                     if cog.x>1 && obj.Recipe.Move_or_keep_left(i)
                         vd.mirror;
+                        printwhendone{end+1} = ['____mirrored: ',obj.Recipe.fullpath{i}];
+                    else
+                        printwhendone{end+1} = ['not_mirrored: ',obj.Recipe.fullpath{i}];
                     end
                     obj.InsertVoxelDataAt(vd,i);
                     id = obj.Recipe.fileID(i);
@@ -541,6 +576,10 @@ classdef VoxelDataStack < handle
                     obj.LayerLabels{i} = id;
                 end
             end
+            disp('---')
+            cellfun(@disp,printwhendone)
+            disp('---')
+            disp('It is recommended to check the list above to see if mirroring was done correctly')
             
             
             function score_tag = getScoreTag(recipe)
@@ -558,74 +597,29 @@ classdef VoxelDataStack < handle
             end
         end
         
-        function obj = addNiiWithScore(obj,niiPath,score,flipped_niiPath) % i changed that, so that it adds the fliped things
+        function out = addNiiWithScore(obj,niiPath,score)
             
             if ischar(niiPath)
-
-
-
-
-            VD = VoxelData(niiPath);
-
+                VD = VoxelData(niiPath);
             elseif isa(niiPath,'VoxelData')
-
                 VD=niiPath;
-
-            else 
-
+            else
                 error('  "Mother of Got" (T.S)...your argument must be a path to nii or a VoxelData...people use your brains')
-
             end
-
+            
             [~,j] = size(obj.Voxels);
             
             if j == 0
                 obj.R = VD.R;
-            
             else
-
                 VD.warpto(obj);
-
             end
             obj.Voxels(:,j+1) = VD.Voxels(:);
             obj.Weights(j+1) = score;
-
-            if nargin == 4
-
-
-                if ischar(flipped_niiPath)
-
-
-                
-                Fl_VD = VoxelData(flipped_niiPath);
-
-                elseif isa(flipped_niiPath,'VoxelData')
-
-                    Fl_VD = flipped_niiPath;
-
-                else 
-
-                    error (' "Mother of Got" (T.S) ...your argument must be a path to nii or a VoxelData...people use your brains')
-
-                end
-                    
-
-                if j>0
-
-                Fl_VD.warpto(obj);
-
-                end
-
-               
-                obj.Fl_Voxels(:,j+1) = Fl_VD.Voxels(:);
-
-            end
-
-            
         end
-
-       
-            
+        
+        
+        
         function index(obj)
             disp('yes')
         end
@@ -641,9 +635,9 @@ classdef VoxelDataStack < handle
         function obj = InsertVoxelDataAt(obj,vd,index)
             sizeStack = size(obj.Voxels);
             if obj.issparse
-                 if ~length(obj.Voxels)==numel(vd.Voxels)
-                     vd = vd.warpto(obj);
-                 end
+                if ~length(obj.Voxels)==numel(vd.Voxels)
+                    vd = vd.warpto(obj);
+                end
             else
                 if ~any(sizeStack==0)
                     if any(not(numel(vd.Voxels)==max(sizeStack)))
@@ -657,9 +651,9 @@ classdef VoxelDataStack < handle
                 obj.insertSparse(vd.Voxels,index)
             elseif nnz(vd.Voxels)/numel(vd.Voxels) < 0.5 && obj.SparseOptimization
                 answer  = questdlg('It looks like your data consists of fibers or VTAs. Memory optimization can be applied. Do you want that?','Arena','yes, optimize','no','yes, optimize');
-                switch answer 
+                switch answer
                     case 'yes, optimize'
-                         obj.insertSparse(vd.Voxels,index)
+                        obj.insertSparse(vd.Voxels,index)
                     otherwise
                         obj.insertFull(vd.Voxels,index)
                         obj.SparseOptimization = false;
@@ -667,7 +661,7 @@ classdef VoxelDataStack < handle
             else
                 obj.insertFull(vd.Voxels,index);
             end
-                        
+            
         end
         
         function obj = insertFull(obj,v,i)
@@ -813,18 +807,18 @@ classdef VoxelDataStack < handle
             end
             
             %removed all obj.Raw related variables> removed form heatmap class
-%             raw.recipe = [];    
-%             raw.files = obj.LayerLabels;   
+            %             raw.recipe = [];
+            %             raw.files = obj.LayerLabels;
             [tmap,pmap,signedpmap] = obj.ttest();
             heatmap = Heatmap();
             heatmap.Tmap = tmap;
             heatmap.Pmap = pmap;
             heatmap.Signedpmap = signedpmap;
-%             heatmap.Raw = raw;
+            %             heatmap.Raw = raw;
             heatmap.Description = description;
             amap=obj.average;
             amap.Voxels=obj.reshape(amap.Voxels);
-            heatmap.Amap= amap;   
+            heatmap.Amap= amap;
             
             
         end
@@ -879,7 +873,7 @@ classdef VoxelDataStack < handle
             pmap = obj.reshape(p);
             tmap = obj.reshape(stat.tstat);
             signedpmap = (1-pmap)./sign(tmap);
-           
+            
             
             hm = Heatmap;
             hm.Tmap = VoxelData(tmap,obj.R);
@@ -890,11 +884,11 @@ classdef VoxelDataStack < handle
             
         end
         
-
+        
         
         function [tmap,pmap,signedpmap] = ttest(obj)
             
-           
+            
             serialized = obj.Voxels;
             
             
@@ -931,17 +925,17 @@ classdef VoxelDataStack < handle
         end
         
         function corr_values = corrWithVD(obj,vd)
-              
-              corr_values = [];
-              for iPatient = 1:numel(obj.Weights)
-                  thisPatient = obj.getVoxelDataAtPosition(iPatient);
-                  
-                  score = thisPatient.corr(vd,'Pearson');
-                  corr_values(iPatient) = score;
-              end
-              
+            
+            corr_values = [];
+            for iPatient = 1:numel(obj.Weights)
+                thisPatient = obj.getVoxelDataAtPosition(iPatient);
+                
+                score = thisPatient.corr(vd,'Pearson');
+                corr_values(iPatient) = score;
+            end
+            
         end
-          
+        
         function amap = average(obj,varargin)
             
             p=inputParser;
@@ -953,13 +947,13 @@ classdef VoxelDataStack < handle
             end
             averageVoxels = nanmean(obj.Voxels,2);
             
-            if ~isempty(varargin) && ~isempty(intersect(averageType,{'weighted_hazem'})) % only if varargin is empty, is the second statement 
+            if ~isempty(varargin) && ~isempty(intersect(averageType,{'weighted_hazem'})) % only if varargin is empty, is the second statement
                 averageVoxels=(obj.Voxels*obj.Weights')./nansum(obj.Voxels);
-            elseif ~isempty(varargin) && ~isempty(intersect(averageType,{'weighted_jonas_dangerous'})) 
+            elseif ~isempty(varargin) && ~isempty(intersect(averageType,{'weighted_jonas_dangerous'}))
                 averageVoxels = (obj.Voxels*obj.Weights')./nansum(obj.Voxels')';
-            elseif ~isempty(varargin) && ~isempty(intersect(averageType,{'weighted'})) 
+            elseif ~isempty(varargin) && ~isempty(intersect(averageType,{'weighted'}))
                 averageVoxels = (obj.Voxels*obj.Weights') / abs(sum(obj.Weights));
-            elseif ~isempty(varargin) && ~isempty(intersect(averageType,{'vtaweight'})) 
+            elseif ~isempty(varargin) && ~isempty(intersect(averageType,{'vtaweight'}))
                 %first binarize
                 v = obj.Voxels>0.5;
                 
@@ -977,9 +971,9 @@ classdef VoxelDataStack < handle
         end
         
         
-          
         
-
+        
+        
         function [tmap,pmap,signedpmap,bfmap] = ttest2(obj,varargin)
             
             p=inputParser;
@@ -999,9 +993,9 @@ classdef VoxelDataStack < handle
             
             
             p.KeepUnmatched=false;
-
-
-
+            
+            
+            
             
             if all(obj.Weights==0)
                 warning('All weights are set to 0. Skipping ttest')
@@ -1011,17 +1005,17 @@ classdef VoxelDataStack < handle
                 return
             end
             
-
+            
             serialized = obj.Voxels;
             serialized_sum  = sum(round(serialized),2); % takes the sum across all subjects
             serialized_width = size(serialized,2); %number of data points per voxel
-            relevantVoxels = find(and(serialized_sum>1,serialized_sum<serialized_width)); % excludes voxels that are almost empty across all subjects or that are filled across all subject 
+            relevantVoxels = find(and(serialized_sum>1,serialized_sum<serialized_width)); % excludes voxels that are almost empty across all subjects or that are filled across all subject
             t_voxels = zeros([length(serialized),1]); % all values assigned zeros including non relevenat voxels
-
-
+            
+            
             p_voxels = ones([length(serialized),1]); % all values assigned ones including non relevenat voxels
             if Bayes
-            bf_voxels= zeros([length(serialized),1]); % bf applied to all voxels including relevant and non relevant
+                bf_voxels= zeros([length(serialized),1]); % bf applied to all voxels including relevant and non relevant
             end
             disp(' ~running ttest2')
             for i =  relevantVoxels'
@@ -1043,12 +1037,12 @@ classdef VoxelDataStack < handle
                         bf_voxels(i) = bayes;
                     end
                 end
-              
+                
                 t_voxels(i) = t;
                 p_voxels(i) = p;
                 
-
-
+                
+                
                 
                 
                 if isnan(t)
@@ -1062,14 +1056,14 @@ classdef VoxelDataStack < handle
             tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
             pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
             signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
-
+            
             if Bayes
                 bfmap = VoxelData(reshape(bf_voxels,outputsize),obj.R);
             else
                 bfmap=[];
             end
-
-
+            
+            
         end
         
         
@@ -1079,8 +1073,8 @@ classdef VoxelDataStack < handle
             % this pipeline is based on the methods described in Annals of
             % Neurology paper Horn et al 2017
             
-
-
+            
+            
             
             if all(obj.Weights==0)
                 warning('All weights are set to 0. Skipping correlation. No rmap or cmap produced')
@@ -1091,7 +1085,7 @@ classdef VoxelDataStack < handle
                 error(['data is binary, correlation stats my be not the best choice,'...
                     ,'please use Tstats pipeline instead']);
             end
-             
+            
             serialized = obj.Voxels;
             filledvoxels=serialized>0;
             r_voxels = zeros([length(serialized),1]);
@@ -1108,7 +1102,7 @@ classdef VoxelDataStack < handle
                 
                 [rho] = corr(obj.Voxels(i,:)',obj.Weights');
                 r_voxels(i) = rho;
-              
+                
                 if isnan(rho)
                     disp('rho is nan')
                 end
@@ -1117,10 +1111,10 @@ classdef VoxelDataStack < handle
             
             outputsize = obj.R.ImageSize;
             rmap = VoxelData(reshape(r_voxels,outputsize),obj.R);
-           
+            
         end
-         
-   
+        
+        
         function obj = full(obj)
             if obj.issparse
                 v = full(obj.Voxels);
@@ -1241,15 +1235,31 @@ classdef VoxelDataStack < handle
     
     methods (Static)
         function R = getTemplateSpace(firstfile)
-            [selection,ok] = listdlg('PromptString','Select a template space:',...
-                'SelectionMode','single',...
-                'ListString',{...
+            %if first file is provided
+            if nargin==1
+                %get file size of first file
+                s = dir(firstfile);
+                filesizefirstfile = round(s.bytes/1024/1024); %mb
+                
+                [selection,ok] = listdlg('PromptString','Select a template space:',...
+                    'SelectionMode','single',...
+                    'ListString',{...
                     'Basal ganglia unilateral (0.25mm) - 34mb',...
                     'Basal ganglia bilateral (0.25mm) - 57 mb',...
                     'MNI 2009b (0.5mm) - 138mb',...
-                    'Use first file in recipe - ?mb',...
-                '[based on file]'},...
-                'ListSize',[250,100]);
+                    ['Use first file in recipe - ',num2str(filesizefirstfile),'mb'],...
+                    '[based on file]'},...
+                    'ListSize',[250,100]);
+            else
+                [selection,ok] = listdlg('PromptString','Select a template space:',...
+                    'SelectionMode','single',...
+                    'ListString',{...
+                    'Basal ganglia unilateral (0.25mm) - 34mb',...
+                    'Basal ganglia bilateral (0.25mm) - 57 mb',...
+                    'MNI 2009b (0.5mm) - 138mb',...
+                    '[based on file]'},...
+                    'ListSize',[250,100]);
+            end
             
             global arena
             root = arena.getrootdir;
