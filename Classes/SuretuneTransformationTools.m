@@ -93,7 +93,7 @@ classdef SuretuneTransformationTools
         function [names,regs] = getRegistrationlink(suretuneRegisterable)
             session = suretuneRegisterable.session;
             [regnames,types] = session.listregisterables;
-            labels  = cellfun(@(x) x.label,session.registerables.list,'UniformOutput',0);
+            %labels  = cellfun(@(x) x.label,session.registerables.list,'UniformOutput',0);
             atlas_indices = find(contains(types,'Atlas'));
             ImportedStructure_indices = find(contains(regnames,'ImportedStructure'));
             names = {};
