@@ -4093,7 +4093,16 @@ classdef ArenaScene < handle
                             end
                     end
                 end
-                info = table(name,actorType,nVoxels,voxelsize,cubicMM,minVoxelvalue,maxVoxelvalue)
+                Tablecomponents={name,actorType,nVoxels,voxelsize,cubicMM,minVoxelvalue,maxVoxelvalue};
+                for iComponent=1:numel(Tablecomponents)
+                    if numel(Tablecomponents{iComponent})< numel(Tablecomponents{1}) % use name to get maximum possible number of elements in a category e.g voxel size
+                       Tablecomponents{iComponent}((numel(Tablecomponents{iComponent})):numel(Tablecomponents{1}))=nan; % fill the missing values till end ( numel of names)with NaNs
+                    else
+                        continue
+                    end
+                end
+                info=table(Tablecomponents{:})
+%             
                 assignin('base','info',info);
                 
                 
