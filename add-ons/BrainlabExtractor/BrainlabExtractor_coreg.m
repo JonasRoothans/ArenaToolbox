@@ -9,7 +9,7 @@ function [outputArg1,outputArg2] = BrainlabExtractor_coreg(master,inputfolder,ou
         for i = 1:numel(filenames)
                 movable_fn =  fullfile(filenames(i).folder,filenames(i).name);
                 if contains(filenames(i).name,string(Excluded))
-                    copyfile(movable_fn ,fullfile(filenames(i).folder,['r_',filenames(i).name]))
+                    movefile(movable_fn ,fullfile(filenames(i).folder,['r_',filenames(i).name]))
                     continue
                 end
                 target =VoxelData(master);
