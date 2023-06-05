@@ -46,6 +46,10 @@ results_path = histoConfig.results;
         end
     end
     
+    if isempty(m_list)
+        disp('Fibers are loaded, but no meshes are found. You can load a recipe via the import menu. Then try again')
+        return
+    end
     
     %% run analysis
     output = [];
@@ -73,9 +77,32 @@ formula = strcat(varNames{end}, ' ~ ', strjoin(varNames(1:end-1), ' + '));
 % Fit a linear model
 mdl = fitlm(T, formula)
 
+anova_ = mdl.anova;
+include = anova_.pValue<0.05
+formula = strcat(varNames{end}, ' ~ ', strjoin(varNames(include), ' + '));
+mdl = fitlm(T, formula)
+
+useful = T.ansalenticularis500+T.M1cfface1k+T.M1cfupperex1k+T.M1hdpface100+T.M1hdpupperex100+T.PreMotorcf1k+T.PreMotorhdp100;
+T2 = T;
+T2(useful<1,:) = []
+
+
 Done;
     assignin('base','T',T)
     disp('all percentages are saved to workspace as ''T''')
     keyboard
+    
+    % Lasso, suggested by ChatGPT
+ X = output;
+ y = struct2array(m_scores)';
+ lambda = 1e-03;
+ 
+ % Perform feature selection using Lasso regression
+[B, FitInfo] = lasso(X, y, 'CV', 10,'PredictorNames',f_labels); % Lasso with alpha = 1 for L1 regularization
+%lassoPlot(B, FitInfo, 'PlotType', 'Lambda', 'XScale', 'log'); % Plot Lasso path
+
+% Find indices of selected fiber bundles based on nonzero coefficients
+minMSEModelPredictors = FitInfo.PredictorNames(B(:,idxLambdaMinMSE)~=0)
+
 
 end

@@ -68,8 +68,9 @@ classdef PredictionModel < handle
             obj.TrainingLinearModel
         end
         
-        function plotTraining(obj)
-            figure;
+        function f = plotTraining(obj)
+            f = figure;
+             set(f,'defaultTextInterpreter','none')
             if isempty(obj.TrainingLinearModel);return;end
             scatter(obj.TrainingLinearModel.Variables.y,...
                 obj.TrainingLinearModel.predict);
@@ -77,7 +78,21 @@ classdef PredictionModel < handle
             line(xlim,xlim,'Color','red','LineStyle','--')
             xlabel(obj.Heatmap.Tag)
             ylabel('Model prediction')
-            title({'LOO training model',['R^2:', num2str(obj.TrainingLinearModel.Rsquared.Ordinary)]})
+            title({'LOO training model',['Rsquared:', num2str(obj.TrainingLinearModel.Rsquared.Ordinary)]})
+        end
+        
+        function f = plotLOOCV(obj)
+            mdl = obj.LOOCV;
+            f = figure;
+             set(f,'defaultTextInterpreter','none')
+            
+            scatter(mdl.Variables.y,...
+                mdl.predict);
+            hold on;
+            line(xlim,xlim,'Color','red','LineStyle','--')
+            xlabel(obj.Heatmap.Tag)
+            ylabel('Model prediction')
+            title({'LOOCV',['Rsquared:', num2str(mdl.Rsquared.Ordinary)]})
         end
         
         function [prediction,predictors] = predictVoxelData(obj,VD)

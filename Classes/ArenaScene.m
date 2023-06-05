@@ -2676,17 +2676,8 @@ classdef ArenaScene < handle
                     e2.see(scene)
                     
                     
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
+                    %manually optimize lead placement.
+                    e1.LocateInImage(vd)
                     
                     
                 end
