@@ -165,7 +165,9 @@ methods(Static)
         
 %--- pop-up 3
         if ~isempty(filtersettings.secondaryMap)
-            options = {'Method 1: same UPDRS, FoG Improvement'};
+            options = {'Method 1: Same UPDRS as pre-op. (So 0% improvement)',...
+                        'Method 2a: Same as post-op (Using model score)',...
+                        'Method 2b: Same as post-op (Using clinical value, requires manual input)'};
             [indx] = listdlg('PromptString',{'Select postprocessing routine'},...
                                 'SelectionMode','single',...
                             'ListString',options,...
@@ -288,7 +290,7 @@ methods(Static)
     
     
     switch filterSettings.filter
-        case 'Method 1: same UPDRS, FoG Improvement'
+        case 'Method 1: Same UPDRS as pre-op. (So 0% improvement)'
             %settings
             lower_UPDRS = -40;
             upper_UPDRS = 40;
@@ -332,6 +334,55 @@ methods(Static)
             %add settigns left, right, score and filters
             %sort
             %print
+        case 'Method 2a: Same as post-op (Using model score)'
+            %--- settings:
+            margin = 10;%
+            
+      %----- gate 1: confidence check
+            confidence_primary = arrayfun(@(x) x.Confidence, predictionlist_fog,'UniformOutput',false);
+            PassedConfideceCheck_primary = all(cell2mat(confidence_primary')>filterSettings.confidence,2);
+            confidence_secondary = arrayfun(@(x) x.Confidence, predictionlist_fog,'UniformOutput',false);
+            PassedConfideceCheck_secondary = all(cell2mat(confidence_secondary')>filterSettings.confidence,2);
+            
+            PassedConfidence = and(PassedConfideceCheck_primary,PassedConfideceCheck_secondary);
+   %---- gate 2: same UPDRS
+            clinicalTherapy = filterSettings.Therapy;
+            [~, secondaryModelName] = fileparts(filterSettings.secondaryMap);
+            secondaryModel = eval(secondaryModelName);
+            disp('running clinical VTA through secondary model')
+            prediction = clinicalTherapy.executePrediction(secondaryModel);
+            
+            lower_UPDRS = prediction.Output - margin;
+            upper_UPDRS = prediction.Output + margin;
+            
+            
+            scores_secondary = arrayfun(@(x) x.Output, predictionlist_secondary);
+            PassedUPDRS = and(scores_secondary >= lower_UPDRS, scores_secondary <= upper_UPDRS);
+            
+        case 'Method 2b: Same as post-op (Using clinical value, requires manual input)'
+            %--- settings:
+            margin = 10;%
+            
+      %----- gate 1: confidence check
+            confidence_primary = arrayfun(@(x) x.Confidence, predictionlist_fog,'UniformOutput',false);
+            PassedConfideceCheck_primary = all(cell2mat(confidence_primary')>filterSettings.confidence,2);
+            confidence_secondary = arrayfun(@(x) x.Confidence, predictionlist_fog,'UniformOutput',false);
+            PassedConfideceCheck_secondary = all(cell2mat(confidence_secondary')>filterSettings.confidence,2);
+            
+            PassedConfidence = and(PassedConfideceCheck_primary,PassedConfideceCheck_secondary);
+   %---- gate 2: same UPDRS
+            prompt = {'Reference value:','Margin +/-: '};
+        dlgtitle = 'Add reference';
+        dims = [1 35];
+        definput = {'0','40'};
+        answer = inputdlg(prompt,dlgtitle,dims,definput);
+            
+            lower_UPDRS = str2num(answer{1}) - str2num(answer{2});
+            upper_UPDRS = str2num(answer{1}) + str2num(answer{2});
+            
+            
+            scores_secondary = arrayfun(@(x) x.Output, predictionlist_secondary);
+            PassedUPDRS = and(scores_secondary >= lower_UPDRS, scores_secondary <= upper_UPDRS);
             
     end
     % predictionlist_fog for the FOG map
