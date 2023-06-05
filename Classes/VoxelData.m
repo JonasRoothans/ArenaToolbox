@@ -1017,6 +1017,23 @@
             
         end
         
+            function subscript = pointToSubscript(obj,point)
+        % Convert the world coordinates to voxel indices
+        [x,y,z] = obj.R.worldToSubscript(point.x,point.y,point.z);
+
+        % Extract the subscript indices from the voxel indices
+        subscript = [x,y,z];
+
+            end
+        
+            function subscript = pointToIntrinsic(obj,point)
+                        % Convert the world coordinates to voxel indices
+        [x,y,z] = obj.R.worldToIntrinsic(point.x,point.y,point.z);
+
+        % Extract the subscript indices from the voxel indices
+        subscript = [x,y,z];
+            end
+        
         function binaryObj = makeBinaryPos(obj)
             if nargout==1
                 binaryObj = obj.copy;
@@ -1084,8 +1101,18 @@
             
         end
                 
-        function dims = size(obj)
-            dims = size(obj.Voxels);
+        function [dims,dims2,dims3] = size(obj)
+            if nargout==1
+                dims = size(obj.Voxels);
+            elseif nargout==3
+                dims123 = size(obj.Voxels);
+                dims= dims123(1);
+                dims2 = dims123(2);
+                dims3 = dims123(3);
+            else
+                error('wroing number of output arguments. Use 1 or 3.')
+            end
+            
         end
         function [CubicMM,voxelcount] = getCubicMM(obj,T)
             if not(all(islogical(obj.Voxels)))
