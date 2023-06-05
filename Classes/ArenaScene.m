@@ -2580,16 +2580,18 @@ classdef ArenaScene < handle
                 for iActor = 1:numel(currentActors)
                     
                     thisActor = currentActors(iActor);
-                    slaveCOG = thisActor.Data.parent.getcog;
+                    slave=thisActor.Data.parent.copy;
+%                     slaveCOG = thisActor.Data.parent.getcog;
+%                     
+%                     movecog = slaveCOG - targetcog;
+%                     slavecopy = thisActor.Data.parent.copy;
+%                     
+%                     slavecopy.R.XWorldLimits = slavecopy.R.XWorldLimits-movecog.x;
+%                     slavecopy.R.YWorldLimits = slavecopy.R.YWorldLimits-movecog.y;
+%                     slavecopy.R.ZWorldLimits = slavecopy.R.ZWorldLimits-movecog.z;
                     
-                    movecog = slaveCOG - targetcog;
-                    slavecopy = thisActor.Data.parent.copy;
-                    
-                    slavecopy.R.XWorldLimits = slavecopy.R.XWorldLimits-movecog.x;
-                    slavecopy.R.YWorldLimits = slavecopy.R.YWorldLimits-movecog.y;
-                    slavecopy.R.ZWorldLimits = slavecopy.R.ZWorldLimits-movecog.z;
-                    
-                    slavecopy.savenii(fullfile(tempin,[thisActor.Tag,'.nii']))
+%                     slavecopy.savenii(fullfile(tempin,[thisActor.Tag,'.nii']))
+                    slave.savenii(fullfile(tempin,[thisActor.Tag,'.nii']))
                     
                 end
                 
