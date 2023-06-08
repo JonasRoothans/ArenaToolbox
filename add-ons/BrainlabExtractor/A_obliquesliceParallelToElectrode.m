@@ -1,34 +1,37 @@
-function [B, x, y, z] = A_obliquesliceParallelToElectrode(VD, e, normal)
-    % convert e to point and pol
-    point = e.C0;
-    pol = e.getPOL;
-    normalpoint = point+normal*10;
- 
-   
-    % Convert the 3D point to subscript indices
-%     subscript = pointToIntrinsic(VD, point);
-%     subscriptPOL = pointToIntrinsic(VD, pol);
-%     subscriptnormalpoint = pointToIntrinsic(VD,normalpoint);
-%     
-%     normal = Vector3D(subscriptnormalpoint - subscript).unit();
+function [B_,Tslice2vd] = A_obliquesliceParallelToElectrode(VD, e, angle)
 
-subscript = point.getArray;
+    T = e.getTransformFromRoot;
+    TtoIntrinsic = VD.getTransformToIntrinsic;
 
+    switch angle
+        case 'cor'
+            [x,y,z] = meshgrid(-25:1:25,0,-10:1:40);
+            TfromslicetoLeadSpace = zeros(4);
+            TfromslicetoLeadSpace(4,4) =1;
+            TfromslicetoLeadSpace(1,1) = 1;
+            TfromslicetoLeadSpace(2,3) = 1;
+            TfromslicetoLeadSpace(4,1) = -26;
+            TfromslicetoLeadSpace(4,3) = -10;
+        case 'sag'
+            [x,y,z] = meshgrid(0,-25:1:25,-10:1:40);
+            TfromslicetoLeadSpace = zeros(4);
+            TfromslicetoLeadSpace(4,4) =1;
+            TfromslicetoLeadSpace(1,2) = 1;
+            TfromslicetoLeadSpace(2,3) = 1;
+            TfromslicetoLeadSpace(4,2) = -77;
+            TfromslicetoLeadSpace(4,3) = -10;
+    end
+    
+    Tslice2vd = TfromslicetoLeadSpace*T;
+    %transform to worldspace
+    c_electrode = [x(:),y(:),z(:),ones(size(x(:),1),1)];
+    c_intrinsic = c_electrode * T*TtoIntrinsic;
+    
 
     
-    %set margin
-    margin = 100;
-
-    % Generate a grid of coordinates for the output slice
-    [x, y] = meshgrid(subscript(1I'm)-margin/2:subscript(1)+margin/2,...
-        subscript(2)-margin/2:subscript(2)+margin/2);
-
-    % Calculate the z-coordinate of the output slice
-    z = (subscript(3)) * ones(size(x));
-
-    % Compute the distance of each voxel to the plane
-    distances = (x - subscript(1)) * normal.x + (y - subscript(2)) * normal.y + (z - subscript(3)) * normal.z;
-
-    % Interpolate the slice values from the input volume
-    B = interp3(VD.Voxels, x, y, z + distances, 'linear', 0);
+    B = interp3(VD.Voxels, c_intrinsic(:,1), c_intrinsic(:,2), c_intrinsic(:,3), 'linear', 0);
+    B_ = reshape(B,size(squeeze(x)));
+    
+    %figure;imagesc(B_);
+   
 end

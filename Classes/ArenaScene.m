@@ -2664,7 +2664,7 @@ classdef ArenaScene < handle
                     
                     e1.PointOnLead(Vector3D([pol1,pol2,pol3]))
                     e1.C0 = e1.C0+e1.Direction/2;
-                    e1.see(scene)
+                    a1 = e1.see(scene);
                     
                     %e2
                     step = makeStepFrom(skeletonpoints,tip2,10);
@@ -2673,12 +2673,17 @@ classdef ArenaScene < handle
                     
                     e2.PointOnLead(Vector3D([pol1,pol2,pol3]))
                     e2.C0 = e2.C0+e2.Direction/2;
-                    e2.see(scene)
+                    a2 = e2.see(scene);
                     
                     
                     %manually optimize lead placement.
-                    e1.LocateInImage(vd)
+                    waitfor(e1.LocateInImage(vd))
                     
+                     waitfor(e2.LocateInImage(vd))
+                     
+                     a1.updateActor;
+                     a2.updateActor;
+                     
                     
                 end
                 function point = makeStepFrom(skeletonpoints,from,l)

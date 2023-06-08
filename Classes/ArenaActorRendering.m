@@ -755,6 +755,9 @@ classdef ArenaActorRendering < handle
                         
                     end
                 end
+                %update actor class
+                actor.Visualisation.handle = handle;
+                actor.Visualisation.settings = settings;
             end
             
             function [settings,loadDefaultSettings] = loadDefaultSettingsWhenNoSettingsAreProvided(settings)

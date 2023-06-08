@@ -755,6 +755,26 @@
             obj.Voxels(x,y,z) = value;
         end
         
+        function T = getTransformToIntrinsic(obj)
+            T = inv(obj.getTransformToWorld);
+        end
+        
+        function T = getTransformToWorld(obj)
+             T = zeros(4);
+            T(1,1) = obj.R.PixelExtentInWorldX;
+            T(2,2) = obj.R.PixelExtentInWorldY;
+            T(3,3) = obj.R.PixelExtentInWorldZ;
+            T(4,4) = 1;
+            
+            x = obj.R.XWorldLimits(1)-0.5 * T(1,1);
+            y = obj.R.YWorldLimits(1)-0.5 * T(2,2);
+            z = obj.R.ZWorldLimits(1)-0.5 * T(3,3);
+            
+            T(4,1:3) = [x,y,z]';
+        end
+            
+        
+        
         function Vq = getValueAtWorldLocation(obj,location)
              if isa(location,'Vector3D')
                 location = location.getArray();
