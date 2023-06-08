@@ -1,44 +1,41 @@
 function interactivePointFigure(vd,e)
 
 
-% Assuming you have the voxeldata object (vd) and the two 3D points (point1 and point2)
-point = e.C0; 
-normalVector = cross(Vector3D(0,0,1),e.Direction);
-
-
-% Extract the 2D slice within the bounding box
-[backgroundImage,xWorld,yWorld,zWorld] = A_obliquesliceParallelToElectrode(vd,e, normalVector);
-
-%extract lead locations in backgroundimagespace;
-center = vd.pointToSubscript(point);
-PointOnLead = vd.pointToSubscript(e.getPOL);
 
     % Create a figure and axes
     fig = figure;
     ax = axes('Parent', fig);
     hold on;
-    imagesc(backgroundImage)
-    set(gca, 'YDir', 'normal');
+    
+    %make cross-section
+    Tcor = eye(4);
+    Tsag = eye(4);
+    updateSlice()
+    
+    %create CoronalElectrode
+    
+    %coronal = drawElectrode()
+
     
     % Set aspect ratio to be equal
 axis equal;
 
     % Set up initial point positions
-    initialPositions = [100, 100; 150, 150];
+    initialPositions = [25, 10; 25, 30];
     scaling = 20;
     delta = 0.05*scaling; % Distance from the central line
-    deltaDepth = 0.2*scaling;
-    depthLineLength = 0.2*scaling;
+    deltaDepth = 0.4*scaling;
+    depthLineLength = 0.6*scaling;
 
     % Create point scatter plots
     numPoints = size(initialPositions, 1);
     points = gobjects(numPoints, 1);
     for i = 1:numPoints
-        points(i) = scatter(ax, initialPositions(i, 1), initialPositions(i, 2), 'ro', 'MarkerFaceColor', 'none');
+        points(i) = scatter(ax, initialPositions(i, 1), initialPositions(i, 2), 'go', 'MarkerFaceColor', 'none');
     end
 
     % Create initial line between the two points
-    lineObj = line(ax, initialPositions(:, 1), initialPositions(:, 2), 'Color', 'k', 'LineStyle', '-');
+    lineObj = line(ax, initialPositions(:, 1), initialPositions(:, 2), 'Color', 'y', 'LineStyle', '-');
 
     % Calculate the direction vector of the central line
     directionVector = [points(2).XData - points(1).XData, points(2).YData - points(1).YData];
@@ -54,8 +51,8 @@ axis equal;
     parallelLine2YCoordinates = [points(1).YData - 0 * perpendicularVector(2), points(2).YData - 0 * perpendicularVector(2)];
 
     % Create parallel lines
-    parallelLine1 = line(ax, parallelLine1XCoordinates, parallelLine1YCoordinates, 'Color', 'k', 'LineStyle', '-');
-    parallelLine2 = line(ax, parallelLine2XCoordinates, parallelLine2YCoordinates, 'Color', 'k', 'LineStyle', '-');
+    parallelLine1 = line(ax, parallelLine1XCoordinates, parallelLine1YCoordinates, 'Color', 'g', 'LineStyle', '-');
+    parallelLine2 = line(ax, parallelLine2XCoordinates, parallelLine2YCoordinates, 'Color', 'g', 'LineStyle', '-');
     
 
 
@@ -67,7 +64,7 @@ depthLineXCoordinates = [centerDepthLine(1)- deltaDepth * perpendicularVector(1)
 depthLineYCoordinates = [centerDepthLine(2)- deltaDepth * perpendicularVector(1), centerDepthLine(2)+ deltaDepth * perpendicularVector(1)];
 
     % Initialize the depth line
-depthLine = line(ax, depthLineXCoordinates, depthLineYCoordinates, 'Color', 'm', 'LineStyle', '-');
+depthLine = line(ax, depthLineXCoordinates, depthLineYCoordinates, 'Color', 'g', 'LineStyle', '-');
 
 updateDepthLine()
 
@@ -100,14 +97,37 @@ updateDepthLine()
 
         % Reset the closest point
         set(points(closestPointIndex), 'MarkerFaceColor', 'none');
+        
+        %calculate the distance between points:
+        allPoints = [points(1).XData,points(1).YData;points(2).XData,points(2).YData];
+        distance = sqrt(sum(diff(allPoints).^2));
+        
+        %new image
+        allPoints(:,[3,4])= [0,1;0,1];
+        allPointsWorld = allPoints*Tcor;
+        
+        [~, lowestPointIndex] = min(allPointsWorld(:,3));
+
+        e.C0 = allPointsWorld(lowestPointIndex,[1 2 3]);
+        e.PointOnLead(allPointsWorld(3-lowestPointIndex,[1 2 3]))
+        
+        updateSlice()
+        
+        
+        %reset
+        points(1).XData = 25;
+        points(1).YData = 10;
+        points(2).XData = 25;
+        points(2).YData = 10+distance;
+        
     end
 
 % Mouse move callback function
 function mouseMoveCallback(~, ~)
     if isButtonPressed
         currentPoint = ax.CurrentPoint(1, 1:2);
-        if norm([points(1).XData - currentPoint(1), points(1).YData - currentPoint(2)]) > 1*scaling && ...
-           norm([points(2).XData - currentPoint(1), points(2).YData - currentPoint(2)]) > 1*scaling
+        if norm([points(1).XData - currentPoint(1), points(1).YData - currentPoint(2)]) > 0.2*scaling && ...
+           norm([points(2).XData - currentPoint(1), points(2).YData - currentPoint(2)]) > 0.2*scaling
             delta = currentPoint - previousPoint; % Calculate the change in cursor position
             points(1).XData = points(1).XData + delta(1);
             points(1).YData = points(1).YData + delta(2);
@@ -188,6 +208,21 @@ function updateDepthLine()
     % Update the position of the depth line
     set(depthLine, 'XData', [depthLineStart(1), depthLineEnd(1)], 'YData', [depthLineStart(2), depthLineEnd(2)]);
 end
+
+    function updateSlice()
+        
+            % Extract the 2D slice within the bounding box
+            [backgroundImageCor,Tcor] = A_obliquesliceParallelToElectrode(vd,e, 'cor');
+            [backgroundImageSag,Tsag] = A_obliquesliceParallelToElectrode(vd,e, 'sag');
+            
+            if numel(ax.Children)>0
+                ax.Children(end).CData = cat(2,fliplr(rot90(backgroundImageCor,3)),fliplr(rot90(backgroundImageSag,3)));
+            else
+                imagesc(cat(2,fliplr(rot90(backgroundImageCor,3)),fliplr(rot90(backgroundImageSag,3))))
+            end
+            set(gca, 'YDir', 'normal');
+            colormap(bone)
+    end
 
 
 
