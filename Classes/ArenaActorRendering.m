@@ -297,7 +297,9 @@ classdef ArenaActorRendering < handle
                 
                 if isempty(obj.Connectome)
                     visualizeFibers_fromFile()
-                    settings.numberOfFibers = sum(settings.numberOfFibers>0.5);
+                    if numel(settings.numberOfFibers)>1
+                        settings.numberOfFibers = sum(settings.numberOfFibers>0.5);
+                    end
                 else
                     visualizeFibers_fromConnectome();
                     settings.numberOfFibers = sum(obj.Indices>0.5);
@@ -753,6 +755,9 @@ classdef ArenaActorRendering < handle
                         
                     end
                 end
+                %update actor class
+                actor.Visualisation.handle = handle;
+                actor.Visualisation.settings = settings;
             end
             
             function [settings,loadDefaultSettings] = loadDefaultSettingsWhenNoSettingsAreProvided(settings)

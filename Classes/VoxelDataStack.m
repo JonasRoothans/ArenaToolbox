@@ -385,9 +385,19 @@ classdef VoxelDataStack < handle
             
             if nargin==2
                 if isempty(obj.R)
+                    if ischar(recipe)
+                        obj.RecipePath  = recipe;
+                        recipe = readtable(obj.RecipePath);
+                    else
+                        %to be finished later.. please fix.
+                        keyboard
+                    end
                     firstfile = recipe.fullpath{1};
-                    obj.RecipePath=recipe;
-                    obj.R = VoxelDataStack.getTemplateSpace(firstfile);
+                    if isfolder(firstfile)
+                        obj.R = VoxelDataStack.getTemplateSpace();
+                    else
+                        obj.R = VoxelDataStack.getTemplateSpace(firstfile);
+                    end
                 end
             end
             

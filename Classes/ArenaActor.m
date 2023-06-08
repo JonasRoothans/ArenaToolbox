@@ -91,6 +91,12 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         
         function updateActor(obj,scene,settings)
             
+            if nargin==1
+                scene = obj.Scene;
+                settings = obj.Visualisation.settings;
+            end
+            
+            
             if not(or(or(isa(obj.Data,'Slicei'),...
                     isa(obj.Data,'Fibers')),...
                     isa(obj.Data,'Contour')))

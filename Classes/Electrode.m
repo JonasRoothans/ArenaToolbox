@@ -174,6 +174,13 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
             
             AC_location = obj.C0 + obj.Direction * mean(find(AC)-1) * obj.contactSpacing;
         end
+        
+        function f = LocateInImage(obj,vd)
+            f = interactivePointFigure(vd,obj)
+            
+            
+        end
+            
        
     end
 end

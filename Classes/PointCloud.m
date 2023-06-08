@@ -71,6 +71,8 @@ classdef PointCloud < ArenaActorRendering
         end
         
         
+
+        
         function obj = set.Vectors(obj,vectors)
             switch class(vectors)
                 case 'Vector3D'
