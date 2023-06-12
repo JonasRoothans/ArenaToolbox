@@ -5,21 +5,24 @@ ax = axes('Parent', fig);
 axis off
 hold on;
 
+
 %make cross-section
-Tcor = eye(4);
-Tsag = eye(4);
+ImCor = [];
+ImSag = [];
 updateSlice()
 
 %create electrodes and append the transormationmatrix
-scaling = 1;
+scaling = 1/ImCor.pxl;
 delta = 1; % Distance from the central line
 deltaDepth = 8*scaling;
 depthLineLength = 12*scaling;
-tipoffset = 1;
-Ecor = drawElectrode(26); %x coordinate
-Esag = drawElectrode(77);
-Ecor.T = Tcor;
-Esag.T = Tsag;
+tipoffset = 1*scaling;
+Ecor = drawElectrode(ImCor.LeadPos); %x coordinate
+Esag = drawElectrode(ImSag.LeadPos);
+Ecor.T = ImCor.T;
+Esag.T = ImSag.T;
+Ecor.Tintrinsic = ImCor.Tintrinsic;
+Esag.Tintrinsic = ImSag.Tintrinsic;
 
 
 
@@ -39,9 +42,11 @@ axis equal;
 
 set(fig, 'WindowState', 'maximized');
 
-    function handles = drawElectrode(x)
+    function handles = drawElectrode(leadpos)
+        x = leadpos(1);
+        y = leadpos(2);
         % Set up initial point positions
-        initialPositions = [x, 10; x, 30];
+        initialPositions = [x, y; x, y+20*scaling];
         
         % Create point scatter plots
         numPoints = size(initialPositions, 1);
@@ -61,9 +66,9 @@ set(fig, 'WindowState', 'maximized');
         
         % Calculate the parallel lines coordinates
         
-        parallelLine1XCoordinates = [points(1).XData + delta, points(2).XData + delta];
+        parallelLine1XCoordinates = [points(1).XData + delta*scaling, points(2).XData + delta*scaling];
         parallelLine1YCoordinates = [points(1).YData, points(2).YData];
-        parallelLine2XCoordinates = [points(1).XData - delta, points(2).XData - delta];
+        parallelLine2XCoordinates = [points(1).XData - delta*scaling, points(2).XData - delta*scaling];
         parallelLine2YCoordinates = [points(1).YData, points(2).YData];
         
         % Create parallel lines
@@ -99,12 +104,14 @@ set(fig, 'WindowState', 'maximized');
 
     function [points,handles] = getPointsAndHandles()
         currentPoint = ax.CurrentPoint(1, 1:2);
-        if currentPoint(1)<50
+        if currentPoint(1)<51*scaling
             points = Ecor.points;
             handles = Ecor;
+            disp('Cor')
         else
             points = Esag.points;
             handles = Esag;
+            disp('Sag')
         end
     end
 
@@ -135,15 +142,15 @@ set(fig, 'WindowState', 'maximized');
         
         
         %reset
-        Ecor.points(1).XData = 26;
-        Ecor.points(1).YData = 10;
-        Ecor.points(2).XData = 26;
-        Ecor.points(2).YData = 10+distance;
+        Ecor.points(1).XData = ImCor.LeadPos(1);
+        Ecor.points(1).YData = ImCor.LeadPos(2);
+        Ecor.points(2).XData = ImCor.LeadPos(1);
+        Ecor.points(2).YData = ImCor.LeadPos(2)+distance;
         
-        Esag.points(1).XData= 77;
-        Esag.points(1).YData = 10;
-        Esag.points(2).XData = 77;
-        Esag.points(2).YData = 10+distance;
+        Esag.points(1).XData= ImSag.LeadPos(1);
+        Esag.points(1).YData = ImSag.LeadPos(2);
+        Esag.points(2).XData = ImSag.LeadPos(1);
+        Esag.points(2).YData = ImSag.LeadPos(2)+distance;
         
         mouseMoveCallback()
         
@@ -152,7 +159,7 @@ set(fig, 'WindowState', 'maximized');
 % Mouse move callback function
     function mouseMoveCallback(~, ~)
 
-            if ax.CurrentPoint(1,1)<50
+            if ax.CurrentPoint(1,1)<51*scaling
                 points = Ecor.points;
                 handles = Ecor;
                 
@@ -216,7 +223,7 @@ set(fig, 'WindowState', 'maximized');
 
 % Function to get the current positions of the points
     function positions = getPointPositions()
-            if ax.CurrentPoint(1, 1)<50
+            if ax.CurrentPoint(1, 1)<51*scaling
                 points = Ecor.points;
             else 
                 points = Esag.points;
@@ -257,12 +264,25 @@ set(fig, 'WindowState', 'maximized');
     function updateSlice()
         
         % Extract the 2D slice within the bounding box
-        [backgroundImageCor,Tcor] = A_obliquesliceParallelToElectrode(vd,e, 'cor');
-        [backgroundImageSag,Tsag] = A_obliquesliceParallelToElectrode(vd,e, 'sag');
+        [backgroundImageCor,Tcor,TintrinsicCor] = A_obliquesliceParallelToElectrode(vd,e, 'cor');
+        [backgroundImageSag,Tsag,TintrinsicSag] = A_obliquesliceParallelToElectrode(vd,e, 'sag');
+        
+        %pxl size
+        
+         
         
         try
-            Ecor.T = Tcor;
-            Esag.T = Tsag;
+            ImCor.T = Tcor;
+            ImSag.T = Tsag;
+            ImCor.LeadPos = abs(TintrinsicCor(4,[1,3]));
+            ImSag.LeadPos = abs(TintrinsicSag(4,[2,3]));
+            ImCor.pxl = max(max(TintrinsicCor(1:3,1:3)));
+            ImSag.pxl = max(max(TintrinsicSag(1:3,1:3)));
+            ImCor.Tintrinsic = TintrinsicCor;
+            ImSag.Tintrinsic = TintrinsicSag;
+            
+            
+            
         catch
         end
 
