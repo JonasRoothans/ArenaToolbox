@@ -18,7 +18,7 @@ function [outputArg1,outputArg2] = BrainlabExtractor_coreg(master,inputfolder,ou
                 targetCOG = target.getcog;
                 movecog = movableCOG - targetCOG;
                 
-                if any((movecog.x || movcog.y  || movecog.z) > 4)
+                if any((movecog.x || movecog.y  || movecog.z) > 4)
                     movablecopy=movable.copy;
                     continue
                 else
