@@ -3,7 +3,15 @@ function fig = interactivePointFigure(vd,e)
 fig = figure;
 ax = axes('Parent', fig);
 axis off
+
+% Set aspect ratio to be equal
+axis equal;
+
 hold on;
+
+%user settings:
+vxl = 0.25; %voxelsize
+drawDepth = 0; %perpindicular line at C0
 
 % Initialize variables
 isButtonPressed = false;
@@ -11,23 +19,23 @@ closestPointIndex = 0;
 previousPoint = 0;
 mouseIsLeft = 1;
 
+
 %make cross-section
 ImCor = [];
 ImSag = [];
-vxl = 0.25;
 updateSlice()
 
+%draw electrode geometry
 p = plotPatch();
 p_init = {p.Vertices};
 updatePatch
 
 
 
-%create electrodes and append the transormationmatrix
-
+%create electrodes and append the transormationmatrix to electrode data
 scaling = 1/vxl;
 delta = 1; % Distance from the central line
-drawDepth = 0;
+
 deltaDepth = 8*scaling;
 depthLineLength = 12*scaling;
 tipoffset = 1*scaling;
@@ -45,12 +53,7 @@ set(fig, 'WindowButtonDownFcn', @mouseDownCallback);
 set(fig, 'WindowButtonUpFcn', @mouseUpCallback);
 set(fig, 'KeyPressFcn', @(src, event) closeFigureOnEnter(src, event))
 
-
-% Mouse down callback function
-
-% Set aspect ratio to be equal
-axis equal;
-
+%maximize window
 set(fig, 'WindowState', 'maximized');
 
     function handles = drawElectrode(leadpos)
