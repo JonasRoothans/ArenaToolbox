@@ -5,15 +5,29 @@ ax = axes('Parent', fig);
 axis off
 hold on;
 
+% Initialize variables
+isButtonPressed = false;
+closestPointIndex = 0;
+previousPoint = 0;
+mouseIsLeft = 1;
 
 %make cross-section
 ImCor = [];
 ImSag = [];
+vxl = 0.25;
 updateSlice()
 
+p = plotPatch();
+p_init = {p.Vertices};
+updatePatch
+
+
+
 %create electrodes and append the transormationmatrix
-scaling = 1/ImCor.pxl;
+
+scaling = 1/vxl;
 delta = 1; % Distance from the central line
+drawDepth = 0;
 deltaDepth = 8*scaling;
 depthLineLength = 12*scaling;
 tipoffset = 1*scaling;
@@ -31,10 +45,7 @@ set(fig, 'WindowButtonDownFcn', @mouseDownCallback);
 set(fig, 'WindowButtonUpFcn', @mouseUpCallback);
 set(fig, 'KeyPressFcn', @(src, event) closeFigureOnEnter(src, event))
 
-% Initialize variables
-isButtonPressed = false;
-closestPointIndex = 0;
-previousPoint = 0;
+
 % Mouse down callback function
 
 % Set aspect ratio to be equal
@@ -76,7 +87,7 @@ set(fig, 'WindowState', 'maximized');
         handles.parallelLine2 = line(ax, parallelLine2XCoordinates, parallelLine2YCoordinates, 'Color', 'r', 'LineStyle', '-');
         
         
-        
+        if drawDepth
         % Set the initial position of the depth line
         [~, lowestPoint ]= min([points(1).YData, points(2).YData]);
         centerDepthLine = [points(lowestPoint).XData,points(lowestPoint).YData];
@@ -86,8 +97,8 @@ set(fig, 'WindowState', 'maximized');
         
         % Initialize the depth line
         handles.depthLine = line(ax, depthLineXCoordinates, depthLineYCoordinates, 'Color', 'r', 'LineStyle', '-');
+        end
         handles.points = points;
-        updateDepthLine(handles)
     end
 
     function mouseDownCallback(~, ~)
@@ -103,8 +114,14 @@ set(fig, 'WindowState', 'maximized');
     end
 
     function [points,handles] = getPointsAndHandles()
+        %update the Electrode structures with imaging structures
+        Ecor.T = ImCor.T;
+        Esag.T = ImSag.T;
+        Ecor.Tintrinsic = ImCor.Tintrinsic;
+        Esag.Tintrinsic = ImSag.Tintrinsic;
+        
         currentPoint = ax.CurrentPoint(1, 1:2);
-        if currentPoint(1)<51*scaling
+        if currentPoint(1)<(50*scaling)+1
             points = Ecor.points;
             handles = Ecor;
             disp('Cor')
@@ -159,13 +176,21 @@ set(fig, 'WindowState', 'maximized');
 % Mouse move callback function
     function mouseMoveCallback(~, ~)
 
-            if ax.CurrentPoint(1,1)<51*scaling
+            if ax.CurrentPoint(1,1)<(50*scaling+1)
                 points = Ecor.points;
                 handles = Ecor;
+                if ~mouseIsLeft
+                    resetPatch
+                    mouseIsLeft = 1;
+                end
                 
             else
                 points = Esag.points;
                 handles = Esag;
+                if mouseIsLeft
+                    resetPatch
+                    mouseIsLeft = 0;
+                end
             end
             if isButtonPressed
                 currentPoint = ax.CurrentPoint(1, 1:2);
@@ -183,6 +208,12 @@ set(fig, 'WindowState', 'maximized');
                     points(closestPointIndex).XData = currentPoint(1);
                     points(closestPointIndex).YData = currentPoint(2);
                 end
+                
+                %Transform Coronal
+                T = eye(3);
+                
+                updatePatch(handles)
+                
             else
                 % Check distance to fill/reset the point
                 currentPoint = ax.CurrentPoint(1, 1:2);
@@ -216,6 +247,8 @@ set(fig, 'WindowState', 'maximized');
             % Update the depth line position when dragging the points
             updateDepthLine(handles);
             
+            
+            
             % Store the current cursor position for the next iteration
             previousPoint = currentPoint;
     end
@@ -223,7 +256,7 @@ set(fig, 'WindowState', 'maximized');
 
 % Function to get the current positions of the points
     function positions = getPointPositions()
-            if ax.CurrentPoint(1, 1)<51*scaling
+            if ax.CurrentPoint(1, 1)<(50*scaling+1)
                 points = Ecor.points;
             else 
                 points = Esag.points;
@@ -236,7 +269,7 @@ set(fig, 'WindowState', 'maximized');
 
 % Function to update the position of the depth line
     function updateDepthLine(handles)
-        
+        if drawDepth
         points = handles.points;
         % Find the index of the lowest point
         [~, lowestPointIndex] = min([points(1).YData, points(2).YData]);
@@ -259,42 +292,48 @@ set(fig, 'WindowState', 'maximized');
         
         % Update the position of the depth line
         set(handles.depthLine, 'XData', [depthLineStart(1), depthLineEnd(1)], 'YData', [depthLineStart(2), depthLineEnd(2)]);
+        end
     end
 
     function updateSlice()
         
         % Extract the 2D slice within the bounding box
-        [backgroundImageCor,Tcor,TintrinsicCor] = A_obliquesliceParallelToElectrode(vd,e, 'cor');
-        [backgroundImageSag,Tsag,TintrinsicSag] = A_obliquesliceParallelToElectrode(vd,e, 'sag');
+        [backgroundImageCor,Tcor,TintrinsicCor] = A_obliquesliceParallelToElectrode(vd,e, 'cor',vxl);
+        [backgroundImageSag,Tsag,TintrinsicSag] = A_obliquesliceParallelToElectrode(vd,e, 'sag',vxl);
         
-        %pxl size
+        %correction for sticking the figures next to each other
+        TjoinCorrection = eye(4);
+        TjoinCorrection(4,1) = -size(backgroundImageSag,1);
         
-         
         
-        try
+        
             ImCor.T = Tcor;
-            ImSag.T = Tsag;
-            ImCor.LeadPos = abs(TintrinsicCor(4,[1,3]));
-            ImSag.LeadPos = abs(TintrinsicSag(4,[2,3]));
-            ImCor.pxl = max(max(TintrinsicCor(1:3,1:3)));
-            ImSag.pxl = max(max(TintrinsicSag(1:3,1:3)));
+            ImSag.T = TjoinCorrection*Tsag;
+            ImCor.LeadPos = abs(TintrinsicCor(4,[1,3]))/vxl;
+            ImSag.LeadPos = (abs(TintrinsicSag(4,[2,3]))/vxl+[size(backgroundImageCor,1),0]); %last term corrects for joining the figures.
             ImCor.Tintrinsic = TintrinsicCor;
             ImSag.Tintrinsic = TintrinsicSag;
             
             
             
-        catch
-        end
+
 
         im = cat(2,fliplr(rot90(backgroundImageCor,3)),fliplr(rot90(backgroundImageSag,3)));
-        imlog = log(im-min(im(:))+1);
+        %imlog = log(im-min(im(:))+1);
         if numel(ax.Children)>0
-            ax.Children(end).CData = imlog;
+            ax.Children(end).CData = im;%imlog;
         else
-            imagesc(imlog)
+            imagesc(im);%or imlog
         end
         set(gca, 'YDir', 'normal');
         colormap(bone)
+        
+        %reset geometry
+        try
+            resetPatch()
+        catch
+            %no geometry exists at initialisation
+        end
     end
 
 % Function to close the figure on Enter key press
@@ -304,6 +343,109 @@ function closeFigureOnEnter(~, event)
     end
 end
 
+    function updatePatch(handles)
+        
+        if nargin==0 %at init
+            
+                    T = eye(3)*1/vxl;
+                    T(3,3) = 1;
+                    T(3,1) = 25/vxl+1;
+                    T(3,2) = 10/vxl;
+            try
+                if ax.CurrentPoint(1, 1)>(50*scaling)+1
+                    T(3,1) = T(3,1) + 50*scaling+1;
+                end
+            catch
+                %no scaling known at init
+            end
+
+                    arrayfun(@(x) transformP(x,T),p)
+        else
+        
+            
+            p1 = [handles.points(1).YData,handles.points(1).XData];
+            p2 = [handles.points(2).YData,handles.points(2).XData];
+            
+            % Calculate the slope of the line
+            slope = (p2(2) - p1(2)) / (p2(1) - p1(1));
+            
+            % Calculate the angle between the line and the positive y-axis
+            angle = -atan(slope);
+
+            % Calculate the translation vector
+            translation = p1([2 1]);
+
+            % Create the transformation matrix
+            T = [cos(angle), -sin(angle), translation(1);
+                 sin(angle), cos(angle),  translation(2);
+                 0,          0,           1];
+             
+             T_scaling = diag([1/vxl 1/vxl 1]);
+             
+             Ttotal = T*T_scaling;
+             for i = 1:numel(p_init)
+                 transformP(p(i),Ttotal',p_init{i})
+             end
+                 
+             
+             
+             
+            
+            
+        end
+         function transformP(Pi,T,PiV)
+             if nargin==2
+                transformed = [Pi.Vertices,ones(size(Pi.Vertices,1),1)]*T;
+             else
+                 transformed = [PiV,ones(size(PiV,1),1)]*T;
+             end
+            Pi.Vertices = transformed(:,[1,2]);
+             
+        end
+        
+    end
+
+    function resetPatch()
+        %first draw in origin
+        for i = 1:numel(p_init)
+                 p(i).Vertices = p_init{i};
+        end
+        
+        %then warp to center of window
+         updatePatch
+    end
+
+    function p = plotPatch()
+        c0 = [0 0];
+        up = [0 1];
+        spacing = 2;
+        width = 1.5;
+        contactheight = 1.5;
+        tipdistance = 1;
+
+
+
+        x = [-1 1 1 -1]*width/2;
+        y = [-1 -1 1 1]*contactheight/2;
+
+        xpi = linspace(0,pi,100);
+        y_arc = -sin(xpi)*tipdistance-contactheight/2;
+        x_arc = cos(xpi)*width/2;% linspace(-width/2,width/2,100);
+
+        p(1) = patch(x,y+0,'red');
+        p(2) = patch(x,y+1*spacing,'red');
+        p(3) = patch(x,y+2*spacing,'red');
+        p(4) = patch(x,y+3*spacing,'red');
+
+        p(5) = patch(x_arc,y_arc,'blue');
+
+        set(p,'FaceAlpha',0.2)
+        
+
+        
+       
+
+    end
 
 
 % Set fixed axes limits
