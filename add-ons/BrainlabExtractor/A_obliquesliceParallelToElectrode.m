@@ -1,9 +1,8 @@
-function [B_,Tslice2vd,TfromslicetoLeadSpace] = A_obliquesliceParallelToElectrode(VD, e, angle)
+function [B_,Tslice2vd,TfromslicetoLeadSpace] = A_obliquesliceParallelToElectrode(VD, e, angle,vxl)
 
     T = e.getTransformFromRoot;
     TtoIntrinsic = VD.getTransformToIntrinsic;
     
-    vxl = 0.125;
 
     switch angle
         case 'cor'
@@ -12,16 +11,16 @@ function [B_,Tslice2vd,TfromslicetoLeadSpace] = A_obliquesliceParallelToElectrod
             TfromslicetoLeadSpace(4,4) =1;
             TfromslicetoLeadSpace(1,1) = vxl;
             TfromslicetoLeadSpace(2,3) = vxl;
-            TfromslicetoLeadSpace(4,1) = -25/vxl+1;
-            TfromslicetoLeadSpace(4,3) = -10/vxl+1;
+            TfromslicetoLeadSpace(4,1) = -(25+vxl);
+            TfromslicetoLeadSpace(4,3) = -(10);
         case 'sag'
             [x,y,z] = meshgrid(0,-25:vxl:25,-10:vxl:40);
             TfromslicetoLeadSpace = zeros(4);
             TfromslicetoLeadSpace(4,4) =1;
             TfromslicetoLeadSpace(1,2) = vxl;
             TfromslicetoLeadSpace(2,3) = vxl;
-            TfromslicetoLeadSpace(4,2) = -(75/vxl+2);
-            TfromslicetoLeadSpace(4,3) = -10/vxl;
+            TfromslicetoLeadSpace(4,2) = -(25+vxl);
+            TfromslicetoLeadSpace(4,3) = -(10);
     end
     
     Tslice2vd = TfromslicetoLeadSpace*T;
