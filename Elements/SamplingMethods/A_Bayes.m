@@ -31,7 +31,7 @@ classdef A_Bayes < SamplingMethod
 %             N_edges = 15;
 %             edges = linspace(-1,1,N_edges+1);
             
-            edges=[1 3 10 30 100 300]; 
+%             edges=[1 3 10 30 100 300]; 
             
             
             bite = [];
@@ -52,8 +52,9 @@ classdef A_Bayes < SamplingMethod
                 lowerthreshold = lowerthreshold+1;
             end
             f = figure;
-            edges(6)=max(bite);
-            h = histogram(bite,edges);
+%             edges(6)=max(bite);
+%             h = histogram(bite,edges);
+            h=histogram(bite);
             predictors = [1,zscore(h.Values)];
             obj.Output = predictors;
             close(f);

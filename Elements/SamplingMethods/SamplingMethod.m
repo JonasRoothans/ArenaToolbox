@@ -87,16 +87,20 @@ classdef SamplingMethod
             % make sure we are on screen
             movegui(fig)
             set(fig, 'Visible','on'); drawnow;
-            try
-                % Give default focus to the listbox *after* the figure is made visible
-                uicontrol(listbox);
-                c = matlab.ui.internal.dialog.DialogUtils.disableAllWindowsSafely();
-                uiwait(fig);
-                delete(c);
-            catch
-                if ishghandle(fig)
-                    delete(fig)
-                end
+%             try
+%                 % Give default focus to the listbox *after* the figure is made visible
+%                 uicontrol(listbox);
+%                 c = matlab.ui.internal.dialog.DialogUtils.disableAllWindowsSafely();
+%                 uiwait(fig);
+%                 delete(c);
+%             catch
+%                 if ishghandle(fig)
+%                     delete(fig)
+%                 end
+%             end
+
+            if ishandle(fig)
+                uiwait(fig)
             end
             
             %fix the output

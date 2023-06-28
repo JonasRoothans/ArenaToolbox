@@ -124,6 +124,11 @@ classdef Heatmap < handle
                
              elseif  ~isempty(intersect(mapSelection,{'Amap'}))
                     mapSelection = {'SimpleAverage'};
+             elseif ~isempty(intersect(mapSelection,{'BFmap'})) || ~isempty(intersect(mapSelection,{'Signedpmap'})) 
+                 mapSelection={'Tstatistic pipeline with Bayesian Stats'};
+             elseif ~isempty(intersect(mapSelection,{'Signedpmap'})) || isempty(intersect(mapSelection,{'BFmap'})) 
+                 mapSelection={'Tstatistic pipeline'};
+                 
             end
              
              
@@ -139,7 +144,7 @@ classdef Heatmap < handle
 
             end
  
-            if ~isempty(intersect(mapSelection,{'Tstatistic pipeline', 'Tstatistic pipeline with Bayesian Stats','Signedpmap','Tmap'}))
+            if ~isempty(intersect(mapSelection,{'Tstatistic pipeline', 'Tstatistic pipeline with Bayesian Stats','Signedpmap','Tmap','BFmap'}))
                 [tmap,pmap,signedpmap,bfmap] = Stack.ttest2(mapSelection);
                 [amap] = Stack.average();
                 obj.Tmap = tmap;
