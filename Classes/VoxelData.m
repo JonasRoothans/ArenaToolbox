@@ -560,6 +560,7 @@
           end
           
           o3=Stack.sum; 
+          o3.Tag = varargin{1}.Tag;
         end
         
         

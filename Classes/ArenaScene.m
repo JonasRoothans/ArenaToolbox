@@ -391,6 +391,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Mesh.takeBite = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: take a sample from slice or mesh','callback',{@menu_takeSample},'Enable','off');
             obj.handles.menu.dynamic.Mesh.detectElectrode = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: convert to electrode','callback',{@menu_detectElectrode},'Enable','off');
             obj.handles.menu.dynamic.Mesh.dynamicColor = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Any: color based on heatmap','callback',{@menu_dynamicColor},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.burnIn = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: burn in','callback',{@menu_burnIn},'Enable','off');
             obj.handles.menu.dynamic.ObjFile.dynamicColor = obj.handles.menu.dynamic.Mesh.dynamicColor;
             obj.handles.menu.dynamic.Electrode.dynamicColor = obj.handles.menu.dynamic.Mesh.dynamicColor;
             
@@ -2884,6 +2885,47 @@ classdef ArenaScene < handle
                 [pearson_rneg,pearson_pneg] = corr(v1(keepthese),v2(keepthese));
                 disp(['Without negatives in both sampples: rho: ',num2str(pearson_rneg),'  p: ',num2str(pearson_pneg)])
                 end
+                
+                
+                
+                
+            end
+            
+            
+            function menu_burnIn(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                [actorlist,namelist,indexlist] =  ArenaScene.getActorsOfClass(scene,'Slicei');
+                
+               
+                %select template
+                [indx,tf] = listdlg('PromptString','Select Template to project to','ListString',namelist);
+                answer = questdlg('How do you want to burn it in?','Burn in','On top of nii data (brainlab)','On a black canvas','On a black cavas');
+                 template  = actorlist(indx).Data.parent;
+                
+                switch answer
+                    case 'On top of nii data (brainlab)'
+                        template_ = template.copy;
+                    otherwise
+                        template_ = template.copy;
+                        template_.Voxels = zeros(size(template_.Voxels));
+                        
+                end
+            
+               
+                for iActor = 1:numel(currentActors)
+                    
+                    
+                
+                    vd = currentActors(iActor).Data.convertToVoxelsInTemplate(template_);
+                    template_.Voxels = template_.Voxels+(vd.Voxels*100);
+                    template_.Tag = [template_.Tag,' + ',currentActors(iActor).Tag];
+                end
+                
+              
+                template_.getslice.see(scene)
+                
                 
                 
                 

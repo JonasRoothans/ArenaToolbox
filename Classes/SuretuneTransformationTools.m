@@ -13,7 +13,11 @@ classdef SuretuneTransformationTools
             if isempty(anatomy)
                 [selection] = listdlg('PromptString','In which space do you want it?','ListString',names);
             else
-                selection = SuretuneTransformationTools.findItAutomatically(this,names,OPTIONAL_anatomy);
+                if strcmp(OPTIONAL_anatomy,'ACPCIH')
+                    selection = 4;
+                else
+                    selection = SuretuneTransformationTools.findItAutomatically(this,names,OPTIONAL_anatomy);
+                end
             end
             
             %possibly abort?
