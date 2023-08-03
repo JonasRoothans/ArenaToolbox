@@ -1248,6 +1248,10 @@ classdef VoxelDataStack < handle
             %if first file is provided
             if nargin==1
                 %get file size of first file
+                if isfolder(firstfile)
+                    files = A_getfiles(firstfile);
+                    firstfile = fullfile(firstfile,files(1).name);
+                end
                 s = dir(firstfile);
                 filesizefirstfile = round(s.bytes/1024/1024); %mb
                 
