@@ -199,6 +199,32 @@ classdef PointCloud < ArenaActorRendering
         function obj = transform(obj,T)
             obj.Vectors = obj.Vectors.transform(T);
         end
+        
+        function out = plus(obj,term)
+            v = obj.Vectors.getArray;
+            if isa(term,'Vector3D')
+                term = term.getArray';
+            else
+                error('add this option')
+            end
+            
+            if numel(term)==3
+                termrep = repmat(term,length(v),1);
+                vnew = v+termrep;
+            elseif numel(term)==1
+                vnew = v+term;
+            end
+            
+            if nargout==1
+                out = PointCloud(vnew,obj.Weights);
+            elseif nargout==0
+                obj.Vectors = vnew;
+                out = obj;
+            end
+            
+            
+            
+        end
        
     end
 end

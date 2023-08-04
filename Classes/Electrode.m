@@ -97,9 +97,40 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
             end
         end
         
-        function POL = getPOL(obj)
-            POL = obj.C0 + obj.Direction*10; %point on lead
+        function POL = getPOL(obj,distance)
+            if nargin==1
+                POL = obj.C0 + obj.Direction*10; %point on lead
+            else
+                if numel(distance)>1
+                    POL = PointCloud;
+                    for i = 1:numel(distance)
+                        POL.addVectors(obj.C0 + obj.Direction*distance(i),distance(i));
+                    end
+                else
+                    POL = obj.C0 + obj.Direction*distance;
+                end
+            end
         end
+        
+        function [vertical, axial] = getAngles(obj)
+            u = [sqrt(obj.Direction.x^2+obj.Direction.y^2),+obj.Direction.z];
+            v = [0 1];
+            
+            CosTheta = max(min(dot(u,v)/(norm(u)*norm(v)),1),-1);
+            vertical = real(acosd(CosTheta));
+            
+            %%
+            u = [obj.Direction.x,obj.Direction.y];
+            v = [0 1];
+            CosTheta = max(min(dot(u,v)/(norm(u)*norm(v)),1),-1);
+            axial = real(acosd(CosTheta));
+            
+            disp(['Vertical angle: ', num2str(vertical),' degrees'])
+            disp(['Axial angle:    ', num2str(axial),' degrees'])
+            
+            
+        end
+            
         
         function obj = transform(obj,T)
             POL = obj.getPOL.transform(T);

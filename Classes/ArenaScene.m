@@ -391,9 +391,12 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Mesh.takeBite = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: take a sample from slice or mesh','callback',{@menu_takeSample},'Enable','off');
             obj.handles.menu.dynamic.Mesh.detectElectrode = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: convert to electrode','callback',{@menu_detectElectrode},'Enable','off');
             obj.handles.menu.dynamic.Mesh.dynamicColor = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Any: color based on heatmap','callback',{@menu_dynamicColor},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.longAxis = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: get longitudinal axis','callback',{@menu_longAxis},'Enable','off');
             obj.handles.menu.dynamic.Mesh.burnIn = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: burn in','callback',{@menu_burnIn},'Enable','off');
             obj.handles.menu.dynamic.ObjFile.dynamicColor = obj.handles.menu.dynamic.Mesh.dynamicColor;
             obj.handles.menu.dynamic.Electrode.dynamicColor = obj.handles.menu.dynamic.Mesh.dynamicColor;
+            obj.handles.menu.dynamic.Electrode.whereIsIt = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Electrode: Where is it exactly?','callback',{@menu_WhereIsElectrode},'Enable','off');
+            obj.handles.menu.dynamic.Electrode.whereIsItNear = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Electrode: Where is it near?','callback',{@menu_WhereIsElectrodeNear},'Enable','off');
             
             obj.handles.menu.dynamic.Slicei.SpatialCorrelation = obj.handles.menu.dynamic.Mesh.SpatialCorrelation;
             obj.handles.menu.dynamic.Slicei.multiply = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: multiply images','callback',{@menu_multiplyslices},'Enable','off');
@@ -1205,11 +1208,12 @@ classdef ArenaScene < handle
                             obj_custom = ObjFile(fullfile(legacypath,atlases{iAtlas}));
                             
                             if ~arena.DIPS
-                                obj_custom_left = obj_custom.transform(T.leftstn2mni);
-                                obj_custom_right = obj_custom.transform(T.rightstn2mni);
-                            else
                                 obj_custom_left = obj_custom.transform(T.stu2mni_leftSTN);
                                 obj_custom_right = obj_custom.transform(T.stu2mni_rightSTN);
+                            else
+                                
+                                obj_custom_left = obj_custom.transform(T.leftstn2mni);
+                                obj_custom_right = obj_custom.transform(T.rightstn2mni);
                             end
                             [thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_left'])] = obj_custom_left.see(thisScene);
                             [thisScene.handles.atlas.legacy.(['Actor_obj_custom_',num2str(iAtlas),'_right'])] = obj_custom_right.see(thisScene);
@@ -1475,38 +1479,92 @@ classdef ArenaScene < handle
                 
             end
             
+            function import_leadDBSatlas(thisScene,loaded)
+                names = {};
+                 for iAtlas = 1:numel(loaded.atlases.names)
+                     names{end+1} = ['Left ',loaded.atlases.names{iAtlas}];
+                     names{end+1} = ['Right ',loaded.atlases.names{iAtlas}];
+                  end
+                 selection = listdlg('ListString',names,'PromptString','Choose one or more atlases','SelectionMode','multiple');
+                iAtlas = ceil(selection./2);
+                iColumn = mod(selection,2)+1;
+                
+                for iSelection = 1:numel(iAtlas)
+                  o = ObjFile(loaded.atlases.fv{iAtlas(iSelection),iColumn(iSelection)}.faces,loaded.atlases.fv{iAtlas(iSelection),iColumn(iSelection)}.vertices);
+                  a = o.see(thisScene);
+                 
+                 
+                 color = [interp1( 1:length(loaded.atlases.colormap), loaded.atlases.colormap(:,1) , loaded.atlases.colors(iAtlas)),...
+                     interp1( 1:length(loaded.atlases.colormap), loaded.atlases.colormap(:,2) , loaded.atlases.colors(iAtlas)),...
+                     interp1( 1:length(loaded.atlases.colormap), loaded.atlases.colormap(:,3) , loaded.atlases.colors(iAtlas))];
+                     
+%                  
+                end
+            end
+%                 
+%                 
+%             
+            
             function import_leadDBSfibers(thisScene,loaded)
-                f_left = Fibers;
-                f_right = Fibers;
-                for iFib = 1:numel(loaded.fibcell{1})
-                    f_right.addFiber(loaded.fibcell{1}{iFib},iFib,loaded.vals{1}(iFib));
-                end
-                for iFib = 1:numel(loaded.fibcell{2})
-                    f_left.addFiber(loaded.fibcell{2}{iFib},iFib,loaded.vals{2}(iFib));
+                if isfield(loaded,'fibcell')
+                    version = 2;
+                else
+                    version = 1;
                 end
                 
-                h_right = f_right.see(thisScene);
-                h_right.changeName(['Fibers (',num2str(numel(loaded.fibcell{1})),')'])
-                h_left = f_left.see(thisScene);
-                h_left.changeName(['Fibers (',num2str(numel(loaded.fibcell{2})),')'])
                 
-                h_right.changeSetting('colorFace2',loaded.fibcolor(1,:),'colorFace',loaded.fibcolor(2,:),'colorByDirection',0,'colorByWeight',1)
-                h_left.changeSetting('colorFace2',loaded.fibcolor(1,:),'colorFace',loaded.fibcolor(2,:),'colorByDirection',0,'colorByWeight',1)
-                
+                switch version
+                    case 2
+                        f_left = Fibers;
+                        f_right = Fibers;
+                        for iFib = 1:numel(loaded.fibcell{1})
+                            f_right.addFiber(loaded.fibcell{1}{iFib},iFib,loaded.vals{1}(iFib));
+                        end
+                        for iFib = 1:numel(loaded.fibcell{2})
+                            f_left.addFiber(loaded.fibcell{2}{iFib},iFib,loaded.vals{2}(iFib));
+                        end
+                        
+                        h_right = f_right.see(thisScene);
+                        h_right.changeName(['Fibers (',num2str(numel(loaded.fibcell{1})),')'])
+                        h_left = f_left.see(thisScene);
+                        h_left.changeName(['Fibers (',num2str(numel(loaded.fibcell{2})),')'])
+                        
+                        h_right.changeSetting('colorFace2',loaded.fibcolor(1,:),'colorFace',loaded.fibcolor(2,:),'colorByDirection',0,'colorByWeight',1)
+                        h_left.changeSetting('colorFace2',loaded.fibcolor(1,:),'colorFace',loaded.fibcolor(2,:),'colorByDirection',0,'colorByWeight',1)
+                    case 1
+                        F = Fibers;
+                        startIndex = [0;cumsum(loaded.idx)];
+                        for iFib = 1:numel(startIndex)-1
+                            if loaded.idx(iFib)>1
+                                F.addFiber(loaded.fibers(startIndex(iFib)+1:startIndex(iFib+1),1:3),iFib)
+                            end
+                        end
+                        h = F.see(thisScene);
+
+                end
                 
                 
             end
             
+            
+            
             function import_mat(thisScene,filename)
                 
                 loaded = load(filename);
-                
+                disp('loading mat...')
                 
                 if isfield(loaded,'fibcell')
                     import_leadDBSfibers(thisScene,loaded)
                     return
+                elseif isfield(loaded,'ea_fibformat')
+                        import_leadDBSfibers(thisScene,loaded)
+                        return
                 elseif isfield(loaded,'reco')
                     import_leadDBSelectrode(thisScene,loaded)
+                    return
+                    
+                elseif isfield(loaded,'atlases')
+                    import_leadDBSatlas(thisScene,loaded)
                     return
                 end
                 
@@ -1762,6 +1820,8 @@ classdef ArenaScene < handle
                             A_loadheatmap(scene,fullfile(pathname,filename{iFile}));
                         case '.graphml'
                             A_loadgraphml(scene,fullfile(pathname,filename{iFile}));
+                        case '.trk'
+                            A_loadtrk(scene,fullfile(pathname,filename{iFile}));
                             
                             
                             
@@ -2739,7 +2799,7 @@ classdef ArenaScene < handle
                 
                 maskVD.Voxels = double(maskVD.Voxels);
 
-                maskedImage = map + maskVD.*mean(map);
+                maskedImage = map + maskVD.*50;
                 actor = maskedImage.getslice.see(scene);
                 actor.changeName(['BurnedIn_',currentActors.Tag, 'with', maskActor.Tag])
                 
@@ -2930,6 +2990,142 @@ classdef ArenaScene < handle
                 
             end
             
+            
+            function menu_WhereIsElectrodeNear(hObject,eventdata)
+                % use this switch to also plot where it is sampled:
+                showDots = 0;
+                
+               
+                
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                [actorlist,namelist,indexlist] =  ArenaScene.getActorsOfClass(scene,'Mesh');
+                if isempty(namelist)
+                    error('There should be meshes in the scene..')
+                end
+                [indx,tf] = listdlg('ListString',namelist,'PromptString','Select Meshes to check','SelectionMode','multiple');
+                
+                
+                %make dots
+                e = currentActors.Data;
+                dots = e.getPOL(-2:0.1:10);
+                
+                if showDots
+                    dots.see(scene)
+                end
+                
+                %Get locations in root
+                t = 0:pi/4:2*pi-0.1;
+                x = sin(t);
+                y = cos(t);
+                z = zeros(1,8);
+                
+                circle_1000 = [x',y',z'];
+                circle_0500 = circle_1000/2;
+                circle_0250 = circle_1000/4;
+                
+                %transform to world
+                T = e.getTransformFromRoot;
+                T(4,1:4) = [0 0 0 1];
+                circle_0500_world = SDK_transform3d(circle_0500,T);
+                circle_0250_world = SDK_transform3d(circle_0250,T);
+                
+
+                info  = struct;
+                f = figure;
+                hold on;
+                %check dots in mesh
+                for iMesh = 1:numel(indx)
+                    for loop = 0:1:2
+                        switch loop
+                            case 0
+                                thisMesh = actorlist(indx(iMesh)).Data;
+                                bool = thisMesh.isInside(dots);
+                                info(iMesh).Tag = actorlist(indx(iMesh)).Tag;
+                                info(iMesh).bool = bool;
+                                info(iMesh).Length = sum(bool)*0.1;
+                                disp([info(iMesh).Tag,': ',num2str(info(iMesh).Length),'mm']);
+                                text(iMesh*6-3,mean(find(bool))/10-2,2,[num2str(info(iMesh).Length),'mm'],'HorizontalAlignment','center')
+                            otherwise
+                                if loop==1
+                                    offsets = circle_0250_world;
+                                elseif loop==2
+                                    offsets = circle_0500_world;
+                                end
+                                bools = [];
+                                for iCircle = 1:length(t)
+                                    dots2 = dots+Vector3D(offsets(iCircle,:));
+                                    
+                                    if and(showDots, loop==1)
+                                        dots2.see(scene)
+                                    end
+                                    
+                                    bool = thisMesh.isInside(dots2);
+                                    bools = [bools,bool];
+                                end
+                                info(iMesh).boolOffset{loop} = mean(bools,2);
+                        end
+                    
+                    end
+                    info(iMesh).boolcollection = [info(iMesh).boolOffset{2},info(iMesh).boolOffset{1},info(iMesh).bool,info(iMesh).boolOffset{1},info(iMesh).boolOffset{2},zeros(121,1)];
+                end
+                figure(f);
+                bools = horzcat(info(:).boolcollection);
+                bools(:,end+1) = [zeros(5,1);ones(10,1)/2;ones(15,1);ones(5,1)/2;ones(15,1);ones(5,1)/2;ones(15,1);ones(5,1)/2;ones(15,1);ones(5,1)/2;ones(26,1)/2];
+                imagesc(1:size(bools,2)+1,-2:0.1:10,bools);
+                set(gca,'YDir','normal')
+                yticks(-2:1:10)
+                xticks(3:6:size(bools,2)+6)
+                xticklabels([{info(:).Tag},{'Electrode'}])
+                xtickangle(45)
+                ylim([-2 10])
+                title('0.5mm, 0.25mm
+            end
+            
+            
+            function menu_WhereIsElectrode(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                [actorlist,namelist,indexlist] =  ArenaScene.getActorsOfClass(scene,'Mesh');
+                if isempty(namelist)
+                    error('There should be meshes in the scene..')
+                end
+                [indx,tf] = listdlg('ListString',namelist,'PromptString','Select Meshes to check','SelectionMode','multiple');
+                
+                
+                %make dots
+                e = currentActors.Data;
+                dots = e.getPOL(-1:0.1:10);
+                
+                
+                info  = struct;
+                figure;
+                hold on;
+                %check dots in mesh
+                for iMesh = 1:numel(indx)
+                    thisMesh = actorlist(indx(iMesh)).Data;
+                    bool = thisMesh.isInside(dots);
+                    info(iMesh).Tag = actorlist(indx(iMesh)).Tag;
+                    info(iMesh).bool = bool*iMesh;
+                    info(iMesh).Length = sum(bool)*0.1;
+                    disp([info(iMesh).Tag,': ',num2str(info(iMesh).Length),'mm']);
+                    text(iMesh,mean(find(bool))/10-1,2,[num2str(info(iMesh).Length),'mm'])
+                end
+                
+                bools = horzcat(info(:).bool);
+                imagesc(1:iMesh,-1:0.1:10,bools);
+                set(gca,'YDir','normal')
+                yticks(-1:1:10)
+                xticks([1:1:iMesh])
+                xticklabels({info(:).Tag})
+                ylim([-1 10])
+                
+                 
+                
+                
+            end
             
             function menu_burnIn(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
@@ -3767,6 +3963,27 @@ classdef ArenaScene < handle
                             
                     end
                 end
+                
+            end
+            
+            function menu_longAxis(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                actors = [ArenaScene.getSelectedActors(scene).Data];
+                for iActor = 1:numel(actors)
+                    m = actors(iActor);
+                    x = squareform(pdist(m.Vertices));
+                    [a,b] = find(x==max(x(:)));
+                    base = m.Vertices(a(1),:);
+                    direction = Vector3D(m.Vertices(b(1),:) - base).unit;
+                    vc = VectorCloud;
+                    vc.Base =base;
+                    vc.Direction = direction;
+                    a = vc.see(scene);
+                    length = Vector3D(m.Vertices(b(1),:) - base).norm;
+                    a.changeSetting('scale',length);
+                end
+                
+                
                 
             end
             
