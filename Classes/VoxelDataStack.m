@@ -1056,7 +1056,9 @@ classdef VoxelDataStack < handle
                 
                 
                 if isnan(t)
-                    keyboard
+                    warning('all data for this voxel is in one arm. Analysis proceeds with t=0, p =1')
+                     t_voxels(i) = 0;
+                    p_voxels(i) = 1;
                 end
                 
             end
