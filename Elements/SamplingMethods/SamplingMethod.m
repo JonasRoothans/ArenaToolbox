@@ -87,7 +87,7 @@ classdef SamplingMethod
             % make sure we are on screen
             movegui(fig)
             set(fig, 'Visible','on'); drawnow;
-            if ~linux
+            if ~isuinux
             try
                 % Give default focus to the listbox *after* the figure is made visible
                 uicontrol(listbox);
