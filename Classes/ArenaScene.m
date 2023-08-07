@@ -3036,6 +3036,8 @@ classdef ArenaScene < handle
                 f = figure;
                 hold on;
                 %check dots in mesh
+                disp('Distance of the exact center of the electrode through the meshes:')
+                lengths = [];
                 for iMesh = 1:numel(indx)
                     for loop = 0:1:2
                         switch loop
@@ -3045,7 +3047,9 @@ classdef ArenaScene < handle
                                 info(iMesh).Tag = actorlist(indx(iMesh)).Tag;
                                 info(iMesh).bool = bool;
                                 info(iMesh).Length = sum(bool)*0.1;
-                                disp([info(iMesh).Tag,': ',num2str(info(iMesh).Length),'mm']);
+                                
+                                %disp([info(iMesh).Tag,': ',num2str(info(iMesh).Length),'mm']);
+                                lengths(end+1) = info(iMesh).Length;
                                 text(iMesh*6-3,mean(find(bool))/10-2,2,[num2str(info(iMesh).Length),'mm'],'HorizontalAlignment','center')
                             otherwise
                                 if loop==1
@@ -3065,6 +3069,7 @@ classdef ArenaScene < handle
                                     bools = [bools,bool];
                                 end
                                 info(iMesh).boolOffset{loop} = mean(bools,2);
+                                info(iMesh).allbools{loop} = bools;
                         end
                     
                     end
@@ -3080,7 +3085,25 @@ classdef ArenaScene < handle
                 xticklabels([{info(:).Tag},{'Electrode'}])
                 xtickangle(45)
                 ylim([-2 10])
-                title('0.5mm, 0.25mm
+                title('0.5mm, 0.25mm, center, 0.25, 0.5mm')
+                
+                %calculate volume
+                height = 0.1;
+                disp(' ') %empty line
+                %disp('Volumes in cubic mm, based on sampling at 0.25 and 0.5mmm radius in 8 directions every 0.1mm along the electrode:')
+                volumes = [];
+                for iMesh = 1:numel(indx)
+                    VolumeInner  = (info(iMesh).allbools{1}/4).^2.*pi.*height./ 8;
+                    VolumeOuter = (info(iMesh).allbools{2}/2).^2.*pi.*height./ 8 - (info(iMesh).allbools{2}/4).^2.*pi.*height./ 8;
+                    Volume = sum(VolumeInner(:)+VolumeOuter(:));
+                    %disp([info(iMesh).Tag,': ',num2str(Volume),' cubic mm'])
+                    volumes(end+1) = Volume;
+                end
+                lengths = lengths';
+                volumes = volumes';
+                meshes = {info(:).Tag}';
+                disp('the following table uses mm and mm3')
+                t = table(meshes,lengths,volumes)
             end
             
             
