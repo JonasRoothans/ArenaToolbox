@@ -206,8 +206,8 @@ classdef ArenaScene < handle
             obj.handles.menu.file.newscene.main = uimenu(obj.handles.menu.file.main,'Text','New empty scene','callback',{@menu_newscene});
             obj.handles.menu.file.savesceneas.main = uimenu(obj.handles.menu.file.main,'Text','Save scene as','callback',{@menu_savesceneas});
             obj.handles.menu.file.savescene.main = uimenu(obj.handles.menu.file.main,'Text','Save scene','callback',{@menu_savescene});
-            obj.handles.menu.file.import.main = uimenu(obj.handles.menu.file.main,'Text','Import actor [cmd+i]','callback',{@menu_importAnything},'Enable','on','Separator','on');
-            obj.handles.menu.file.import.fromworkspace = uimenu(obj.handles.menu.file.main,'Text','Import actor from workspace [cmd+shift+i]','callback',{@menu_importfromworkspace});
+            obj.handles.menu.file.import.main = uimenu(obj.handles.menu.file.main,'Text','Import actor','callback',{@menu_importAnything},'Enable','on','Separator','on','Accelerator','i');
+            obj.handles.menu.file.import.fromworkspace = uimenu(obj.handles.menu.file.main,'Text','Import actor from workspace [cmd+shift+i]','callback',{@menu_importfromworkspace},'Accelerator','w');
             obj.handles.menu.file.new.main = uimenu(obj.handles.menu.file.main,'Text','New actor');
             obj.handles.menu.file.new.electrode = uimenu(obj.handles.menu.file.new.main,'Text','Electrode','callback',{@menu_placeElectrode});
             obj.handles.menu.file.new.vta= uimenu(obj.handles.menu.file.new.main,'Text','Åström VTA','callback',{@menu_generateVTA});
@@ -255,9 +255,9 @@ classdef ArenaScene < handle
             
             
             obj.handles.menu.view.camera.orthogonal.main = uimenu(obj.handles.menu.view.camera.main,'Text','Orthogonal');
-            obj.handles.menu.view.camera.orthogonal.axial = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Axial [shift+1]','callback',{@menu_orthogonal});
-            obj.handles.menu.view.camera.orthogonal.sagittal = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Sagittal [shift+2]','callback',{@menu_orthogonal});
-            obj.handles.menu.view.camera.orthogonal.coronal = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Coronal [shift+3]','callback',{@menu_orthogonal});
+            obj.handles.menu.view.camera.orthogonal.axial = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Axial','callback',{@menu_orthogonal}, 'Accelerator','1');
+            obj.handles.menu.view.camera.orthogonal.sagittal = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Sagittal','callback',{@menu_orthogonal},'Accelerator','2');
+            obj.handles.menu.view.camera.orthogonal.coronal = uimenu(obj.handles.menu.view.camera.orthogonal.main,'Text','Coronal','callback',{@menu_orthogonal},'Accelerator','3');
             
             obj.handles.menu.view.camera.surgical.main = uimenu(obj.handles.menu.view.camera.main,'Text','Surgical');
             obj.handles.menu.view.camera.surgical.electrodes = []; %will be filled by view main call back.
@@ -2488,7 +2488,7 @@ classdef ArenaScene < handle
             function menu_orthogonal(hObject,eventdata)
                 camva('manual')
                 switch hObject.Text
-                    case {'axial plane','Axial [shift+1]'}
+                    case {'axial plane','Axial'}
                         original_pos = campos;
                         original_target = camtarget;
                         original_camva = camva;
@@ -2516,7 +2516,7 @@ classdef ArenaScene < handle
                         camup(end_up)
                         %camva(end_camva)
                         
-                    case {'coronal plane','Coronal [shift+3]'}
+                    case {'coronal plane','Coronal'}
                         original_pos = campos;
                         original_target = camtarget;
                         original_camva = camva;
@@ -2546,7 +2546,7 @@ classdef ArenaScene < handle
                         camtarget(end_target)
                         camup(end_up)
                         %camva(end_camva)
-                    case {'sagittal plane','Sagittal [shift+2]'}
+                    case {'sagittal plane','Sagittal'}
                         original_pos = campos;
                         original_target = camtarget;
                         original_camva = camva;
@@ -4619,17 +4619,20 @@ classdef ArenaScene < handle
                                     show_shortcuts(src);
                                 end
                             case 'i'
-                                if numel(eventdata.Modifier)==1
-                                    
-                                    switch eventdata.Modifier{1}
-                                        case {'command','shift'}
-                                            menu_importAnything(src)
-                                    end
-                                    
-                                elseif numel(eventdata.Modifier)==2
-                                    menu_importfromworkspace(src)
-                                    
-                                end
+                                %this has been replaced by the accelerators
+                                
+%                                 if numel(eventdata.Modifier)==1
+%                                     
+%                                     switch eventdata.Modifier{1}
+%                                         case {'command','shift'}
+%                                             
+%                                             %menu_importAnything(src)
+%                                     end
+%                                     
+%                                 elseif numel(eventdata.Modifier)==2
+%                                     menu_importfromworkspace(src)
+%                                     
+%                                 end
                             case 'd'
                                 if ~isempty(eventdata.Modifier)
                                     switch eventdata.Modifier{1}
