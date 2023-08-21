@@ -299,6 +299,9 @@
                 intercept = 0;
             end
             
+            if length(size(loadednifti.img))>3
+                error(['This nifti has ',num2str(length(size(loadednifti.img))),' dimensions. VoxelData supports only 3D data. You can try to load nii in a VoxelDataStack.'])
+            end
             obj.Voxels = permute(loadednifti.img,[2 1 3])*slope+intercept;
             
             dimensions = loadednifti.hdr.dime.dim(2:4);

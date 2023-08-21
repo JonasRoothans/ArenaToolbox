@@ -360,7 +360,54 @@ classdef VoxelDataStack < handle
             end
         end
         
-        
+        function loadNiiND(obj,filename)
+            warning('this is an experimental function, no reslicing is applied')
+            loadednifti = load_untouch_nii(filename);
+            slope = loadednifti.hdr.dime.scl_slope;
+                intercept = loadednifti.hdr.dime.scl_inter;
+            img = squeeze(loadednifti.img);
+            dims = size(img);
+            if not(length(dims)==4)
+                error('I expected 4D data, but this is different.. can''t help you further. Sorry bro.')
+            end
+            
+            for iN = 1:dims(4)
+                
+                thisImg = img(:,:,:,iN);
+                
+                
+                %voxels
+                vd = VoxelData;
+                vd.Voxels = permute(thisImg,[2 1 3])*slope+intercept;
+                
+                %R
+                dimensions = loadednifti.hdr.dime.dim(2:4);
+                voxelsize = loadednifti.hdr.dime.pixdim(2:4);
+                transform = [loadednifti.hdr.hist.srow_x;...
+                    loadednifti.hdr.hist.srow_y;...
+                    loadednifti.hdr.hist.srow_z;...
+                    0 0 0 1];
+                
+                
+                
+                % make imref
+                Ref = imref3d(dimensions([2 1 3]),voxelsize(1),voxelsize(2),voxelsize(3));
+                Ref.XWorldLimits = Ref.XWorldLimits+transform(1,4)-voxelsize(1);
+                Ref.YWorldLimits = Ref.YWorldLimits+transform(2,4)-voxelsize(2);
+                Ref.ZWorldLimits = Ref.ZWorldLimits+transform(3,4)-voxelsize(3);
+                
+                vd.R = Ref;
+                obj.InsertVoxelDataAt(vd,iN)
+                if iN==1
+                    obj.R = Ref;
+                end
+            end
+            
+            
+           
+            
+            keyboard
+        end
         
         function obj = loadStudyDataFromRecipe(obj,recipe,templatefile)
             if nargin==1
