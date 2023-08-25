@@ -80,6 +80,9 @@ classdef ArenaActorRendering < handle
                         case 'Gold'
                             settings.colorBase = [0.54 0.37 0.16];
                             settings.colorInactive = [0.3 0.2 0.1];
+                        case 'Aqua'
+                            settings.colorBase = [0.54 0.73 0.73];
+                            settings.colorInactive = settings.colorBase/2;
                         case 'Silver'
                             settings.colorBase = [0.7 0.7 0.7];
                             settings.colorInactive = [0.5 0.5 0.5];

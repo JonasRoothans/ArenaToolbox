@@ -290,7 +290,8 @@ classdef ArenaScene < handle
             obj.handles.menu.view.bgcolor.custom = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','Custom','callback',{@menu_setbackgroundcolor});
             
             obj.handles.menu.view.electrodecolor.main = uimenu(obj.handles.menu.view.main,'Text','electrode color theme');
-            obj.handles.menu.view.electrodecolor.silver = uimenu(obj.handles.menu.view.electrodecolor.main ,'Text','Silver (Suretune style)','callback',{@menu_electrodetheme},'Checked','on');
+            obj.handles.menu.view.electrodecolor.silver = uimenu(obj.handles.menu.view.electrodecolor.main ,'Text','Silver (Arena style)','callback',{@menu_electrodetheme},'Checked','on');
+            obj.handles.menu.view.electrodecolor.aqua = uimenu(obj.handles.menu.view.electrodecolor.main ,'Text','Aqua (Suretune style)','callback',{@menu_electrodetheme},'Checked','off');
             obj.handles.menu.view.electrodecolor.gold = uimenu(obj.handles.menu.view.electrodecolor.main ,'Text','Gold (Brainlab style)','callback',{@menu_electrodetheme},'Checked','off');
             
             
@@ -1027,13 +1028,21 @@ classdef ArenaScene < handle
             function menu_electrodetheme(hObject,eventdata)
                 thisScene = ArenaScene.getscenedata(hObject);
                 switch hObject.Text
-                    case 'Silver (Suretune style)'
+                    
+                    case 'Silver (Arena style)'
                         thisScene.colorThemeElectrode = 'Silver';
                         thisScene.handles.menu.view.electrodecolor.silver.Checked = 'on';
+                        thisScene.handles.menu.view.electrodecolor.aqua.Checked = 'off';
+                        thisScene.handles.menu.view.electrodecolor.gold.Checked = 'off';
+                    case 'Aqua (Suretune style)'
+                        thisScene.colorThemeElectrode = 'Aqua';
+                        thisScene.handles.menu.view.electrodecolor.silver.Checked = 'off';
+                        thisScene.handles.menu.view.electrodecolor.aqua.Checked = 'on';
                         thisScene.handles.menu.view.electrodecolor.gold.Checked = 'off';
                     case 'Gold (Brainlab style)'
-                        thisScene.colorThemeElectrode = 'Gold';
+                        thisScene.colorThemeElectrode = 'Bronze';
                         thisScene.handles.menu.view.electrodecolor.silver.Checked = 'off';
+                        thisScene.handles.menu.view.electrodecolor.aqua.Checked = 'off';
                         thisScene.handles.menu.view.electrodecolor.gold.Checked = 'on';
                 end
                 
