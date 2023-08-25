@@ -76,8 +76,14 @@ classdef ArenaActorRendering < handle
                     settings.faceOpacity = 90;
                 case 'Electrode'
                     settings = struct;
-                    settings.colorBase = [0.7 0.7 0.7];
-                    settings.colorInactive = [0.5 0.5 0.5];
+                    switch scene.colorThemeElectrode
+                        case 'Gold'
+                            settings.colorBase = [0.54 0.37 0.16];
+                            settings.colorInactive = [0.3 0.2 0.1];
+                        case 'Silver'
+                            settings.colorBase = [0.7 0.7 0.7];
+                            settings.colorInactive = [0.5 0.5 0.5];
+                    end
                     settings.colorCathode = [1 0.5 0];
                     settings.colorAnode = [0 0.5 1];
                     settings.cathode = [0 0 0 0];

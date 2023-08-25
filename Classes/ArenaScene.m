@@ -20,6 +20,7 @@ classdef ArenaScene < handle
         CallFromOutside
         configcontrolpos % stores the bounding box of the uicontrols
         colorTheme
+        colorThemeElectrode = 'Silver';
         gitref
     end
     
@@ -203,7 +204,7 @@ classdef ArenaScene < handle
             %menubar
             obj.handles.menu.file.main = uimenu(obj.handles.figure,'Text','File');
             
-            obj.handles.menu.file.newscene.main = uimenu(obj.handles.menu.file.main,'Text','New empty scene','callback',{@menu_newscene});
+            obj.handles.menu.file.newscene.main = uimenu(obj.handles.menu.file.main,'Text','New empty scene','callback',{@menu_newscene},'Accelerator','n');
             obj.handles.menu.file.savesceneas.main = uimenu(obj.handles.menu.file.main,'Text','Save scene as','callback',{@menu_savesceneas});
             obj.handles.menu.file.savescene.main = uimenu(obj.handles.menu.file.main,'Text','Save scene','callback',{@menu_savescene});
             obj.handles.menu.file.import.main = uimenu(obj.handles.menu.file.main,'Text','Import actor','callback',{@menu_importAnything},'Enable','on','Separator','on','Accelerator','i');
@@ -287,6 +288,11 @@ classdef ArenaScene < handle
             obj.handles.menu.view.bgcolor.dark = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','Dark','callback',{@menu_setbackgroundcolor});
             obj.handles.menu.view.bgcolor.black = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','Black','callback',{@menu_setbackgroundcolor});
             obj.handles.menu.view.bgcolor.custom = uimenu(obj.handles.menu.view.bgcolor.main ,'Text','Custom','callback',{@menu_setbackgroundcolor});
+            
+            obj.handles.menu.view.electrodecolor.main = uimenu(obj.handles.menu.view.main,'Text','electrode color theme');
+            obj.handles.menu.view.electrodecolor.silver = uimenu(obj.handles.menu.view.electrodecolor.main ,'Text','Silver (Suretune style)','callback',{@menu_electrodetheme},'Checked','on');
+            obj.handles.menu.view.electrodecolor.gold = uimenu(obj.handles.menu.view.electrodecolor.main ,'Text','Gold (Brainlab style)','callback',{@menu_electrodetheme},'Checked','off');
+            
             
             obj.handles.menu.view.dynamictransparanncy.main = uimenu(obj.handles.menu.view.main,'Text','Dynamic slice transparancy','Checked',0,'callback',{@menu_setdynamictransparancy});
             obj.handles.menu.view.OrientationMarker.main = uimenu(obj.handles.menu.view.main,'Text','Orientation Marker','Checked',1,'callback',{@menu_showOrientationMarker});
@@ -1015,6 +1021,33 @@ classdef ArenaScene < handle
                         color =uisetcolor();
                 end
                 set(thisScene.handles.figure,'Color',color)
+                
+            end
+            
+            function menu_electrodetheme(hObject,eventdata)
+                thisScene = ArenaScene.getscenedata(hObject);
+                switch hObject.Text
+                    case 'Silver (Suretune style)'
+                        thisScene.colorThemeElectrode = 'Silver';
+                        thisScene.handles.menu.view.electrodecolor.silver.Checked = 'on';
+                        thisScene.handles.menu.view.electrodecolor.gold.Checked = 'off';
+                    case 'Gold (Brainlab style)'
+                        thisScene.colorThemeElectrode = 'Gold';
+                        thisScene.handles.menu.view.electrodecolor.silver.Checked = 'off';
+                        thisScene.handles.menu.view.electrodecolor.gold.Checked = 'on';
+                end
+                
+                %update Actors:
+                electrodesInScene = ArenaScene.getActorsOfClass(thisScene,'Electrode');
+                for iElectrode = 1:numel(electrodesInScene)
+                    
+                    thisElectrode = electrodesInScene(iElectrode);
+                    settings = thisElectrode.Data.getDefaultSettings(thisScene);
+                    
+                    thisElectrode.changeSetting('colorBase',settings.colorBase,'colorInactive',settings.colorInactive)
+                    
+                    
+                end
                 
             end
             
@@ -3155,26 +3188,35 @@ classdef ArenaScene < handle
                 currentActors = ArenaScene.getSelectedActors(scene);
                 
                 [actorlist,namelist,indexlist] =  ArenaScene.getActorsOfClass(scene,'Slicei');
+                namelist{end+1} = '..make custom canvas';
                 
                
                 %select template
                 [indx,tf] = listdlg('PromptString','Select Template to project to','ListString',namelist);
-                answer = questdlg('How do you want to burn it in?','Burn in','On top of nii data (brainlab)','On a black canvas','On a black cavas');
-                 template  = actorlist(indx).Data.parent;
                 
-                switch answer
-                    case 'On top of nii data (brainlab)'
-                        template_ = template.copy;
-                    otherwise
-                        template_ = template.copy;
-                        template_.Voxels = zeros(size(template_.Voxels));
-                        
+                
+                if indx==numel(namelist) %last element is selected
+                    makeCanvas = 1;
+                else
+                    makeCanvas =0;
+                    answer = questdlg('How do you want to burn it in?','Burn in','On top of nii data (brainlab)','On a black canvas','On a black cavas');
+                    template  = actorlist(indx).Data.parent;
                 end
-            
-               
+
                 for iActor = 1:numel(currentActors)
-                    
-                    
+                    if makeCanvas
+                        template_ = currentActors(iActor).Data.makeCanvas;
+                    else
+                        switch answer
+                            case 'On top of nii data (brainlab)'
+                                template_ = template.copy;
+                            otherwise
+                                template_ = template.copy;
+                                template_.Voxels = zeros(size(template_.Voxels));
+
+                        end
+                    end
+                
                 
                     vd = currentActors(iActor).Data.convertToVoxelsInTemplate(template_);
                     template_.Voxels = template_.Voxels+(vd.Voxels*100);
@@ -5370,6 +5412,10 @@ classdef ArenaScene < handle
             if all(or(contains(currentClasses,'Mesh'),contains(currentClasses,'Slice')))
                 %find world limits
                 for i = 1:numel(currentActors)
+                    if ~currentActors(i).Data.hasSource
+                        currentActors(i).Data.askFixSource(currentActors(i).Tag)
+                    end
+                        
                     R = currentActors(i).Data.Source.R;
                     corner_1 = min([corner_1;R.XWorldLimits(1),R.YWorldLimits(1),R.ZWorldLimits(1)]);
                     corner_2 = max([corner_2;R.XWorldLimits(2),R.YWorldLimits(2),R.ZWorldLimits(2)]);

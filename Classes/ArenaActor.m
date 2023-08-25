@@ -235,6 +235,12 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                         delete(obj.Visualisation.handle)
                         obj.Visualisation.handle = []; %remove old handle
                         obj.updateActor(scene,obj.Visualisation.settings);
+                        
+                    case 'Slicei'
+                        vd = obj.Data.parent.imwarp(T);
+                        vd.getslice.see(scene)
+                        
+                       
                     otherwise
                         
                         keyboard

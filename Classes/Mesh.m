@@ -140,6 +140,41 @@ classdef Mesh < handle & matlab.mixin.Copyable & ArenaActorRendering
                 
         end
         
+        function bool = hasSource(obj)
+            bool = not(isempty(obj.Source));
+        end
+        
+        function obj = askFixSource(obj,tag)
+            if nargin==1
+                tag = obj.Label;
+            end
+            answer = questdlg(['"',tag,'" does not contain image data. Do you want to simulate that?'],'Missing image data','No, abort.','Yes, and continue','Yes, and continue');
+                        switch answer
+                            case 'Yes, and continue'
+                                obj.FixSource;
+                            case 'No, abort.'
+                                error('Aborted by user')
+                        end
+
+        end
+        
+        function obj = FixSource(obj)
+            template = obj.makeCanvas;
+            newVD = obj.convertToVoxelsInTemplate(template);
+            obj.Source = newVD;
+            obj.Settings.T = 0.5;
+        end
+        
+        function vd = makeCanvas(obj)
+            maxrange = ceil(max(obj.Vertices));
+            minrange = floor(min(obj.Vertices));
+            dimensions_tranposed = (maxrange-minrange)*4;
+            R = imref3d(dimensions_tranposed([2,1,3]),[minrange(1),maxrange(1)],[minrange(2),maxrange(2)],[minrange(3),maxrange(3)]);
+            vd = VoxelData(zeros(R.ImageSize),R);
+            
+        end
+        
+            
         
         
         function [thisActor,thisScene] = see(obj, sceneobj)
