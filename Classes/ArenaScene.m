@@ -1040,7 +1040,7 @@ classdef ArenaScene < handle
                         thisScene.handles.menu.view.electrodecolor.aqua.Checked = 'on';
                         thisScene.handles.menu.view.electrodecolor.gold.Checked = 'off';
                     case 'Gold (Brainlab style)'
-                        thisScene.colorThemeElectrode = 'Bronze';
+                        thisScene.colorThemeElectrode = 'Gold';
                         thisScene.handles.menu.view.electrodecolor.silver.Checked = 'off';
                         thisScene.handles.menu.view.electrodecolor.aqua.Checked = 'off';
                         thisScene.handles.menu.view.electrodecolor.gold.Checked = 'on';
