@@ -173,8 +173,11 @@
             R.XWorldLimits = R.XWorldLimits+info.origin(a)-info.spacing(a);%-Rfrom.ImageExtentInWorldX;
             R.YWorldLimits = R.YWorldLimits+info.origin(b)-info.spacing(b);%-Rfrom.ImageExtentInWorldY;
             R.ZWorldLimits = R.ZWorldLimits+info.origin(c)-info.spacing(c);
-            obj.Voxels = voxels;
-            obj.R = R;
+            
+            disp('LPS to RAS warp is automatically applied')
+            [imOut,rOut] = imwarp(voxels,R,affine3d(diag([-1 -1 1 1])));
+            obj.Voxels = imOut;
+            obj.R = rOut;
         end
         
         function cropped = trim(obj)
