@@ -202,8 +202,10 @@
         function obj = squeeze(obj)
             %get leftdown and rightup based on where data is.
             [x,y,z] = ind2sub(size(obj.Voxels),find(obj.Voxels>0));
-            [leftdownx,leftdowny,leftdownz] = obj.R.intrinsicToWorld(min(x),min(y),min(z));
-            [rightupx,rightupy,rightupz] = obj.R.intrinsicToWorld(max(x),max(y),max(z));
+            [leftdownx,leftdowny,leftdownz] = obj.R.intrinsicToWorld(min(x)-5,min(y)-5,min(z)-5); %5 voxel margin
+            [rightupx,rightupy,rightupz] = obj.R.intrinsicToWorld(max(x)+5,max(y)+5,max(z)+5);
+            
+
             
             
             
