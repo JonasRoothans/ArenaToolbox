@@ -199,6 +199,24 @@
             end
         end
         
+        function obj = squeeze(obj)
+            %get leftdown and rightup based on where data is.
+            [x,y,z] = ind2sub(size(obj.Voxels),find(obj.Voxels>0));
+            [leftdownx,leftdowny,leftdownz] = obj.R.intrinsicToWorld(min(x),min(y),min(z));
+            [rightupx,rightupy,rightupz] = obj.R.intrinsicToWorld(max(x),max(y),max(z));
+            
+            
+            
+            obj2 = obj.crop([leftdownx,leftdowny,leftdownz],[rightupx,rightupy,rightupz]);
+            if nargout
+                obj = obj2;
+            else
+                obj.Voxels = obj2.Voxels;
+                obj.R = obj2.R;
+            end
+            
+            
+        end
         
         function obj = crop(obj,leftdown,rightup)
             if not(isa(leftdown,'Vector3D'))
@@ -214,15 +232,20 @@
         %crop voxels
         v  = obj.Voxels(ldy:ruy,ldx:rux,ldz:ruz);
         
-        %make new imref
+        %voxel size correction
+            vxlsz = [obj.R.PixelExtentInWorldX,obj.R.PixelExtentInWorldY,obj.R.PixelExtentInWorldZ];
+
+                %make new imref
         new_x_span = [obj.R.XWorldLimits(1)+obj.R.PixelExtentInWorldX*ldx,...
-            obj.R.XWorldLimits(1)+obj.R.PixelExtentInWorldX*(rux+1)];
+            obj.R.XWorldLimits(1)+obj.R.PixelExtentInWorldX*(rux+1)] - vxlsz(1);
         
         new_y_span = [obj.R.YWorldLimits(1)+obj.R.PixelExtentInWorldY*ldy,...
-            obj.R.YWorldLimits(1)+obj.R.PixelExtentInWorldY*(ruy+1)];
+            obj.R.YWorldLimits(1)+obj.R.PixelExtentInWorldY*(ruy+1)]- vxlsz(2);
         
         new_z_span = [obj.R.ZWorldLimits(1)+obj.R.PixelExtentInWorldZ*ldz,...
-            obj.R.ZWorldLimits(1)+obj.R.PixelExtentInWorldZ*(ruz+1)];
+            obj.R.ZWorldLimits(1)+obj.R.PixelExtentInWorldZ*(ruz+1)]- vxlsz(3);
+        
+        
 
         sz = size(v);
         newR = imref3d(sz,new_x_span,new_y_span,new_z_span);
