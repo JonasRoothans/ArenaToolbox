@@ -18,6 +18,7 @@ classdef ArenaScene < handle
     
     properties (Hidden=true)
         CallFromOutside
+        lastImportDir = '';
         configcontrolpos % stores the bounding box of the uicontrols
         colorTheme
         colorThemeElectrode = 'Silver';
@@ -1794,6 +1795,13 @@ classdef ArenaScene < handle
             
             function menu_importAnything(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
+                
+                if isempty(scene.lastImportDir)
+                    importStartFolder = pwd;
+                else
+                    importStartFolder = scene.lastImportDir;
+                end
+                
                 if ispc
                     [filename,pathname] = uigetfile({'*.nii','nifti files (*.nii)';...
                         '*.obj','3d object files (*.obj)';...
@@ -1804,9 +1812,11 @@ classdef ArenaScene < handle
                         '*.graphml','Graph XML(*.graphml)'},...
                         'import actors','MultiSelect','on');
                 else
-                    [filename,pathname] = uigetfile('*.*',...
+                    [filename,pathname] = uigetfile(fullfile(importStartFolder,'*.*'),...
                         'import actors','MultiSelect','on');
                 end
+                
+                
                 
                 try
                     if filename==0
@@ -1816,7 +1826,7 @@ classdef ArenaScene < handle
                 end
                 if not(iscell(filename));filename = {filename};end
                 
-                
+                scene.lastImportDir = pathname;
                 nii_mesh_threshold = nan;
                 for iFile = 1:numel(filename)
                     
