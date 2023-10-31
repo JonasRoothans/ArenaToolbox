@@ -1077,6 +1077,103 @@ classdef VoxelDataStack < handle
         end
         
         
+              
+        function [tmap,pmap,signedpmap,bfmap] = wilcoxonranktest(obj,varargin)
+            
+            p=inputParser;
+            
+            Bayes=false;
+            
+            if nargin>1
+                MapType=varargin{1};
+                addParameter(p,'MapSelection', MapType);
+                
+                if ~isempty(intersect(MapType,{'Tstatistic pipeline with Bayesian Stats'}))
+                    Bayes=true;
+                end
+            end
+            
+            
+            
+            
+            p.KeepUnmatched=false;
+            
+            
+            
+            
+            if all(obj.Weights==0)
+                warning('All weights are set to 0. Skipping ttest')
+                tmap = [];
+                pmap = [];
+                signedpmap = [];
+                return
+            end
+            
+            
+            serialized = obj.Voxels;
+            serialized_sum  = sum(round(serialized),2); % takes the sum across all subjects
+            serialized_width = size(serialized,2); %number of data points per voxel
+            relevantVoxels = find(and(serialized_sum>1,serialized_sum<serialized_width)); % excludes voxels that are almost empty across all subjects or that are filled across all subject
+            t_voxels = zeros([length(serialized),1]); % all values assigned zeros including non relevenat voxels
+            
+            
+            p_voxels = ones([length(serialized),1]); % all values assigned ones including non relevenat voxels
+            if Bayes
+                bf_voxels= zeros([length(serialized),1]); % bf applied to all voxels including relevant and non relevant
+            end
+            disp(' ~running ttest2')
+            for i =  relevantVoxels'
+                
+                if any(serialized(i,:)>1)
+                    weightsweights = [obj.Weights,obj.Weights];
+                    serializedcombi = [serialized(i,:)>0.5,serialized(i,:)>1.5];
+                    [stats] = mwwtest(weightsweights(serializedcombi),weightsweights(~serializedcombi));
+                    U_diff = stats.U(2)-stats.U(1);
+                    if Bayes
+                        [bayes]=bf.ttest2('T',t, 'N', [numel(weightsweights(serializedcombi)), numel(weightsweights(~serializedcombi))]);
+                        bf_voxels(i) = bayes;
+                    end
+                else
+                    [stats] = mwwtest(obj.Weights(serialized(i,:)>0.5),obj.Weights(not(serialized(i,:)>0.5)));
+                      U_diff = stats.U(2)-stats.U(1);
+                    if Bayes
+                        [bayes]=bf.ttest2('T',t, 'N', [numel(obj.Weights(serialized(i,:)>0.5)), numel(obj.Weights(~serialized(i,:)>0.5))]);
+                        bf_voxels(i) = bayes;
+                    end
+                end
+                
+                t_voxels(i) = U_diff;
+                p_voxels(i) = stats.p(2);
+                
+                
+                
+                
+                
+                if isnan(U_diff)
+                    warning('all data for this voxel is in one arm. Analysis proceeds with t=0, p =1')
+                     t_voxels(i) = 0;
+                    p_voxels(i) = 1;
+                end
+                
+            end
+            
+            outputsize = obj.R.ImageSize;
+            signed_p_voxels = (1-p_voxels).*sign(t_voxels);
+            tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
+            pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
+            signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
+            
+            if Bayes
+                bfmap = VoxelData(reshape(bf_voxels,outputsize),obj.R);
+            else
+                bfmap=[];
+            end
+            
+            
+        end
+        
+        
+        
         
         function [rmap] = berlinWorkflow(obj,varargin)
             

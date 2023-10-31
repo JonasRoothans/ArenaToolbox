@@ -89,7 +89,7 @@ classdef Heatmap < handle
 
                 
                  if Stack.BinarizeData ||  Stack.SparseOptimization % can add later in or statement 'nnz(Stack.Voxels)/numel(Stack.Voxels) < 0.5)'
-                     List={'Tstatistic pipeline (dystonia Brain 2019 paper)','Tstatistic pipeline with Bayesian Stats'};
+                     List={'Tstatistic pipeline (dystonia Brain 2019 paper)','Tstatistic pipeline with Bayesian Stats','Wilcoxon rank test'};
                  else
                      
                      List={'Tstatistic pipeline (dystonia Brain 2019 paper)','Tstatistic pipeline with Bayesian Stats',...
@@ -115,6 +115,11 @@ classdef Heatmap < handle
                    end
                    
                     if indx(selected)==3
+                       mapSelection(selected)={'Wilcoxon rank test'}
+                    end
+                   
+                   
+                   if indx(selected)==4
                        mapSelection(selected)={'Correlation Stats'}
                    end
                    
@@ -144,7 +149,9 @@ classdef Heatmap < handle
 
             end
  
-            if ~isempty(intersect(mapSelection,{'Tstatistic pipeline', 'Tstatistic pipeline with Bayesian Stats','Signedpmap','Tmap','BFmap'}))
+
+            if ~isempty(intersect(mapSelection,{'Tstatistic pipeline', 'Tstatistic pipeline with Bayesian Stats','Tmap'}))
+
                 [tmap,pmap,signedpmap,bfmap] = Stack.ttest2(mapSelection);
                 [amap] = Stack.average();
                 obj.Tmap = tmap;
@@ -157,6 +164,18 @@ classdef Heatmap < handle
                 end
             end   
                 
+            if ~isempty(intersect(mapSelection,{'Wilcoxon rank test','Signedpmap'}))
+                [tmap,pmap,signedpmap,bfmap] = Stack.wilcoxonranktest(mapSelection);
+                [amap] = Stack.average();
+                obj.Tmap = tmap;
+                obj.Pmap = pmap;
+                obj.Signedpmap = signedpmap;
+                obj.Amap = amap;
+                
+                if  ~isempty(intersect(mapSelection,{'Tstatistic pipeline with Bayesian Stats'}))
+                    obj.BFmap=bfmap;
+                end
+            end   
                 
                 
             %Berlin-workflow
