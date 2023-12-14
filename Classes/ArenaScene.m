@@ -1736,6 +1736,22 @@ classdef ArenaScene < handle
                 actor.changeName(name);
             end
             
+            function actor = import_vds(scene,data,name)
+                v = data;
+                if isempty(v.Voxels)
+                    return
+                end
+                for i = 1:v.length
+                    vd = v.getVoxelDataAtPosition(i);
+                    if vd.isProbablyAMesh  
+                        actor = vd.getmesh.see(scene);
+                    else
+                        actor = vd.getslice.see(scene);
+                    end
+                actor.changeName([name,'(frame: ',num2str(v.Weights(i)),')']);
+                end
+            end
+            
             
             %             function menu_importimageasmesh(hObject,eventdata)
             %
@@ -1834,7 +1850,11 @@ classdef ArenaScene < handle
                     switch ext
                         case '.nii'
                             v = VoxelData;
-                            v.loadnii(fullfile(pathname,filename{iFile}));
+                            v = v.loadnii(fullfile(pathname,filename{iFile}));
+                            if isa(v,'VoxelDataStack')
+                                import_vds(scene,v,name)
+                                return
+                            end
                             if v.isProbablyAMesh
                                 
                                 %                              [pointlist] = v.detectPoints();

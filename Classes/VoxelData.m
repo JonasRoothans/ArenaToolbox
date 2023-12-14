@@ -320,11 +320,49 @@
                 
             else %reslicing might change your data slightly, but rotates the data when a rotation is saved in the header. 
                     % reslicing is recommended for normal use.
-                reslice_nii(niifile,fullfile(tempdir,tempname));
-                loadednifti = load_nii(fullfile(tempdir,tempname));
-                delete(fullfile(tempdir,tempname));
-                slope = 1;
-                intercept = 0;
+                    
+                    %check for multiple slices
+                    hdr = load_nii_hdr(niifile);
+                    if hdr.dime.dim(5)>1 %4D
+                        answer = inputdlg(['Enter space-separated numbers [1 - ',num2str(hdr.dime.dim(5)),'] or 0 to load all:'],...
+                            'Sample', [1 50]);
+                        user_val = str2num(answer{1});
+                        
+                        if any(user_val)==0
+                            user_val = 1:hdr.dime.dim(5);
+                        end
+                            
+                        if numel(user_val)>1
+                            vds = VoxelDataStack;
+                            
+                        end
+                        for i = 1:numel(user_val)
+                            reslice_nii(niifile,fullfile(tempdir,tempname),[],[],[],[],user_val(i));
+                            vdtemp = VoxelData;
+                            vdtemp.loadnii(fullfile(tempdir,tempname),'true')
+                            if numel(user_val)>1
+                                vds.InsertVoxelDataAt(vdtemp,i)
+                                vds.Weights(i) = user_val(i);
+                                if isempty(vds.R)
+                                    vds.R = vdtemp.R;
+                                end
+                            end
+                        end
+                        if numel(user_val)>1
+                            obj = vds;
+                            return
+                        else
+                            obj = vdtemp;
+                            return
+                        end
+                        
+                    else %3D
+                        reslice_nii(niifile,fullfile(tempdir,tempname));
+                        loadednifti = load_nii(fullfile(tempdir,tempname));
+                        delete(fullfile(tempdir,tempname));
+                        slope = 1;
+                        intercept = 0;
+                    end
             end
             
             if length(size(loadednifti.img))>3

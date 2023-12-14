@@ -421,16 +421,13 @@ classdef VoxelDataStack < handle
                 
                 if isempty(obj.R)
                     firstfile = recipe.fullpath{1};
-                    obj.R = VoxelDataStack.getTemplateSpace(firstfile);
+                    obj.R = VoxelDataStack.getTemplateSpace(firstfile); %Pops ListDialog
                 end
                 obj.RecipePath=fullfile(foldername,filename);
             end
             
             
-            
-            
-            
-            if nargin==2
+            if nargin==2 %--> no templatefile is provided
                 if isempty(obj.R)
                     if ischar(recipe)
                         obj.RecipePath  = recipe;
@@ -441,9 +438,9 @@ classdef VoxelDataStack < handle
                     end
                     firstfile = recipe.fullpath{1};
                     if isfolder(firstfile)
-                        obj.R = VoxelDataStack.getTemplateSpace();
+                        obj.R = VoxelDataStack.getTemplateSpace(); %Pops ListDialog
                     else
-                        obj.R = VoxelDataStack.getTemplateSpace(firstfile);
+                        obj.R = VoxelDataStack.getTemplateSpace(firstfile); 
                     end
                 end
             end
@@ -460,7 +457,7 @@ classdef VoxelDataStack < handle
                 return
             end
             obj.Recipe = recipe;
-            scoreTag = getScoreTag(recipe);
+            scoreTag = getScoreTag(recipe); %Pops ListDialog
             scores = obj.Recipe.(scoreTag);
             
             
