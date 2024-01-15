@@ -12,6 +12,9 @@ scene.addon_addmenuitem('HeatmapMaker','Train a prediction algorithm (LOO)',str2
 scene.addon_addmenuitem('HeatmapMaker','Predict a cohort',str2func('@HeatmapMaker_applyPrediction'),prediction)
 scene.addon_addmenuitem('HeatmapMaker','Simulate Cross Validation (LOOCV)',str2func('@HeatmapMaker_LOOCV'),prediction)
 
+expert = scene.addon_addmenuitem('HeatmapMaker','Expert pipeline to excite reviewers');
+scene.addon_addmenuitem('HeatmapMaker','Remove Side-effect while maintaining similar efficacy',str2func('@HeatmapMaker_monopolarReviewSE'),expert)
+
 
 other = scene.addon_addmenuitem('HeatmapMaker','Other');
 scene.addon_addmenuitem('HeatmapMaker','Repair recipe',str2func('@HeatmapMaker_repairRecipe'),other)
@@ -19,6 +22,7 @@ scene.addon_addmenuitem('HeatmapMaker','ttest without clinical scores',str2func(
 scene.addon_addmenuitem('HeatmapMaker','Sort folder to subfolders per patient',str2func('@HeatmapMaker_sortPerPatient'),other)
 scene.addon_addmenuitem('HeatmapMaker','Export Suretune Sessions to folder',str2func('@HeatmapMaker_SuretuneSessions'),other)
 scene.addon_addmenuitem('HeatmapMaker','extract all files and store in one folder',str2func('@HeatmapMaker_UnpackFolders'),other)
+scene.addon_addmenuitem('HeatmapMaker','display all VTAs',str2func('@HeatmapMaker_show'),other)
 
 
 legacy = scene.addon_addmenuitem('HeatmapMaker','Legacy (sweetspotstation)');

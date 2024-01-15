@@ -62,11 +62,10 @@ classdef Heatmap < handle
         
         
         function obj =  fromVoxelDataStack(obj,Stack,tag, description,mapSelection)
-            
+            %--- Variable input 
             if nargin<2
                 Stack=VoxelDataStack;
                 Stack.construct(); % this will prompt the question on how to load
-
             else
                 if ~isa(Stack,'VoxelDataStack')
                     error(['Was expecting a VoxelDataStack as input argument instead of ',class(Stack)])
@@ -86,8 +85,6 @@ classdef Heatmap < handle
              end
              
              if nargin<5
-
-                
                  if Stack.BinarizeData ||  Stack.SparseOptimization % can add later in or statement 'nnz(Stack.Voxels)/numel(Stack.Voxels) < 0.5)'
                      List={'Tstatistic pipeline (dystonia Brain 2019 paper)','Tstatistic pipeline with Bayesian Stats'};
                  else
@@ -108,14 +105,14 @@ classdef Heatmap < handle
                 
                for selected=1:numel(indx)
                    if indx(selected)==1
-                       mapSelection(selected)={'Tstatistic pipeline'}
+                       mapSelection(selected)={'Tstatistic pipeline'};
                    end
                    if indx(selected)==2
-                       mapSelection(selected)={'Tstatistic pipeline with Bayesian Stats'}
+                       mapSelection(selected)={'Tstatistic pipeline with Bayesian Stats'};
                    end
                    
                     if indx(selected)==3
-                       mapSelection(selected)={'Correlation Stats'}
+                       mapSelection(selected)={'Correlation Stats'};
                    end
                    
                end
@@ -180,7 +177,7 @@ classdef Heatmap < handle
 
             
             obj.Tag = tag;
-            obj.Description = description;
+            obj.Description = {description,['[Data used: ',Stack.ScoreLabel,']']};
             obj.outputdir=Stack.RecipePath;
 
 

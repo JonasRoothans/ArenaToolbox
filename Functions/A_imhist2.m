@@ -3,7 +3,7 @@ function f = A_imhist2(vd1,vd2)
 %   Detailed explanation goes here
 
 v1 = vd1.Voxels(:);
-v2 = vd2.Voxels(:);
+v2 = vd2.warpto(vd1).Voxels(:);
 
 v1(isnan(v1)) =0 ;
 v2(isnan(v2)) =0 ;
