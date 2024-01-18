@@ -48,6 +48,16 @@
                             e.Direction = Vector3D(prox_in_MNIspace - distal_in_MNIspace).unit();
                             e.Type = thisLead.stimPlan{iStimplan}.lead.leadType;
                             
+                            %add stimplan, but remove redundant fields
+                            e.VTA = VTA;
+                            warning('off')
+                            e.VTA.SuretuneStimplan = struct(thisLead.stimPlan{iStimplan});
+                            warning('on')
+                            e.VTA.SuretuneStimplan.vta = [];
+                            e.VTA.SuretuneStimplan.lead = [];
+                            e.VTA.SuretuneStimplan.session = [];
+                            e.VTA.Space = 'MNI2009b';
+                            
                             
 
 

@@ -14,6 +14,7 @@ classdef VoxelDataStack < handle
         ScoreLabel
         SparseOptimization = true;
         BinarizeData=false;
+        Electrodes = Electrode.empty;
     end
     
     methods
@@ -227,7 +228,8 @@ classdef VoxelDataStack < handle
             
         end
         
-        function obj = loadDataFromFolder(obj,folder)
+        function [obj,electrodelist] = loadDataFromFolder(obj,folder)
+            electrodelist = Electrode.empty; %in case .electrode files are found with identical names, these will be listed.
             if nargin==1
                 waitfor(msgbox('Find the folder with nii files'))
                 [folder] = uigetdir('*.nii','Get the folder with nii files');
@@ -248,6 +250,26 @@ classdef VoxelDataStack < handle
                 end
                 obj.InsertVoxelDataAt(vd,iFile)
                 
+                %check if filename.electrode exists
+                [~,name] = fileparts(files(iFile).name);
+                electrodefn = fullfile(folder,[name,'.electrode']);
+                if exist(electrodefn,'file')
+                    load(electrodefn,'e','-mat'); %stored as e
+                    
+                    %populate the VTA property.
+                    e.VTA.Electrode = e;
+                    e.VTA.Volume = vd;
+                    e.VTA.Source = electrodefn;
+                    
+                    
+                    electrodelist(iFile) = e;
+                    
+                end
+                
+            end
+            if not(isempty(electrodelist))
+                obj.Electrodes = electrodelist;
+                disp('Electrodes were detected. They are stored in vds.Electrodes')
             end
             
         end
@@ -290,6 +312,7 @@ classdef VoxelDataStack < handle
             obj.newEmpty([],length(obj.Recipe.filelocation)); %ref is empty, becasue it's already set.
             obj.ScoreLabel = scoreTag;
             scene = getScene('Show the data in a scene?');
+            electrodelist = Electrode.empty;
             
             for i = 1:height(obj.Recipe)
                 
@@ -329,8 +352,13 @@ classdef VoxelDataStack < handle
                 obj.Weights(i) = obj.Recipe.(obj.ScoreLabel)(i);
                 obj.LayerLabels{i} = e.VTA.Tag;
                 
+                electrodelist(i) = e;
             end
             
+            if not(isempty(electrodelist))
+                obj.Electrodes = electrodelist;
+                disp('Electrodes were detected. They are stored in vds.Electrodes')
+            end
             
             
             
@@ -364,7 +392,7 @@ classdef VoxelDataStack < handle
             warning('this is an experimental function, no reslicing is applied')
             loadednifti = load_untouch_nii(filename);
             slope = loadednifti.hdr.dime.scl_slope;
-                intercept = loadednifti.hdr.dime.scl_inter;
+            intercept = loadednifti.hdr.dime.scl_inter;
             img = squeeze(loadednifti.img);
             dims = size(img);
             if not(length(dims)==4)
@@ -404,7 +432,7 @@ classdef VoxelDataStack < handle
             end
             
             
-           
+            
             
             keyboard
         end
@@ -440,7 +468,7 @@ classdef VoxelDataStack < handle
                     if isfolder(firstfile)
                         obj.R = VoxelDataStack.getTemplateSpace(); %Pops ListDialog
                     else
-                        obj.R = VoxelDataStack.getTemplateSpace(firstfile); 
+                        obj.R = VoxelDataStack.getTemplateSpace(firstfile);
                     end
                 end
             end
@@ -521,11 +549,26 @@ classdef VoxelDataStack < handle
                     files = A_getfiles(fullfile(obj.Recipe.fullpath{i},'*.nii'));
                     for iFile = 1:numel(files)
                         
+                        %load VD
                         thisFile = fullfile(obj.Recipe.fullpath{i},files(iFile).name);
-                        
-                        
-                        
                         vd = VoxelData(thisFile);
+                        
+                        %Potentially load .electrode
+                        [~,name] = fileparts(thisFile);
+                        electrodefn = fullfile(obj.Recipe.fullpath{i},[name,'.electrode']);
+                        if exist(electrodefn,'file')
+                            load(electrodefn,'e','-mat'); %stored as e
+                            %populate the VTA property.
+                            e.VTA.Electrode = e;
+                            e.VTA.Source = electrodefn;
+                        else
+                            e = nan;
+                        end
+                        
+                        
+                        
+                        
+                        
                         if any(isnan(vd.Voxels(:)))
                             vd.Voxels(isnan(vd.Voxels)) = 0;
                         end
@@ -563,12 +606,13 @@ classdef VoxelDataStack < handle
                             insertionCounter = insertionCounter+1;
                             insertAt = insertionCounter;
                             obj.InsertVoxelDataAt(together,insertAt);
+                           
                             id = obj.Recipe.folderID(i);
                             obj.Weights(insertAt) = scores(i);
                             [~,name] = fileparts(thisFile);
                             obj.LayerLabels{insertAt} = [id,name];
                         end
-                        
+                      obj.InsertElectrodeAt(e,i)  
                     end
                     if not(individual_sampling)
                         together = together.makeBinary(0.5);
@@ -577,7 +621,9 @@ classdef VoxelDataStack < handle
                     if combineSubfolders
                         insertAt = i;
                         obj.InsertVoxelDataAt(together,insertAt);
+                        
                         id = obj.Recipe.folderID(i);
+                        
                     end
                 else
                     %%----- this block has been silenced for safety. It can
@@ -620,6 +666,7 @@ classdef VoxelDataStack < handle
                         printwhendone{end+1} = ['not_mirrored: ',obj.Recipe.fullpath{i}];
                     end
                     obj.InsertVoxelDataAt(vd,i);
+                    obj.InsertElectrodeAt(e,insertAt)
                     id = obj.Recipe.fileID(i);
                 end
                 
@@ -684,7 +731,16 @@ classdef VoxelDataStack < handle
         
         
         
-        
+        function obj = InsertElectrodeAt(obj,e,index)
+            if not(isa(e,'Electrode'))
+                return
+            end
+            try obj.Electrodes(1,index)
+                obj.Electrodes(2,index) = e;
+            catch
+                obj.Electrodes(1,index) = e;
+            end
+        end
         
         function obj = InsertVoxelDataAt(obj,vd,index)
             sizeStack = size(obj.Voxels);
@@ -1101,7 +1157,7 @@ classdef VoxelDataStack < handle
                 
                 if isnan(t)
                     warning('all data for this voxel is in one arm. Analysis proceeds with t=0, p =1')
-                     t_voxels(i) = 0;
+                    t_voxels(i) = 0;
                     p_voxels(i) = 1;
                 end
                 
