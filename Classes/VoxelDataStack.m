@@ -1063,7 +1063,9 @@ classdef VoxelDataStack < handle
             serialized = obj.Voxels;
             serialized_sum  = sum(round(serialized),2); % takes the sum across all subjects
             serialized_width = size(serialized,2); %number of data points per voxel
-            relevantVoxels = find(and(serialized_sum>1,serialized_sum<serialized_width)); % excludes voxels that are almost empty across all subjects or that are filled across all subject
+            % relevantVoxels = find(and(serialized_sum>1,serialized_sum<serialized_width)); % excludes voxels that are almost empty across all subjects or that are filled across all subject
+            relevantVoxels=find(serialized_sum>1); % excludes voxels that are almost empty across all subjects
+          
             t_voxels = zeros([length(serialized),1]); % all values assigned zeros including non relevenat voxels
             
             
