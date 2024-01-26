@@ -37,6 +37,11 @@ classdef Prediction < handle
             %--Prediction
             fprintf('===>> Prediction Outcome: %4.2f \n',obj.Output)
             fprintf('===>> Prediction Confidence: %4.2f \n \n',obj.Confidence)
+            try
+            fprintf('===>> Comment: %4.2f \n \n',obj.Comments{1})
+            catch
+                %currently only works if comment is a number in a cell.
+            end
             
             
         end

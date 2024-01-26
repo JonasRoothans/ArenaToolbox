@@ -225,11 +225,11 @@ classdef Therapy < handle
                     %% print everything using heatmap support
                     
                    
-                   HeatmapModelSupport.printPredictionList(therapy.Tag,therapy.ReviewData.predictionList,pairs);
-                   HeatmapModelSupport.printtext(fileID,'\n')
-                   HeatmapModelSupport.printtext(fileID,'Therapy Recommendation:')
-                   HeatmapModelSupport.printtext(fileID,'\n')
-                   HeatmapModelSupport.printReco(fileID,therapy.RecommendedSettings,pairs)
+                   fileID = HeatmapModelSupport.printPredictionList(obj.Tag,obj.ReviewData.predictionList,pairs);
+                   %HeatmapModelSupport.printtext(fileID,'\n')
+                   %HeatmapModelSupport.printtext(fileID,'Therapy Recommendation:')
+                   %HeatmapModelSupport.printtext(fileID,'\n')
+                   %HeatmapModelSupport.printReco(fileID,therapy.RecommendedSettings,pairs)
                    fclose(fileID);
                    
                    

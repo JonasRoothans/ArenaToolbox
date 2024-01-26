@@ -1894,6 +1894,8 @@ classdef ArenaScene < handle
                             A_loadgraphml(scene,fullfile(pathname,filename{iFile}));
                         case '.trk'
                             A_loadtrk(scene,fullfile(pathname,filename{iFile}));
+                        case '.electrode'
+                            A_loadelectrode(scene,fullfile(pathname,filename{iFile}));
                             
                             
                             
