@@ -1030,7 +1030,7 @@ classdef VoxelDataStack < handle
                 nmap_vector = sum(v,2);
             end
             
-            nmap = VoxelData(obj.reshape(nmap_vector),obj.R);
+            nmap = VoxelData(imgaussfilt3(obj.reshape(nmap_vector),1.5),obj.R);
             
         end
         
@@ -1076,7 +1076,7 @@ classdef VoxelDataStack < handle
             amapvoxels = obj.reshape(averageVoxels);
             
             amap = VoxelData;
-            amap.Voxels = amapvoxels;
+            amap.Voxels = imgaussfilt3(amapvoxels,1.5);
             amap.R = obj.R;
         end
         
@@ -1120,8 +1120,8 @@ classdef VoxelDataStack < handle
             serialized_sum  = sum(round(serialized),2); % takes the sum across all subjects
             serialized_width = size(serialized,2); %number of data points per voxel
             % relevantVoxels = find(and(serialized_sum>1,serialized_sum<serialized_width)); % excludes voxels that are almost empty across all subjects or that are filled across all subject
-            relevantVoxels=find(serialized_sum>1); % excludes voxels that are almost empty across all subjects
-          
+            relevantVoxels=find(serialized_sum>0); % excludes voxels that are almost empty across all subjects
+            onesampleVoxels=find(all(serialized,2));
             t_voxels = zeros([length(serialized),1]); % all values assigned zeros including non relevenat voxels
             
             
@@ -1158,6 +1158,7 @@ classdef VoxelDataStack < handle
                 
                 
                 if isnan(t)
+                    keyboard
                     warning('all data for this voxel is in one arm. Analysis proceeds with t=0, p =1')
                     t_voxels(i) = 0;
                     p_voxels(i) = 1;
@@ -1165,14 +1166,63 @@ classdef VoxelDataStack < handle
                 
             end
             
+
+  disp(' ~running ttest1')
+            for i =  onesampleVoxels'
+
+                if any(serialized(i,:)>1)
+                    weightsweights = [obj.Weights,obj.Weights];
+                    serializedcombi = [serialized(i,:)>0.5,serialized(i,:)>1.5];
+                    [~,p,~,stat] = ttest(weightsweights(serializedcombi));
+                    t = stat.tstat;
+                    if Bayes
+                        [bayes]=bf.ttest('T',t, 'N', numel(weightsweights(serializedcombi)));
+                        bf_voxels(i) = bayes;
+                    end
+                else
+                    [~,p,~,stat] = ttest(obj.Weights(serialized(i,:)>0.5));
+                    t = stat.tstat;
+                    if Bayes
+                        [bayes]=bf.ttest('T',t, 'N', numel(obj.Weights(serialized(i,:)>0.5)));
+                        bf_voxels(i) = bayes;
+                    end
+                end
+
+                t_voxels(i) = t;
+                p_voxels(i) = p;
+
+
+
+
+
+                if isnan(t)
+                    keyboard
+                    warning('all data for this voxel is in one arm. Analysis proceeds with t=0, p =1')
+                    t_voxels(i) = 0;
+                    p_voxels(i) = 1;
+                end
+
+            end
+
+
+
+
+
+
+
+
+
+
+
+
             outputsize = obj.R.ImageSize;
             signed_p_voxels = (1-p_voxels).*sign(t_voxels);
-            tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
-            pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
-            signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
+            tmap = VoxelData(imgaussfilt3(reshape(t_voxels,outputsize),1.5),obj.R);
+            pmap = VoxelData(imgaussfilt3(reshape(p_voxels,outputsize),1.5),obj.R);
+            signedpmap = VoxelData(imgaussfilt3(reshape(signed_p_voxels,outputsize),1.5),obj.R);
             
             if Bayes
-                bfmap = VoxelData(reshape(bf_voxels,outputsize),obj.R);
+                bfmap = VoxelData(imgaussfilt3(reshape(bf_voxels,outputsize),1.5),obj.R);
             else
                 bfmap=[];
             end

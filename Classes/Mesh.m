@@ -44,38 +44,39 @@ classdef Mesh < handle & matlab.mixin.Copyable & ArenaActorRendering
             end
             
             
-            
+   
             %increase resolution if resolution is bad, and only few voxels
             %will be visualized
-            if VoxelData_.R.PixelExtentInWorldX>0.5 && sum(VoxelData_.Voxels(:)>T)< 70
-                %interpolating
-                Xo = VoxelData_.R.XWorldLimits(1)+VoxelData_.R.PixelExtentInWorldX/2:VoxelData_.R.PixelExtentInWorldX:VoxelData_.R.XWorldLimits(2);
-                Yo = VoxelData_.R.YWorldLimits(1)+VoxelData_.R.PixelExtentInWorldY/2:VoxelData_.R.PixelExtentInWorldY:VoxelData_.R.YWorldLimits(2);
-                Zo = VoxelData_.R.ZWorldLimits(1)+VoxelData_.R.PixelExtentInWorldZ/2:VoxelData_.R.PixelExtentInWorldZ:VoxelData_.R.ZWorldLimits(2);
-                Xq = VoxelData_.R.XWorldLimits(1):0.5:VoxelData_.R.XWorldLimits(2);
-                Yq = VoxelData_.R.YWorldLimits(1):0.5:VoxelData_.R.XWorldLimits(2);
-                Zq = VoxelData_.R.ZWorldLimits(1):0.5:VoxelData_.R.XWorldLimits(2);
-                
-                [Xm,Ym,Zm] = meshgrid(Xo,Yo,Zo);
-                [Xqq,Yqq,Zqq] = meshgrid(Xq,Yq,Zq);
-                disp('Interpolating source data on 0.5mm grid')
-                Vin = VoxelData_.Voxels;
-                Vin(isnan(Vin)) = 0.0;
-                try
-                    Vq = interp3(Xm,Ym,Zm,Vin,Xqq,Yqq,Zqq,'nearest');
-                    X = Xqq;
-                    Y = Yqq;
-                    Z = Zqq;
-                    V  = Vq;
-                catch
-                    [X,Y,Z] = A_imref2meshgrid(VoxelData_.R);
-                    V = VoxelData_.Voxels;
-                end
-                    
-            else
+            % if VoxelData_.R.PixelExtentInWorldX>0.5 && sum(VoxelData_.Voxels(:)>T)< 70
+            %     %interpolating
+            %     return
+            %     Xo = VoxelData_.R.XWorldLimits(1)+VoxelData_.R.PixelExtentInWorldX/2:VoxelData_.R.PixelExtentInWorldX:VoxelData_.R.XWorldLimits(2);
+            %     Yo = VoxelData_.R.YWorldLimits(1)+VoxelData_.R.PixelExtentInWorldY/2:VoxelData_.R.PixelExtentInWorldY:VoxelData_.R.YWorldLimits(2);
+            %     Zo = VoxelData_.R.ZWorldLimits(1)+VoxelData_.R.PixelExtentInWorldZ/2:VoxelData_.R.PixelExtentInWorldZ:VoxelData_.R.ZWorldLimits(2);
+            %     Xq = VoxelData_.R.XWorldLimits(1):0.5:VoxelData_.R.XWorldLimits(2);
+            %     Yq = VoxelData_.R.YWorldLimits(1):0.5:VoxelData_.R.XWorldLimits(2);
+            %     Zq = VoxelData_.R.ZWorldLimits(1):0.5:VoxelData_.R.XWorldLimits(2);
+            % 
+            %     [Xm,Ym,Zm] = meshgrid(Xo,Yo,Zo);
+            %     [Xqq,Yqq,Zqq] = meshgrid(Xq,Yq,Zq);
+            %     disp('Interpolating source data on 0.5mm grid')
+            %     Vin = VoxelData_.Voxels;
+            %     Vin(isnan(Vin)) = 0.0;
+            %     try
+            %         Vq = interp3(Xm,Ym,Zm,Vin,Xqq,Yqq,Zqq,'nearest');
+            %         X = Xqq;
+            %         Y = Yqq;
+            %         Z = Zqq;
+            %         V  = Vq;
+            %     catch
+            %         [X,Y,Z] = A_imref2meshgrid(VoxelData_.R);
+            %         V = VoxelData_.Voxels;
+            %     end
+            % 
+            % else
                 [X,Y,Z] = A_imref2meshgrid(VoxelData_.R);
                 V = VoxelData_.Voxels;
-            end
+            % end
                 
              disp('Arena Mesh: computing...')
 %              test = VoxelData(V,VoxelData_.R);
