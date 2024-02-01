@@ -1,12 +1,45 @@
 function mdl = HeatmapMaker_monopolarReviewSE(menu,eventdata,scene)
 
-%load excel sheet.
-%then load the folders separately.
-%export the clinical input values
-%export the model values
-%export the best settings
-%export the model values for those
 
+
+%ask for the model
+vds = VoxelDataStack;
+vds.loadStudyDataFromRecipe;
+
+nPatients = vds.length;
+nVTAs = vds.depth;
+%Build a list with all (bilateral) therapies.
+therapyList = Therapy.empty();
+for iPatient = 1:nPatients
+    thisTherapy = Therapy();
+    thisTherapy.Tag = vds.LayerLabels{iPatient}{1};
+    for iVTA = 1:nVTAs
+            thisVTA  = VTA;
+            thisVTA.Electrode = vds.Electrodes(iPatient,iVTA);
+            thisVTA.Volume = vds.getVoxelDataAtPosition(iPatient,iVTA);
+            
+            %the electrode object might contain more info. This is
+            %recaptured.
+            try
+            thisVTA.Source = thisVTA.Electrode.VTA.Source;
+            thisVTA.Space = thisVTA.Electrode.VTA.Space;
+            thisVTA.Tag = thisVTA.Electrode.VTA.Tag;
+            thisVTA.SuretuneStimplan = thisVTA.Electrode.VTA.SuretuneStimplan;
+            thisTherapy.VTAs(end+1) = thisVTA;
+            catch
+                warning(['No VTA inside electrode for ',thisTherapy.Tag])
+            end
+            
+           
+    end
+    thisTherapy.connectTo(scene)
+    therapyList(iPatient) = thisTherapy;
+end
+
+data = createPopup(therapyList);
+
+for therapy = 1:vds.length
+    
 
 end
 

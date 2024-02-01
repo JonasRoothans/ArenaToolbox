@@ -17,13 +17,15 @@ classdef HeatmapModelSupport < handle
     end
     
     methods (Static)
-        function fileID = printPredictionList(Tag,predictionList,pairs,blackOrRed)
+        function fileID = printPredictionList(Tag,predictionList,pairs,blackOrRed,order)
             
-          
+            if nargin==4
+                order = 'descend'
+            end
                 
                 fileID = HeatmapModelSupport.makeFile(Tag,'RankedScores.txt');
                 
-                HeatmapModelSupport.loopPrint(fileID,predictionList,pairs)
+                HeatmapModelSupport.loopPrint(fileID,predictionList,pairs,order)
                
         end
         
@@ -74,14 +76,20 @@ classdef HeatmapModelSupport < handle
 
         end
         
-        function loopPrint(fileID,predictionList,pairs)
+        function loopPrint(fileID,predictionList,pairs,printOrder)
 
-
-              [sorted,order] = sort(vertcat(predictionList.Output),'descend');
+                if nargin==3
+                    printOrder = 'descend';
+                end
+              [sorted,order] = sort(vertcat(predictionList.Output),printOrder);
                         
         %----two leads
             if length(pairs)~=numel(pairs)
-                HeatmapModelSupport.printtext(fileID,'\t\t\t%s\t%s\n',predictionList(1).Input.VTAs(1).ActorElectrode.Tag,predictionList(1).Input.VTAs(2).ActorElectrode.Tag);
+                
+                leadname1 = findLeadDescription(predictionList(1).Input.VTAs(1));
+                leadname2 = findLeadDescription(predictionList(1).Input.VTAs(2));
+                
+                HeatmapModelSupport.printtext(fileID,'\t\t\t%s\t%s\n',leadname1,leadname2);
                 HeatmapModelSupport.printtext(fileID,'-------------------------------------------\n')
                 for iShortlist = 1:length(order)
                     item = order(iShortlist);
@@ -110,6 +118,22 @@ classdef HeatmapModelSupport < handle
                     HeatmapModelSupport.printtext(fileID,'%i.\t %2.1f \t C%i - %2.1f mA\t (%2.2f) \n',iShortlist,Improv, c_e1,a_e1,conf_e1);
 
 
+                end
+            end
+            
+            function leadname = findLeadDescription(VTA)
+                if not(isempty(VTA.ActorElectrode))
+                    leadname = VTA.ActorElectrode.Tag;
+                    return
+                end
+                
+                try
+                    filename = VTA.Electrode.VTA(1).Source;
+                    [folder,filename,extension] = fileparts(filename);
+                    leadname = filename;
+                    return
+                catch
+                    %try smth else
                 end
             end
 
