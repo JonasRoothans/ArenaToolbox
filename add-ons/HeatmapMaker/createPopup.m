@@ -90,7 +90,7 @@ initiateTable();
     end
 
     function export(hObject,eventdata)
-        folder = uigetdir;
+        folder = '/Users/jonas/Documents/MATLAB/ArenaToolbox/ArenaToolbox/UserData';
         writetable(popupdata.table,fullfile(folder,'table.xlsx'),'WriteRowNames',true)
     end
 
@@ -205,7 +205,7 @@ initiateTable();
             
                
             
-            
+            export(hObject,eventdata)
         end
         
    updateTable
