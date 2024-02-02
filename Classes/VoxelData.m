@@ -792,7 +792,7 @@
         end
         
         
-        function imclose(obj,width)
+        function obj = imclose(obj,width)
             se = strel('disk',width);
             obj.Voxels = imclose(obj.Voxels,se);
             
@@ -1171,6 +1171,10 @@
             else
                 obj.Voxels = obj.Voxels>T;
             end
+        end
+        
+        function obj = polishVTA(obj)
+            obj = obj.makeBinary(0.5).imclose(3).smooth().makeBinary(0.5);
         end
         
         function [PointCloudWorld,PointCloudIntrinsic,indcs] = getCoordinatesOfBinary(obj)

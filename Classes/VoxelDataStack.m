@@ -590,13 +590,13 @@ classdef VoxelDataStack < handle
                         %no Binarisation of files in case of bilateral therapy
                         if iFile==1
                             if obj.BinarizeData
-                                together = vd.warpto(obj.R).makeBinary(0.5);
+                                together = vd.warpto(obj.R).polishVTA.makeBinary(0.5);
                             else
                                 together=vd.warpto(obj.R);
                             end
                         else
                             if obj.BinarizeData
-                                together = together+vd.warpto(obj.R).makeBinary(0.5);
+                                together = together+vd.warpto(obj.R).polishVTA.makeBinary(0.5);
                             else
                                 together = together+vd.warpto(obj.R);
                             end
@@ -1030,7 +1030,7 @@ classdef VoxelDataStack < handle
                 nmap_vector = sum(v,2);
             end
             
-            nmap = VoxelData(imgaussfilt3(obj.reshape(nmap_vector),1.5),obj.R);
+            nmap = VoxelData(obj.reshape(nmap_vector),obj.R);
             
         end
         
@@ -1076,7 +1076,7 @@ classdef VoxelDataStack < handle
             amapvoxels = obj.reshape(averageVoxels);
             
             amap = VoxelData;
-            amap.Voxels = imgaussfilt3(amapvoxels,1.5);
+            amap.Voxels = amapvoxels;
             amap.R = obj.R;
         end
         
@@ -1217,12 +1217,12 @@ classdef VoxelDataStack < handle
 
             outputsize = obj.R.ImageSize;
             signed_p_voxels = (1-p_voxels).*sign(t_voxels);
-            tmap = VoxelData(imgaussfilt3(reshape(t_voxels,outputsize),1.5),obj.R);
-            pmap = VoxelData(imgaussfilt3(reshape(p_voxels,outputsize),1.5),obj.R);
-            signedpmap = VoxelData(imgaussfilt3(reshape(signed_p_voxels,outputsize),1.5),obj.R);
+            tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);
+            pmap = VoxelData(reshape(p_voxels,outputsize),obj.R);
+            signedpmap = VoxelData(reshape(signed_p_voxels,outputsize),obj.R);
             
             if Bayes
-                bfmap = VoxelData(imgaussfilt3(reshape(bf_voxels,outputsize),1.5),obj.R);
+                bfmap = VoxelData(reshape(bf_voxels,outputsize),obj.R);
             else
                 bfmap=[];
             end
