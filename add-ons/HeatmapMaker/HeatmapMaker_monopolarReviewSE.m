@@ -4,7 +4,7 @@ function mdl = HeatmapMaker_monopolarReviewSE(menu,eventdata,scene)
 
 %ask for the model
 vds = VoxelDataStack;
-vds.loadStudyDataFromRecipe;
+[vds,filename] = vds.loadStudyDataFromRecipe;
 
 nPatients = vds.length;
 nVTAs = vds.depth;
@@ -36,7 +36,7 @@ for iPatient = 1:nPatients
     therapyList(iPatient) = thisTherapy;
 end
 
-data = createPopup(therapyList);
+data = createPopup(therapyList,filename);
 
 for therapy = 1:vds.length
     

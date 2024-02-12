@@ -37,6 +37,10 @@ classdef Bradykinesia < HeatmapModelSupport & handle
         
         
         function [prediction, confidence, comments] = predictionForVTAs(obj,VTAlist)
+             if isempty(obj.HeatmapModel)
+                obj = obj.load();
+             end
+            
             sample = [];
             comments = {};
             confidence = [];
@@ -60,14 +64,8 @@ classdef Bradykinesia < HeatmapModelSupport & handle
                     VTA_voxelData = VTA_voxelData.mirror();
                 end
                 
-                
-                %predict
-                switch obj.PostSettings.Mode
-                    case 'raw value'
-                        [comments{iVTA},prediction(iVTA)] = obj.predictVD(VTA_voxelData);
-                    case 'risk category'
-                    [prediction(iVTA),comments{iVTA}] = obj.predictVD(VTA_voxelData);
-                end
+                %warp to heatmap
+                VTA_voxelData.warpto(obj.HeatmapModel.Heatmap.Signedpmap)
                 
                 %check confidence
                 %sample map to see if it's overlapping enough with the model!
@@ -79,14 +77,30 @@ classdef Bradykinesia < HeatmapModelSupport & handle
                 end
                 confidence(iVTA) = 1-outofmodel/numel(allvoxels);
                 
+                %add them together
+                if iVTA == 1
+                    together = VTA_voxelData;
+                else
+                    if not(all(together.size==VTA_voxelData.size))
+                        %something went wrong.. They should be warped to
+                        %the model.
+                        keyboard
+                    end
+                    together = together+VTA_voxelData;
+                end
             end
-            prediction = max(prediction);% the risk score for bilateral therapy is the highest.
-            
-            
-            
-            
-            
-        end
+                %predict
+                switch obj.PostSettings.Mode
+                    case 'raw value'
+                        [comments,prediction] = obj.predictVD(together);
+                    case 'risk category'
+                    [prediction,comments] = obj.predictVD(together);
+                end
+                
+                
+                
+            end
+
     
     
 

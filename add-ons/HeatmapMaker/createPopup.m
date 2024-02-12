@@ -1,4 +1,4 @@
-function [popupdata] = createPopup(therapyList)
+function [popupdata] = createPopup(therapyList,filename)
 
 popupdata.model1name = '1';
 popupdata.model2name = '2';
@@ -9,7 +9,7 @@ monitorWidth = monitorSize(3);
 monitorHeight = monitorSize(4);
 
 % Create figure
-f = figure('Name', 'f', 'Position', [monitorWidth/3, 0, monitorWidth/1.5, monitorHeight]);
+f = figure('Name', filename, 'Position', [monitorWidth/3, 0, monitorWidth/1.5, monitorHeight]);
 
 
 dropdownWidth = 0.4;
@@ -91,7 +91,7 @@ initiateTable();
 
     function export(hObject,eventdata)
         folder = '/Users/jonas/Documents/MATLAB/ArenaToolbox/ArenaToolbox/UserData';
-        writetable(popupdata.table,fullfile(folder,'table.xlsx'),'WriteRowNames',true)
+        writetable(popupdata.table,fullfile(folder,['analysis_for_',filename]),'WriteRowNames',true)
     end
 
 

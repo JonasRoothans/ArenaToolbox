@@ -16,6 +16,7 @@ classdef VoxelDataStack < handle
         BinarizeData=false;
         Electrodes = Electrode.empty;
         
+        
     end
     
     methods
@@ -441,7 +442,7 @@ classdef VoxelDataStack < handle
             keyboard
         end
         
-        function obj = loadStudyDataFromRecipe(obj,recipe,templatefile)
+        function [obj,filename] = loadStudyDataFromRecipe(obj,recipe,templatefile)
             if nargin==1
                 waitfor(msgbox('Find the recipe'))
                 [filename,foldername] = uigetfile('*.xlsx','Locate the recipe');

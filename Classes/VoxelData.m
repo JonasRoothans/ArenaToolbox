@@ -624,6 +624,11 @@
             Stack=VoxelDataStack;
             Stack.R=varargin{1}.R;
             
+            if not(all(size(varargin{1})==size(varargin{2})))
+                varargin{2} = varargin{2}.warpto(varargin{1});
+                warning('Adding VoxelDatas of different dimensions. A+B, B = warped to A, in order to proceed. Please check input')
+            end
+            
           for iStack=1:numel(varargin)
               Stack.Voxels(:,:,:,iStack)= varargin{iStack}.Voxels;
           end
