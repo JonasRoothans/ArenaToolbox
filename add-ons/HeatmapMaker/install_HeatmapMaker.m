@@ -23,6 +23,7 @@ scene.addon_addmenuitem('HeatmapMaker','Sort folder to subfolders per patient',s
 scene.addon_addmenuitem('HeatmapMaker','Export Suretune Sessions to folder',str2func('@HeatmapMaker_SuretuneSessions'),other)
 scene.addon_addmenuitem('HeatmapMaker','extract all files and store in one folder',str2func('@HeatmapMaker_UnpackFolders'),other)
 scene.addon_addmenuitem('HeatmapMaker','display all VTAs',str2func('@HeatmapMaker_show'),other)
+scene.addon_addmenuitem('HeatmapMaker','convert ea_reconstruction to arena electrode',str2func('@HeatmapMaker_convertleaddbsreco'),other)
 
 
 legacy = scene.addon_addmenuitem('HeatmapMaker','Legacy (sweetspotstation)');

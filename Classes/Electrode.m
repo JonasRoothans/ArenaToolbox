@@ -9,6 +9,7 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
         Type = 'Medtronic3389'
         VTA = VTA.empty()
         Source
+        Space = Space.Unknown;
     end
     
     methods
@@ -213,6 +214,50 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
         end
             
        
+    end
+    
+    methods(Static)
+        function out = convertReco(reco) %lead-dbs
+            out = Electrode.empty;
+                for iElectrode = 1:numel(reco.native.coords_mm)
+                    
+                    e = Electrode;
+                    switch reco.props(iElectrode).elmodel
+                        case 'Medtronic 3389'
+                            e.Type = 'Medtronic3389';
+                         case 'Medtronic 3387'
+                            e.Type = 'Medtronic3387';
+                        otherwise
+                            %please add this case.. and connect it to the
+                            %appropriate arena name for the electrode.
+                            keyboard
+                    end
+                    
+                    
+                    %a trial-and-error tree to find which space to use.
+                    try 
+                        test= reco.mni.coords_mm{iElectrode};
+                        space = 'mni';
+                        e.Space = Space.MNI2009b;
+                    catch
+                        try
+                            test= reco.acpc.coords_mm{iElectrode};
+                            space = 'acpc';
+                            e.Space = Space.ACPC;
+                        catch
+                            space = 'native';
+                            e.Space = Space.PatientNative;
+                            
+                        end
+                    end
+                    
+
+                    e.C0 = reco.(space).coords_mm{iElectrode}(1,:);
+                    e.PointOnLead(reco.(space).coords_mm{iElectrode}(4,:))
+                    
+                    out(iElectrode) = e;
+                end
+        end
     end
 end
 
