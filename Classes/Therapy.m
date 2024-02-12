@@ -120,6 +120,12 @@ classdef Therapy < handle
                     pulsewidths = {60};
                     amplitudes = num2cell(3.2);
                     contacts = num2cell(1:4);
+                case '60 us - 2 mA - MDT3389 QUICKSCAN'
+                    leadtype = {'Medtronic3389'};
+                    voltagecontrolled = {'False'};
+                    pulsewidths = {60};
+                    amplitudes = num2cell(2);
+                    contacts = num2cell(1:4);
                 otherwise
                     keyboard
             end
@@ -194,7 +200,7 @@ classdef Therapy < handle
                 PostSettings.Therapy = obj;
                 PostSettings.UserInput.heatmap = heatmap;
                 PostSettings.UserInput.VTAset = VTAset;
-     
+                
                 PostSettings.sortedList=sortedList;
                 
                 %run the postprocessing in the model.
@@ -206,7 +212,7 @@ classdef Therapy < handle
                 %--- option 2: simply perform basics of printing the data.
             else
                 
-               
+                
                 
                 if false
                     
@@ -219,23 +225,23 @@ classdef Therapy < handle
                     end
                     
                 else
-                      
+                    
                     
                     
                     %% print everything using heatmap support
                     
-                   
-                   fileID = HeatmapModelSupport.printPredictionList(obj.Tag,obj.ReviewData.predictionList,pairs);
-                   %HeatmapModelSupport.printtext(fileID,'\n')
-                   %HeatmapModelSupport.printtext(fileID,'Therapy Recommendation:')
-                   %HeatmapModelSupport.printtext(fileID,'\n')
-                   %HeatmapModelSupport.printReco(fileID,therapy.RecommendedSettings,pairs)
-                   fclose(fileID);
-                   
-                   
-                   
+                    
+                    fileID = HeatmapModelSupport.printPredictionList(obj.Tag,obj.ReviewData.predictionList,pairs);
+                    %HeatmapModelSupport.printtext(fileID,'\n')
+                    %HeatmapModelSupport.printtext(fileID,'Therapy Recommendation:')
+                    %HeatmapModelSupport.printtext(fileID,'\n')
+                    %HeatmapModelSupport.printReco(fileID,therapy.RecommendedSettings,pairs)
+                    fclose(fileID);
+                    
+                    
+                    
                     %%
-                
+                    
                     %order and filter the suggestions
                     %-- sort on improvement
                     
@@ -245,7 +251,7 @@ classdef Therapy < handle
                     obj.ReviewData.filterSettings = PostSettings;
                     
                 end
-               
+                
                 
                 %Store best therapy
                 obj.ReviewOutcome(end+1) = predictionList(order(1));
@@ -253,7 +259,7 @@ classdef Therapy < handle
                 obj.ReviewOutcome(end+1) = predictionList(order(3));
                 
             end
-        
+            
             
             
             
@@ -303,7 +309,7 @@ classdef Therapy < handle
             
         end
         
-        %% Postprocessing Pavel 
+        %% Postprocessing Pavel
         
         function [obj,sortedList] = getReco(obj) %this function sorts out low confidences, orders in respect to confidence and impro
             
@@ -343,13 +349,13 @@ classdef Therapy < handle
                 end
                 
                 if numel(sortedPredictionList)>0
-                
-                obj.RecommendedSettings = sortedPredictionList(1,1);
-                
-                else 
                     
-                obj.RecommendedSettings = 'No recommendation possible';
-                
+                    obj.RecommendedSettings = sortedPredictionList(1,1);
+                    
+                else
+                    
+                    obj.RecommendedSettings = 'No recommendation possible';
+                    
                 end
                 
             end
@@ -357,12 +363,12 @@ classdef Therapy < handle
             
         end
         
-       
         
         
-            
-            
-             
+        
+        
+        
+        
         
         %%
         
@@ -408,10 +414,19 @@ classdef Therapy < handle
     end
     
     methods (Static)
-        function UserChoices = UserInputModule()
+        function UserChoices = UserInputModule(presets)
+            if nargin==0
+                presets.heatmap = [];
+                presets.VTAset = [];
+                presets.PostSettings = [];
+            end
             %ask for heatmap/model
             global predictionmanager
-            heatmap = predictionmanager.selectHeatmap();
+            if isempty(presets.heatmap)
+                heatmap = predictionmanager.selectHeatmap();
+            else
+                heatmap = presets.heatmap;
+            end
             
             %Ask for mode
             options = {'60 us - 1,2,3,4,5 mA - MDT3389',...
@@ -420,13 +435,22 @@ classdef Therapy < handle
                 '60 us - just 2.5 mA - MDT3389',...
                 '120 us - 0.5 mA steps - MDT3389',...
                 '60 us - just 2 and 4 mA- MDT3389',...
-                '60 us - 3.2 mA steps - MDT3389 (cogn. decline monopolar review)'};
+                '60 us - 3.2 mA steps - MDT3389 (cogn. decline monopolar review)',...
+                '60 us - 2 mA - MDT3389 QUICKSCAN'};
             
-            answer = listdlg('PromptString','Select monopolar review preset (can be updated in Therapy.m):','ListString',options,'ListSize',[400,100]);
-            VTAset = options{answer};
+            if isempty(presets.VTAset)
+                answer = listdlg('PromptString','Select monopolar review preset (can be updated in Therapy.m):','ListString',options,'ListSize',[400,100]);
+                VTAset = options{answer};
+            else
+                VTAset = presets.VTAset;
+            end
             
             %Ask for postprocessing filter settings. (heatmap specific)
-            PostSettings = heatmap.definePostProcessingSettings();
+            if isempty(presets.PostSettings)
+                PostSettings = heatmap.definePostProcessingSettings();
+            else
+                PostSettings = presets.PostSettings;
+            end
             
             UserChoices.heatmap = heatmap;
             UserChoices.VTAset = VTAset;

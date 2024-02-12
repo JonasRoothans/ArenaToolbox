@@ -6,6 +6,7 @@ classdef Bradykinesia < HeatmapModelSupport & handle
         Tag = 'Bradykinesia'
         HeatmapModel
         RiskThresholds = [0.0119, 0.2957]; %will convert a value to 0,1,2 (2  = high risk)
+        PostSettings
         
     end
     
@@ -34,12 +35,12 @@ classdef Bradykinesia < HeatmapModelSupport & handle
             
         end
         
-        %--- required:
-        function PostSettings = definePostProcessingSettings(obj)
-            PostSettings = nan;
-        end
         
         function [prediction, confidence, comments] = predictionForVTAs(obj,VTAlist)
+             if isempty(obj.HeatmapModel)
+                obj = obj.load();
+             end
+            
             sample = [];
             comments = {};
             confidence = [];
@@ -58,31 +59,85 @@ classdef Bradykinesia < HeatmapModelSupport & handle
                     error('wrong space')
                 end
                 
-                %predict
-                [prediction(iVTA),comments{iVTA}] = obj.predictVD(VTA_voxelData);
+                %check if it is on the right side then mirror
+                if VTA_voxelData.getcog.x >  1 %
+                    VTA_voxelData = VTA_voxelData.mirror();
+                end
+                
+                %warp to heatmap
+                VTA_voxelData.warpto(obj.HeatmapModel.Heatmap.Signedpmap)
                 
                 %check confidence
                 %sample map to see if it's overlapping enough with the model!
-                    allvoxels = obj.HeatmapModel.Heatmap.Nmap.Voxels(VTA_voxelData.Voxels>0.5);
-                    outofmodel = sum(allvoxels==0);
-                    if outofmodel/numel(allvoxels)>0.3
-                        warning(['VTA (',VTA.Tag,') is partly outside the model! (',num2str(outofmodel/numel(allvoxels)*100),'%)']);
-
+                allvoxels = obj.HeatmapModel.Heatmap.Nmap.Voxels(VTA_voxelData.Voxels>0.5);
+                outofmodel = sum(allvoxels==0);
+                if outofmodel/numel(allvoxels)>0.3
+                    warning(['VTA (',VTA.Tag,') is partly outside the model! (',num2str(outofmodel/numel(allvoxels)*100),'%)']);
+                    
+                end
+                confidence(iVTA) = 1-outofmodel/numel(allvoxels);
+                
+                %add them together
+                if iVTA == 1
+                    together = VTA_voxelData;
+                else
+                    if not(all(together.size==VTA_voxelData.size))
+                        %something went wrong.. They should be warped to
+                        %the model.
+                        keyboard
                     end
-                    confidence(iVTA) = 1-outofmodel/numel(allvoxels);
+                    together = together+VTA_voxelData;
+                end
+            end
+                %predict
+                switch obj.PostSettings.Mode
+                    case 'raw value'
+                        [comments,prediction] = obj.predictVD(together);
+                    case 'risk category'
+                    [prediction,comments] = obj.predictVD(together);
+                end
+                
+                
                 
             end
+
+    
+    
+
+        function PostSettings = definePostProcessingSettings(obj)
+
             
+                        msg =  'Which pipeline would you like to run?';
+            opt = {'risk categories', 'raw value'};
             
+            choiceIndex = listdlg('ListString',opt,'PromptString',msg);
+            PostSettings.Mode  = opt{choiceIndex};
+            obj.PostSettings = PostSettings;
             
-            
-            
+    
+
+
         end
-        
-        %get the voxeldata
-        
-        
-        
+            %-------- Postprocessing
     end
+    methods (Static)
+        
+        
+        function performReviewPostProcessing(tag,predictionList,PostSettings,pairs)
+            keybaord
+            %hier verder!! opt = {'risk categories', 'rawvalue'};
+            switch PostSettings.Mode
+                case 'risk categories'
+                    keyboard
+                case 'raw value'
+                    keyboard
+            end
+            HeatmapModelSupport.printPredictionList(tag,predictionList,pairs,[],'ascend')
+        end
+    end
+    
+    
+    
 end
+
 

@@ -15,6 +15,8 @@ classdef VoxelDataStack < handle
         SparseOptimization = true;
         BinarizeData=false;
         Electrodes = Electrode.empty;
+        
+        
     end
     
     methods
@@ -164,6 +166,9 @@ classdef VoxelDataStack < handle
             l = size(obj.Voxels,2);
         end
         
+        function d = depth(obj)
+            d = size(obj.Voxels,3);
+        end
         function bool = issparse(obj)
             bool = issparse(obj.Voxels);
         end
@@ -437,7 +442,7 @@ classdef VoxelDataStack < handle
             keyboard
         end
         
-        function obj = loadStudyDataFromRecipe(obj,recipe,templatefile)
+        function [obj,filename] = loadStudyDataFromRecipe(obj,recipe,templatefile)
             if nargin==1
                 waitfor(msgbox('Find the recipe'))
                 [filename,foldername] = uigetfile('*.xlsx','Locate the recipe');
@@ -498,21 +503,28 @@ classdef VoxelDataStack < handle
             if data_is_in_subfolders
                 answer = questdlg('You have organized your data in subfolders. How should the folders be interpreted? Are you dealing with bilateral therapy?',...
                     'Arena',...
-                    'Yes, this is bilateral. Keep the files seperate in the sampling',...
-                    'They can be safely merged and treated as one file',...
-                    'Totally ignore folders.',...
-                    'Yes, this is bilateral. Keep the files seperate in the sampling');
+                    'Add them together',...
+                    'This is bilateral. Keep the files seperate in the sampling',...
+                    'They can be safely merged and treated as one binary file',...
+                    'This is bilateral. Keep the files seperate in the sampling'); %'Totally ignore folders.',...
                 switch answer
-                    case 'Yes, this is bilateral. Keep the files seperate in the sampling'
+                    case 'This is bilateral. Keep the files seperate in the sampling'
                         individual_sampling = true;
                         combineSubfolders = true;
+                        multiDimensional = true;
+                    case 'Add them together'
+                        individual_sampling = true;
+                        combineSubfolders = true;
+                        multiDimensional = false;
                     case 'Totally ignore folders.'
                         combineSubfolders = false;
                         individual_sampling = true;
+                        multiDimensional = false;
                         insertionCounter=0;
                     otherwise
                         individual_sampling = false;
                         combineSubfolders = true;
+                        multiDimensional = false;
                 end
                 answer_2 = questdlg('Are the files made of binary data? for example VTAs, lesions or binary tracts',...
                     'Arena',...
@@ -588,37 +600,48 @@ classdef VoxelDataStack < handle
                         
                         %Add subfolders together %% problematic if you want to do single sample tests.
                         %no Binarisation of files in case of bilateral therapy
-                        if iFile==1
+                        if multiDimensional
                             if obj.BinarizeData
-                                together = vd.warpto(obj.R).polishVTA.makeBinary(0.5);
+                                vd = vd.warpto(obj.R).makeBinary(0.5);
                             else
-                                together=vd.warpto(obj.R);
+                                vd=vd.warpto(obj.R);
                             end
-                        else
-                            if obj.BinarizeData
-                                together = together+vd.warpto(obj.R).polishVTA.makeBinary(0.5);
-                            else
-                                together = together+vd.warpto(obj.R);
-                            end
-                        end
-                        
-                        if not(combineSubfolders)
-                            insertionCounter = insertionCounter+1;
-                            insertAt = insertionCounter;
-                            obj.InsertVoxelDataAt(together,insertAt);
-                           
+                            obj.InsertVoxelDataAt(vd,i,iFile)
                             id = obj.Recipe.folderID(i);
-                            obj.Weights(insertAt) = scores(i);
-                            [~,name] = fileparts(thisFile);
-                            obj.LayerLabels{insertAt} = [id,name];
+                        else
+                            
+                            if iFile==1
+                                if obj.BinarizeData
+                                    together = vd.warpto(obj.R).makeBinary(0.5);
+                                else
+                                    together=vd.warpto(obj.R);
+                                end
+                            else
+                                if obj.BinarizeData
+                                    together = together+vd.warpto(obj.R).makeBinary(0.5);
+                                else
+                                    together = together+vd.warpto(obj.R);
+                                end
+                            end
+                            
+                            if not(combineSubfolders)
+                                insertionCounter = insertionCounter+1;
+                                insertAt = insertionCounter;
+                                obj.InsertVoxelDataAt(together,insertAt);
+                                
+                                id = obj.Recipe.folderID(i);
+                                obj.Weights(insertAt) = scores(i);
+                                [~,name] = fileparts(thisFile);
+                                obj.LayerLabels{insertAt} = [id,name];
+                            end
                         end
-                      obj.InsertElectrodeAt(e,i)  
+                        obj.InsertElectrodeAt(e,i)
                     end
                     if not(individual_sampling)
                         together = together.makeBinary(0.5);
                     end
                     
-                    if combineSubfolders
+                    if and(combineSubfolders,not(multiDimensional))
                         insertAt = i;
                         obj.InsertVoxelDataAt(together,insertAt);
                         
@@ -735,14 +758,14 @@ classdef VoxelDataStack < handle
             if not(isa(e,'Electrode'))
                 return
             end
-            try obj.Electrodes(1,index)
-                obj.Electrodes(2,index) = e;
+            try obj.Electrodes(index,1)
+                obj.Electrodes(index,2) = e;
             catch
-                obj.Electrodes(1,index) = e;
+                obj.Electrodes(index,1) = e;
             end
         end
         
-        function obj = InsertVoxelDataAt(obj,vd,index)
+        function obj = InsertVoxelDataAt(obj,vd,index,varargin)
             sizeStack = size(obj.Voxels);
             if obj.issparse
                 if ~length(obj.Voxels)==numel(vd.Voxels)
@@ -758,32 +781,45 @@ classdef VoxelDataStack < handle
             
             % sparse / full decision tree
             if issparse(obj)
-                obj.insertSparse(vd.Voxels,index)
+                obj.insertSparse(vd.Voxels,index,varargin)
             elseif nnz(vd.Voxels)/numel(vd.Voxels) < 0.5 && obj.SparseOptimization
                 answer  = questdlg('It looks like your data consists of fibers or VTAs. Memory optimization can be applied. Do you want that?','Arena','yes, optimize','no','yes, optimize');
                 switch answer
                     case 'yes, optimize'
-                        obj.insertSparse(vd.Voxels,index)
+                        obj.insertSparse(vd.Voxels,index,varargin)
                     otherwise
-                        obj.insertFull(vd.Voxels,index)
+                        obj.insertFull(vd.Voxels,index,varargin)
                         obj.SparseOptimization = false;
                 end
             else
-                obj.insertFull(vd.Voxels,index);
+                obj.insertFull(vd.Voxels,index,varargin);
             end
             
         end
         
-        function obj = insertFull(obj,v,i)
-            obj.Voxels(:,i) = v(:);
+        function obj = insertFull(obj,v,i,varargin)
+            if isempty(varargin)
+                depth = 1;
+            else
+                depth = varargin{1}{1};
+            end
+            obj.Voxels(:,i,depth) = v(:);
+            
+            
         end
         
-        function obj = insertSparse(obj,v,i)
+        function obj = insertSparse(obj,v,i,varargin)
+            if isempty(varargin)
+                depth = 1;
+            else
+                depth = varargin{1}{1};
+            end
+            
             if ~obj.issparse
                 disp('applying memory saving on data storage...')
                 obj.sparse();
             end
-            obj.Voxels(:,i) = sparse(double(v(:)));
+            obj.Voxels(:,i,depth) = sparse(double(v(:)));
         end
         
         
@@ -815,8 +851,11 @@ classdef VoxelDataStack < handle
             
         end
         
-        function vd = getVoxelDataAtPosition(obj,index)
-            voxels = obj.Voxels(:,index);
+        function vd = getVoxelDataAtPosition(obj,index,depth)
+            if nargin==2
+                depth = 1;
+            end
+            voxels = obj.Voxels(:,index,depth);
             Voxels3D = obj.reshape(voxels);
             vd = VoxelData(Voxels3D,obj.R);
         end
@@ -1119,9 +1158,7 @@ classdef VoxelDataStack < handle
             serialized = obj.Voxels;
             serialized_sum  = sum(round(serialized),2); % takes the sum across all subjects
             serialized_width = size(serialized,2); %number of data points per voxel
-            % relevantVoxels = find(and(serialized_sum>1,serialized_sum<serialized_width)); % excludes voxels that are almost empty across all subjects or that are filled across all subject
-            relevantVoxels=find(serialized_sum>0); % excludes voxels that are almost empty across all subjects
-            onesampleVoxels=find(all(serialized,2));
+            relevantVoxels = find(and(serialized_sum>1,serialized_sum<serialized_width)); % excludes voxels that are almost empty across all subjects or that are filled across all subject
             t_voxels = zeros([length(serialized),1]); % all values assigned zeros including non relevenat voxels
             
             
@@ -1158,7 +1195,6 @@ classdef VoxelDataStack < handle
                 
                 
                 if isnan(t)
-                    keyboard
                     warning('all data for this voxel is in one arm. Analysis proceeds with t=0, p =1')
                     t_voxels(i) = 0;
                     p_voxels(i) = 1;
@@ -1166,55 +1202,6 @@ classdef VoxelDataStack < handle
                 
             end
             
-
-  disp(' ~running ttest1')
-            for i =  onesampleVoxels'
-
-                if any(serialized(i,:)>1)
-                    weightsweights = [obj.Weights,obj.Weights];
-                    serializedcombi = [serialized(i,:)>0.5,serialized(i,:)>1.5];
-                    [~,p,~,stat] = ttest(weightsweights(serializedcombi));
-                    t = stat.tstat;
-                    if Bayes
-                        [bayes]=bf.ttest('T',t, 'N', numel(weightsweights(serializedcombi)));
-                        bf_voxels(i) = bayes;
-                    end
-                else
-                    [~,p,~,stat] = ttest(obj.Weights(serialized(i,:)>0.5));
-                    t = stat.tstat;
-                    if Bayes
-                        [bayes]=bf.ttest('T',t, 'N', numel(obj.Weights(serialized(i,:)>0.5)));
-                        bf_voxels(i) = bayes;
-                    end
-                end
-
-                t_voxels(i) = t;
-                p_voxels(i) = p;
-
-
-
-
-
-                if isnan(t)
-                    keyboard
-                    warning('all data for this voxel is in one arm. Analysis proceeds with t=0, p =1')
-                    t_voxels(i) = 0;
-                    p_voxels(i) = 1;
-                end
-
-            end
-
-
-
-
-
-
-
-
-
-
-
-
             outputsize = obj.R.ImageSize;
             signed_p_voxels = (1-p_voxels).*sign(t_voxels);
             tmap = VoxelData(reshape(t_voxels,outputsize),obj.R);

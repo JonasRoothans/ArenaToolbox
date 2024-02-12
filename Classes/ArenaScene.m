@@ -417,7 +417,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Fibers.interferenceWithMap = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: interference with map','callback',{@menu_fiberMapInterference},'Enable','off');
             obj.handles.menu.dynamic.Fibers.showFibersThatHitROI = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: showFibersThatHitROI','callback',{@menu_fiberROIcheck},'Enable','off');
             obj.handles.menu.dynamic.Fibers.exportSummary = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Fibers: export fiber summary','callback',{@menu_fiberSummary},'Enable','off');
-            obj.handles.menu.dynamic.Fibers.exportSummary = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Fibers: generate ROI from endpoints','callback',{@menu_fibersToROI},'Enable','off');
+            obj.handles.menu.dynamic.Fibers.generateFromEndpoints = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Fibers: generate ROI from endpoints','callback',{@menu_fibersToROI},'Enable','off');
             
             obj.handles.menu.dynamic.Electrode.getAC = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Electrode: get AC location','callback',{@menu_getElectrodeAC},'Enable','off');
             
@@ -1474,9 +1474,11 @@ classdef ArenaScene < handle
                 for iElectrode = 1:numel(loaded.reco.native.coords_mm)
                     
                     e = Electrode;
-                    switch loaded.reco.props.elmodel
+                    switch loaded.reco.props(iElectrode).elmodel
                         case 'Medtronic 3389'
                             e.Type = 'Medtronic3389';
+                         case 'Medtronic 3387'
+                            e.Type = 'Medtronic3387';
                         otherwise
                             %please add this case.. and connect it to the
                             %appropriate arena name for the electrode.

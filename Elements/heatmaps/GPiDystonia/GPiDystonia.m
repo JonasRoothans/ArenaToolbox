@@ -82,10 +82,11 @@ classdef GPiDystonia < HeatmapModelSupport & handle
         end
         
         function y = predictForSample(obj,sample)
+             f = figure('visible','off');
             h = histogram(sample,obj.edges);
             X = [1,zscore(h.Values)];
             y = X*obj.b;
-            delete(h)
+            delete(f)
         end
         
 
@@ -115,7 +116,7 @@ classdef GPiDystonia < HeatmapModelSupport & handle
         function PostSettings = definePostProcessingSettings()
             
             msg =  'Which pipeline would you like to run?';
-            opt = {'DIPS (one SE Alt)', 'Custom'};
+            opt = {'DIPS (one SE Alt)', 'DEFAULT', 'Custom'};
             
             choiceIndex = listdlg('ListString',opt,'PromptString',msg);
             choice = opt{choiceIndex};
@@ -139,6 +140,8 @@ classdef GPiDystonia < HeatmapModelSupport & handle
                 case 'DIPS (one SE Alt)'
             
             PostSettings.Mode = 'DIPS';
+                case 'DEFAULT'
+                    PostSettings.Mode = 'DEFAULT';
             
             end
         end
@@ -150,8 +153,8 @@ classdef GPiDystonia < HeatmapModelSupport & handle
                     
                     PostSettings.Therapy=GPiDystonia.getAltGPi(PostSettings.Therapy,PostSettings.sortedList);
                     HeatmapModelSupport.printList(PostSettings.Therapy,pairs)
-                    
-                    
+                case 'DEFAULT' 
+                    %nothing
             end
                     
                     
