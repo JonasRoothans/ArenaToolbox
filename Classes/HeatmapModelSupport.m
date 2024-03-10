@@ -19,8 +19,8 @@ classdef HeatmapModelSupport < handle
     methods (Static)
         function fileID = printPredictionList(Tag,predictionList,pairs,blackOrRed,order)
             
-            if nargin==4
-                order = 'descend'
+            if nargin<4
+                order = 'descend';
             end
                 
                 fileID = HeatmapModelSupport.makeFile(Tag,'RankedScores.txt');
