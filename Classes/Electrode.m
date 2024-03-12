@@ -293,18 +293,28 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
         
         function [newVTA] = Medtronic9to7(vtaname)
             
-            % this is to take C0 Medtronic 3389 VTA and move it to the
+            % this is to take C0 or C1 Medtronic 3389 VTA and move it to the
             % contact positions of 3387 - !!! aply it before transforming
             % onto the electrode!! otherwise expect complete nonsense
             
             % VTAs are small and annoying, colorfull baloons
             
-            % first load Medtronic 3389 C0 3 mA VTA as usual
+            % first load Medtronic 3389 C0 or C1 3 mA VTA as usual
             % first just for 3 mA, 60 ms, later can be generalized
             
             global arena
             
+            
+            if isequal(vtaname, 'Medtronic33873False60c1 0 0 0a0 0 0 0.mat')
+                
+                
        VTA_raw = load(fullfile(arena.Settings.VTApool,'Medtronic33893False60c1 0 0 0a0 0 0 0.mat'));
+       
+            else
+                
+       VTA_raw = load(fullfile(arena.Settings.VTApool,'Medtronic33893False60c0 1 0 0a0 0 0 0.mat'));
+       
+            end
 
     VTA_raw.Rvta.XWorldLimits = VTA_raw.Rvta.YWorldLimits - VTA_raw.Rvta.PixelExtentInWorldX;
     VTA_raw.Rvta.YWorldLimits = VTA_raw.Rvta.YWorldLimits - VTA_raw.Rvta.PixelExtentInWorldY;
@@ -322,7 +332,9 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
     % ampitudes and pulswidths by decomposing the strings (now there is no time)
 
         % now look what VTA are we aiming for - by simple arithmetics and
-        % electrode geometry, you will find out this sequence (1.5 3 4.5)
+        % electrode geometry, you will find out this sequence (0 1.5 3 4.5
+        % is a trasnform from 0 1 2 3 ), however, from  the C1 contact on,
+        % we are moving the C1 VTA
         % for 3387 contacts (3387 is 3389 elongated by factor 3/2)
 
         switch vtaname
@@ -333,16 +345,16 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
         
   case 'Medtronic33873False60c0 1 0 0a0 0 0 0.mat'
         
-        a = Vector3D(0,0,1.5*C);
+        a = Vector3D(0,0,0.5*C);
         
         
   case 'Medtronic33873False60c0 0 1 0a0 0 0 0.mat'
         
-        a = Vector3D(0,0,3*C);
+        a = Vector3D(0,0,2*C);
         
   case 'Medtronic33873False60c0 0 0 1a0 0 0 0.mat'
         
-        a = Vector3D(0,0,4.5*C);
+        a = Vector3D(0,0,3.5*C);
         
          otherwise
         
