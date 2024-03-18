@@ -25,10 +25,14 @@ for iPatient = 1:nPatients
             thisVTA.Space = thisVTA.Electrode.VTA.Space;
             thisVTA.Tag = thisVTA.Electrode.VTA.Tag;
             thisVTA.SuretuneStimplan = thisVTA.Electrode.VTA.SuretuneStimplan;
-            thisTherapy.VTAs(end+1) = thisVTA;
             catch
-                warning(['No VTA inside electrode for ',thisTherapy.Tag])
+                thisVTA.Space = thisVTA.Electrode.Space;
+                %no suretune electrode apparently
             end
+
+            thisTherapy.VTAs(end+1) = thisVTA;
+
+            
             
            
     end

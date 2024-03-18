@@ -150,7 +150,14 @@ classdef ArenaManager < handle
             config.VTApool = VTAdir;
             
             
-            
+            %--- VTAhack
+            answer = questdlg('Do you want to enable VTApool enhancement? This will approximate missing VTAs in the pool. Accuracy is compromised.','Advanced VTA method');
+            switch answer
+                case 'yes'
+                    config.VTAhack = true;
+                otherwise
+                    config.VTAhack = false;
+            end
             
             %---- save config file
             config.rootdir = rootdir;

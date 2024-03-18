@@ -29,7 +29,11 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
              VTA_raw = load(fullfile(arena.Settings.VTApool,vtaname));
             catch
                 if isfolder(arena.Settings.VTApool)
-                    error(['Hmm. It looks like the following VTA does not exist in your VTApool: ',vtaname])
+                    if arena.Settings.VTAhack
+                        VTA_raw = A_VTAhack(vtaname);
+                    else
+                        error(['Hmm. It looks like the following VTA does not exist in your VTApool: ',vtaname])
+                    end
                 else
                     error('It looks like VTApool cannot be found. Maybe this folder is moved, or you have recently updated Arena. To fix this delete config.mat and restart MATLAB. Arena will then ask for the folder');
                 end
@@ -207,6 +211,11 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
             AC_location = obj.C0 + obj.Direction * mean(find(AC)-1) * obj.contactSpacing;
         end
         
+        function AC_location = getLocationOfContacts(obj)
+            c = 0:3;
+            AC_location = obj.C0.getArray + obj.Direction.getArray * c * obj.contactSpacing;
+        end
+        
         function f = LocateInImage(obj,vd)
             f = interactivePointFigure(vd,obj)
             
@@ -227,6 +236,8 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
                             e.Type = 'Medtronic3389';
                          case 'Medtronic 3387'
                             e.Type = 'Medtronic3387';
+                        case 'Boston Scientific Vercise'
+                            e.Type = 'Medtronic3389';
                         otherwise
                             %please add this case.. and connect it to the
                             %appropriate arena name for the electrode.

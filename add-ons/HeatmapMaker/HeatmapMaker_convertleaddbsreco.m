@@ -2,14 +2,15 @@ function [outputArg1,outputArg2] = HeatmapMaker_convertleaddbsreco(menu,eventdat
 
 waitfor(msgbox('Select the parent directory'))
 folder = uigetdir();
-searchAndConvert(folder)
+space = Space.dialog('Select the space');
+searchAndConvert(folder,space)
 Done;
 
 
 end
 
 
-function searchAndConvert(folderPath)
+function searchAndConvert(folderPath,space)
     % Check if the provided path is a folder
     if ~isfolder(folderPath)
         error('Input is not a valid folder path.');
@@ -30,17 +31,17 @@ function searchAndConvert(folderPath)
         
         % If the current item is a folder, recursively call searchAndConvert()
         if isfolder(currentPath)
-            searchAndConvert(currentPath);
+            searchAndConvert(currentPath,space);
         end
         
         % If the current item is a file and its name is 'reco.mat', send it to convertReco()
         if isfile(currentPath) && strcmp(contents(i).name, 'ea_reconstruction.mat')
-            convertReco(currentPath);
+            convertReco(currentPath,space);
         end
     end
 end
 
-function convertReco(currentPath)
+function convertReco(currentPath,space)
     loaded = load(currentPath);
     electrodes = Electrode.convertReco(loaded.reco);
     outputfolder = fileparts(currentPath);
@@ -51,6 +52,7 @@ function convertReco(currentPath)
         else
             name = 'vat_left.electrode';
         end
+
         save(fullfile(outputfolder,name),'e')
     end
 

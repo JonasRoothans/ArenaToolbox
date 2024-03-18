@@ -571,8 +571,8 @@ classdef VoxelDataStack < handle
                         if exist(electrodefn,'file')
                             load(electrodefn,'e','-mat'); %stored as e
                             %populate the VTA property.
-                            e.VTA.Electrode = e;
-                            e.VTA.Source = electrodefn;
+%                             e.VTA.Electrode = e;
+%                             e.VTA.Source = electrodefn;
                         else
                             e = nan;
                         end
