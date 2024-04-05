@@ -73,11 +73,6 @@ classdef Heatmap < handle
                 
             end
             
-            if depth(Stack)>1
-                Stack.Flatten()
-            end
-                
-            
              if nargin<3
                     [~,nameSuggestion] = fileparts(Stack.RecipePath);
                     [out]= inputdlg({'tag','Description'},'Need info',[1 50; 3 50],{nameSuggestion,''});
