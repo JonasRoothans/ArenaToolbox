@@ -16,7 +16,7 @@ classdef GPiPD < HeatmapModelSupport & handle
         
         function obj = load(obj)
         
-        uiopen('recipe_corrected_matched_AmsSha.heatmap',1);
+        uiopen('GPiPD_UPDRS%.heatmap',1);
         obj.HeatmapModel = hm_recipe_corrected_matched_AmsSha;
             
         end
