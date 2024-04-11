@@ -405,6 +405,9 @@ classdef ArenaActorRendering < handle
                     end
                     
                     if numel(obj.ActorHandle.Visualisation.settings.numberOfFibers)==1
+                        if isinf(obj.ActorHandle.Visualisation.settings.numberOfFibers);
+                            obj.ActorHandle.Visualisation.settings.numberOfFibers = numel(obj.ActorHandle.Data.Vertices);
+                        end
                         iFiberRange = 1:obj.ActorHandle.Visualisation.settings.numberOfFibers;
                     elseif any(obj.ActorHandle.Visualisation.settings.numberOfFibers)>1
                         iFiberRage = obj.ActorHandle.Visualisation.settings.numberOfFibers;

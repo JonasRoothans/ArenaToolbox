@@ -400,6 +400,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Mesh.detectElectrode = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: convert to electrode','callback',{@menu_detectElectrode},'Enable','off');
             obj.handles.menu.dynamic.Mesh.dynamicColor = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Any: color based on heatmap','callback',{@menu_dynamicColor},'Enable','off');
             obj.handles.menu.dynamic.Mesh.longAxis = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: get longitudinal axis','callback',{@menu_longAxis},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.shortestDistance = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: get shortest distance to..','callback',{@menu_shortestDistance},'Enable','off');
             obj.handles.menu.dynamic.Mesh.burnIn = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: burn in','callback',{@menu_burnIn},'Enable','off');
             obj.handles.menu.dynamic.ObjFile.dynamicColor = obj.handles.menu.dynamic.Mesh.dynamicColor;
             obj.handles.menu.dynamic.Electrode.dynamicColor = obj.handles.menu.dynamic.Mesh.dynamicColor;
@@ -4046,6 +4047,66 @@ classdef ArenaScene < handle
                 end
                 
             end
+            
+            function menu_shortestDistance(hObject,eventdata)
+                debugmode = 1;
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                answer = questdlg('Shortest distance from','Shortest distance','any point on the mesh','center of gravity','center of gravity');
+                selection = listdlg('ListString',{scene.Actors.Tag},'PromptString','Find target..',...
+                    'SelectionMode','single');
+                target = scene.Actors(selection).Data;
+                if debugmode
+                    F = Fibers;
+                end
+                switch answer
+                    case 'any point on the mesh'
+                        keyboard %not there yet
+                    case 'center of gravity'
+                        distances = [];
+                        for iActor = 1:numel(currentActors)
+                            thisActor = currentActors(iActor);
+                            disp('calculating Center of Gravity')
+                            v1 = thisActor.getCOG;
+                            disp('Done')
+                            closest_distance = inf;
+                            switch class(target)
+                                case 'Fibers'
+                                    for iFiber = 1:numel(target.Vertices)
+                                 
+                                        thisFiber = target.Vertices(iFiber);
+                                        difference = thisFiber-v1;
+                                        d = difference.Vectors.norm;
+                                        if any(d<closest_distance)
+                                            closest_distance = min(d);
+                                        end
+                                        if debugmode
+                                            for iVector = 1:numel(d)
+                                                pc = PointCloud;
+                                                pc.addVectors(v1);
+                                                pc.addVectors(thisFiber.Vectors(iVector));
+                                                F.addFiber(pc,iVector,d(iVector));
+                                            end
+                                        end
+                                       
+                                    end
+                                otherwise
+                                    keyboard %not there yet
+                            end
+                            if debugmode
+                                actor = F.see(scene);
+                            end
+                            distances(iActor) = closest_distance;
+
+                        end               
+                end
+                actors = {currentActors.Tag}' ;
+                distances = distances';
+                t = table(actors,distances)
+                assignin('base','t',t)
+                disp('table is saved to workspace as ''t''')
+            end
+                  
             
             function menu_longAxis(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
