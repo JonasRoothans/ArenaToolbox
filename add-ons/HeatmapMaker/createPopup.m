@@ -103,7 +103,8 @@ initiateTable();
     end
 
     function [foldername,filename] = generateFileName()
-        foldername = '/Users/jonas/Documents/MATLAB/ArenaToolbox/ArenaToolbox/UserData';
+        global arena
+        foldername = fullfile(arena.Settings.rootdir,'UserData');
         filename = ['analysis_for_','_',popupdata.model1name,'_',popupdata.model2name,'_',popupdata.model1.VTAset,'_',popupdata.filename];
     end
         
