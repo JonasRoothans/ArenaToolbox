@@ -30,7 +30,7 @@ maxValue = max(t.(label));
 
 if strcmp(t.Properties.VariableNames{1},'folderID')
 for i = 1:height(t)
-    filesInFolder = A_getfiles(t.fullpath{i});
+    filesInFolder = A_getfiles(fullfile(t.fullpath{i},'*.nii'));
     for j = 1:numel(filesInFolder)
     fname = fullfile(filesInFolder(j).folder,filesInFolder(j).name);
     vd = VoxelData(fname);

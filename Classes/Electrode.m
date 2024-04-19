@@ -30,14 +30,16 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
              VTA_raw = load(fullfile(arena.Settings.VTApool,vtaname));
             catch
                 if isfolder(arena.Settings.VTApool)
+                    if isfield(arena.Settings,'VTAhack')
+                        if arena.Settings.VTAhack
+                            [VTA_vd,donorname] = A_VTAhack(vtaname);
+                            vtaname = [vtaname, ' (based on: ',donorname,')'];
+                            
+                        else
+                            error(['Hmm. It looks like the following VTA does not exist in your VTApool: ',vtaname])
 
-                    if arena.Settings.VTAhack
-                        VTA_raw = A_VTAhack(vtaname);
+                        end
                     else
-                        error(['Hmm. It looks like the following VTA does not exist in your VTApool: ',vtaname])
-
-                    
-                    
                     end
                 else
                     error('It looks like VTApool cannot be found. Maybe this folder is moved, or you have recently updated Arena. To fix this delete config.mat and restart MATLAB. Arena will then ask for the folder');
@@ -45,13 +47,12 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
             end
             
             if ~exist('VTA_vd','var')
-            
-            if ~arena.DIPS
-             VTA_raw.Rvta.XWorldLimits = VTA_raw.Rvta.YWorldLimits - VTA_raw.Rvta.PixelExtentInWorldX;
-             VTA_raw.Rvta.YWorldLimits = VTA_raw.Rvta.YWorldLimits - VTA_raw.Rvta.PixelExtentInWorldY;
-             VTA_raw.Rvta.ZWorldLimits = VTA_raw.Rvta.ZWorldLimits - VTA_raw.Rvta.PixelExtentInWorldZ;
-            end
-             VTA_vd = VoxelData(VTA_raw.Ivta,VTA_raw.Rvta);
+                if ~arena.DIPS
+                 VTA_raw.Rvta.XWorldLimits = VTA_raw.Rvta.XWorldLimits - VTA_raw.Rvta.PixelExtentInWorldX;
+                 VTA_raw.Rvta.YWorldLimits = VTA_raw.Rvta.YWorldLimits - VTA_raw.Rvta.PixelExtentInWorldY;
+                 VTA_raw.Rvta.ZWorldLimits = VTA_raw.Rvta.ZWorldLimits - VTA_raw.Rvta.PixelExtentInWorldZ;
+                end
+                 VTA_vd = VoxelData(VTA_raw.Ivta,VTA_raw.Rvta);
              
             end
              
@@ -78,7 +79,12 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
                     thisScene = arena.sceneselect();
                 end
             else
-                thisScene = sceneobj;
+                switch class(sceneobj) 
+                    case 'ArenaScene'
+                    thisScene = sceneobj;
+                    case 'double'
+                    thisScene = arena.sceneselect(sceneobj);
+                end
             end
             
             if isempty(thisScene);return;end %user cancels

@@ -2149,7 +2149,7 @@ classdef ArenaScene < handle
                     1,...
                     {'1 0 0 0','0 0 0 0','1','90'});
                 
-                vtaname = VTA.constructVTAname('Medtronic3389',str2double(vtasettings{3}),str2double(vtasettings{4}),vtasettings{1},vtasettings{2},'False');
+                vtaname = VTA.constructVTAname(E.Type,str2double(vtasettings{3}),str2double(vtasettings{4}),vtasettings{1},vtasettings{2},'False');
                 try
                     VTAObject = makeVTA(E,vtaname);
                 catch

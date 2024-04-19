@@ -188,7 +188,12 @@ classdef Mesh < handle & matlab.mixin.Copyable & ArenaActorRendering
                     thisScene = arena.sceneselect();
                 end
             else
-                thisScene = sceneobj;
+                switch class(sceneobj)
+                    case 'double'
+                        thisScene = arena.sceneselect(sceneobj);
+                    case 'ArenaScene'
+                        thisScene = sceneobj;
+                end
             end
             
             if isempty(thisScene);return;end %user cancels

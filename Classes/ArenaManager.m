@@ -93,6 +93,13 @@ classdef ArenaManager < handle
            
                 scenehandle = obj.Scenes(index);
         end
+        
+        function enableVTAhack(obj)
+            obj.Settings.VTAhack = true;
+            config = obj.Settings;
+            save(fullfile(config.rootdir,'config.mat'),'config')
+            disp('VTA hack is enabled, and preference is saved.')
+        end
             
         function triggerDIPS(obj)
            
@@ -164,7 +171,9 @@ classdef ArenaManager < handle
             save(fullfile(rootdir,'config.mat'),'config')
         end
         
-
+        
+            
+            
         
         function rootdir = getrootdir()
             rootdir = fileparts(fileparts(mfilename('fullpath')));

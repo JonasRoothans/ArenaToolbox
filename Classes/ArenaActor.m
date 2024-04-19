@@ -103,6 +103,10 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                 delete(obj.Visualisation.handle);
             end
             
+            if isa(obj.Data,'Electrode')
+                obj.Data.Type = obj.Visualisation.settings.type;
+            end
+            
             %replace nans with current values
             currentsettings = obj.Visualisation.settings;
             props = fieldnames(currentsettings);
@@ -111,6 +115,8 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     settings.(props{i}) = currentsettings.(props{i});
                 end
             end
+            
+           
 
             visualize(obj,settings,obj.Data,scene);
         end

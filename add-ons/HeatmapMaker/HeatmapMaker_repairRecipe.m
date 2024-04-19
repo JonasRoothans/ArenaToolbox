@@ -14,6 +14,9 @@ t = readtable(fullfile(foldername,filename));
 parentfolder = fileparts(t.fullpath{1});
 if not(exist(parentfolder,'dir'))
     answer = questdlg('The parent folder cannot be found. Would you like to update the parent folder?','Missing path','Yes, I will select the correct folder.','No','Yes, I will select the correct folder.');
+else
+    answer = questdlg('The parent folder seems to be fine. Would you like to update the parent folder?','Change path','Yes, I will select the correct folder.','No','Yes, I will select the correct folder.');
+end
     switch answer
         case 'Yes, I will select the correct folder.'
             newparentfolder = uigetdir();
@@ -26,7 +29,7 @@ if not(exist(parentfolder,'dir'))
         case 'no'
             disp('whatever..')
     end
-end
+
 
 
            

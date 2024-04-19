@@ -57,8 +57,8 @@ classdef VTA < handle
                 fprintf('Pulsewidth: \t %d \n',obj.SuretuneStimplan.pulseWidth);
                 fprintf('Active: \t %s \n',obj.SuretuneStimplan.activeRings);
                 fprintf('Ground: \t %s \n',obj.SuretuneStimplan.contactsGrounded);
-                fprintf('Lead type: \t %s \n',obj.SuretuneStimplan.lead.leadType);
-                fprintf('Lead label: \t %s \n',obj.SuretuneStimplan.lead.label);
+                fprintf('Lead type: \t %s \n',obj.Electrode.Type);
+                fprintf('Lead label: \t %s \n',obj.SuretuneStimplan.label);
             end
             fprintf('Space: \t\t %s \n',obj.Space)
             
@@ -92,6 +92,10 @@ classdef VTA < handle
                 else
                     scene = arena.sceneselect();
                 end
+            end
+            switch class(scene)
+                case 'double'
+                    scene = arena.sceneselect(scene);
             end
             actor = obj.Volume.getmesh(0.5).see(scene);
             actor.changeName(obj.Tag)

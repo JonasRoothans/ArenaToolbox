@@ -1022,8 +1022,8 @@
             
             
         
-        function see(obj)
-            obj.getmesh().see;
+        function see(obj,OPTIONALscene)
+            obj.getmesh().see(OPTIONALscene);
         end
         
         function Points = detectPoints(obj)

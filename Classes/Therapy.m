@@ -137,6 +137,17 @@ classdef Therapy < handle
                     pulsewidths = {60};
                     amplitudes = num2cell(1:5);
                     contacts = num2cell(1:4);
+                case '60 us - 3 mA ANY electrode'
+                    leadtype = {obj.VTAs(1).Electrode.Type};
+                    if numel(obj.VTAs)>1
+                        if not(strcmp(obj.VTAs(1).Electrode.Type,obj.VTAs(2).Electrode.Type))
+                            warning(['Patient ',obj.Tag,' has two different electrodes. For this analysis ',leadtype,' will be used!'])
+                        end
+                    end
+                    voltagecontrolled = {'False'};
+                    pulsewidths = {60};
+                    amplitudes = {3};
+                    contacts = num2cell(1:4);
                 otherwise
                     keyboard
             end
@@ -448,7 +459,8 @@ classdef Therapy < handle
                 '60 us - just 2 and 4 mA- MDT3389',...
                 '60 us - 3.2 mA steps - MDT3389 (cogn. decline monopolar review)',...
                 '60 us - 2 mA - MDT3389 QUICKSCAN',...
-                '60 us - 1,2,3,4,5 mA ANY electrode'};
+                '60 us - 1,2,3,4,5 mA ANY electrode',...
+                '60 us - 3 mA ANY electrode'};
             
             if isempty(presets.VTAset)
                 answer = listdlg('PromptString','Select monopolar review preset (can be updated in Therapy.m):','ListString',options,'ListSize',[400,100]);

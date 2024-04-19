@@ -16,8 +16,9 @@ classdef GPiPD < HeatmapModelSupport & handle
         
         function obj = load(obj)
         
-        uiopen('GPiPD_UPDRS%.heatmap',1);
-        obj.HeatmapModel = hm_recipe_corrected_matched_AmsSha;
+   
+        hm = load('GPiPD_UPDRS%.heatmap','-mat');
+        obj.HeatmapModel = hm.heatmap;
             
         end
         
@@ -38,6 +39,8 @@ classdef GPiPD < HeatmapModelSupport & handle
         end
         
         function [sample,confidence] = sampleWithVTA(obj,VTA)
+            global debug
+
             comment = '';
             %load the model
             if isempty(obj.HeatmapModel)
@@ -52,22 +55,21 @@ classdef GPiPD < HeatmapModelSupport & handle
                      VTA_voxelData = VoxelData(double(VTA.Volume.Source.Voxels > VTA.Volume.Settings.T),VTA.Volume.Source.R);
             end
             
-            %check the space and fix if it's not matching. NOT FOR THIS,
-            %RIGHT?
-%             if VTA.Space~=Space.Legacy
-%                 VTA_voxelData = GPiDystonia.fixSpace(VTA.Space,VTA_voxelData);
-%             end
             
             %check if it is on the right side then mirror
-            if VTA_voxelData.getcog.x <  1 %legacy is LPS, so negative X = right side
-                VTA_voxelData = GPiDystonia.mirror(VTA_voxelData);
+            if VTA_voxelData.getcog.x >1
+                VTA_voxelData = VTA_voxelData.mirror();
             end
             
             %warp to heatmap space
-            VTA_voxelData.warpto(obj.HeatmapModel.signed_p_map);
+            VTA_voxelData.warpto(obj.HeatmapModel.Signedpmap);
+            
+            if debug
+                VTA_voxelData.getmesh(0.5).see(1)
+            end
             
             %sample map to see if it's overlapping enough with the model!
-            allvoxels = obj.HeatmapModel.pmap.Voxels(VTA_voxelData.Voxels>0.5);
+            allvoxels = obj.HeatmapModel.Pmap.Voxels(VTA_voxelData.Voxels>0.5);
             outofmodel = sum(allvoxels==0);
             if outofmodel/numel(allvoxels)>0.3
                 warning(['VTA (',VTA.Tag,') is partly outside the model! (',num2str(outofmodel/numel(allvoxels)*100),'%)']);
@@ -76,9 +78,9 @@ classdef GPiPD < HeatmapModelSupport & handle
             confidence = 1-outofmodel/numel(allvoxels);
             
             %sample those voxels where VTA and model both are.
-            sample = obj.HeatmapModel.signed_p_map.Voxels(and(...
+            sample = obj.HeatmapModel.Signedpmap.Voxels(and(...
                 VTA_voxelData.Voxels>0.5,...
-                obj.HeatmapModel.pmap.Voxels>0));
+                obj.HeatmapModel.Nmap.Voxels>0));
         end
         
         function y = predictForSample(obj,sample)
@@ -93,53 +95,35 @@ classdef GPiPD < HeatmapModelSupport & handle
     end
     
     methods (Static)
-        function out = fixSpace(oldspace,voxeldata)
-            switch oldspace
-                case Space.MNI2009b
-                    T = [-1 0 0 0;0 -1 0 0;0 0 1 0;0 -37.5 0 1];
-                    out = voxeldata.imwarp(T);
-                case Space.Unknown
-                case Space.PatientNative
-            end
-        end
         
-        function VTA_voxelData = mirror(VTA_voxelData)
-            T = load('Tapproved.mat');
-            Tvta = T.mni2rightgpi*T.leftgpi2mni;
-            VTA_voxelData = VTA_voxelData.imwarp(Tvta);
-        end
-        
-        
-        
-        %% 
         
         function PostSettings = definePostProcessingSettings()
             
             msg =  'Which pipeline would you like to run?';
-            opt = {'DIPS (one SE Alt)', 'DEFAULT', 'Custom'};
+            opt = {'DEFAULT'};
             
             choiceIndex = listdlg('ListString',opt,'PromptString',msg);
             choice = opt{choiceIndex};
             
             switch choice
-             
-                case 'Custom'  %temporarily switched off
-                     
-                    f = errordlg('Not available - wait for new version. (You might wait long)','Availibility problem');
-                    
-                userinput = inputdlg({'Minimal confidence of the heatmap [0-1]',...
-                    'Amplitude optimization based on  n = ',...
-                    'Maximal accepted amplitude deviation (sigma)'},...
-                    'Post processing',...
-                    1,...
-                    {'0.5','5','1'});
-                PostSettings.minConfidence = str2num(userinput{1});
-                PostSettings.n = str2num(userinput{2});
-                PostSettings.sigma = str2num(userinput{3});
-                
-                case 'DIPS (one SE Alt)'
-            
-            PostSettings.Mode = 'DIPS';
+%              
+%                 case 'Custom'  %temporarily switched off
+%                      
+%                     f = errordlg('Not available - wait for new version. (You might wait long)','Availibility problem');
+%                     
+%                 userinput = inputdlg({'Minimal confidence of the heatmap [0-1]',...
+%                     'Amplitude optimization based on  n = ',...
+%                     'Maximal accepted amplitude deviation (sigma)'},...
+%                     'Post processing',...
+%                     1,...
+%                     {'0.5','5','1'});
+%                 PostSettings.minConfidence = str2num(userinput{1});
+%                 PostSettings.n = str2num(userinput{2});
+%                 PostSettings.sigma = str2num(userinput{3});
+%                 
+%                 case 'DIPS (one SE Alt)'
+%             
+%             PostSettings.Mode = 'DIPS';
                 case 'DEFAULT'
                     PostSettings.Mode = 'DEFAULT';
             

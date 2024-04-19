@@ -2,6 +2,8 @@ function [popupdata] = createPopup(therapyList,filename)
 
 popupdata.model1name = '1';
 popupdata.model2name = '2';
+popupdata.syncedWithExcelSheet = nan;
+popupdata.filename = filename;
 
 % Get monitor dimensions
 monitorSize = get(0,'ScreenSize');
@@ -47,6 +49,7 @@ radio8 = uicontrol(radioGroup2, 'Style', 'radiobutton', 'String', 'Lower (no com
 %table
 tableHandle = uitable(f, 'Units', 'normalized', 'Position', [0.1, 0.05, 0.8, 0.6]);
 
+
 % Create SAVE
 save = uicontrol('Style', 'pushbutton', 'String', 'Export table to excel...',...
     'Units', 'normalized', 'Position', [0.1, 0.02, 0.8, 0.05],'Callback',@export);
@@ -55,6 +58,9 @@ save = uicontrol('Style', 'pushbutton', 'String', 'Export table to excel...',...
 buttonWidth = 0.8;
 button = uicontrol('Style', 'pushbutton', 'String', 'Run review for optimization', ...
     'Units', 'normalized', 'Position', [0.1, 0.7, buttonWidth, 0.05],'Callback', {@run,tableHandle});
+
+buttonstartindx = uicontrol('Style', 'popupmenu', 'String', [{'Start at..',},{therapyList.Tag}], ...
+    'Units', 'normalized', 'Position', [0.7, 0.65, buttonWidth/4, 0.05]);
 
 initiateTable();
 
@@ -85,20 +91,29 @@ initiateTable();
         
         popupdata.model2 = settings;
         popupdata.model2name = class(settings.heatmap);
-         updateTable
+         updateTable()
+         syncTable()
         
     end
 
+
     function export(hObject,eventdata)
-        folder = '/Users/jonas/Documents/MATLAB/ArenaToolbox/ArenaToolbox/UserData';
-        writetable(popupdata.table,fullfile(folder,['analysis_for_',filename]),'WriteRowNames',true)
+        [fol,fil] = generateFileName();
+        writetable(popupdata.table,fullfile(fol,fil),'WriteRowNames',true)
     end
+
+    function [foldername,filename] = generateFileName()
+        foldername = '/Users/jonas/Documents/MATLAB/ArenaToolbox/ArenaToolbox/UserData';
+        filename = ['analysis_for_','_',popupdata.model1name,'_',popupdata.model2name,'_',popupdata.model1.VTAset,'_',popupdata.filename];
+    end
+        
 
 
     function initiateTable()
         therapyNames = {therapyList.Tag}';
         rownames = therapyNames;
-        columnnames = {['prediction_',popupdata.model1name],['prediction_',popupdata.model2name],['suggestion_',popupdata.model1name],['suggestion_',popupdata.model2name],'number_of_candidates','number_of_options'};
+        columnnames = {['prediction_',popupdata.model1name],['prediction_',popupdata.model2name],['suggestion_',popupdata.model1name],['suggestion_',popupdata.model2name],'number_of_candidates','number_of_options',['e1_Optimal_contact_',popupdata.model1name],['e1_Optimal_amp_',popupdata.model1name],['e2_Optimal_contact_',popupdata.model1name],['e2_Optimal_amp_',popupdata.model1name],'e1','e2',['best_score_for_1',popupdata.model1name]};
+
         data = nan([numel(rownames),numel(columnnames)]);
         popupdata.table = array2table(data,'VariableNames',columnnames,'RowNames',rownames);
         popupdata.therapyList = therapyList;
@@ -110,8 +125,11 @@ initiateTable();
 
 
     function run(hObject,eventdata,tableHandle)
-
-        for iTherapy = 1:length(popupdata.therapyList)
+        
+        
+        startindex = buttonstartindx.Value-1;
+        startindex(startindex<1) = 1;
+        for iTherapy = startindex:length(popupdata.therapyList)
             
             prediction_1 = ['prediction_',popupdata.model1name];
             prediction_2 = ['prediction_',popupdata.model2name];
@@ -141,10 +159,12 @@ initiateTable();
             %    indx = review_1_scores == max(review_1_scores);
            if radio2.Value
                 indx = review_1_scores >= reference;
+                [best_1, indx_best_1] = max(review_1_scores);
             %elseif radio3.Value
               %  indx = review_1_scores == min(review_1_scores);
             elseif radio4.Value
                 indx = review_1_scores <= reference;
+                [best_1, indx_best_1] = min(review_1_scores);
             end
             
             
@@ -183,8 +203,34 @@ initiateTable();
             
             %---
             % Step 4. Save the data
+            
+            %export best settings based on SOLELY model 1
             suggestion_1 = ['suggestion_',popupdata.model1name];
             suggestion_2 = ['suggestion_',popupdata.model2name];
+            optimal_1_contact_1 = ['e1_Optimal_contact_',popupdata.model1name];
+            optimal_1_amp_1 = ['e1_Optimal_amp_',popupdata.model1name];
+            optimal_1_contact_2 = ['e2_Optimal_contact_',popupdata.model1name];
+            optimal_1_amp_2 = ['e2_Optimal_amp_',popupdata.model1name];
+            best_score_for_1 = ['best_score_for_1',popupdata.model1name];
+            
+            popupdata.table.(optimal_1_contact_1)(iTherapy) = review_1.ReviewData.predictionList(indx_best_1).Input.VTAs(1).Settings.activecontact;
+            popupdata.table.(optimal_1_amp_1)(iTherapy) = review_1.ReviewData.predictionList(indx_best_1).Input.VTAs(1).Settings.amplitude;
+            popupdata.table.(optimal_1_contact_2)(iTherapy) = review_1.ReviewData.predictionList(indx_best_1).Input.VTAs(2).Settings.activecontact;
+            popupdata.table.(optimal_1_amp_2)(iTherapy) = review_1.ReviewData.predictionList(indx_best_1).Input.VTAs(2).Settings.amplitude;
+            popupdata.table.(best_score_for_1)(iTherapy) = best_1;
+            
+            if review_1.VTAs(1).Electrode.C0.x >0
+                e1side = 'R';
+            else
+                e1side = 'L';
+            end
+            if review_1.VTAs(2).Electrode.C0.x > 0
+                e2side = 'R';
+            else
+                e2side = 'L';
+            end
+            popupdata.table.e1(iTherapy) = e1side;
+             popupdata.table.e2(iTherapy) = e2side;
             
             if sum(winners)>=1
                 winner = find(winners,1);
@@ -198,8 +244,8 @@ initiateTable();
                 
                 
             elseif sum(winners) == 0 %no candidates
-                popupdata.table.suggestion_1(iTherapy) = nan;
-                popupdata.table.suggestion_2(iTherapy) = nan;
+                popupdata.table.(suggestion_1)(iTherapy) = nan;
+                popupdata.table.(suggestion_2)(iTherapy) = nan;
                 
             end
             
@@ -212,11 +258,27 @@ initiateTable();
        
     end
 
-    function updateTable
-        columnnames = {['prediction_',popupdata.model1name],['prediction_',popupdata.model2name],['suggestion_',popupdata.model1name],['suggestion_',popupdata.model2name],'number_of_candidates','number_of_options'};
+    function updateTable()
+        columnnames = {['prediction_',popupdata.model1name],['prediction_',popupdata.model2name],['suggestion_',popupdata.model1name],['suggestion_',popupdata.model2name],'number_of_candidates','number_of_options',['e1_Optimal_contact_',popupdata.model1name],['e1_Optimal_amp_',popupdata.model1name],['e2_Optimal_contact_',popupdata.model1name],['e2_Optimal_amp_',popupdata.model1name],'e1','e2',['best_score_for_1',popupdata.model1name]};
         popupdata.table.Properties.VariableNames = columnnames;
         set(tableHandle,'Data',popupdata.table{:,:},'ColumnName',columnnames)
         drawnow()
+    end
+
+    function syncTable()
+        [fol,fil] = generateFileName();
+        if exist(fullfile(fol,fil),'file')
+            Tread = readtable(fullfile(fol,fil));
+            popupdata.table = Tread(1:end,2:end); %strip the row column
+            
+            buttonstartindx.Value = find(isnan(Tread.e1),1)+1;
+            buttonstartindx.ForegroundColor = [1 0 0];
+            %sync
+            keyboard
+            updateTable
+        end
+            
+        
     end
     
 end

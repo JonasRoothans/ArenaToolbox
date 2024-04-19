@@ -447,6 +447,7 @@ classdef VoxelDataStack < handle
         end
         
         function [obj,filename] = loadStudyDataFromRecipe(obj,recipe,templatefile)
+           
             if nargin==1
                 waitfor(msgbox('Find the recipe'))
                 [filename,foldername] = uigetfile('*.xlsx','Locate the recipe');
@@ -463,6 +464,9 @@ classdef VoxelDataStack < handle
                 obj.RecipePath=fullfile(foldername,filename);
             end
             
+           %Data allocation
+           disp('Allocating disk space')
+            obj.Voxels  = zeros(prod(obj.R.ImageSize),height(recipe),2);
             
             if nargin==2 %--> no templatefile is provided
                 if isempty(obj.R)
@@ -560,7 +564,9 @@ classdef VoxelDataStack < handle
             
             
             for i = 1:height(obj.Recipe)
-                
+                disp('------------')
+                disp(i)
+                disp('------------')
                 if data_is_in_subfolders
                     files = A_getfiles(fullfile(obj.Recipe.fullpath{i},'*.nii'));
                     for iFile = 1:numel(files)
@@ -594,7 +600,7 @@ classdef VoxelDataStack < handle
                         end
                         
                         %Mirror to the left.
-                        cog = vd.getmesh(max(vd.Voxels(:))/3).getCOG;
+                        cog.x =  mean(vd.R.XWorldLimits);%; vd.getmesh(max(vd.Voxels(:))/3).getCOG;
                         if cog.x>1 && obj.Recipe.Move_or_keep_left(i)
                             vd.mirror;
                             printwhendone{end+1} = ['____mirrored: ',thisFile];
