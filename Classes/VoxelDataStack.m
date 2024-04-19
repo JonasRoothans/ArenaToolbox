@@ -166,6 +166,10 @@ classdef VoxelDataStack < handle
             l = size(obj.Voxels,2);
         end
         
+        function obj = flatten(obj)
+            obj.Voxels = sum(obj.Voxels,3)
+        end
+        
         function d = depth(obj)
             d = size(obj.Voxels,3);
         end
