@@ -24,7 +24,7 @@ scene.addon_addmenuitem('HeatmapMaker','Export Suretune Sessions to folder',str2
 scene.addon_addmenuitem('HeatmapMaker','extract all files and store in one folder',str2func('@HeatmapMaker_UnpackFolders'),other)
 scene.addon_addmenuitem('HeatmapMaker','display all VTAs',str2func('@HeatmapMaker_show'),other)
 scene.addon_addmenuitem('HeatmapMaker','convert ea_reconstruction to arena electrode',str2func('@HeatmapMaker_convertleaddbsreco'),other)
-
+scene.addon_addmenuitem('HeatmapMaker','produce table with distances of VTAs to COG',str2func('@HeatmapMaker_DistanceToHotspot'),other)
 
 legacy = scene.addon_addmenuitem('HeatmapMaker','Legacy (sweetspotstation)');
 scene.addon_addmenuitem('HeatmapMaker','Make a Suretune based recipe',str2func('@HeatmapMaker_SuretuneSessionsRecipe'),legacy)

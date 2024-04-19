@@ -3785,6 +3785,8 @@ classdef ArenaScene < handle
                 
             end
             
+           
+            
             function menu_fiberROIcheck(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
@@ -5019,6 +5021,15 @@ classdef ArenaScene < handle
             
             
         end
+        
+         function [indx,name,actor] = selectActor(obj)
+        
+                [indx,tf] = listdlg('PromptString',{'Select one ROI'},'ListString',{obj.Actors.Tag},'ListSize',[350,250]);
+                Tags = {obj.Actors.Tag};
+                name = Tags(indx);
+                actor = obj.Actors(indx);
+                
+            end
         
         function thisActor = newActor(obj,data,OPTIONALvisualisation)
             thisActor = ArenaActor;
