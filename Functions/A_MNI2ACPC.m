@@ -2,7 +2,7 @@ function [c_out] = A_MNI2ACPC(coordinate)
 
 Tmni2apcpc = inv(makeT);
 c = Vector3D(coordinate);
-c_out = c.transform(Tmni2apcpc);
+c_out = c.transform(Tmni2apcpc).round(10); %rounded to 10 decimals
 
     function transformation_matrix = makeT()
         % Define the axes of system A

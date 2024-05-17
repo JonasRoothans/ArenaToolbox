@@ -274,6 +274,20 @@ classdef Vector3D
         end
         
         
+        function out = round(obj,N)
+            if nargin==1
+                out = Vector3D(round(obj.x),...
+                    round(obj.y),...
+                    round(obj.z));
+            else
+               out = Vector3D(round(obj.x,N),...
+                    round(obj.y,N),...
+                    round(obj.z,N));
+            end
+                
+            
+        end
+        
         
         
     end
