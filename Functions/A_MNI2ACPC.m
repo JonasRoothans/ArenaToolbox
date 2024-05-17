@@ -1,8 +1,8 @@
 function [c_out] = A_MNI2ACPC(coordinate)
 
-Tmni2apcpc = inv(makeT);
+Tmni2apcpc = makeT;
 c = Vector3D(coordinate);
-c_out = c.transform(Tmni2apcpc).round(10); %rounded to 10 decimals
+c_out = c.transform(Tmni2apcpc').round(10); %rounded to 10 decimals
 
     function transformation_matrix = makeT()
         % Define the axes of system A
@@ -38,7 +38,7 @@ c_out = c.transform(Tmni2apcpc).round(10); %rounded to 10 decimals
         transformation_matrix = [R, [0;0;0]; 0 0 0 1] * T;
         
         %switch rows/columns because arena uses flipped transformation matrices
-        transformation_matrix = inv(transformation_matrix)';
+        %transformation_matrix = inv(transformation_matrix)';
         
 %         % Display the transformation matrix
 %         disp('Transformation Matrix:')
