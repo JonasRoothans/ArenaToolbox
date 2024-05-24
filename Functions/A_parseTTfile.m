@@ -41,9 +41,6 @@ f.see
             tt(1,:) = [x y z];
             p = p+16;
             for j = 2:size
-                
-               disp(buf2(p:p+2));
-
                 %difference
                 x = x+int32(int8(buf2(p)));
                 y = y+int32(int8(buf2(p+1)));
