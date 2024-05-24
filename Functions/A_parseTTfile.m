@@ -20,7 +20,7 @@ f.see
         % Frank Yeh
         buf1 = uint8(track);
         buf2 = typecast(buf1,'int8');
-        buf2 = int8(track);
+        %buf2 = int8(track);
         pos = [];
         i = 1;
         while(i <= length(track))
