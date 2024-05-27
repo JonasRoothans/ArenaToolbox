@@ -17,6 +17,7 @@ if n>10000
         otherwise
             track = A_parseTTfile(filename,10000);
     end
+else track = A_parseTTfile(filename,n);
 end
 
 track.see(scene)
