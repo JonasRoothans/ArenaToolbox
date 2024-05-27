@@ -81,9 +81,11 @@ classdef PointCloud < ArenaActorRendering
                 case {'double', 'single'}
                     obj.Vectors = Vector3D.empty;
                     if size(vectors,1)>1 && size(vectors,2)==3 %list
-                        for i = 1:size(vectors,1)
-                            obj.Vectors(end+1,1) = Vector3D(vectors(i,1),vectors(i,2),vectors(i,3));
+                        Vectors = Vector3D.empty;
+                        parfor i = 1:size(vectors,1)
+                            Vectors(i,1) = Vector3D(vectors(i,1),vectors(i,2),vectors(i,3),'quick');
                         end
+                        obj.Vectors = Vectors;
                     elseif size(vectors,1)==1 && size(vectors,2)==3 %single
                         obj.Vectors(end+1,1) = Vector3D(vectors(1),vectors(2),vectors(3));
                     else

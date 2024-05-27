@@ -1,21 +1,18 @@
-function [track] = A_parseTTfile(file)
+function [f] = A_parseTTfile(file, maxFibers)
+
+if nargin==1
+    maxFibers = [];
+end
 
 data = load(file,'-mat');
-track = parse_tt(data.track);
 T = reshape(data.trans_to_mni,4,4);
+f = parse_tt(data.track,T, maxFibers);
 
-f = Fibers;
-n = numel(track);
-wb = waitbar(0,['Loading ',num2str(n), ' fibers']);
 
-for iTrack = 1:n
-    f.addFiber(SDK_transform3d(track{iTrack},T),iTrack);
-    waitbar(iTrack/n,wb)
-end
-close(wb);
-f.see
+%f.see
 
-    function track = parse_tt(track)
+    function f = parse_tt(track,T,maxFibers)
+        f = Fibers;
         %source: https://groups.google.com/g/dsi-studio/c/3Y_lIRLWXTs?pli=1
         % Frank Yeh
         buf1 = uint8(track);
@@ -27,9 +24,25 @@ f.see
             pos = [pos i];
             i = i + typecast(buf1(i:i+3),'uint32')+13;
         end
+        n = length(pos);
         
-        track = cell(1,length(pos));
-        for i = 1:length(pos)
+        if n>maxFibers
+            shuffle = randperm(n);
+            indices = shuffle(1:maxFibers);
+            n = maxFibers;
+        else
+            indices = 1:n;
+        end
+            
+        counter = 0;
+        if n>1000
+            wb = waitbar(0,['Loading ',num2str(n/1000), 'k fibers']);
+        else
+            wb = waitbar(0,['Loading ',num2str(n), ' fibers']);
+        end
+        for i = indices
+            counter = counter+1;
+            waitbar(counter/n,wb)
             p = pos(i);
             size = typecast(buf1(p:p+3),'uint32')/3;
 
@@ -48,8 +61,9 @@ f.see
                 p = p+3;
                 tt(j,:) = [x y z];
             end
-            track{i} = single(tt)/32;
+            f.addFiber(SDK_transform3d(single(tt)/32,T),i);
         end
+        close(wb);
     end
 
 

@@ -15,6 +15,11 @@ classdef Vector3D
     
     methods
         function obj = Vector3D(varargin)
+            if nargin==4
+                obj.x = double(varargin{1});
+                obj.y = double(varargin{2});
+                obj.z = double(varargin{3});
+            end
             if nargin==3
                 if all(cellfun(@isnumeric,varargin)) %if they are all numbers
                     obj.x = double(varargin{1});
@@ -50,7 +55,9 @@ classdef Vector3D
                     v = obj(i).getArray();
                     l = norm(v);
                     v = v/l;
-                    out(i) = v;
+                    out(i).x = v(1);
+                    out(i).y = v(2);
+                    out(i).z = v(3);
                 end
                 
             end

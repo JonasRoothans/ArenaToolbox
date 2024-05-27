@@ -108,6 +108,7 @@ classdef Fibers < handle & matlab.mixin.Copyable & ArenaActorRendering
             
         end
         
+        
         function obj = addFiber(obj,vertices,fiberindex,OPTIONALweight)
                     n = numel(obj.Vertices)+1;
                     obj.Vertices(n) = PointCloud(vertices);
