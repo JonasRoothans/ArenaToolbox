@@ -1872,6 +1872,8 @@ classdef ArenaScene < handle
                             A_loadtrk(scene,fullfile(pathname,filename{iFile}));
                         case '.electrode'
                             A_loadelectrode(scene,fullfile(pathname,filename{iFile}));
+                        case '.tt'
+                            A_loadDSItt(scene,fullfile(pathname,filename{iFile}));
                             
                             
                             
@@ -4561,7 +4563,7 @@ classdef ArenaScene < handle
                 settings = ArenaScene.ignoreUnchangedSettings(settings,thisActor(1));
                 
                 for i = 1:numel(thisActor)
-                    thisActor(i).updateActor(scene,settings)
+                    thisActor(i).updateActor(scene,settings);
                 end
                 
                 scene.refreshLayers()
@@ -5064,6 +5066,7 @@ classdef ArenaScene < handle
                     rgbColour = [0 0 0];
                 end
                 
+                if isnan(rgbColour(1));rgbColour = [0 0 0];end
                 
                 hexStr = reshape( dec2hex( round(rgbColour), 2 )',1, 6);
                 
