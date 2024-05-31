@@ -1483,14 +1483,14 @@ classdef ArenaScene < handle
                         side = 'left';
                     end
                     
-                    switch e.space
+                    switch e.Space
                         case 'acpc'
                             actor.changeSetting('colorBase',[0.8, 0.8, 0.2])
                             actor.changeName(['LeadDBS import (ACPC space) - ',side])
                         case 'native'
                             actor.changeSetting('colorBase',[0.8, 0.2, 0.2])
                             actor.changeName(['LeadDBS import (Native space) - ',side])
-                        case 'mni'
+                        case 'MNI2009b'
                             actor.changeName(['LeadDBS import (MNI space) - ',side])
                     end
    

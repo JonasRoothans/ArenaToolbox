@@ -7,6 +7,7 @@ function [outputArg1,outputArg2] = HeatmapMaker_trainPrediction(menu,eventdata,s
 %load training data
 TrainingStack = VoxelDataStack();
 TrainingStack.loadStudyDataFromRecipe();
+TrainingStack.doYouWantSmoothing()
 
 
 % Train the model

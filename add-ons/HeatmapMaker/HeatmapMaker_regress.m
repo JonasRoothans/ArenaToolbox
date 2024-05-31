@@ -12,6 +12,8 @@ sm = SamplingMethod.choosedlg();
 VDS = VoxelDataStack;
 VDS.templateSpace(HM);
 VDS.loadStudyDataFromRecipe;
+VDS.doYouWantSmoothing() %some VTAs require smoothing because they have rough lines.
+
 
 R = RegressionRoutine();
 R.Heatmap = HM;

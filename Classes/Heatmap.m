@@ -66,16 +66,21 @@ classdef Heatmap < handle
             if nargin<2
                 Stack=VoxelDataStack;
                 Stack.construct(); % this will prompt the question on how to load
+                Stack = Stack.doYouWantSmoothing();
             else
                 if ~isa(Stack,'VoxelDataStack')
                     error(['Was expecting a VoxelDataStack as input argument instead of ',class(Stack)])
                 end
                 
             end
+
+            
             
             if depth(Stack)>1
                 Stack.flatten()
             end
+            
+            
             
              if nargin<3
                     [~,nameSuggestion] = fileparts(Stack.RecipePath);
@@ -102,6 +107,9 @@ classdef Heatmap < handle
                 'You can select more than one.',''},...
                 'ListString',List,...
                 'ListSize',[300 70]);
+            
+    
+     
                 
                 if tf==false
                     error('you must select a heatmap pipeline, aborting now. Please try again')

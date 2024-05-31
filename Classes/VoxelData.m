@@ -1023,7 +1023,11 @@
             
         
         function see(obj,OPTIONALscene)
-            obj.getmesh().see(OPTIONALscene);
+            if nargin==2
+                obj.getmesh().see(OPTIONALscene);
+            else
+                obj.getmesh().see();
+            end
         end
         
         function Points = detectPoints(obj)
@@ -1273,9 +1277,9 @@
              if nargin==1
                     v = smooth3(obj.Voxels);
              elseif nargin==2
-                 v = smooth3(obj.Voxels,size);
+                 v = smooth3(obj.Voxels,'box',size);
              elseif nargin==3
-                 v = smooth3(obj.Voxels,size,sd);
+                 v = smooth3(obj.Voxels,'gaussian',size,sd);
              end
              
              if nargout==1

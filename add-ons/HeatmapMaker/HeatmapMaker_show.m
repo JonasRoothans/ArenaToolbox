@@ -39,6 +39,10 @@ for i = 1:height(t)
     %color
     Weight = t.(label)(i);
     WeightN = (Weight-minValue)/(maxValue-minValue);
+    if isnan(WeightN) %no difference in scores in the heatmap
+        WeightN = 0;
+    end
+        
     r = interp1([0,0.5,1],[low(1),medium(1),high(1)],WeightN);
     g = interp1([0,0.5,1],[low(2),medium(2),high(2)],WeightN);
     b = interp1([0,0.5,1],[low(3),medium(3),high(3)],WeightN);

@@ -19,7 +19,7 @@ classdef A_averageN < SamplingMethod
   
             
             %data
-            map= Map.Amap.Voxels;
+            map= Map.Nmap.Voxels;
             roi = IndividualProfile.Voxels>0.5;
             
             %mask

@@ -600,7 +600,7 @@ classdef VoxelDataStack < handle
                         end
                         
                         %Mirror to the left.
-                        cog.x =  mean(vd.R.XWorldLimits);%; vd.getmesh(max(vd.Voxels(:))/3).getCOG;
+                        cog =  vd.getcog;
                         if cog.x>1 && obj.Recipe.Move_or_keep_left(i)
                             vd.mirror;
                             printwhendone{end+1} = ['____mirrored: ',thisFile];
@@ -832,6 +832,39 @@ classdef VoxelDataStack < handle
             obj.Voxels(:,i,depth) = sparse(double(v(:)));
         end
         
+        function obj = doYouWantSmoothing(obj)
+                  options = {'0: no smoothing','3: just some polishing','5: a little rough polishing','9: polish the shit out of this'};
+                indx = listdlg('ListString',options,'PromptString','Do your VTAs need smoothing?');
+
+             switch options{indx}
+                 case '9: polish the shit out of this'
+                     obj = obj.smooth(9) > 0.5;
+                 case '5: a little rough polishing'
+                     obj = obj.smooth(5) > 0.5;
+                 case '3: just some polishing'
+                     obj = obj.smooth(9) > 0.5;
+             end
+             
+        end
+        function obj = smooth(obj,value)
+            disp('smoothing stack...')
+            for L = 1:obj.length
+                disp(['...',num2str(L),'/',num2str(obj.length)])
+                for D = 1:obj.depth
+                    if nargin==2
+                        vd = obj.getVoxelDataAtPosition(L,D).smooth(value);
+                    else
+                        vd = obj.getVoxelDataAtPosition(L,D).smooth;
+                    end
+                    obj.Voxels(:,L,D) = vd.Voxels(:);
+                end
+            end
+            
+        end
+        
+        function obj = gt(obj,value)
+            obj.Voxels = obj.Voxels > value;
+        end
         
         function vd = sum(obj)
             vd = VoxelData(sum(obj.Voxels,4),obj.R);
@@ -1177,9 +1210,11 @@ classdef VoxelDataStack < handle
                 bf_voxels= zeros([length(serialized),1]); % bf applied to all voxels including relevant and non relevant
             end
             disp(' ~running ttest2')
+            bilateral = any(serialized>1);
             for i =  relevantVoxels'
                 
-                if any(serialized(i,:)>1)
+                %if any(serialized(i,:)>1)
+                if bilateral
                     weightsweights = [obj.Weights,obj.Weights];
                     serializedcombi = [serialized(i,:)>0.5,serialized(i,:)>1.5];
                     [~,p,~,stat] = ttest2(weightsweights(serializedcombi),weightsweights(~serializedcombi));
@@ -1210,6 +1245,13 @@ classdef VoxelDataStack < handle
                     p_voxels(i) = 1;
                 end
                 
+                %%JONAS
+                debug = 0;
+                if debug 
+                t_voxels(i) = 1;
+                p_voxels(i) = 0;
+                end
+                %----
             end
             
             outputsize = obj.R.ImageSize;
