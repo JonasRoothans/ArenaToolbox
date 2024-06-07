@@ -270,6 +270,35 @@ classdef Fibers < handle & matlab.mixin.Copyable & ArenaActorRendering
             
         end
         
+        function obj_out = merge(obj,otherFiber)
+            if nargout==1
+                obj_out = obj.copy();
+            else
+                obj_out = obj;
+            end
+            
+             %Optional: add Weights
+                        %obj empty                other empty
+            if ~isempty(obj.Weight) && ~isempty(otherFiber.Weight)
+                obj_out.Weight = [obj.Weight, otherFiber.Weight];
+                 
+                           %obj empty             Other weights
+            elseif isempty(obj.Weight) && ~isempty(otherFiber.Weight)
+                obj_out.Weight = nan(size(obj.Indices));
+                obj_out.Weight = [obj.Weight, otherFiber.Weight];
+                
+                           %obj weights             Other empty
+            elseif ~isempty(obj.Weight) && isempty(otherFiber.Weight)
+                obj_out.Weight(:,end+1) = nan(size(otherFiber.Indices));
+            end
+
+            %merge Vertices
+            obj_out.Vertices = [obj.Vertices, otherFiber.Vertices];
+            
+            %merge indices
+            obj_out.Indices = [obj.Indices,otherFiber.Indices];
+        end
+        
         function percentage = percentageHitByROI(obj,ROI)
             
             hitlist = hitsROI(obj,ROI);
