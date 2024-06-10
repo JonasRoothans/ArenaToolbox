@@ -32,6 +32,21 @@ classdef Fibers < handle & matlab.mixin.Copyable & ArenaActorRendering
 %                     obj.getFibersPassingThroughMesh(varargin);
 %                     obj.SeedInclude = varargin{1};
 %                 end
+
+            if nargin==1
+                if ischar(varargin{1})
+                    [~, ~, ~, ext] = fileparts(varargin{1});
+                    switch ext
+                        case '.trk'
+                            F = A_loadtrk(nan,varargin{1});
+                            obj = F;
+                    
+                          
+                            
+                    end
+                end
+            end
+                            
         end
             
         function cog = getCOG(obj)
