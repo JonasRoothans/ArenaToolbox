@@ -24,7 +24,9 @@ classdef ArenaActorRendering < handle
             
         end
         
-        function [settings,presets] = getDefaultSettings(obj,scene)
+        function [settings,material] = getDefaultSettings(obj,scene)
+            material = nan;
+            
             switch class(obj)
                 case 'PointCloud'
                     settings.colorLow = scene.getNewColor(scene);
@@ -39,11 +41,13 @@ classdef ArenaActorRendering < handle
                     settings.colorByDirection = true;
                     settings.colorByWeight = false;
                     settings.colorSolid = false;
+                    material = obj.MATERIAL_Fiber;
                 case 'Contour'
                     settings.colorFace = scene.getNewColor(scene);
                     settings.colorEdge = scene.getNewColor(scene);%
                     settings.faceOpacity = 80;
                     settings.edgeOpacity = 0;
+                    material = obj.MATERIAL_Mesh;
                 case 'Mesh'
                     settings.colorFace = scene.getNewColor(scene);%[0 188 216]/255;
                     settings.colorEdge = scene.getNewColor(scene);%[0 188 216]/255;
@@ -52,6 +56,7 @@ classdef ArenaActorRendering < handle
                     settings.faceOpacity = 50;
                     settings.edgeOpacity = 0;
                     settings.smooth = 1;
+                    material = obj.MATERIAL_Mesh;
                 case 'Shape'
                     settings.colorFace = scene.getNewColor(scene);%[0 188 216]/255;
                     settings.colorEdge = scene.getNewColor(scene)/2;%[0 188 216]/255;
@@ -64,6 +69,7 @@ classdef ArenaActorRendering < handle
                     settings.faceOpacity = 100;
                     settings.edgeOpacity = 0;
                     settings.smooth = 0;
+                    material = obj.MATERIAL_ObjFile;
                 case 'Slicei'
                     settings = struct;
                     settings.colorDark = [0 0 0];
@@ -74,6 +80,7 @@ classdef ArenaActorRendering < handle
                     settings.slice = 0;
                     settings.plane = 'axial';
                     settings.faceOpacity = 90;
+                    material = obj.MATERIAL_Slicei;
                 case 'Electrode'
                     settings = struct;
                     switch scene.colorThemeElectrode
@@ -93,6 +100,8 @@ classdef ArenaActorRendering < handle
                     settings.anode = [0 0 0 0];
                     settings.opacity = 100;
                     settings.type = obj.Type;
+                    material.body = obj.MATERIAL_Electrode_body;
+                    material.contact = obj.MATERIAL_Electrode_contact;
                 case 'VectorCloud'
                     settings = struct;
                     settings.color1 = [0.85 0.85 0.85];

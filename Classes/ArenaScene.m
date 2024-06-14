@@ -281,6 +281,10 @@ classdef ArenaScene < handle
             obj.handles.menu.view.lights.ground = uimenu(obj.handles.menu.view.lights.main,'Text','Bottom light','callback',{@menu_showLight_ground},'Checked','off');
             obj.handles.menu.view.lights.cameraposition = uimenu(obj.handles.menu.view.lights.main,'Text','place light at camera position','callback',{@menu_placeLight});
             
+            obj.handles.menu.view.material.main = uimenu(obj.handles.menu.view.main,'Text','Material');
+            obj.handles.menu.view.material.flat = uimenu(obj.handles.menu.view.material.main,'Text','No reflection (ideal for 2D)','callback',{@menu_material,'dull'});
+            obj.handles.menu.view.material.default = uimenu(obj.handles.menu.view.material.main,'Text','Default material','callback',{@menu_material,'default'});
+            
             
             obj.handles.menu.view.flat.main = uimenu(obj.handles.menu.view.main,'Text','2D','Separator','on','callback',{@menu_intersectPlane});
             obj.handles.menu.view.bgcolor.main = uimenu(obj.handles.menu.view.main,'Text','background color');
@@ -584,6 +588,24 @@ classdef ArenaScene < handle
                     
                 end
                 
+            end
+            
+            
+            function menu_material(hObject,eventdata,materialinput)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    switch materialinput
+                        case 'dull'
+                            material(thisActor.Visualisation.handle,[1 0 0])
+                        case 'default'
+                 
+                            [~, mtrl] =  thisActor.Data.getDefaultSettings(scene);
+                            material(thisActor.Visualisation.handle,mtrl)
+                            
+                    end
+                end
             end
             
             function menu_showLight_sun(hObject,eventdata)
