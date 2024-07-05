@@ -123,6 +123,8 @@ switch leadtype
         spacing = 2;
     case 'Medtronic3387'
         spacing  =3;
+    case 'BostonScientific'
+        spacing = 2;
 end
 AC = ACindex*spacing;
 end

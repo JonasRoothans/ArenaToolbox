@@ -39,6 +39,11 @@ classdef Vector3D
                         obj.z = varargin{1}.z;
                     end
                 end
+                if isa(varargin{1},'Vector3D')
+                    obj.x = varargin{1}.x;
+                    obj.y = varargin{1}.y;
+                    obj.z = varargin{1}.z;
+                end
             end
         end
         

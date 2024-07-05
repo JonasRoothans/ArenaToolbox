@@ -27,13 +27,25 @@ label = labels{indx};
 
 minValue = min(t.(label));
 maxValue = max(t.(label));
-
+printwhendone = {};
 if strcmp(t.Properties.VariableNames{1},'folderID')
 for i = 1:height(t)
     filesInFolder = A_getfiles(fullfile(t.fullpath{i},'*.nii'));
     for j = 1:numel(filesInFolder)
     fname = fullfile(filesInFolder(j).folder,filesInFolder(j).name);
     vd = VoxelData(fname);
+    
+    
+    %Mirror to the left.
+    cog =  vd.getcog;
+    if cog.x>1 && t.Move_or_keep_left(i)
+        vd.mirror;
+        printwhendone{end+1} = ['____mirrored: ',fname];
+    else
+        printwhendone{end+1} = ['not_mirrored: ',fname];
+    end
+    
+                        
     actor = vd.getmesh(0.5).see(scene);
     
     %color
@@ -50,9 +62,16 @@ for i = 1:height(t)
     actor.Meta.label = Weight;
     actor.changeName([t.folderID{i},'_',filesInFolder(j).name])
     end
+    
+        
 
 
 end
+disp('---')
+    cellfun(@disp,printwhendone)
+    disp('---')
+    disp('It is recommended to check the list above to see if mirroring was done correctly')
+         
 
 
 

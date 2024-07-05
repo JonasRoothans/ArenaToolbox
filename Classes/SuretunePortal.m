@@ -289,7 +289,7 @@ classdef SuretunePortal < SuretuneTransformationTools
                         VTAObject.Electrode = e;
                         VTAObject.ActorElectrode = actor;
                         VTAObject.Source = e.Source;
-                        if contains(reglinkdescription,'MNI')
+                        if or(contains(reglinkdescription,'MNI'),contains(reglinkdescription,'Imported'))
                                 VTAObject.Space = Space.MNI2009b;
                         end
                         VTAObject.Tag = [this.session.patient.name,' ',this.label];
@@ -321,7 +321,7 @@ classdef SuretunePortal < SuretuneTransformationTools
                             VTAObject.Source = e.Source;
                             VTAObject.SuretuneStimplan = this.stimPlan{iStimplan};
                             
-                            if contains(reglinkdescription,'MNI')
+                            if or(contains(reglinkdescription,'MNI'),contains(reglinkdescription,'Imported'))
                                 VTAObject.Space = Space.MNI2009b;
                             end
                             VTAObject.Tag = [this.session.patient.name,' ',this.label,' ',this.stimPlan{iStimplan}.label];

@@ -100,8 +100,8 @@ classdef ArenaActorRendering < handle
                     settings.anode = [0 0 0 0];
                     settings.opacity = 100;
                     settings.type = obj.Type;
-                    material.body = obj.MATERIAL_Electrode_body;
-                    material.contact = obj.MATERIAL_Electrode_contact;
+                    material = obj.MATERIAL_Electrode_body;
+                    %material.contact = obj.MATERIAL_Electrode_contact;
                 case 'VectorCloud'
                     settings = struct;
                     settings.color1 = [0.85 0.85 0.85];

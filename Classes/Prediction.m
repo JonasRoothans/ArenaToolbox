@@ -29,7 +29,11 @@ classdef Prediction < handle
             for iVTA  = obj.Input.VTAs
                 n = n+1;
                     iVTA.printInfo()
-                    fprintf(2,'%s\n',obj.Comments{n})
+                    try
+                        fprintf(2,'%s\n',obj.Comments{n})
+                    catch
+                        %fine
+                    end
             end
             %--model
             fprintf('---\nModel used: \t %s \n',obj.Model.Tag)

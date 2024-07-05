@@ -1845,10 +1845,15 @@ classdef ArenaScene < handle
                 for iFile = 1:numel(filename)
                     
                     [~,name,ext] = fileparts(filename{iFile});
+                    folders = strsplit(pathname,filesep);
+                    folder = folders{end-1};
+                    
+                    
                     switch ext
                         case '.nii'
                             v = VoxelData;
                             v = v.loadnii(fullfile(pathname,filename{iFile}));
+                            name = [name,' (',folder,')'];
                             if isa(v,'VoxelDataStack')
                                 import_vds(scene,v,name)
                                 return
@@ -2677,7 +2682,7 @@ classdef ArenaScene < handle
                 for iActor = 1:numel(currentActors)
                     thisActor = currentActors(iActor);
                     thisActor.saveToFolder(outdir)
-                    voxels = thisActor.Data.parent.Voxels;
+                    %voxels = thisActor.Data.parent.Voxels;
                     
                 end
                 
@@ -4075,7 +4080,7 @@ classdef ArenaScene < handle
             end
             
             function menu_shortestDistance(hObject,eventdata)
-                debugmode = 1;
+                debugmode = 0;
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
                 answer = questdlg('Shortest distance from','Shortest distance','any point on the mesh','center of gravity','center of gravity');
@@ -4087,38 +4092,50 @@ classdef ArenaScene < handle
                 end
                 switch answer
                     case 'any point on the mesh'
-                        keyboard %not there yet
+                        distances = [];
+                        for iActor = 1:numel(currentActors)
+                            thisActor = currentActors(iActor);
+                            disp('calculating Center of Gravity')
+                            cog = thisActor.getCOG;
+                            disp('Done')
+
+                            %start from the COG of the actor.
+                            [distance_cog_to_target,closest_target] = sub_calculate_distance_from_point_to_actor(cog,target);
+                            %closest_target.see(scene)
+                            
+                            %Find a point in the middle of that line
+                            half_way_point = (cog+closest_target)/2;
+                           % half_way_point.see(scene)
+                            
+                            %Find the point on the actor that is closest
+                            [~,closest_actor] = sub_calculate_distance_from_point_to_actor(half_way_point,thisActor.Data);
+                           % closest_actor.see(scene)
+                            
+                            %actually calculate the distance
+                            [closest_distance,final_closest_target] = sub_calculate_distance_from_point_to_actor(closest_actor,target);
+                            %final_closest_target.see(scene)
+                            
+                            %is target within shape?
+                            distance_cog_to_actor = closest_actor-cog;
+                            if distance_cog_to_actor.norm > distance_cog_to_target
+                                closest_distance = closest_distance*-1;
+                            end
+                            
+                            if debugmode
+                                actor = F.see(scene);
+                            end
+                            distances(iActor) = closest_distance;
+
+                        end       
                     case 'center of gravity'
                         distances = [];
                         for iActor = 1:numel(currentActors)
                             thisActor = currentActors(iActor);
                             disp('calculating Center of Gravity')
-                            v1 = thisActor.getCOG;
+                            cog = thisActor.getCOG;
                             disp('Done')
-                            closest_distance = inf;
-                            switch class(target)
-                                case 'Fibers'
-                                    for iFiber = 1:numel(target.Vertices)
-                                 
-                                        thisFiber = target.Vertices(iFiber);
-                                        difference = thisFiber-v1;
-                                        d = difference.Vectors.norm;
-                                        if any(d<closest_distance)
-                                            closest_distance = min(d);
-                                        end
-                                        if debugmode
-                                            for iVector = 1:numel(d)
-                                                pc = PointCloud;
-                                                pc.addVectors(v1);
-                                                pc.addVectors(thisFiber.Vectors(iVector));
-                                                F.addFiber(pc,iVector,d(iVector));
-                                            end
-                                        end
-                                       
-                                    end
-                                otherwise
-                                    keyboard %not there yet
-                            end
+                            [closest_distance,~] = sub_calculate_distance_from_point_to_actor(cog,target);
+
                             if debugmode
                                 actor = F.see(scene);
                             end
@@ -4131,6 +4148,52 @@ classdef ArenaScene < handle
                 t = table(actors,distances)
                 assignin('base','t',t)
                 disp('table is saved to workspace as ''t''')
+                
+                function [closest_distance,closest_vector] = sub_calculate_distance_from_point_to_actor(v1,target)
+                    closest_distance = inf;
+                    switch class(target)
+                        case 'Fibers'
+                            for iFiber = 1:numel(target.Vertices)
+
+                                thisFiber = target.Vertices(iFiber);
+                                difference = thisFiber-v1;
+                                d = difference.Vectors.norm;
+                                if any(d<closest_distance)
+                                    closest_distance = min(d);
+                                    closest_vector = thisFiber.Vectors(d==closest_distance,:);
+                                end
+                                if debugmode
+                                    for iVector = 1:numel(d)
+                                        pc = PointCloud;
+                                        pc.addVectors(v1);
+                                        pc.addVectors(thisFiber.Vectors(iVector));
+                                        F.addFiber(pc,iVector,d(iVector));
+                                    end
+                                end
+
+                            end
+                            case 'Mesh'
+                           
+
+                                thisFiber = PointCloud(target.Vertices);
+                                difference = thisFiber-v1;
+                                d = difference.Vectors.norm;
+                                    closest_distance = min(d);
+                                    closest_vector = thisFiber.Vectors(d==closest_distance,:);
+                                if debugmode
+                                    for iVector = 1:numel(d)
+                                        pc = PointCloud;
+                                        pc.addVectors(v1);
+                                        pc.addVectors(thisFiber.Vectors(iVector));
+                                        F.addFiber(pc,iVector,d(iVector));
+                                    end
+                                end
+
+                            
+                        otherwise
+                            keyboard %not there yet
+                    end
+                end
             end
                   
             

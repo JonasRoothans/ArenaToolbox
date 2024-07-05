@@ -38,6 +38,28 @@ classdef Heatmap < handle
             imref = map{1}.R;
         end
         
+        function out = smooth(obj,value)
+            if nargin==1
+                value = 5;
+            end
+            out = Heatmap();
+            fnames = fieldnames(out);
+            for i = 1:numel(fnames)
+                field = fnames{i};
+                if not(isempty(obj.(field)))
+                    if isa(obj.(field),'VoxelData')
+                        if strcmp(field,'Nmap')
+                            continue
+                        end
+                        disp(['Smoothing: ',field,'...'])
+                        out.(field) = obj.(field).smooth(value);
+                    end
+                end
+            end
+            
+        end
+            
+        
         
         function bool = has(obj,required)
             [maplabels,mapsWithContents,maps,index] = getMapOverview(obj);
@@ -417,6 +439,27 @@ classdef Heatmap < handle
                
             maskVD = obj.Pmap<p;
             significantVD = obj.Signedpmap.mask(maskVD);
+        end
+        
+        function robustness_value = howRobustIsMyMap(obj)
+            try
+                   original = obj.Signedpmap.copy;
+                smoothed = obj.Signedpmap.smooth(15);
+            catch
+                
+                robustness_value = nan;
+                return
+            end
+            
+            %Extract only the bits with at least 2 datapoints
+            original_data = original.Voxels(obj.Nmap.Voxels>2);
+            smoothed_data = smoothed.Voxels(obj.Nmap.Voxels>2);
+            
+            if isempty(original_data)
+                robustness_value = nan;
+                return
+            end
+            robustness_value = corr(original_data,smoothed_data);
         end
         
     end
