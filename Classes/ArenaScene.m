@@ -384,6 +384,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.PointCloud.mergePointClouds = uimenu(obj.handles.menu.dynamic.generate.main,'Text','PointCloud: merge pointclouds','callback',{@menu_mergePointCloud},'Enable','off');
             obj.handles.menu.dynamic.PointCloud.twoSampleTTest = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: two sample t-test','callback',{@menu_pc2samplettest},'Enable','off');
             obj.handles.menu.dynamic.PointCloud.burnIn = uimenu(obj.handles.menu.dynamic.generate.main,'Text','PointCloud: burn in to template','callback',{@menu_burnPointCloudIntoVoxelData},'Enable','off');
+            obj.handles.menu.dynamic.PointCloud.shortestDistance = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','PointCloud: get shortest distance to..','callback',{@menu_shortestDistance},'Enable','off');
             
             obj.handles.menu.dynamic.Mesh.count2mesh  = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: count overlap and show as mesh','callback',{@menu_edit_count2mesh},'Enable','off');
             obj.handles.menu.dynamic.Mesh.count2plane = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: count overlap and show as plane','callback',{@menu_edit_count2plane},'Enable','off');
@@ -4083,68 +4084,110 @@ classdef ArenaScene < handle
                 debugmode = 0;
                 scene = ArenaScene.getscenedata(hObject);
                 currentActors = ArenaScene.getSelectedActors(scene);
-                answer = questdlg('Shortest distance from','Shortest distance','any point on the mesh','center of gravity','center of gravity');
-                selection = listdlg('ListString',{scene.Actors.Tag},'PromptString','Find target..',...
-                    'SelectionMode','single');
-                target = scene.Actors(selection).Data;
-                if debugmode
-                    F = Fibers;
-                end
-                switch answer
-                    case 'any point on the mesh'
+                
+                switch class(currentActors(1).Data)
+                    case 'Mesh'
+                        answer = questdlg('Shortest distance from','Shortest distance','any point on the mesh','center of gravity','center of gravity');
+                        selection = listdlg('ListString',{scene.Actors.Tag},'PromptString','Find target..',...
+                            'SelectionMode','single');
+                        target = scene.Actors(selection).Data;
+                        if debugmode
+                            F = Fibers;
+                        end
+                        switch answer
+                            case 'any point on the mesh'
+                                distances = [];
+                                for iActor = 1:numel(currentActors)
+                                    thisActor = currentActors(iActor);
+                                    disp('calculating Center of Gravity')
+                                    cog = thisActor.getCOG;
+                                    disp('Done')
+
+                                    %start from the COG of the actor.
+                                    [distance_cog_to_target,closest_target] = sub_calculate_distance_from_point_to_actor(cog,target);
+                                    %closest_target.see(scene)
+
+                                    %Find a point in the middle of that line
+                                    half_way_point = (cog+closest_target)/2;
+                                   % half_way_point.see(scene)
+
+                                    %Find the point on the actor that is closest
+                                    [~,closest_actor] = sub_calculate_distance_from_point_to_actor(half_way_point,thisActor.Data);
+                                   % closest_actor.see(scene)
+
+                                    %actually calculate the distance
+                                    [closest_distance,final_closest_target] = sub_calculate_distance_from_point_to_actor(closest_actor,target);
+                                    %final_closest_target.see(scene)
+
+                                    %is target within shape?
+                                    distance_cog_to_actor = closest_actor-cog;
+                                    if distance_cog_to_actor.norm > distance_cog_to_target
+                                        closest_distance = closest_distance*-1;
+                                    end
+
+                                    if debugmode
+                                        actor = F.see(scene);
+                                    end
+                                    distances(iActor) = closest_distance;
+
+                                end       
+                            case 'center of gravity'
+                                distances = [];
+                                for iActor = 1:numel(currentActors)
+                                    thisActor = currentActors(iActor);
+                                    disp('calculating Center of Gravity')
+                                    cog = thisActor.getCOG;
+                                    disp('Done')
+                                    [closest_distance,~] = sub_calculate_distance_from_point_to_actor(cog,target);
+
+                                    if debugmode
+                                        actor = F.see(scene);
+                                    end
+                                    distances(iActor) = closest_distance;
+
+                                end               
+                        end
+                        actors = {currentActors.Tag}' ;
+                        distances = distances';
+                    case 'PointCloud'
+                        answer = questdlg('Shortest distance from','Shortest distance','all points','center of gravity','center of gravity');
+                        selection = listdlg('ListString',{scene.Actors.Tag},'PromptString','Find target..',...
+                            'SelectionMode','single');
+                        target = scene.Actors(selection).Data;
+ 
                         distances = [];
+                        actors = {};
+                        i = 1;
                         for iActor = 1:numel(currentActors)
-                            thisActor = currentActors(iActor);
-                            disp('calculating Center of Gravity')
-                            cog = thisActor.getCOG;
-                            disp('Done')
+                            switch answer
+                                case 'all points'
+                                    thisActor = currentActors(iActor);
+                                    disp('calculating distance from all points')
+                                    for iV = 1:numel(thisActor.Data.Vectors)
+                                        [closest_distance,~] = sub_calculate_distance_from_point_to_actor(thisActor.Data.Vectors(iV),target);
+                                        distances(i) = closest_distance;
+                                        actors{i} = [num2str(iV),'_',thisActor.Tag];
+                                        i = i+1;
+                                        
+                                    end
+                                    
+                                case 'center of gravity'
+                                    thisActor = currentActors(iActor);
+                                    disp('calculating Center of Gravity')
+                                    cog = thisActor.getCOG;
+                                    [closest_distance,~] = sub_calculate_distance_from_point_to_actor(cog,target);
 
-                            %start from the COG of the actor.
-                            [distance_cog_to_target,closest_target] = sub_calculate_distance_from_point_to_actor(cog,target);
-                            %closest_target.see(scene)
                             
-                            %Find a point in the middle of that line
-                            half_way_point = (cog+closest_target)/2;
-                           % half_way_point.see(scene)
-                            
-                            %Find the point on the actor that is closest
-                            [~,closest_actor] = sub_calculate_distance_from_point_to_actor(half_way_point,thisActor.Data);
-                           % closest_actor.see(scene)
-                            
-                            %actually calculate the distance
-                            [closest_distance,final_closest_target] = sub_calculate_distance_from_point_to_actor(closest_actor,target);
-                            %final_closest_target.see(scene)
-                            
-                            %is target within shape?
-                            distance_cog_to_actor = closest_actor-cog;
-                            if distance_cog_to_actor.norm > distance_cog_to_target
-                                closest_distance = closest_distance*-1;
+                                    distances(i) = closest_distance;
+                                    actors{i} = ['cog_',thisActor.Tag];
+                                    i = i+1;
                             end
-                            
-                            if debugmode
-                                actor = F.see(scene);
-                            end
-                            distances(iActor) = closest_distance;
-
-                        end       
-                    case 'center of gravity'
-                        distances = [];
-                        for iActor = 1:numel(currentActors)
-                            thisActor = currentActors(iActor);
-                            disp('calculating Center of Gravity')
-                            cog = thisActor.getCOG;
-                            disp('Done')
-                            [closest_distance,~] = sub_calculate_distance_from_point_to_actor(cog,target);
-
-                            if debugmode
-                                actor = F.see(scene);
-                            end
-                            distances(iActor) = closest_distance;
 
                         end               
+                        
+                        actors = actors' ;
+                        distances = distances';
                 end
-                actors = {currentActors.Tag}' ;
-                distances = distances';
                 t = table(actors,distances)
                 assignin('base','t',t)
                 disp('table is saved to workspace as ''t''')
