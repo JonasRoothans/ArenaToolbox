@@ -407,6 +407,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Mesh.longAxis = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: get longitudinal axis','callback',{@menu_longAxis},'Enable','off');
             obj.handles.menu.dynamic.Mesh.shortestDistance = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Mesh: get shortest distance to..','callback',{@menu_shortestDistance},'Enable','off');
             obj.handles.menu.dynamic.Mesh.burnIn = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Mesh: burn in','callback',{@menu_burnIn},'Enable','off');
+            obj.handles.menu.dynamic.Mesh.colorVertex = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Mesh: color Vertex','callback',{@menu_colorVertex},'Enable','off');
             obj.handles.menu.dynamic.ObjFile.dynamicColor = obj.handles.menu.dynamic.Mesh.dynamicColor;
             obj.handles.menu.dynamic.Electrode.dynamicColor = obj.handles.menu.dynamic.Mesh.dynamicColor;
             obj.handles.menu.dynamic.Electrode.whereIsIt = uimenu(obj.handles.menu.dynamic.analyse.main,'Text','Electrode: Where is it exactly?','callback',{@menu_WhereIsElectrode},'Enable','off');
@@ -1658,6 +1659,8 @@ classdef ArenaScene < handle
                             end
                         case 'ArenaScene'
                             continue
+                        case 'Actor'
+                            thisVariable.see(thisScene)
                         otherwise
                             names{end+1} = basevariables(iVariable).name;
                             data{end+1} = thisVariable;
@@ -4239,6 +4242,35 @@ classdef ArenaScene < handle
                 end
             end
                   
+            
+            function menu_colorVertex(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                
+                [actorlist,namelist,indexlist] =  ArenaScene.getActorsOfClass(scene,'Slicei');
+                
+                choice = listdlg('ListString',namelist,'PromptString','Select a slice that is used as a heatmap');
+                heatmap = actorlist(choice).Data.parent;
+                heatmap_settings = actorlist(choice).Visualisation.settings;
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    vertices = PointCloud(thisActor.Visualisation.handle.Vertices);
+                    colorValues = heatmap.getValueAt(vertices);
+                    
+                    %copy the coloring from the heatmap
+                    cmap = A_colorgradient(heatmap_settings.colorDark,heatmap_settings.colorMiddle,heatmap_settings.colorLight,256);
+                    colorRGB = A_vals2colormap(colorValues,cmap,[heatmap_settings.valueDark,heatmap_settings.valueLight]);
+
+                    
+                    thisActor.Visualisation.handle.FaceVertexCData = colorRGB;
+                    thisActor.Visualisation.handle.CDataMapping = 'scaled';
+                     thisActor.Visualisation.handle.FaceColor = 'interp';
+ 
+                    
+                        
+                    
+                end
+            end
             
             function menu_longAxis(hObject,eventdata)
                 scene = ArenaScene.getscenedata(hObject);
