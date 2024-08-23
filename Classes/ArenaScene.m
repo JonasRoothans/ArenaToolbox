@@ -1445,47 +1445,26 @@ classdef ArenaScene < handle
             
             
             function import_vtk(thisScene,filename,fibers_visual)
-                disp('loading a VTK with a custom script. (debug: ArenaScene / import_vtk)')
-                fid = fopen(filename);
-                tline = fgetl(fid);
-                V = [];
-                Fib = {};
-                %read the file:
-                while ischar(tline)
-                    nums = str2num(tline);
-                    if length(nums)==3 %3D coordinate
-                        V(end+1,:) = nums;
-                    elseif length(nums)==0 %Text
-                        disp(tline)
-                    elseif length(nums)==nums(1)+1 %Fiber
-                        Fib{end+1} = nums(2:end)+1;
-                    end
-                    tline = fgetl(fid);
-                end
-                fclose(fid);
-                %show the fibers
                 f = Fibers;
+                f.loadvtk(filename)
+                n = numel(f.Vertices);
+                
                 
                 if nargin == 2
                     %dialog box
-                    prompt = {['You are loading a VTK file with ',num2str(numel(Fib)),' elements. How many do you want to visualize?'] };
+                    prompt = {['You are loading a VTK file with ',num2str(n),' elements. How many do you want to visualize?'] };
                     dlgtitle = 'Arena VTK loader';
-                    definput = {num2str(min([100, numel(Fib)]))};
+                    definput = {num2str(min([100, n]))};
                     dims = [1 40];
                     opts.Interpreter = 'tex';
                     answer = inputdlg(prompt,dlgtitle,dims,definput,opts);
                     fibers_visual = str2num(answer{1});
                 elseif strcmp(fibers_visual,'all')
-                    fibers_visual = numel(Fib);
+                    fibers_visual = n;
                 elseif strcmp(fibers_visual,'some')
-                    fibers_visual = numel(Fib)/5;
+                    fibers_visual = n/5;
                 end
-                
-                for i = 1:numel(Fib)
-                    points = V(Fib{i},:);
-                    pc = points;
-                    f.addFiber(pc,i);
-                end
+
                 
                 actor = f.see(thisScene,fibers_visual);
                 [pn,fn] = fileparts(filename);

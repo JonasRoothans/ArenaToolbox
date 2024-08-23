@@ -1174,11 +1174,24 @@
                 end
             end
             
-            if nargout==1
-                binaryObj = obj.copy;
-                binaryObj.Voxels = obj.Voxels>T;
+            %Assuming that the foreground is an element on top of the
+            %background:
+            if obj.Voxels(1,1,1)<T
+                
+            
+                if nargout==1
+                    binaryObj = obj.copy;
+                    binaryObj.Voxels = obj.Voxels>T;
+                else
+                    obj.Voxels = obj.Voxels>T;
+                end
             else
-                obj.Voxels = obj.Voxels>T;
+                if nargout==1
+                    binaryObj = obj.copy;
+                    binaryObj.Voxels = obj.Voxels<T;
+                else
+                    obj.Voxels = obj.Voxels<T;
+                end
             end
         end
         

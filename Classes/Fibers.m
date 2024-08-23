@@ -315,13 +315,50 @@ classdef Fibers < handle & matlab.mixin.Copyable & ArenaActorRendering
         end
         
         function percentage = percentageHitByROI(obj,ROI)
-            
             hitlist = hitsROI(obj,ROI);
             percentage = nnz(hitlist)/numel(hitlist);
+
+        end
+        
+        function obj = loadvtk(obj,filename)
+            %--- Load file
+            fid = fopen(filename);
+            tline = fgetl(fid);
+            V = [];
+            Fib = {};
+            %read the file:
+            while ischar(tline)
+                nums = str2num(tline);
+                if length(nums)==3 %3D coordinate
+                    V(end+1,:) = nums;
+                elseif length(nums)==0 %Text
+                    disp(tline)
+                elseif length(nums)==nums(1)+1 %Fiber
+                    Fib{end+1} = nums(2:end)+1;
+                end
+                tline = fgetl(fid);
+            end
+            fclose(fid);
             
-            
+            %--- make the fibers
+            for i = 1:numel(Fib)
+                    points = V(Fib{i},:);
+                    pc = points;
+                    obj.addFiber(pc,i);
+            end
+        
+        end
+        
+        function [pc,indcs] = serialize(obj)
+            pc = PointCloud;
+            indcs = 1;
+            for iVector = 1:numel(obj.Vertices)
+                pc.addVectors(obj.Vertices(iVector));
+                indcs(iVector+1) = indcs(iVector)+numel(obj.Vertices(iVector).Vectors);
+            end
             
         end
+            
      
     end
 end
