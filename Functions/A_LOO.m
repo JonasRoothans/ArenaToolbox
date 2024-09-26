@@ -35,6 +35,14 @@ end
 
 
 
+%Example on how to call this function:
+
+% niiFiles =  {file1.nii, file2.nii, file3.nii}
+% scores =   [    5     ,   -3    ,    1     ]
+% [LOO,LOOCV] = A_LOO(niiFiles,scores, @myFunction)
+
+
+
 
 
 
