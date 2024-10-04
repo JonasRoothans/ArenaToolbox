@@ -12,6 +12,7 @@ mkdir(output_folder)
 for iActor = 1:numel(scene.Actors)
     thisActor = scene.Actors(iActor);
     if isa(thisActor.Data,'Electrode')
+        thisActor.Data.Space = Space.MNI2009b;
         thisActor.saveToFolder(output_folder)
         dummyVTA = thisActor.Data.makeVTA('Medtronic33891False90c1 0 0 0a0 0 0 0.mat');
         dummyVTA.Volume.saveToFolder(output_folder,thisActor.Tag)
@@ -26,3 +27,4 @@ T. Move_or_keep_left(1,1) = 1;
 writetable(T,fullfile(parent_folder,'recipe.xlsx'))
 Done;
 disp(['--> Recipe is saved in: ',parent_folder]);
+disp('BE AWARE THIS STEP HAS SET ALL SPACES TO MNI. IF THIS IS NOT THE CASE, ANY ANALYSIS WILL BE INVALID')
