@@ -122,6 +122,9 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
         end
         
         
+        function see(obj,scene)
+            obj.reviveInScene(scene)
+        end
 
         
       
@@ -245,6 +248,9 @@ classdef ArenaActor < handle & matlab.mixin.Copyable
                     case 'Slicei'
                         vd = obj.Data.parent.imwarp(T);
                         vd.getslice.see(scene)
+                        
+                    case 'Contour'
+                        obj.Visualisation.handle.Vertices = SDK_transform3d( obj.Visualisation.handle.Vertices, T);
                         
                        
                     otherwise

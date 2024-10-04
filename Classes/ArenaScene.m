@@ -219,7 +219,7 @@ classdef ArenaScene < handle
             obj.handles.menu.file.export.handlestoworkspace = uimenu(obj.handles.menu.file.export.main,'Text','handles to workspace','callback',{@menu_exporthandlestoworkspace});
             obj.handles.menu.file.export.saveSelection = uimenu(obj.handles.menu.file.export.main,'Text','selection to folder','callback',{@menu_saveSelectionToFolder});
             obj.handles.menu.file.settings = uimenu(obj.handles.menu.file.main,'Text','Reset to factory settings','callback',{@menu_resetSettings});
-            obj.handles.menu.file.whois = uimenu(obj.handles.menu.file.main,'Text',['who is ',scene.Title,'?'],'callback',{@menu_whoisthis});
+            obj.handles.menu.file.whois = uimenu(obj.handles.menu.file.main,'Text',['who is ',obj.Title,'?'],'callback',{@menu_whoisthis});
             
             try
                 global arena
@@ -488,7 +488,7 @@ classdef ArenaScene < handle
             function menu_addMRItemplate(hObject,eventdata,template)
                 scene = ArenaScene.getscenedata(hObject);
                 templateVD = VoxelData;
-                templateVD.loadnii(template.path,true); %noreslice = true
+                templateVD.loadnii(template.path); %noreslice = true
                 template_actor = templateVD.getslice.see(scene);
                 template_actor.changeName(template.name);
                 
@@ -581,8 +581,10 @@ classdef ArenaScene < handle
                     end
                     
                     %refresh the handles
-                    for iDelete = 1:numel(obj.handles.menu.atlas.MRI.template)
-                        delete(obj.handles.menu.atlas.MRI.template(iDelete))
+                    if isfield('template',obj.handles.menu.atlas.MRI)
+                        for iDelete = 1:numel(obj.handles.menu.atlas.MRI.template)
+                            delete(obj.handles.menu.atlas.MRI.template(iDelete))
+                        end
                     end
                     for iAdd = 1:numel(templatelist)
                         scene.handles.menu.atlas.MRI.template(iAdd) = uimenu(scene.handles.menu.atlas.MRI.main,'Text',templatelist(iAdd).name,'callback',{@menu_addMRItemplate,templatelist(iAdd)});

@@ -69,6 +69,11 @@ classdef Electrode < handle & matlab.mixin.Copyable & ArenaActorRendering
             
         end
         
+        function saveToFolder(obj,outputfolder,tag)
+            e = obj;
+            save(fullfile(outputfolder,[tag,'.electrode']),'e')
+        end
+        
         function [thisActor,thisScene] = see(obj, sceneobj)
             global arena
             if nargin==1
