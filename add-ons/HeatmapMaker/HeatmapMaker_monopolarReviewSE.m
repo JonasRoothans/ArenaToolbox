@@ -1,5 +1,7 @@
 function mdl = HeatmapMaker_monopolarReviewSE(menu,eventdata,scene)
 
+global predictionmanager
+predictionmanager= PredictionManager;
 
 
 %ask for the model
