@@ -2793,6 +2793,11 @@ classdef ArenaScene < handle
                     e1.PointOnLead(Vector3D([pol1,pol2,pol3]))
                     e1.C0 = e1.C0+e1.Direction/2;
                     a1 = e1.see(scene);
+                    if e1.C0.x > 0
+                        a1.changeName = 'right';
+                    else
+                        a1.changeName = 'left';
+                    end
                     
                     %e2
                     step = makeStepFrom(skeletonpoints,tip2,10);
@@ -2802,6 +2807,11 @@ classdef ArenaScene < handle
                     e2.PointOnLead(Vector3D([pol1,pol2,pol3]))
                     e2.C0 = e2.C0+e2.Direction/2;
                     a2 = e2.see(scene);
+                    if e2.C0.x > 0
+                        a2.changeName = 'right';
+                    else
+                        a2.changeName = 'left';
+                    end
                     
                     
                     %manually optimize lead placement.

@@ -14,7 +14,7 @@ scene.addon_addmenuitem('HeatmapMaker','Simulate Cross Validation (LOOCV)',str2f
 
 expert = scene.addon_addmenuitem('HeatmapMaker','Expert pipeline to excite reviewers');
 scene.addon_addmenuitem('HeatmapMaker','Remove Side-effect while maintaining similar efficacy',str2func('@HeatmapMaker_monopolarReviewSE'),expert)
-
+scene.addon_addmenuitem('HeatmapMaker','Make a recipe based on electrodes in scene',str2func('@HeatmapMaker_exportLeftRightElectrodeToRecipe'),expert)
 
 other = scene.addon_addmenuitem('HeatmapMaker','Other');
 scene.addon_addmenuitem('HeatmapMaker','Repair recipe',str2func('@HeatmapMaker_repairRecipe'),other)
