@@ -447,6 +447,7 @@ classdef ArenaScene < handle
             %Open-up functions to call from outside!
             obj.CallFromOutside.import_vtk  = @import_vtk;
             obj.CallFromOutside.fiberMapInterference = @fiberMapInterference;
+            obj.CallFromOutside.extractElectrode = @menu_extractLeadFromCT;
             
             %... add more
             
@@ -2794,9 +2795,9 @@ classdef ArenaScene < handle
                     e1.C0 = e1.C0+e1.Direction/2;
                     a1 = e1.see(scene);
                     if e1.C0.x > 0
-                        a1.changeName = 'right';
+                        changeName(a1,'right');
                     else
-                        a1.changeName = 'left';
+                        changeName(a1,'left');
                     end
                     
                     %e2
@@ -2808,9 +2809,9 @@ classdef ArenaScene < handle
                     e2.C0 = e2.C0+e2.Direction/2;
                     a2 = e2.see(scene);
                     if e2.C0.x > 0
-                        a2.changeName = 'right';
+                        changeName(a2,'right');
                     else
-                        a2.changeName = 'left';
+                       changeName(a2,'left');
                     end
                     
                     

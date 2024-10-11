@@ -1,4 +1,4 @@
-function [outputArg1,outputArg2] = BrainlabExtractor_see(menu,eventdata,scene,warpeddir)
+function [actors,outputArg2] = BrainlabExtractor_see(menu,eventdata,scene,warpeddir)
 %BRAINLABEXTRACTOR_SEE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -20,6 +20,7 @@ detectLeadInVTAs()
                 continue %those will be done in the next step
             end
             thisPath = fullfile(diffdir,thisFile.name);
+            disp(thisPath)
             vd = VoxelData(thisPath);
             percent0 = total(round(vd)<=0)/numvox(vd)*100;
             if percent0>70
