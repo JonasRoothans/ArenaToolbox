@@ -12,9 +12,10 @@ scene.addon_addmenuitem('HeatmapMaker','Train a prediction algorithm (LOO)',str2
 scene.addon_addmenuitem('HeatmapMaker','Predict a cohort',str2func('@HeatmapMaker_applyPrediction'),prediction)
 scene.addon_addmenuitem('HeatmapMaker','Simulate Cross Validation (LOOCV)',str2func('@HeatmapMaker_LOOCV'),prediction)
 
-expert = scene.addon_addmenuitem('HeatmapMaker','Expert pipeline to excite reviewers');
-scene.addon_addmenuitem('HeatmapMaker','Remove Side-effect while maintaining similar efficacy',str2func('@HeatmapMaker_monopolarReviewSE'),expert)
-scene.addon_addmenuitem('HeatmapMaker','Make a recipe based on electrodes in scene',str2func('@HeatmapMaker_exportLeftRightElectrodeToRecipe'),expert)
+expert = scene.addon_addmenuitem('HeatmapMaker','Expert pipeline');
+scene.addon_addmenuitem('HeatmapMaker','1. Make a single patient recipe based on electrodes in scene',str2func('@HeatmapMaker_exportLeftRightElectrodeToRecipe'),expert)
+scene.addon_addmenuitem('HeatmapMaker','2. Predict best settings based on TWO maps',str2func('@HeatmapMaker_monopolarReviewSE'),expert)
+
 
 other = scene.addon_addmenuitem('HeatmapMaker','Other');
 scene.addon_addmenuitem('HeatmapMaker','Repair recipe',str2func('@HeatmapMaker_repairRecipe'),other)
