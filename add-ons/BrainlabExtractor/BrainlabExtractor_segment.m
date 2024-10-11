@@ -22,7 +22,7 @@ for iBI = 1:numel(BIfilename)
     vd_BI_nr = VoxelData;
     vd_BI_nr.loadnii(BIpath,1);
     vd_BI_nr.Voxels = uint16(vd_BI_nr.Voxels);
-    vd_BI_nr.savenii_withSourceHeader(fullfile(outputdir,BIfilename{iBI}));
+    %vd_BI_nr.savenii_withSourceHeader(fullfile(outputdir,BIfilename{iBI}));
     
     vd_BI_nr = maybeReshapeInput1toMatchInput2(vd_BI_nr,vd_template_noreslice);
     
