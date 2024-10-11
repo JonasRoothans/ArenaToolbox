@@ -28,28 +28,28 @@ end
 
 mkdir(segdir)
 
-if 0
-    %step 1
-    BrainlabExtractor_segment(nativeTemplate,BIfilename,BIfoldername,segdir);
-    %step 1b?
-    if iscell(menu.Parent.UserData.electrodes)
-        BrainlabExtractor_makeLeadMarker(nativeTemplate,menu.Parent.UserData.electrodes,segdir)
-    end
 
-    %step 1c?
-    if iscell(CTfilename)
-        copyfile(fullfile(CTfoldername,CTfilename{1}),fullfile(segdir,'CT.nii'))
-    end
-
-    % %step 2
-    BrainlabExtractor_coreg(nativeTemplate,segdir,segdir_coregdir, Excluded)
-
-    %step 3a
-    BrainlabExtractor_warp(nativeTemplate,segdir_coregdir,warpeddir)
-
-    %step 3b
-    BrainlabExtractor_cleanWarpArtifact(warpeddir)
+%step 1
+BrainlabExtractor_segment(nativeTemplate,BIfilename,BIfoldername,segdir);
+%step 1b?
+if iscell(menu.Parent.UserData.electrodes)
+    BrainlabExtractor_makeLeadMarker(nativeTemplate,menu.Parent.UserData.electrodes,segdir)
 end
+
+%step 1c?
+if iscell(CTfilename)
+    copyfile(fullfile(CTfoldername,CTfilename{1}),fullfile(segdir,'CT.nii'))
+end
+
+% %step 2
+BrainlabExtractor_coreg(nativeTemplate,segdir,segdir_coregdir, Excluded)
+
+%step 3a
+BrainlabExtractor_warp(nativeTemplate,segdir_coregdir,warpeddir)
+
+%step 3b
+BrainlabExtractor_cleanWarpArtifact(warpeddir)
+
 %step 4 - visualisation
 actors = BrainlabExtractor_see(menu,eventdata,scene,warpeddir);
 
