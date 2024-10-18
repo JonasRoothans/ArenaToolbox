@@ -56,8 +56,11 @@ save = uicontrol('Style', 'pushbutton', 'String', 'Export table to excel...',...
 
 
 buttonWidth = 0.8;
-button = uicontrol('Style', 'pushbutton', 'String', 'Run review for optimization', ...
-    'Units', 'normalized', 'Position', [0.1, 0.7, buttonWidth, 0.05],'Callback', {@run,tableHandle});
+button_cohort = uicontrol('Style', 'pushbutton', 'String', 'Run review for optimization for this Cohort', ...
+    'Units', 'normalized', 'Position', [0.1, 0.7, buttonWidth*0.45, 0.05],'Callback', {@run,tableHandle});
+button_single = uicontrol('Style', 'pushbutton', 'String', 'Run review for optimization for one case', ...
+    'Units', 'normalized', 'Position', [0.1+buttonWidth*0.55, 0.7, buttonWidth*0.45, 0.05],'Callback', {@run_one,tableHandle});
+uicontrol('Style','text','String','..or..','Units','normalized','Position',[0.1+buttonWidth*0.45, 0.7-0.025, 0.1*buttonWidth, 0.05])
 
 buttonstartindx = uicontrol('Style', 'popupmenu', 'String', [{'Start at..',},{therapyList.Tag}], ...
     'Units', 'normalized', 'Position', [0.7, 0.65, buttonWidth/4, 0.05]);
@@ -122,17 +125,9 @@ initiateTable();
         set(tableHandle, 'RowName', popupdata.table.Properties.RowNames,'ColumnName',popupdata.table.Properties.VariableNames,'Data',popupdata.table{:,:});
         
     end
-
-
-
-    function run(hObject,eventdata,tableHandle)
-        
-        
-        startindex = buttonstartindx.Value-1;
-        startindex(startindex<1) = 1;
-        for iTherapy = startindex:length(popupdata.therapyList)
-            
-            prediction_1 = ['prediction_',popupdata.model1name];
+    
+    function main_engine(iTherapy)
+        prediction_1 = ['prediction_',popupdata.model1name];
             prediction_2 = ['prediction_',popupdata.model2name];
             
             %-----
@@ -146,8 +141,7 @@ initiateTable();
             
             
             
-            %----
-            % Step 2. Run a monopolar review for the first model and filter
+            %----         % Step 2. Run a monopolar review for the first model and filter
             % based on the user setting.
             
             thisTherapy = popupdata.therapyList(iTherapy);
@@ -253,6 +247,34 @@ initiateTable();
                
             
             export(hObject,eventdata)
+    end
+
+    function run_one(hObject,eventdata,tablehandle)
+        if buttonstartindx.Value==1
+            %no selection was made, so we assume the first patient should
+            %be done
+            i = 1;
+        else
+            i = buttonstartindx.Value-1;
+        end
+
+        main_engine(i)
+        updateTable
+
+        %--- Print all details now
+        
+
+    end
+
+
+
+    function run(hObject,eventdata,tableHandle)
+        
+        
+        startindex = buttonstartindx.Value-1;
+        startindex(startindex<1) = 1;
+        for iTherapy = startindex:length(popupdata.therapyList)
+            main_engine(iTherapy)
         end
         
    updateTable

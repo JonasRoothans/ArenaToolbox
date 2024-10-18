@@ -1446,6 +1446,9 @@ classdef VoxelDataStack < handle
                     firstfile = fullfile(firstfile,files(1).name);
                 end
                 s = dir(firstfile);
+                if isempty(s)
+                    error(['I am terribly sorry, but I cannot access your data. Maybe the folder is empty, or perhaps I dont have access. I am trying to reach this folder: ',firstfile])
+                end
                 filesizefirstfile = round(s.bytes/1024/1024); %mb
                 
                 [selection,ok] = listdlg('PromptString','Select a template space:',...
