@@ -279,21 +279,29 @@ initiateTable();
          else
              [~, sort_order] = sort(model2_predictions,'descend');
          end
+         
+         if review_1.VTAs(1).Electrode.C0.x > 0
+            disp('e1 = right, e2 = left')
+            e1  = 'right';
+            e2  = 'left';
+        else
+            disp('e1 = left, e2 = right')
+            e2 = 'right';
+            e1 = 'left';
+             end
+        
+                 
         for iOrder = sort_order
             n = length(T)+1;
-            T(n).Setting = ['e1 A:',num2str(review_1.ReviewData.predictionList(iOrder).Input.VTAs(1).Settings.amplitude),...
-                ' C: ',num2str(review_1.ReviewData.predictionList(iOrder).Input.VTAs(1).Settings.activecontact),...
-                ' -- e2 A:',num2str(review_1.ReviewData.predictionList(iOrder).Input.VTAs(2).Settings.amplitude),...
-                 ' C: ',num2str(review_1.ReviewData.predictionList(iOrder).Input.VTAs(2).Settings.activecontact)];
+            T(n).Setting = [e1,' Amp:',num2str(review_1.ReviewData.predictionList(iOrder).Input.VTAs(1).Settings.amplitude),...
+                ' C',num2str(review_1.ReviewData.predictionList(iOrder).Input.VTAs(1).Settings.activecontact),...
+                '  --  ',e2,' Amp:',num2str(review_1.ReviewData.predictionList(iOrder).Input.VTAs(2).Settings.amplitude),...
+                 ' C',num2str(review_1.ReviewData.predictionList(iOrder).Input.VTAs(2).Settings.activecontact)];
             T(n).map1 = model1_predictions(iOrder);
             T(n).map2 = model2_predictions(iOrder);
         end
         
-        if review_1.VTAs(1).Electrode.C0.x > 0
-            disp('e1 = right, e2 = left')
-        else
-            disp('e1 = left, e2 = right')
-        end
+
         struct2table(T)
         
         
