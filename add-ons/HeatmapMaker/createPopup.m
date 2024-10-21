@@ -126,7 +126,7 @@ initiateTable();
         
     end
     
-    function main_engine(iTherapy)
+    function [review_1,indx,review2,referenceoutcome] = main_engine(iTherapy,hObject,eventdata)
         prediction_1 = ['prediction_',popupdata.model1name];
             prediction_2 = ['prediction_',popupdata.model2name];
             
@@ -138,6 +138,7 @@ initiateTable();
             popupdata.table.(prediction_1)(iTherapy) = outcome_1.Output;
             popupdata.table.(prediction_2)(iTherapy) = outcome_2.Output;
             updateTable()
+            referenceoutcome = {outcome_1,outcome_2};
             
             
             
@@ -258,10 +259,45 @@ initiateTable();
             i = buttonstartindx.Value-1;
         end
 
-        main_engine(i)
-        updateTable
+        [review_1,indx,review2,referenceoutcome] = main_engine(i,hObject,eventdata);
+        
+        
+        model1_predictions = [review_1.ReviewData.predictionList.Output];
+        model2_predictions = indx.*1.0;%make it double
+        model2_predictions(not(indx)) = nan;
+        model2_predictions(find(indx))=review2;
+        
+        disp([model1_predictions;model2_predictions]')
 
         %--- Print all details now
+        T = struct;
+        T(1).Setting = 'Reference';
+        T(1).map1= referenceoutcome{1}.Output;
+        T(1).map2 = referenceoutcome{2}.Output;
+         if radio7.Value
+            [~, sort_order] = sort(model2_predictions);
+         else
+             [~, sort_order] = sort(model2_predictions,'descend');
+         end
+        for iOrder = sort_order
+            n = length(T)+1;
+            T(n).Setting = ['e1 A:',num2str(review_1.ReviewData.predictionList(iOrder).Input.VTAs(1).Settings.amplitude),...
+                ' C: ',num2str(review_1.ReviewData.predictionList(iOrder).Input.VTAs(1).Settings.activecontact),...
+                ' -- e2 A:',num2str(review_1.ReviewData.predictionList(iOrder).Input.VTAs(2).Settings.amplitude),...
+                 ' C: ',num2str(review_1.ReviewData.predictionList(iOrder).Input.VTAs(2).Settings.activecontact)];
+            T(n).map1 = model1_predictions(iOrder);
+            T(n).map2 = model2_predictions(iOrder);
+        end
+        
+        if review_1.VTAs(1).Electrode.C0.x > 0
+            disp('e1 = right, e2 = left')
+        else
+            disp('e1 = left, e2 = right')
+        end
+        struct2table(T)
+        
+        
+        
         
 
     end
