@@ -27,7 +27,7 @@ detectLeadInVTAs()
                 vd.round()
                 vd.Voxels(isnan(vd.Voxels)) =0;
                 vd.Voxels(vd.Voxels<0) = 0;
-                actors(end+1) = vd.getmesh(100).see(scene);
+                actors(end+1) = vd.getmesh(300).see(scene);
             else
                 actors(end+1) = vd.getslice.see(scene);
             end

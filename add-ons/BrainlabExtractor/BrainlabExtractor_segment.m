@@ -54,7 +54,47 @@ options_flip = [ 0 0 0;
     1 1 1];
 
 
+
+bestVoxels = zeros(size(b.Voxels));
+bestCorrelation = 0;
+missing_voxels = size(b.Voxels)-size(a.Voxels);
+for dimension = 1:3
+    if missing_voxels(dimension)
+        for offset = 0:missing_voxels(dimension)
+            backdrop = zeros(size(b.Voxels));
+            range = {};
+            range{1} = 1:size(a.Voxels,1);
+            range{2} = 1:size(a.Voxels,2);
+            range{3} = 1:size(a.Voxels,3);
+            
+            range{dimension} = range{dimension}+offset;
+            
+            backdrop(range{1},range{2},range{3}) = a.Voxels; 
+            correlation = corr(backdrop(:),double(b.Voxels(:)));
+            if correlation>bestCorrelation
+                bestVoxels = backdrop;
+                bestCorrelation = correlation;
+            end
+            
+        end
+    end
+    
+end
+
+if any(missing_voxels)
+    warning('CAUTION, One burned-in image has different dimensions that the master!')
+    if isa(b.Voxels,'uint16')
+        a.Voxels = uint16(bestVoxels);
+    else
+        a.Voxels = bestVoxels;
+    end
+    a.R = b.R;
+end
+
+
+        
 cost = [];
+
 for iOption_p = 1:6
     try
        a_perm = permute(a.Voxels,options_permute(iOption_p,:));
