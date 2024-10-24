@@ -447,7 +447,7 @@ classdef VoxelDataStack < handle
         end
         
         function [obj,filename] = loadStudyDataFromRecipe(obj,recipe,templatefile)
-           
+           global ArenaLazy %can be set via the heatmapmaker menu and skips dialog
             if nargin==1
                 waitfor(msgbox('Find the recipe'))
                 [filename,foldername] = uigetfile('*.xlsx','Locate the recipe');
@@ -534,17 +534,22 @@ classdef VoxelDataStack < handle
                         combineSubfolders = true;
                         multiDimensional = false;
                 end
-                answer_2 = questdlg('Are the files made of binary data? for example VTAs, lesions or binary tracts',...
-                    'Arena',...
-                    'Yes, they are binary files, please threshold to remove interpolation artifacts',...
-                    'no, the files have grayvalues, do not threshold',...
-                    'no, the files have grayvalues, do not threshold');
-                switch answer_2
-                    case 'Yes, they are binary files, please threshold to remove interpolation artifacts'
-                        obj.BinarizeData =true;
-                    otherwise
-                        obj.BinarizeData=false;
+                if not(ArenaLazy)
+                    answer_2 = questdlg('Are the files made of binary data? for example VTAs, lesions or binary tracts',...
+                        'Arena',...
+                        'Yes, they are binary files, please threshold to remove interpolation artifacts',...
+                        'no, the files have grayvalues, do not threshold',...
+                        'no, the files have grayvalues, do not threshold');
+                    switch answer_2
+                        case 'Yes, they are binary files, please threshold to remove interpolation artifacts'
+                            obj.BinarizeData =true;
+                        otherwise
+                            obj.BinarizeData=false;
+                    end
+                else
+                    obj.BinarizeData=false %default
                 end
+                
             else
                 individual_sampling = false;
                 combineSubfolders = true;
@@ -776,6 +781,7 @@ classdef VoxelDataStack < handle
         end
         
         function obj = InsertVoxelDataAt(obj,vd,index,varargin)
+            global ArenaLazy
             sizeStack = size(obj.Voxels);
             if obj.issparse
                 if ~length(obj.Voxels)==numel(vd.Voxels)
@@ -792,15 +798,22 @@ classdef VoxelDataStack < handle
             % sparse / full decision tree
             if issparse(obj)
                 obj.insertSparse(vd.Voxels,index,varargin)
+                
             elseif nnz(vd.Voxels)/numel(vd.Voxels) < 0.5 && obj.SparseOptimization
-                answer  = questdlg('It looks like your data consists of fibers or VTAs. Memory optimization can be applied. Do you want that?','Arena','yes, optimize','no','yes, optimize');
-                switch answer
-                    case 'yes, optimize'
-                        obj.insertSparse(vd.Voxels,index,varargin)
-                    otherwise
-                        obj.insertFull(vd.Voxels,index,varargin)
-                        obj.SparseOptimization = false;
+                if not(ArenaLazy)
+                    answer  = questdlg('It looks like your data consists of fibers or VTAs. Memory optimization can be applied. Do you want that?','Arena','yes, optimize','no','yes, optimize');
+                    switch answer
+                        case 'yes, optimize'
+                            obj.insertSparse(vd.Voxels,index,varargin)
+                        otherwise
+                            obj.insertFull(vd.Voxels,index,varargin)
+                            obj.SparseOptimization = false;
+                    end
+                else %lazy default
+                    obj.insertFull(vd.Voxels,index,varargin)
+                    obj.SparseOptimization = false;
                 end
+                    
             else
                 obj.insertFull(vd.Voxels,index,varargin);
             end
@@ -1438,37 +1451,44 @@ classdef VoxelDataStack < handle
     
     methods (Static)
         function R = getTemplateSpace(firstfile)
+            global ArenaLazy
+            global Arena
             %if first file is provided
-            if nargin==1
-                %get file size of first file
-                if isfolder(firstfile)
-                    files = A_getfiles(firstfile);
-                    firstfile = fullfile(firstfile,files(1).name);
+            if not(ArenaLazy)
+                if nargin==1
+                    %get file size of first file
+                    if isfolder(firstfile)
+                        files = A_getfiles(firstfile);
+                        firstfile = fullfile(firstfile,files(1).name);
+                    end
+                    s = dir(firstfile);
+                    if isempty(s)
+                        error(['I am terribly sorry, but I cannot access your data. Maybe the folder is empty, or perhaps I dont have access. I am trying to reach this folder: ',firstfile])
+                    end
+                    filesizefirstfile = round(s.bytes/1024/1024); %mb
+
+                    [selection,ok] = listdlg('PromptString','Select a template space:',...
+                        'SelectionMode','single',...
+                        'ListString',{...
+                        'Basal ganglia unilateral (0.25mm) - 34mb',...
+                        'Basal ganglia bilateral (0.25mm) - 57 mb',...
+                        'MNI 2009b (0.5mm) - 138mb',...
+                        ['Use first file in recipe - ',num2str(filesizefirstfile),'mb'],...
+                        '[based on file]'},...
+                        'ListSize',[250,100]);
+                else
+                    [selection,ok] = listdlg('PromptString','Select a template space:',...
+                        'SelectionMode','single',...
+                        'ListString',{...
+                        'Basal ganglia unilateral (0.25mm) - 34mb',...
+                        'Basal ganglia bilateral (0.25mm) - 57 mb',...
+                        'MNI 2009b (0.5mm) - 138mb',...
+                        '[based on file]'},...
+                        'ListSize',[250,100]);
                 end
-                s = dir(firstfile);
-                if isempty(s)
-                    error(['I am terribly sorry, but I cannot access your data. Maybe the folder is empty, or perhaps I dont have access. I am trying to reach this folder: ',firstfile])
-                end
-                filesizefirstfile = round(s.bytes/1024/1024); %mb
-                
-                [selection,ok] = listdlg('PromptString','Select a template space:',...
-                    'SelectionMode','single',...
-                    'ListString',{...
-                    'Basal ganglia unilateral (0.25mm) - 34mb',...
-                    'Basal ganglia bilateral (0.25mm) - 57 mb',...
-                    'MNI 2009b (0.5mm) - 138mb',...
-                    ['Use first file in recipe - ',num2str(filesizefirstfile),'mb'],...
-                    '[based on file]'},...
-                    'ListSize',[250,100]);
             else
-                [selection,ok] = listdlg('PromptString','Select a template space:',...
-                    'SelectionMode','single',...
-                    'ListString',{...
-                    'Basal ganglia unilateral (0.25mm) - 34mb',...
-                    'Basal ganglia bilateral (0.25mm) - 57 mb',...
-                    'MNI 2009b (0.5mm) - 138mb',...
-                    '[based on file]'},...
-                    'ListSize',[250,100]);
+                selection = 1;
+                ok = true;
             end
             
             global arena

@@ -30,7 +30,10 @@ scene.addon_addmenuitem('HeatmapMaker','produce table with distances of VTAs to 
 legacy = scene.addon_addmenuitem('HeatmapMaker','Legacy (sweetspotstation)');
 scene.addon_addmenuitem('HeatmapMaker','Make a Suretune based recipe',str2func('@HeatmapMaker_SuretuneSessionsRecipe'),legacy)
 
+lazy = scene.addon_addmenuitem('HeatmapMaker','Lazy import',str2func('@HeatmapMaker_Lazy'));
 
+hlazy=handle(lazy);it's 
+hlazy.Separator = 'on';
 
 
 menuhandle.Text = menuhandle.Text(6:end);

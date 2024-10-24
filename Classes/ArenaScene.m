@@ -40,6 +40,10 @@ classdef ArenaScene < handle
                 connectomes = ConnectomeManager;
             end
             
+            global ArenaLazy
+            ArenaLazy = false;
+
+            
             
         end
         
