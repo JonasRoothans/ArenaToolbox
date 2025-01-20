@@ -422,6 +422,7 @@ classdef ArenaScene < handle
             obj.handles.menu.dynamic.Slicei.smooth = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: smooth','callback',{@menu_smoothslice},'Enable','off');
             obj.handles.menu.dynamic.Slicei.mask = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: apply mask','callback',{@menu_applyMask},'Enable','off');
             obj.handles.menu.dynamic.Slicei.segmentElectrode = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Slice: extract Lead From CT','callback',{@menu_extractLeadFromCT},'Enable','off');
+            obj.handles.menu.dynamic.Slicei.generateGrid = uimenu(obj.handles.menu.dynamic.generate.main,'Text','Slice: generate mm-grid on slice','callback',{@menu_generateGrid},'Enable','off');
             obj.handles.menu.dynamic.Slicei.SPM = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: Use SPM to warp image to.. ','callback',{@menu_SPM},'Enable','off');
             obj.handles.menu.dynamic.Slicei.burnIn = uimenu(obj.handles.menu.dynamic.modify.main,'Text','Slice: burn in image to this actor','callback',{@burnInImage},'Enable','off');
             
@@ -2711,7 +2712,7 @@ classdef ArenaScene < handle
                 for iActor = 1:numel(currentActors)
                     
                     thisActor = currentActors(iActor);
-                    slave=thisActor.Data.parent.copy;
+                    %slave=thisActor.Data.parent.copy;
 %                     slaveCOG = thisActor.Data.parent.getcog;
 %                     
 %                     movecog = slaveCOG - targetcog;
@@ -2722,7 +2723,7 @@ classdef ArenaScene < handle
 %                     slavecopy.R.ZWorldLimits = slavecopy.R.ZWorldLimits-movecog.z;
                     
 %                     slavecopy.savenii(fullfile(tempin,[thisActor.Tag,'.nii']))
-                    slave.savenii(fullfile(tempin,[thisActor.Tag,'.nii']))
+                    thisActor.Data.parent.savenii(fullfile(tempin,[thisActor.Tag,'.nii']))
                     
                 end
                 
@@ -2739,6 +2740,34 @@ classdef ArenaScene < handle
                 
                 
                 
+                
+            end
+            
+            
+            function menu_generateGrid(hObject,eventdata)
+                scene = ArenaScene.getscenedata(hObject);
+                currentActors = ArenaScene.getSelectedActors(scene);
+                for iActor = 1:numel(currentActors)
+                    thisActor = currentActors(iActor);
+                    
+                    xmin =  min(thisActor.Visualisation.handle.XData(:));
+                    xmax = max(thisActor.Visualisation.handle.XData(:));
+                    ymin =  min(thisActor.Visualisation.handle.YData(:));
+                    ymax = max(thisActor.Visualisation.handle.YData(:));
+                    zmin =  min(thisActor.Visualisation.handle.ZData(:));
+                    zmax = max(thisActor.Visualisation.handle.ZData(:));
+                    [x,y,z] = meshgrid(xmin:10:xmax,...
+                        ymin:10:ymax,...
+                        zmin:10:zmax);
+                    
+                    
+                    pc = PointCloud([x(:),y(:),z(:)]);
+                    new = pc.see(scene);
+                    new.changeName(['Grid_10mm_',thisActor.Tag])
+                    
+                    
+
+                end
                 
             end
             
@@ -3248,22 +3277,20 @@ classdef ArenaScene < handle
                     answer = questdlg('How do you want to burn it in?','Burn in','On top of nii data (brainlab)','On a black canvas','On a black cavas');
                     template  = actorlist(indx).Data.parent;
                 end
+                
+                if makeCanvas
+                        template_ = currentActors(iActor).Data.makeCanvas;
+                else
+                    switch answer
+                        case 'On top of nii data (brainlab)'
+                            template_ = template.copy;
+                        otherwise
+                            template_ = template.copy;
+                            template_.Voxels = zeros(size(template_.Voxels));
+                    end
+                end
 
                 for iActor = 1:numel(currentActors)
-                    if makeCanvas
-                        template_ = currentActors(iActor).Data.makeCanvas;
-                    else
-                        switch answer
-                            case 'On top of nii data (brainlab)'
-                                template_ = template.copy;
-                            otherwise
-                                template_ = template.copy;
-                                template_.Voxels = zeros(size(template_.Voxels));
-
-                        end
-                    end
-                
-                
                     vd = currentActors(iActor).Data.convertToVoxelsInTemplate(template_);
                     template_.Voxels = template_.Voxels+(vd.Voxels*100);
                     template_.Tag = [template_.Tag,' + ',currentActors(iActor).Tag];

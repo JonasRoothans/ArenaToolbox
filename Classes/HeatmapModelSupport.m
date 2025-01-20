@@ -101,7 +101,7 @@ classdef HeatmapModelSupport < handle
                     conf_e1 = predictionList(item).Confidence(1);
                     conf_e2 = predictionList(item).Confidence(2);
                    
-                    HeatmapModelSupport.printtext(fileID,'%i.\t %2.1f \t C%i - %2.1f mA\t C%i - %2.1f mA \t (%2.2f / %2.2f) \n',iShortlist,Improv, c_e1,a_e1,c_e2,a_e2,conf_e1,conf_e2);
+                    HeatmapModelSupport.printtext(fileID,'%i.\t %2.2f \t C%i - %2.1f mA\t C%i - %2.1f mA \t (%2.2f / %2.2f) \n',iShortlist,Improv, c_e1,a_e1,c_e2,a_e2,conf_e1,conf_e2);
 
                 end
             else

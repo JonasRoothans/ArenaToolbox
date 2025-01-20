@@ -144,7 +144,12 @@ classdef PointCloud < ArenaActorRendering
         end
         
         function COG = getCOG(obj)
-            COG = Vector3D(mean(obj.Vectors.getArray));
+            if numel(obj.Vectors)==1
+                COG = obj.Vectors;
+            else
+                COG = Vector3D(mean(obj.Vectors.getArray));
+            end
+            
         end
         
         function balls = makeBallMesh(obj,radius)
