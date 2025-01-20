@@ -123,9 +123,10 @@ classdef ArenaManager < handle
             end
             
         end
-        
+
         
     end
+    
     
     methods (Static)
         function  success = setup(rootdir)
@@ -173,7 +174,7 @@ classdef ArenaManager < handle
         
         
             
-            
+        
         
         function rootdir = getrootdir()
             rootdir = fileparts(fileparts(mfilename('fullpath')));

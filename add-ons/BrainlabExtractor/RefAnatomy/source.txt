@@ -1,0 +1,1 @@
+These obj files are from the Distal minimal atlas found in lead-dbs.

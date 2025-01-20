@@ -32,7 +32,7 @@ scene.addon_addmenuitem('HeatmapMaker','Make a Suretune based recipe',str2func('
 
 lazy = scene.addon_addmenuitem('HeatmapMaker','Lazy import',str2func('@HeatmapMaker_Lazy'));
 
-hlazy=handle(lazy);it's 
+hlazy=handle(lazy);
 hlazy.Separator = 'on';
 
 

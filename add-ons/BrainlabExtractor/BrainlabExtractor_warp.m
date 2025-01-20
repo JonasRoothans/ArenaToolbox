@@ -3,14 +3,23 @@ function [outputArg1,outputArg2] = BrainlabExtractor_warp(master,folder,outputfo
 %   Detailed explanation goes here
 
         
-        filenames = A_getfiles(folder);
+        
         sourceDir = [master,',1'];
-        otherDir = {};
-        for i = 1:numel(filenames)
-                otherDir{end+1} = [fullfile(filenames(i).folder,filenames(i).name),',1'];
+        
+        if isempty(folder)
+            otherDir = {sourceDir};
+            folder = fileparts(master);
+        else
+            filenames = A_getfiles(folder);
+            otherDir = {};
+            for i = 1:numel(filenames)
+                    otherDir{end+1} = [fullfile(filenames(i).folder,filenames(i).name),',1'];
+
+            end
+            otherDir = otherDir';
             
         end
-        otherDir = otherDir';
+        
         
         
         p = fileparts(mfilename('fullpath'));
@@ -39,6 +48,7 @@ function [outputArg1,outputArg2] = BrainlabExtractor_warp(master,folder,outputfo
         matlabbatch{1}.spm.spatial.normalise.estwrite.woptions.vox = [1 1 1];
         matlabbatch{1}.spm.spatial.normalise.estwrite.woptions.interp = 4;
         matlabbatch{1}.spm.spatial.normalise.estwrite.woptions.prefix = 'mni_';
+        matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.write = [1 1]; % EXPORT FORWARD (1st) AND INVERSE (2nd) DEFORMATION FIELDS
         
         
         spm_jobman('run', matlabbatch);
@@ -46,6 +56,11 @@ function [outputArg1,outputArg2] = BrainlabExtractor_warp(master,folder,outputfo
         %--- moving files
      mkdir(outputfolder);
      mni_files = A_getfiles(fullfile(folder,'mni*'));
+     for iFile = 1:numel(mni_files)
+         movefile(fullfile(mni_files(iFile).folder,mni_files(iFile).name),...
+             fullfile(outputfolder,mni_files(iFile).name));
+     end
+     mni_files = A_getfiles(fullfile(folder,'y_*'));
      for iFile = 1:numel(mni_files)
          movefile(fullfile(mni_files(iFile).folder,mni_files(iFile).name),...
              fullfile(outputfolder,mni_files(iFile).name));

@@ -1,4 +1,4 @@
-function BrainlabExtractor_SegmentNormalize(menu,eventdata,scene)
+function BrainlabExtractor_normalize(menu,eventdata,scene)
 %BRAINLABEXTRACTOR_NORMALIZE_AND_EXTRACT Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -14,39 +14,11 @@ Excluded=BIfilename;
 Excluded{end+1}='master';
 
 %make dir for segmented files
-segdir = fullfile(BIfoldername,'segmented');
-warpeddir = fullfile(BIfoldername,'segmented_and_warped');
-segdir_coregdir=fullfile(BIfoldername,'segmented_and_coregistered');
+warpeddir = fullfile(fileparts(nativeTemplate),'warped');
 
-if ~isempty(BIfoldername)
-    folderstructure = strsplit(BIfoldername,filesep);
-    folder_name = '';
-    while strcmp(folder_name,'')
-        folder_name = folderstructure{end};
-        folderstructure(end) = [];
-    end
-end
-
-mkdir(segdir)
-
-
-%step 1
-BrainlabExtractor_segment(nativeTemplate,BIfilename,BIfoldername,segdir);
-%step 1b?
-if iscell(menu.Parent.UserData.electrodes)
-    BrainlabExtractor_makeLeadMarker(nativeTemplate,menu.Parent.UserData.electrodes,segdir)
-end
-
-%step 1c?
-if iscell(CTfilename)
-    copyfile(fullfile(CTfoldername,CTfilename{1}),fullfile(segdir,'CT.nii'))
-end
-
-% %step 2
-BrainlabExtractor_coreg(nativeTemplate,segdir,segdir_coregdir, Excluded)
 
 %step 3a
-BrainlabExtractor_warp(nativeTemplate,segdir_coregdir,warpeddir)
+BrainlabExtractor_warp(nativeTemplate,[],warpeddir)
 
 %step 3b
 BrainlabExtractor_cleanWarpArtifact(warpeddir)
